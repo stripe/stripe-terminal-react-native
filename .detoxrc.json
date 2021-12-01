@@ -1,0 +1,67 @@
+{
+  "testRunner": "jest",
+  "runnerConfig": "e2e/config.json",
+  "apps": {
+    "ios.debug": {
+      "type": "ios.app",
+      "binaryPath": "example/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeExample.app",
+      "build": "xcodebuild -workspace example/ios/StripeTerminalReactNativeExample.xcworkspace -configuration Debug -scheme StripeTerminalReactNativeExample -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath example/ios/build"
+    },
+    "ios.release": {
+      "type": "ios.app",
+      "binaryPath": "example/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeExample.app",
+      "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace example/ios/StripeTerminalReactNativeExample.xcworkspace -configuration Release -scheme StripeTerminalReactNativeExample -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath example/ios/build"
+    },
+    "android.debug": {
+      "type": "android.apk",
+      "binaryPath": "example/android/app/build/outputs/apk/debug/app-debug.apk",
+      "build": "cd example/android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug ; cd -"
+    },
+    "android.release": {
+      "type": "android.apk",
+      "binaryPath": "example/android/app/build/outputs/apk/release/app-release.apk",
+      "build": "export RCT_NO_LAUNCH_PACKAGER=true && (cd example/android; ENVFILE=../.env.ci ./gradlew assembleRelease assembleAndroidTest -DtestBuildType=release ; cd -)"
+    }
+  },
+  "devices": {
+    "simulator": {
+      "type": "ios.simulator",
+      "device": {
+        "type": "iPhone 11",
+        "os": "iOS 13.7"
+      }
+    },
+    "emulator": {
+      "type": "android.emulator",
+      "device": {
+        "avdName": "Nexus_6_API_29_2",
+        "utilBinaryPaths": ["./test-butler-app.apk"]
+      }
+    },
+    "ci-emulator": {
+      "type": "android.emulator",
+      "device": {
+        "avdName": "TestingAVD"
+      },
+      "utilBinaryPaths": ["./test-butler-app.apk"]
+    }
+  },
+  "configurations": {
+    "ios": {
+      "device": "simulator",
+      "app": "ios.debug"
+    },
+    "ios.sim.release": {
+      "device": "simulator",
+      "app": "ios.release"
+    },
+    "android": {
+      "device": "emulator",
+      "app": "android.debug"
+    },
+    "android.emu.release": {
+      "device": "ci-emulator",
+      "app": "android.release"
+    }
+  }
+}

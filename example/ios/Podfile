@@ -1,0 +1,27 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '10.0'
+
+target 'StripeTerminalReactNativeExample' do
+  config = use_native_modules!
+
+  use_react_native!(:path => config["reactNativePath"])
+
+  pod 'stripe-terminal-react-native', :path => '../..'
+
+  ENVFILES = {
+    'Debug' => '$(PODS_ROOT)/../../.env',
+    'Release' => '$(PODS_ROOT)/../../.env.ci',
+  }
+
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        if target.name == 'react-native-config'
+          config.build_settings['ENVFILE'] = ENVFILES[config.name]
+        end
+      end
+    end
+  end
+end
