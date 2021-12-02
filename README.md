@@ -31,13 +31,14 @@ Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 #### iOS
 
-Compatible with apps targeting iOS 10 or above.
+- Compatible with apps targeting iOS 10 or above.
 
 ## Stripe Terminal SDK initialization
 
 To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
 
 First, create an endpoint on your backend server that creates a new connection token via the Stripe Terminal API.
+
 Next, create a token provider that will fetch connection token from your server and provide it to StripeTerminalProvider as a parameter.
 Stripe Terminal SDK will fetch it when it's needed.
 
@@ -71,8 +72,9 @@ function App() {
 ## Usage example
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
-Moreover, you have an access to the internal state of SDK that contain information about the current connection, discovered readers and loading state.
-Alternatively, you can import all of the functions directly from the module but keep in mind that you will loose an access to the SDK state.
+Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
+
+Alternatively, you can import all of the functions directly from the module but keep in mind that you will loose the access to the SDK state.
 
 ```tsx
 // Screen.ts
@@ -110,7 +112,7 @@ export default function PaymentScreen() {
 In case your app uses `React Class Components` you can use dedicated `withStripeTerminal` Higher-Order-Component.
 Please note that comparing to the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.
 
-[Here](https://github.com/stripe/stripe-terminal-react-native/blob/main/src/hooks/useStripeTerminal.tsx#L51), you can find the list of available events to be used within event emitter.
+[Here](https://github.com/stripe/stripe-terminal-react-native/blob/main/src/hooks/useStripeTerminal.tsx#L51) you can find the list of available events to be used within the event emitter.
 
 Example:
 
