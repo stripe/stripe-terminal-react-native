@@ -80,7 +80,7 @@ export type Props = {
   onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
   onDidFinishInstallingUpdate?(update: Reader.SoftwareUpdate): void;
 
-  onDidRequestReaderInput?(input: Reader.InputType[]): void;
+  onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
   onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;
 
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
@@ -214,7 +214,7 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const didRequestReaderInput = useCallback(
-    ({ result }: EventResult<Reader.InputType[]>) => {
+    ({ result }: EventResult<Reader.InputOptions[]>) => {
       log('didRequestReaderInput', result);
       onDidRequestReaderInput?.(result);
       emitter.emit(REQUEST_READER_INPUT_LISTENER_NAME);

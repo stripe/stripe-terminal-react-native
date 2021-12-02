@@ -82,7 +82,7 @@ export namespace Reader {
     | 'wisePosE'
     | 'cotsDevice';
 
-  export type InputType = 'insertCard' | 'swipeCard' | 'tapCard';
+  export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
 
   export type DisplayMessage =
     | 'insertCard'
