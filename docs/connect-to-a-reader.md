@@ -14,10 +14,9 @@ When connecting to a Bluetooth reader using `connectBluetoothReader`, your integ
 function DiscoverReadersScreen() {
   const { discoverReaders, connectBluetoothReader, discoveredReaders } =
     useStripeTerminal({
-      onFinishDiscoveringReaders: (error) => {
-        if (!error) {
-          handleConnectBluetoothReader(discoveredReaders[0].id);
-        }
+      didUpdateDiscoveredReaders: (readers) => {
+        // once you get the list of available readers you can make a connection.
+        handleConnectBluetoothReader(readers[0].id);
       },
     });
 
@@ -33,8 +32,10 @@ function DiscoverReadersScreen() {
     });
 
     if (error) {
-      const { code, message } = error;
-      Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      Alert.alert(
+        'Discover readers error: ',
+        `${error.code}, ${error.message}`
+      );
     }
   };
 

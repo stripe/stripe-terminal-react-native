@@ -7,7 +7,7 @@ Getting started with the Android SDK requires four steps:
 - [Install the SDK](#install-the-sdk) in your app
 - [Configure your app](#configure-your-app)
 - [Set up the connection token endpoint](#set-up-the-connection-token-endpoint) in your app and backend
-- Initialize the SDK in your app
+- [Initialize the SDK in your app](#initialize-the-sdk)
 
 ## Install the SDK
 

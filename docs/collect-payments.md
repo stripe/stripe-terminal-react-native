@@ -6,11 +6,13 @@ Collecting payments with Stripe Terminal requires writing a payment flow in your
 
 Designed to be robust to failures, the Terminal integration splits the payment process into several steps, each of which can be retried safely:
 
-- Create a PaymentIntent
-- Collect a payment method
-- Process the payment
-- Capture the payments
-- Authorization on the customer’s card takes place in Step 3, when the SDK processes the payment.
+- [Create a PaymentIntent](#create-a-paymentintent)
+- [Collect a payment method](#collect-a-payment-method)
+
+- [Process the payment](#process-the-payment)
+- [Capture the payments](#capture-the-payments)
+
+Authorization on the customer’s card takes place in [Step 3](#process-the-payment), when the SDK processes the payment.
 
 ## Create a PaymentIntent
 
@@ -54,13 +56,11 @@ app.listen(3000, () => {
 
 Use the client secret as a parameter when calling `retrievePaymentIntent` to get a `PaymentIntent` object on client side.
 
-> The `client_secret` is all you need in your client-side application to proceed to payment method collection.
-
 ## Collect a payment method
 
 After you’ve created a PaymentIntent, the next step is to collect a payment method with the SDK.
 
-Before you do this, you need to retrieve a PaymentIntent object on the client side and save `id` of `PaymentIntent` in your state for futher use.
+Before you do this, you need to retrieve a PaymentIntent object on the client side which is required to collect a payment method.
 
 ```tsx
 const { paymentIntent, error } = await retrievePaymentIntent(clientSecret);
@@ -69,14 +69,14 @@ const [paymentIntentId, setPaymentIntentId] = useState();
 if (error) {
   // Placeholder for handling exception
 } else if (paymentIntent) {
-  setPaymentIntentId(paymentIntent.id);
+  // Placeholder for collecting payment method
 }
 ```
 
 In order to collect a payment method, your app needs to be connected to a reader. The connected reader will wait for a card to be presented after your app calls `collectPaymentMethod`.
 
 ```tsx
-const { paymentIntent, error } = await collectPaymentMethod(paymentIntentId); // use before saved paymentIntentId
+const { paymentIntent, error } = await collectPaymentMethod(paymentIntentId);
 
 if (error) {
   // Placeholder for handling exception
@@ -127,7 +127,17 @@ if (error) {
 
 > You must manually capture payments processed by the Terminal SDKs. Set up your backend to [capture the payment](#capture-a-payment) within two days. Otherwise, the authorization expires and funds get released back to the customer.
 
-## Capture a payment
+### Handle processing failures
+
+When processing a payment fails, the SDK returns an error that includes the updated `PaymentIntent`. Your application should inspect the `PaymentIntent` to decide how to deal with the error.
+
+| PAYMENTINTENT STATUS      |                                                           | RESOLUTION                                                                                                                               |
+| ------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `requires_payment_method` | Payment method declined                                   | Try collecting a different payment method by calling `collectPaymentMethod` again with the same PaymentIntent.                           |
+| `requires_confirmation`   | Temporary connectivity problem                            | Call `processPayment` again with the same PaymentIntent to retry the request.                                                            |
+| PaymentIntent is `nil`    | Request to Stripe timed out, unknown PaymentIntent status | Retry processing the original PaymentIntent. Don’t create a new one, as that could result in multiple authorizations for the cardholder. |
+
+## Capture the payments
 
 Stripe Terminal uses a two-step process to prevent unintended and duplicate payments. When the SDK returns a processed PaymentIntent to your app, the payment is authorized but not captured. Read the [auth and capture](https://stripe.com/docs/payments/capture-later) documentation for more information about the difference.
 
