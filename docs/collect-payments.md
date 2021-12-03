@@ -65,7 +65,6 @@ Before you do this, you need to retrieve a PaymentIntent object on the client si
 ```tsx
 const { paymentIntent, error } = await retrievePaymentIntent(clientSecret);
 
-const [paymentIntentId, setPaymentIntentId] = useState();
 if (error) {
   // Placeholder for handling exception
 } else if (paymentIntent) {

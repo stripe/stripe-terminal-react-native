@@ -135,7 +135,7 @@ app.listen(3000, () => {
 
 ## Client-side
 
-To give the SDK access to this endpoint, create a token provider single function that requests a ConnectionToken from your backend and hand it over to StripeTerminalProvider as a prop.
+To give the SDK access to this endpoint, create a token provider single function that requests a ConnectionToken from your backend.
 
 ```tsx
 // App.ts
