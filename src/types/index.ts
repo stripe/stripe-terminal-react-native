@@ -132,6 +132,7 @@ export interface Charge {
 export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   amount: number;
   currency: string;
+  setupFutureUsage?: 'offSession' | 'onSession';
 };
 
 export type CreatePaymentIntentIOSParams = {
@@ -214,15 +215,10 @@ export type PaymentMethodDetails = {
   interacPresent?: string;
 };
 
-export type ProcessRefundResultType =
-  | {
-      refund: Refund.Props;
-      error: undefined;
-    }
-  | {
-      refund: undefined;
-      error: StripeError;
-    };
+export type ProcessRefundResultType = {
+  refund?: Refund.Props;
+  error?: StripeError;
+};
 
 export type ReadReusableCardParamsType = {
   customer?: string;

@@ -10,7 +10,7 @@ export namespace Refund {
       failureReason?: string;
       reason?: string;
       description?: string;
-      status?: string;
+      status?: Status;
     };
 
   export namespace IOS {
@@ -19,6 +19,8 @@ export namespace Refund {
       paymentMethodDetails?: PaymentMethodDetails;
     }
   }
+
+  export type Status = 'succeeded' | 'failed' | 'pending' | 'unknown';
 
   export namespace Android {
     export interface Props {

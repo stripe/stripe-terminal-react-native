@@ -70,7 +70,9 @@ export default function CollectCardPaymentScreen() {
       amount: Number(inputValues.amount),
       currency: inputValues.currency,
       paymentMethodTypes: paymentMethods,
+      setupFutureUsage: 'offSession',
     });
+
     if (error) {
       if (error) {
         console.log('error', error);

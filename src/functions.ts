@@ -24,6 +24,7 @@ import type {
   RefundParams,
   PaymentMethodResultType,
   ReadReusableCardParamsType,
+  ProcessRefundResultType,
 } from './types';
 
 export async function initialize(
@@ -516,13 +517,18 @@ export async function collectRefundPaymentMethod(
   }
 }
 
-export async function processRefund(): Promise<{
-  error?: StripeError;
-}> {
+export async function processRefund(): Promise<ProcessRefundResultType> {
   try {
-    const { error } = await StripeTerminalSdk.processRefund();
+    const { error, refund } = await StripeTerminalSdk.processRefund();
+    if (error) {
+      return {
+        error,
+        refund: undefined,
+      };
+    }
     return {
-      error,
+      refund: refund,
+      error: undefined,
     };
   } catch (error) {
     return {

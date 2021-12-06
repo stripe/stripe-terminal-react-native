@@ -79,7 +79,7 @@ export default function RefundPaymentScreen() {
         },
       ],
     });
-    const { error } = await processRefund();
+    const { error, refund } = await processRefund();
     if (error) {
       addLogs({
         name: 'Process Refund',
@@ -90,12 +90,22 @@ export default function RefundPaymentScreen() {
           },
         ],
       });
+    } else if (refund && refund.status === 'succeeded') {
+      addLogs({
+        name: 'Process Refund',
+        events: [
+          {
+            name: 'Succeeded',
+            description: 'terminal.processRefund',
+          },
+        ],
+      });
     } else {
       addLogs({
         name: 'Process Refund',
         events: [
           {
-            name: 'Finished',
+            name: 'Pending or unsuccessful',
             description: 'terminal.processRefund',
           },
         ],
