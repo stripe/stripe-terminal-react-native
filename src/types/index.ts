@@ -132,7 +132,7 @@ export interface Charge {
 export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   amount: number;
   currency: string;
-  setupFutureUsage?: 'offSession' | 'onSession';
+  setupFutureUsage?: 'off_session' | 'on_session';
 };
 
 export type CreatePaymentIntentIOSParams = {

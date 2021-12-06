@@ -30,7 +30,7 @@ const { createPaymentIntent } = useStripeTerminal();
 const { paymentIntent, error } = await createPaymentIntent({
   amount: 20000,
   currency: 'usd',
-  setupFutureUsage: 'offSession',
+  setupFutureUsage: 'off_session',
 });
 ```
 

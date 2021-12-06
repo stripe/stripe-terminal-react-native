@@ -8,11 +8,11 @@ A Stripe Terminal integration starts with your point of sale application running
 
 Before starting your own integration, we recommend setting up one of the Terminal example applications. This will give you a better feel for how the components of a Terminal integration fit together and show you the interactions between the SDK, the reader, your point of sale application, and your backend code.
 
-1. Deploy the example backend
+## 1. Deploy the example backend
 
 To get started with the example applications, set up the Sinatra-based [example backend](https://github.com/stripe/example-terminal-backend) by following the instructions in the [README](https://github.com/stripe/example-terminal-backend). You can either run the backend locally or deploy it to Heroku with a free account. The example backend works with the example application to authenticate the Terminal SDK and finalize payments.
 
-2. Run example application
+## 2. Run example application
 
 Build and run one of the example applications:
 
@@ -36,7 +36,7 @@ git clone https://github.com/stripe/stripe-terminal-react-native.git
     - or
     - `yarn example android`
 
-3. Connect to a simulated reader
+## 3. Connect to a simulated reader
 
 After you have the example running, select `Simulated` to connect to a [simulated reader](https://stripe.com/docs/terminal/references/testing#simulated-reader).
 
@@ -46,7 +46,7 @@ The simulated reader handles events just like a physical reader, so you can cont
 
 The simulated reader functionality is built into the SDK, so you can use it to develop and test your own point of sale application without connecting to a physical device.
 
-4. Collect your first payment
+## 4. Collect your first payment
 
 Collect your first payment using the example application and a simulated reader. Each of the examples features an event log for you to reference as you integrate Terminal in your own application. As you collect your first payment, you’ll see the following sequence:
 

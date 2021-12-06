@@ -329,13 +329,17 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   fun createPaymentIntent(params: ReadableMap, promise: Promise) {
     val amount = getIntOr(params, "amount") ?: 0
     val currency = getStringOr(params, "currency") ?: ""
+    val setupFutureUsage = getStringOr(params, "currency")
 
     val intentParams = PaymentIntentParameters.Builder()
       .setAmount(amount.toLong())
       .setCurrency(currency)
-      .build()
 
-    Terminal.getInstance().createPaymentIntent(intentParams, object : PaymentIntentCallback {
+    setupFutureUsage?.let {
+      intentParams.setSetupFutureUsage(it)
+    }
+
+    Terminal.getInstance().createPaymentIntent(intentParams.build(), object : PaymentIntentCallback {
       override fun onSuccess(paymentIntent: PaymentIntent) {
         paymentIntents[paymentIntent.id] = paymentIntent
 
