@@ -78,8 +78,8 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
-    enableHermes: false,  // clean and rebuild if changing
     entryFile: "index.js",
+    enableHermes: true
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
@@ -120,6 +120,10 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
+/**
+ * Architectures to build native code for in debug.
+ */
+def nativeArchitectures = project.getProperties().get("reactNativeDebugArchitectures")
 
 android {
     ndkVersion rootProject.ext.ndkVersion
