@@ -54,4 +54,4 @@ Collect your first payment using the example application and a simulated reader.
 - **Collect payment method:** The simulated reader receives a card.
 - **Process and capture:** The example application and backend finalize the payment.
 
-![example screen](https://b.stripecdn.com/docs-statics-srv/assets/ios-example-app-payment.4eede9e782e327bca886bbdbcab7537c.png)
+![example screen](./assets/log-screen.png)

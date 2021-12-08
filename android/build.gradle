@@ -9,7 +9,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:4.1.2'
+    classpath 'com.android.tools.build:gradle:4.2.2'
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
@@ -33,7 +33,6 @@ android {
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     versionCode 1
     versionName "1.0"
-
   }
 
   buildTypes {
