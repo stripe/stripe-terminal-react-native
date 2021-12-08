@@ -599,3 +599,16 @@ export async function cancelCollectSetupIntent(): Promise<{
     };
   }
 }
+
+export async function cancelReadReusableCard(): Promise<{
+  error?: StripeError;
+}> {
+  try {
+    await StripeTerminalSdk.cancelReadReusableCard();
+    return {};
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}

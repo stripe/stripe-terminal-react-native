@@ -113,6 +113,9 @@ type StripeTerminalSdkType = {
   cancelCollectSetupIntent(): Promise<{
     error?: StripeError;
   }>;
+  cancelReadReusableCard(): Promise<{
+    error?: StripeError;
+  }>;
 };
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

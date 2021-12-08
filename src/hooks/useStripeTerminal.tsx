@@ -42,6 +42,7 @@ import {
   readReusableCard,
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
+  cancelReadReusableCard,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -611,6 +612,16 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [setLoading]);
 
+  const _cancelReadReusableCard = useCallback(async () => {
+    setLoading(true);
+
+    const response = await cancelReadReusableCard();
+
+    setLoading(false);
+
+    return response;
+  }, [setLoading]);
+
   return {
     initialize,
     discoverReaders: _discoverReaders,
@@ -640,6 +651,7 @@ export function useStripeTerminal(props?: Props) {
     readReusableCard: _readReusableCard,
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
+    cancelReadReusableCard: _cancelReadReusableCard,
     emitter: emitter,
     discoveredReaders,
     connectedReader,

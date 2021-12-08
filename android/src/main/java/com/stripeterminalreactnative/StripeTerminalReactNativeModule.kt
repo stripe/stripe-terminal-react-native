@@ -15,6 +15,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   private var collectPaymentMethodCancelable: Cancelable? = null
   private var collectSetupIntentCancelable: Cancelable? = null
   private var installUpdateCancelable: Cancelable? = null
+  private var readReusableCardCancelable: Cancelable? = null
 
   private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
   private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -481,6 +482,23 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun cancelReadReusableCard(promise: Promise) {
+    val cancelable = readReusableCardCancelable ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "readReusableCard could not be canceled because the command has already been canceled or has completed."))
+      return
+    }
+    cancelable.cancel(object : Callback {
+      override fun onSuccess() {
+        promise.resolve(WritableNativeMap())
+      }
+
+      override fun onFailure(e: TerminalException) {
+        promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+      }
+    })
+  }
+
+  @ReactMethod
   fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) {
     val setupIntentId = getStringOr(params, "setupIntentId")
     val customerConsentCollected = getBoolean(params, "customerConsentCollected")
@@ -661,7 +679,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     var reusableCardParams = ReadReusableCardParameters.Builder().setCustomer(customer).build();
 
-    Terminal.getInstance().readReusableCard(reusableCardParams, object : PaymentMethodCallback {
+    readReusableCardCancelable = Terminal.getInstance().readReusableCard(reusableCardParams, object : PaymentMethodCallback {
       override fun onSuccess(paymentMethod: PaymentMethod) {
         val pm = mapFromPaymentMethod(paymentMethod);
         val result = WritableNativeMap()
