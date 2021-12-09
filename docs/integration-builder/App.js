@@ -1,11 +1,19 @@
-import React from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  PermissionsAndroid,
+  Platform,
+  Alert,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import {
   StripeTerminalProvider,
   useStripeTerminal,
 } from 'stripe-terminal-react-native';
 import {
-  fechTokenProvider,
+  fetchConnectionToken,
   fetchPaymentIntent,
   capturePaymentIntent,
 } from './apiClient';
@@ -17,18 +25,66 @@ export default function App() {
     connectBluetoothReader,
     collectPaymentMethod,
   } = useStripeTerminal({
-    onUpdateDiscoveredReaders: (readers) => {
-      // once you get the list of available readers you can make a connection.
-      handleConnectBluetoothReader(readers[0]);
+    onUpdateDiscoveredReaders: async (readers) => {
+      const selectedReader = readers[0];
+      // {{ INTEGRATION-BUILDER START: #3b }}
+      const { reader, error } = await connectBluetoothReader({
+        readerId: selectedReader.id,
+        // for simulated mode you can provide the simulated reader’s mock locationId
+        locationId: selectedReader.locationId,
+      });
+      // {{ INTEGRATION-BUILDER END: #3b }}
+
+      if (error) {
+        console.log('connectBluetoothReader error', error);
+      } else {
+        console.log('Reader connected successfully', reader);
+      }
     },
   });
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
+
+  // {{ INTEGRATION-BUILDER START: #2f }}
+  useEffect(() => {
+    async function init() {
+      try {
+        const granted = await PermissionsAndroid.request(
+          'android.permission.ACCESS_FINE_LOCATION',
+          {
+            title: 'Location Permission Permission',
+            message: 'App needs access to your Location ',
+            buttonPositive: 'Accept',
+          }
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('You can use the Location');
+          setPermissionsGranted(true);
+        } else {
+          Alert.alert(
+            'Location services are required in order to connect to a reader.'
+          );
+        }
+      } catch {
+        Alert.alert(
+          'Location services are required in order to connect to a reader.'
+        );
+      }
+    }
+
+    if (Platform.OS === 'android') {
+      init();
+    }
+  }, []);
+  // {{ INTEGRATION-BUILDER END: #2f }}
 
   const handleDiscoverReaders = async () => {
     // List of discovered readers will be available within useStripeTerminal hook
+    // {{ INTEGRATION-BUILDER START: #3a }}
     const { error } = await discoverReaders({
       discoveryMethod: 'bluetoothScan',
       simulated: true,
     });
+    // {{ INTEGRATION-BUILDER END: #3a }}
 
     if (error) {
       console.log(
@@ -40,20 +96,6 @@ export default function App() {
     }
   };
 
-  const handleConnectBluetoothReader = async (selectedReader) => {
-    const { reader, error } = await connectBluetoothReader({
-      readerId: selectedReader.id,
-      // for simulated mode you can provide the simulated reader’s mock locationId
-      locationId: selectedReader.locationId,
-    });
-
-    if (error) {
-      console.log('connectBluetoothReader error', error);
-    } else {
-      console.log('Reader connected successfully', reader);
-    }
-  };
-
   const collectPayment = async () => {
     const clientSecret = await fetchPaymentIntent();
 
@@ -61,6 +103,7 @@ export default function App() {
       console.log('createPaymentIntent failed');
       return;
     }
+    // {{ INTEGRATION-BUILDER START: #4c }}
     const { paymentIntent, error } = await retrievePaymentIntent(clientSecret);
 
     if (error) {
@@ -68,8 +111,9 @@ export default function App() {
     } else if (paymentIntent) {
       const { paymentIntent: collectedPaymentIntent, error: collectError } =
         await collectPaymentMethod(paymentIntent.id);
+      // {{ INTEGRATION-BUILDER END: #4c }}
 
-      if (error) {
+      if (collectError) {
         console.log(`collectPaymentMethod failed: ${collectError.message}`);
       } else if (collectedPaymentIntent) {
         console.log('collectPaymentMethod succeeded');
@@ -80,8 +124,10 @@ export default function App() {
   };
 
   const processPayment = async (paymentIntent) => {
+    // {{ INTEGRATION-BUILDER START: #4d }}
     const { paymentIntent: processPaymentPaymentIntent, error } =
       await processPayment(paymentIntent.id);
+    // {{ INTEGRATION-BUILDER END: #4d }}
 
     if (error) {
       console.log(`processPayment failed: ${error.message}`);
@@ -98,17 +144,30 @@ export default function App() {
   };
 
   return (
-    <StripeTerminalProvider
-      logLevel="verbose"
-      tokenProvider={fechTokenProvider}
-    >
-      <TouchableOpacity onPress={handleDiscoverReaders}>
-        <Text>Discover Readers</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={collectPayment}>
-        <Text>Collect payment</Text>
-      </TouchableOpacity>
-    </StripeTerminalProvider>
+    <>
+      {permissionsGranted ? (
+        // {{ INTEGRATION-BUILDER START: #2g }}
+        <StripeTerminalProvider
+          logLevel="verbose"
+          tokenProvider={fetchConnectionToken}
+          // {{ INTEGRATION-BUILDER START: #2g }}
+        >
+          <TouchableOpacity
+            disabled={!permissionsGranted}
+            onPress={handleDiscoverReaders}
+          >
+            <Text>Discover Readers</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={!permissionsGranted}
+            onPress={collectPayment}
+          >
+            <Text>Collect payment</Text>
+          </TouchableOpacity>
+        </StripeTerminalProvider>
+      ) : (
+        <ActivityIndicator style={StyleSheet.absoluteFillObject} />
+      )}
+    </>
   );
 }

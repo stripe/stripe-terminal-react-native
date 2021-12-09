@@ -25,24 +25,5 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    if (ContextCompat.checkSelfPermission(this,
-      Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-      String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-      // REQUEST_CODE_LOCATION should be defined on your app level
-      ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_LOCATION);
-    }
-
-  }
-
-  @Override
-  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-    if (requestCode == REQUEST_CODE_LOCATION && grantResults.length > 0
-      && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-      throw new RuntimeException("Location services are required in order to " +
-        "connect to a reader.");
-    }
   }
 }

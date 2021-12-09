@@ -6,7 +6,7 @@ The Stripe Terminal SDK comes with a built-in simulated card reader, so you can 
 
 Note that the simulated reader does not provide a UI. After connecting to it in your app, you can see it working when calls to the Stripe SDK succeed.
 
-To use the simulated reader, call `discoverReaders` to search for readers, with the `simulated` option set to `true`. When `onFinishDiscoveringReaders` callback is called without any errors, call `connectBluetoothReader` to connect to the simulated reader.
+To use the simulated reader, call `discoverReaders` to search for readers, with the `simulated` option set to `true`. When `onUpdateDiscoveredReaders` callback is called with an array of the readers as an argument, call `connectBluetoothReader` to connect to the simulated reader.
 
 When connecting to a Bluetooth reader using `connectBluetoothReader`, your integration must provide the `locationId` parameter to the method, even for the simulated reader. Since the simulated reader can’t be associated with a real location, you may provide the simulated reader’s mock locationId instead.
 

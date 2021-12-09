@@ -36,9 +36,9 @@ or
 npm install @stripe/stripe-terminal-react-native
 ```
 
-**2b. Configure your app**
+**2c. Configure your app on iOS**
 
-To prepare your app to work with the Stripe Terminal SDK, make a few changes to your Info.plist file in Xcode.
+To prepare your app to work with the Stripe Terminal SDK on `iOS`, make a few changes to your Info.plist file in Xcode.
 
 [location]
 Enable location services with the following key-value pair.
@@ -74,54 +74,74 @@ Allow your app to display a Bluetooth permission dialog.
 <string>This app uses Bluetooth to connect to supported card readers.</string>
 ```
 
-[location-Android]
-
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_COARSE_LOCATION` permission is enabled in your app. To do this, add the following check before you initialize the Terminal SDK:
-
-```tsx
-useEffect(() => {
-  async function init() {
-    try {
-      const granted = await PermissionsAndroid.request(
-        'android.permission.ACCESS_COARSE_LOCATION',
-        {
-          title: 'Location Permission Permission',
-          message: 'App needs access to your Location ',
-          buttonPositive: 'Agree',
-        }
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the Location');
-      } else {
-        throw Error(
-          'Location services are required in order to connect to a reader.'
-        );
-      }
-    } catch {}
-  }
-  init();
-}, []);
-```
-
-**2c. Fetch ConnectionToken**
+**2d. Fetch ConnectionToken**
 
 Implement a token provider single function in your app that requests a connection token from your backend.
 
-**2c. Initialize the SDK**
+**2e. Configure TerminalLifeCycleObserver on Android**
 
-To get started, provide your token provider to `StripeTerminalProvider` as a prop.
+To prevent memory leaks and ensure proper cleanup of long-running Terminal SDK processes, your application must have the Application subclass where `TerminalLifeCycleObserver` is configured. This subclass should register activity lifecycle callbacks and implement the `onTrimMemory` method to notify the SDK to prune its memory usage.
 
-```tsx
-import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
+**2f. Verify permissions on Android**
 
-function App() {
-  return (
-    <StripeTerminalProvider
-      logLevel="verbose"
-      tokenProvider={fechTokenProvider}
-    >
-      <Screen />
-    </StripeTerminalProvider>
-  );
-}
+Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. To do this, add the following check before you initialize the Terminal SDK:
+
+**2g. Initialize the SDK**
+
+To get started, add a `StripeTerminalProvider` on the root of your Application and provide your token provider as a prop.
+
+## 3. Connect to the simulated reader
+
+**3a. Discover readers**
+
+The Stripe Terminal SDK comes with a built-in simulated card reader, so you can develop and test your app without connecting to physical hardware. To use the simulated reader, call `discoverReaders` to search for readers, with the simulated option set to true. You can discover intended readers more easily by [filtering by location](https://stripe.com/docs/terminal/fleet/locations#internet-reader-discovery).
+
+**3b. Connect to the simulated reader**
+
+When `onUpdateDiscoveredReaders` callback is called with an array of the readers as an argument, call `connectBluetoothReader` to connect to the simulated reader.
+
+## 4. Collecting Payments
+
+**4a. Create a PaymentIntent**
+
+Add an endpoint on your server that creates a PaymentIntent. A PaymentIntent tracks the customer's payment lifecycle, keeping track of any failed payment attempts and ensuring they’re only charged once. Return the PaymentIntent's client secret in the response. If you’re using Stripe Connect, you can also specify [connected account information](https://stripe.com/docs/terminal/features/connect) based on your platform’s charge logic.
+
+**4b. Fetch the PaymentIntent**
+
+Make a request to your server for a PaymentIntent to initiate the payment process.
+
+**4c. Collect payment method details**
+
+Call `collectPaymentMethod` with retrieved PaymentIntent's ID to collect a payment method. When connected to the simulated reader calling this method immediately updates the PaymentIntent object with a [simulated test card](https://stripe.com/docs/terminal/references/testing#simulated-test-cards). When connected to a physical reader the connected reader waits for a card to be presented.
+
+**4d. Process the payment**
+
+After successfully collecting payment method data, call processPayment with the updated PaymentIntent to process the payment. A successful call results in a PaymentIntent with a status of `requires_capture`.
+
+**4e. Create an endpoint to capture the PaymentIntent**
+
+Create an endpoint on your backend that accepts a PaymentIntent ID and sends a request to the Stripe API to capture it.
+
+**4f. Capture the PaymentIntent**
+
+Notify your backend to capture the PaymentIntent. In your request send the PaymentIntent ID.
+
+## 5. Test the integration
+
+**5a. Run the application**
+
+Run your Node server and go to `localhost:4242`.
+
 ```
+npm start
+```
+
+**5b. Make a test paymentn**
+
+Use [amounts](https://stripe.com/docs/terminal/references/testing#physical-test-card) ending in the following special values to test your integration.
+**Payment succeeds**
+**Payment is declined**
+
+## Congratulations!
+
+Your Terminal integration is now set up to collect in-person payments. Next, test your current integration with a physical reader or integrate Stripe Terminal with your connect platform.
