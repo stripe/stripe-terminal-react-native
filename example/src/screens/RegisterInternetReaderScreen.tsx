@@ -31,24 +31,29 @@ export default function RegisterInternetReaderScreen() {
 
   const registerReader = async () => {
     setStatus('Registering...');
-    const response = await fetch(`${API_URL}/readers`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        registration_code: inputValues.registration_code,
-        label: inputValues.label || undefined,
-        location: selectedLocation?.id,
-      }),
-    });
-    const { reader, error } = await response.json();
-    if (error) {
-      console.log(error);
+    try {
+      const response = await fetch(`${API_URL}/register_reader`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          registration_code: inputValues.registration_code,
+          label: inputValues.label || undefined,
+          location: selectedLocation?.id,
+        }),
+      });
+      const { reader, error } = await response.json();
+      if (error) {
+        console.log(error);
+        setStatus('Could not register reader.');
+      } else {
+        console.log(reader);
+        setStatus('Registered');
+      }
+    } catch (error) {
+      console.error(error);
       setStatus('Could not register reader.');
-    } else {
-      console.log(reader);
-      setStatus('Registered');
     }
   };
 
