@@ -44,6 +44,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var collectPaymentMethodCancelable: Cancelable? = nil
     var collectSetupIntentCancelable: Cancelable? = nil
     var installUpdateCancelable: Cancelable? = nil
+    var readReusableCardCancelable: Cancelable? = nil
     
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -104,6 +105,23 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve([:])
             }
             self.collectSetupIntentCancelable = nil
+        }
+    }
+
+    @objc(cancelReadReusableCard:rejecter:)
+    func cancelReadReusableCard(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = readReusableCardCancelable else {
+            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "readReusableCard could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error {
+                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            }
+            else {
+                resolve([:])
+            }
+            self.readReusableCardCancelable = nil
         }
     }
     
@@ -233,9 +251,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func createPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let amount = params["amount"] as? NSNumber ?? 0
         let currency = params["currency"] as? String ?? ""
+        let setupFutureUsage = params["setupFutureUsage"] as? String
         let paymentMethodTypes = params["paymentMethodTypes"] as? [String] ?? []
-        
+
         let paymentIntentParams = PaymentIntentParameters(amount: UInt(truncating: amount), currency: currency, paymentMethodTypes: paymentMethodTypes)
+        paymentIntentParams.setupFutureUsage = setupFutureUsage
+        
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
             if let error = error {
                 resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))

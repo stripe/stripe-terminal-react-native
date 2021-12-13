@@ -22,8 +22,8 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 
 ### Requirements
 
-The SDK uses TypeScript features available in Babel version `7.9.0` and above.
-Alternatively use the `plugin-transform-typescript` plugin in your project.
+- The SDK uses TypeScript features available in Babel version `7.9.0` and above.
+  Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 #### Android
 

@@ -15,6 +15,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   private var collectPaymentMethodCancelable: Cancelable? = null
   private var collectSetupIntentCancelable: Cancelable? = null
   private var installUpdateCancelable: Cancelable? = null
+  private var readReusableCardCancelable: Cancelable? = null
 
   private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
   private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -329,13 +330,17 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   fun createPaymentIntent(params: ReadableMap, promise: Promise) {
     val amount = getIntOr(params, "amount") ?: 0
     val currency = getStringOr(params, "currency") ?: ""
+    val setupFutureUsage = getStringOr(params, "currency")
 
     val intentParams = PaymentIntentParameters.Builder()
       .setAmount(amount.toLong())
       .setCurrency(currency)
-      .build()
 
-    Terminal.getInstance().createPaymentIntent(intentParams, object : PaymentIntentCallback {
+    setupFutureUsage?.let {
+      intentParams.setSetupFutureUsage(it)
+    }
+
+    Terminal.getInstance().createPaymentIntent(intentParams.build(), object : PaymentIntentCallback {
       override fun onSuccess(paymentIntent: PaymentIntent) {
         paymentIntents[paymentIntent.id] = paymentIntent
 
@@ -468,6 +473,23 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     Terminal.getInstance().cancelPaymentIntent(paymentIntent, object: PaymentIntentCallback {
       override fun onSuccess(paymentIntent: PaymentIntent) {
         onPaymentIntentCallback(paymentIntent, promise)
+      }
+
+      override fun onFailure(e: TerminalException) {
+        promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+      }
+    })
+  }
+
+  @ReactMethod
+  fun cancelReadReusableCard(promise: Promise) {
+    val cancelable = readReusableCardCancelable ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "readReusableCard could not be canceled because the command has already been canceled or has completed."))
+      return
+    }
+    cancelable.cancel(object : Callback {
+      override fun onSuccess() {
+        promise.resolve(WritableNativeMap())
       }
 
       override fun onFailure(e: TerminalException) {
@@ -657,7 +679,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     var reusableCardParams = ReadReusableCardParameters.Builder().setCustomer(customer).build();
 
-    Terminal.getInstance().readReusableCard(reusableCardParams, object : PaymentMethodCallback {
+    readReusableCardCancelable = Terminal.getInstance().readReusableCard(reusableCardParams, object : PaymentMethodCallback {
       override fun onSuccess(paymentMethod: PaymentMethod) {
         val pm = mapFromPaymentMethod(paymentMethod);
         val result = WritableNativeMap()
