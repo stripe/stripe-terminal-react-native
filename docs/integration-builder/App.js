@@ -44,7 +44,7 @@ export default function App() {
   });
   const [permissionsGranted, setPermissionsGranted] = useState(false);
 
-  // {{ INTEGRATION-BUILDER START: #2f }}
+  // {{ INTEGRATION-BUILDER START: #2e }}
   useEffect(() => {
     async function init() {
       try {
@@ -75,7 +75,7 @@ export default function App() {
       init();
     }
   }, []);
-  // {{ INTEGRATION-BUILDER END: #2f }}
+  // {{ INTEGRATION-BUILDER END: #2e }}
 
   const handleDiscoverReaders = async () => {
     // List of discovered readers will be available within useStripeTerminal hook
@@ -146,11 +146,11 @@ export default function App() {
   return (
     <>
       {permissionsGranted ? (
-        // {{ INTEGRATION-BUILDER START: #2g }}
+        // {{ INTEGRATION-BUILDER START: #2f }}
         <StripeTerminalProvider
           logLevel="verbose"
           tokenProvider={fetchConnectionToken}
-          // {{ INTEGRATION-BUILDER START: #2g }}
+          // {{ INTEGRATION-BUILDER START: #2f }}
         >
           <TouchableOpacity
             disabled={!permissionsGranted}

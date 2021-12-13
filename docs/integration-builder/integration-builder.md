@@ -78,15 +78,11 @@ Allow your app to display a Bluetooth permission dialog.
 
 Implement a token provider single function in your app that requests a connection token from your backend.
 
-**2e. Configure TerminalLifeCycleObserver on Android**
-
-To prevent memory leaks and ensure proper cleanup of long-running Terminal SDK processes, your application must have the Application subclass where `TerminalLifeCycleObserver` is configured. This subclass should register activity lifecycle callbacks and implement the `onTrimMemory` method to notify the SDK to prune its memory usage.
-
-**2f. Verify permissions on Android**
+**2e. Verify permissions on Android**
 
 Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. To do this, add the following check before you initialize the Terminal SDK:
 
-**2g. Initialize the SDK**
+**2f. Initialize the SDK**
 
 To get started, add a `StripeTerminalProvider` on the root of your Application and provide your token provider as a prop.
 
