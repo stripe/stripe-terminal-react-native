@@ -36,8 +36,5 @@
     "metro-react-native-babel-preset": "^0.66.2",
     "react-native-codegen": "^0.0.12",
     "stripe": "^8.181.0"
-  },
-  "resolutions": {
-    "react-native-codegen": "^0.0.12"
   }
 }
