@@ -234,8 +234,8 @@ gradle.projectsEvaluated {
        }
    } else {
        // In case of building assembleAndroidTest release.
-       tasks.named('mergeExtDexDebug').configure {
-           mustRunAfter tasks.named('mergeExtDexDebugAndroidTest')
+       tasks.named('mergeExtDexRelease').configure {
+           mustRunAfter tasks.named('assembleAndroidTest')
        }
    }
 }
