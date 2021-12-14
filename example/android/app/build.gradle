@@ -227,9 +227,17 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 gradle.projectsEvaluated {
-    tasks.named('mergeExtDexDebug').configure {
-        mustRunAfter tasks.named('mergeExtDexDebugAndroidTest')
-    }
+   if (tasks.findByName('mergeExtDexDebugAndroidTest')) {
+       // In case of building assembleAndroidTest debug.
+       tasks.named('mergeExtDexDebugAndroidTest').configure {
+           mustRunAfter tasks.named('mergeExtDexDebug')
+       }
+   } else {
+       // In case of building assembleAndroidTest release.
+       tasks.named('mergeExtDexDebug').configure {
+           mustRunAfter tasks.named('mergeExtDexDebugAndroidTest')
+       }
+   }
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
