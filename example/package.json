@@ -34,6 +34,7 @@
     "detox": "^18.7.1",
     "express": "^4.17.1",
     "metro-react-native-babel-preset": "^0.66.2",
+    "react-native-codegen": "^0.0.12",
     "stripe": "^8.181.0"
   }
 }
