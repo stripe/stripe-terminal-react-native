@@ -230,6 +230,10 @@ jobs:
           command: yarn install --frozen-lockfile
           name: yarn install
 
+      - run:
+          command: nvm unalias default
+          name: unalias default
+
       - pod_install
 
       - run:
