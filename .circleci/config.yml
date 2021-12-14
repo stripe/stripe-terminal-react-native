@@ -222,10 +222,6 @@ jobs:
       - attach_workspace:
           at: .
 
-      - run:
-          command: unset npm_config_prefix
-          name: unalias default
-
       - setup_macos_executor
 
       - ios_simulator_start
@@ -233,6 +229,12 @@ jobs:
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
+
+      - run:
+          command: |
+            rm example/node_modules/react-native/scripts/find-node.sh
+            touch example/node_modules/react-native/scripts/find-node.sh
+          name: remove find node
 
       - pod_install
 
