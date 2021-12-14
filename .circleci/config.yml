@@ -106,7 +106,7 @@ commands:
         default: 'android-28'
       build_tools_version:
         type: string
-        default: '30.0.2'
+        default: '28.0.3'
       logcat_grep:
         type: string
         default: 'com.example.stripeterminalreactnative'
