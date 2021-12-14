@@ -51,9 +51,10 @@ export const checkIfConnected = async ({
 };
 
 export const disconnectReader = async () => {
-  const disconnectButton = element(by.id('disconnect-button'));
-  await waitFor(disconnectButton).toBeVisible().withTimeout(16000);
-  await disconnectButton.tap();
+  await waitFor(element(by.id('disconnect-button')))
+    .toBeVisible()
+    .withTimeout(16000);
+  await element(by.id('disconnect-button')).tap();
   await waitFor(element(by.text('Discover Readers')))
     .toBeVisible()
     .withTimeout(16000);
