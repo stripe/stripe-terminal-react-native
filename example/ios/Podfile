@@ -25,6 +25,14 @@ target 'StripeTerminalReactNativeExample' do
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
 
     installer.pods_project.targets.each do |target|
+      if (target.name&.eql?('FBReactNativeSpec'))
+        target.build_phases.each do |build_phase|
+          if (build_phase.respond_to?(:name) && build_phase.name.eql?('[CP-User] Generate Specs'))
+            target.build_phases.move(build_phase, 0)
+          end
+        end
+      end
+        
       target.build_configurations.each do |config|
         if target.name == 'react-native-config'
           config.build_settings['ENVFILE'] = ENVFILES[config.name]
