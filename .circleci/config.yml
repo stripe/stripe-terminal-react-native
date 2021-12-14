@@ -222,6 +222,10 @@ jobs:
       - attach_workspace:
           at: .
 
+      - run:
+          command: nvm unalias default
+          name: unalias default
+
       - setup_macos_executor
 
       - ios_simulator_start
@@ -229,10 +233,6 @@ jobs:
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-
-      - run:
-          command: nvm unalias default
-          name: unalias default
 
       - pod_install
 
