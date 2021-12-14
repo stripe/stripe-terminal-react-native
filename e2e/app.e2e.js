@@ -85,23 +85,21 @@ describe('Payments', () => {
 
     await navigateTo('Collect card payment');
 
-    const currencyInput = element(by.id('currency-text-field'));
-    const amountInput = element(by.id('amount-text-field'));
+    await waitFor(element(by.id('currency-text-field')))
+      .toBeVisible()
+      .withTimeout(16000);
+    await waitFor(element(by.id('amount-text-field'))).toBeVisible();
 
-    await waitFor(currencyInput).toBeVisible().withTimeout(16000);
-    await waitFor(amountInput).toBeVisible();
+    await element(by.id('amount-text-field')).replaceText('20000');
+    await element(by.id('currency-text-field')).replaceText('USD');
 
-    await amountInput.replaceText('20000');
-    await currencyInput.replaceText('USD');
+    await waitFor(element(by.text('Collect payment'))).toBeVisible();
 
-    const button = element(by.text('Collect payment'));
+    await element(by.text('Collect payment')).tap();
 
-    await waitFor(button).toBeVisible();
-
-    await button.tap();
-
-    const eventLogTitle = element(by.text('EVENT LOG'));
-    await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
+    await waitFor(element(by.text('EVENT LOG')))
+      .toBeVisible()
+      .withTimeout(16000);
 
     await checkIfLogExist('terminal.createPaymentIntent');
     await checkIfLogExist('Created');
@@ -124,8 +122,9 @@ describe('Payments', () => {
 
     await navigateTo('Store card via readReusableCard');
 
-    const eventLogTitle = element(by.text('EVENT LOG'));
-    await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
+    await waitFor(element(by.text('EVENT LOG')))
+      .toBeVisible()
+      .withTimeout(16000);
 
     await checkIfLogExist('terminal.readReusableCard');
 
@@ -150,8 +149,9 @@ describe('Payments', () => {
 
     await navigateTo('Store card via Setup Intents');
 
-    const eventLogTitle = element(by.text('EVENT LOG'));
-    await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
+    await waitFor(element(by.text('EVENT LOG')))
+      .toBeVisible()
+      .withTimeout(16000);
 
     await checkIfLogExist('terminal.createSetupIntent');
     await checkIfLogExist('terminal.collectSetupIntentPaymentMethod');
@@ -176,23 +176,23 @@ describe('Payments', () => {
 
     await navigateTo('In-Person Refund');
 
-    const chargeIdInout = element(by.id('charge-id-text-field'));
-    const amountInput = element(by.id('amount-text-field'));
+    await waitFor(element(by.id('charge-id-text-field')))
+      .toBeVisible()
+      .withTimeout(16000);
+    await waitFor(element(by.id('amount-text-field'))).toBeVisible();
 
-    await waitFor(chargeIdInout).toBeVisible().withTimeout(16000);
-    await waitFor(amountInput).toBeVisible();
+    await element(by.id('amount-text-field')).replaceText('20000');
+    await element(by.id('charge-id-text-field')).replaceText(
+      'ch_3JxsjUBDuqlYGNW21EL8UyOm'
+    );
 
-    await amountInput.replaceText('20000');
-    await chargeIdInout.replaceText('ch_3JxsjUBDuqlYGNW21EL8UyOm');
+    await waitFor(element(by.id('collect-refund-button'))).toBeVisible();
 
-    const button = element(by.id('collect-refund-button'));
+    await element(by.id('collect-refund-button')).tap();
 
-    await waitFor(button).toBeVisible();
-
-    await button.tap();
-
-    const eventLogTitle = element(by.text('EVENT LOG'));
-    await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
+    await waitFor(element(by.text('EVENT LOG')))
+      .toBeVisible()
+      .withTimeout(16000);
 
     await checkIfLogExist('terminal.collectRefundPaymentMethod');
     await checkIfLogExist('Collected');

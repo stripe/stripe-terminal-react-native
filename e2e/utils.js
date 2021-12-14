@@ -1,9 +1,10 @@
 /* eslint-env detox/detox, jest */
 
 export const navigateTo = async (buttonText: string) => {
-  const button = element(by.text(buttonText));
-  await waitFor(button).toBeVisible().withTimeout(16000);
-  await button.tap();
+  await waitFor(element(by.text(buttonText)))
+    .toBeVisible()
+    .withTimeout(16000);
+  await element(by.text(buttonText)).tap();
 };
 
 export const connectReader = async (name?: string = 'chipper2X') => {
@@ -68,13 +69,15 @@ export const checkIfLogExist = async (log: string) => {
 };
 
 export const changeDiscoveryMethod = async (method: string) => {
-  const button = element(by.id('discovery-method-button'));
-  await waitFor(button).toBeVisible().withTimeout(10000);
-  await button.tap();
+  await waitFor(element(by.id('discovery-method-button')))
+    .toBeVisible()
+    .withTimeout(10000);
+  await element(by.id('discovery-method-button')).tap();
 
-  const targetMethodButton = element(by.text(method));
-  await waitFor(targetMethodButton).toBeVisible().withTimeout(10000);
-  await targetMethodButton.tap();
+  await waitFor(element(by.text(method)))
+    .toBeVisible()
+    .withTimeout(10000);
+  await element(by.text(method)).tap();
 
   await waitFor(element(by.id('home-screen')))
     .toBeVisible()
