@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,7 @@ import {
   Location,
   Reader,
 } from 'stripe-terminal-react-native';
+import type { NavigationAction } from '@react-navigation/routers';
 import { colors } from '../colors';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
@@ -77,17 +78,29 @@ export default function DiscoverReadersScreen() {
   const [selectedUpdatePlan, setSelectedUpdatePlan] =
     useState<Reader.SimulateUpdateType>('none');
 
+  const handleGoBack = useCallback(
+    async (action: NavigationAction) => {
+      await cancelDiscovering();
+      if (navigation.canGoBack()) {
+        navigation.dispatch(action);
+      }
+    },
+    [cancelDiscovering, navigation]
+  );
+
   useEffect(() => {
     navigation.setOptions({
       headerBackTitle: 'Cancel',
     });
 
-    navigation.addListener('beforeRemove', async (e) => {
+    navigation.addListener('beforeRemove', (e) => {
+      if (!discoveringLoading) {
+        return;
+      }
       e.preventDefault();
-      await cancelDiscovering();
-      navigation.dispatch(e.data.action);
+      handleGoBack(e.data.action);
     });
-  }, [navigation, cancelDiscovering]);
+  }, [navigation, cancelDiscovering, discoveringLoading, handleGoBack]);
 
   const handleDiscoverReaders = async () => {
     setDiscoveringLoading(true);

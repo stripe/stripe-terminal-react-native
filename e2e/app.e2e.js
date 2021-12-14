@@ -41,7 +41,7 @@ describe('Payments', () => {
       .withTimeout(16000);
 
     await checkIfConnected({
-      timeout: device.getPlatform() === 'ios' ? 32000 : 60000,
+      timeout: device.getPlatform() === 'ios' ? 40000 : 120000,
     });
     await disconnectReader();
   });
