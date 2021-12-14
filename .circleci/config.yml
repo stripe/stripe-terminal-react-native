@@ -223,7 +223,7 @@ jobs:
           at: .
 
       - run:
-          command: nvm unalias default
+          command: unset npm_config_prefix
           name: unalias default
 
       - setup_macos_executor
