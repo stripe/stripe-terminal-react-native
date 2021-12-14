@@ -56,7 +56,7 @@
       "app": "ios.release"
     },
     "android": {
-      "device": "emulator",
+      "device": "ci-emulator",
       "app": "android.debug"
     },
     "android.emu.release": {
