@@ -226,6 +226,12 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
+gradle.projectsEvaluated {
+    tasks.named('mergeExtDexDebug').configure {
+        mustRunAfter tasks.named('mergeExtDexDebugAndroidTest')
+    }
+}
+
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 
 task downloadDependencies() {
