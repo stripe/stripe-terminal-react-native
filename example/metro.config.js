@@ -1,5 +1,5 @@
 const path = require('path');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
+const exclusionList = require('metro-config/src/defaults/blacklist');
 const escape = require('escape-string-regexp');
 const pak = require('../package.json');
 
