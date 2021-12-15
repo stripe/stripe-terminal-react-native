@@ -572,6 +572,7 @@
 				DEVELOPMENT_TEAM = PJL7DA2X5F;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = StripeTerminalReactNativeExample/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -596,6 +597,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = PJL7DA2X5F;
 				INFOPLIST_FILE = StripeTerminalReactNativeExample/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
