@@ -50,158 +50,158 @@ describe('Payments', () => {
     await changeDiscoveryMethod('Bluetooth Proximity');
   });
 
-  it('Change discovery method to Internet', async () => {
-    await changeDiscoveryMethod('Internet');
-  });
+  // it('Change discovery method to Internet', async () => {
+  //   await changeDiscoveryMethod('Internet');
+  // });
 
-  // temporary skipped due to bug in stripe-termina-ios which connect the device despite an error.
-  //
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('Required update impossible due to low battery', async () => {
-    // only iOS supports simulated low battery plan
-    if (device.getPlatform() !== 'ios') {
-      return;
-    }
-    await navigateTo('Discover Readers');
-    await setSimulatedUpdatePlan('Update required; reader has low battery');
-    await connectReader();
-    await waitFor(
-      element(
-        by.text(
-          "Updating the reader software failed because the reader's battery is too low. Charge the reader before trying again."
-        )
-      )
-    )
-      .toBeVisible()
-      .withTimeout(16000);
+  // // temporary skipped due to bug in stripe-termina-ios which connect the device despite an error.
+  // //
+  // // eslint-disable-next-line jest/no-disabled-tests
+  // it.skip('Required update impossible due to low battery', async () => {
+  //   // only iOS supports simulated low battery plan
+  //   if (device.getPlatform() !== 'ios') {
+  //     return;
+  //   }
+  //   await navigateTo('Discover Readers');
+  //   await setSimulatedUpdatePlan('Update required; reader has low battery');
+  //   await connectReader();
+  //   await waitFor(
+  //     element(
+  //       by.text(
+  //         "Updating the reader software failed because the reader's battery is too low. Charge the reader before trying again."
+  //       )
+  //     )
+  //   )
+  //     .toBeVisible()
+  //     .withTimeout(16000);
 
-    await device.reloadReactNative();
-    await disconnectReader();
-  });
+  //   await device.reloadReactNative();
+  //   await disconnectReader();
+  // });
 
-  it('Collect card payment', async () => {
-    await navigateTo('Discover Readers');
-    await connectReader();
+  // it('Collect card payment', async () => {
+  //   await navigateTo('Discover Readers');
+  //   await connectReader();
 
-    await navigateTo('Collect card payment');
+  //   await navigateTo('Collect card payment');
 
-    await waitFor(element(by.id('currency-text-field')))
-      .toBeVisible()
-      .withTimeout(16000);
-    await waitFor(element(by.id('amount-text-field'))).toBeVisible();
+  //   await waitFor(element(by.id('currency-text-field')))
+  //     .toBeVisible()
+  //     .withTimeout(16000);
+  //   await waitFor(element(by.id('amount-text-field'))).toBeVisible();
 
-    await element(by.id('amount-text-field')).replaceText('20000');
-    await element(by.id('currency-text-field')).replaceText('USD');
+  //   await element(by.id('amount-text-field')).replaceText('20000');
+  //   await element(by.id('currency-text-field')).replaceText('USD');
 
-    await waitFor(element(by.text('Collect payment'))).toBeVisible();
+  //   await waitFor(element(by.text('Collect payment'))).toBeVisible();
 
-    await element(by.text('Collect payment')).tap();
+  //   await element(by.text('Collect payment')).tap();
 
-    await waitFor(element(by.text('EVENT LOG')))
-      .toBeVisible()
-      .withTimeout(16000);
+  //   await waitFor(element(by.text('EVENT LOG')))
+  //     .toBeVisible()
+  //     .withTimeout(16000);
 
-    await checkIfLogExist('terminal.createPaymentIntent');
-    await checkIfLogExist('Created');
-    await checkIfLogExist('terminal.collectPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
-    await checkIfLogExist('Collected');
-    await checkIfLogExist('terminal.processPayment');
-    await checkIfLogExist('Finished');
+  //   await checkIfLogExist('terminal.createPaymentIntent');
+  //   await checkIfLogExist('Created');
+  //   await checkIfLogExist('terminal.collectPaymentMethod');
+  //   await checkIfLogExist('terminal.didRequestReaderInput');
+  //   await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+  //   await checkIfLogExist('Collected');
+  //   await checkIfLogExist('terminal.processPayment');
+  //   await checkIfLogExist('Finished');
 
-    await goBack('logs-back');
-    await goBack('payment-back');
+  //   await goBack('logs-back');
+  //   await goBack('payment-back');
 
-    await disconnectReader();
-  });
+  //   await disconnectReader();
+  // });
 
-  it('Store card via readReusableCard', async () => {
-    await navigateTo('Discover Readers');
-    await connectReader();
+  // it('Store card via readReusableCard', async () => {
+  //   await navigateTo('Discover Readers');
+  //   await connectReader();
 
-    await navigateTo('Store card via readReusableCard');
+  //   await navigateTo('Store card via readReusableCard');
 
-    await waitFor(element(by.text('EVENT LOG')))
-      .toBeVisible()
-      .withTimeout(16000);
+  //   await waitFor(element(by.text('EVENT LOG')))
+  //     .toBeVisible()
+  //     .withTimeout(16000);
 
-    await checkIfLogExist('terminal.readReusableCard');
+  //   await checkIfLogExist('terminal.readReusableCard');
 
-    if (device.getPlatform() === 'ios') {
-      await checkIfLogExist('terminal.didRequestReaderInput');
-      await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
-    }
-    await checkIfLogExist('Finished');
+  //   if (device.getPlatform() === 'ios') {
+  //     await checkIfLogExist('terminal.didRequestReaderInput');
+  //     await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+  //   }
+  //   await checkIfLogExist('Finished');
 
-    await goBack('logs-back');
-    await goBack('payment-back');
+  //   await goBack('logs-back');
+  //   await goBack('payment-back');
 
-    await disconnectReader();
-  });
+  //   await disconnectReader();
+  // });
 
-  it('Store card via SetupIntent', async () => {
-    await navigateTo('Discover Readers');
-    await connectReader();
+  // it('Store card via SetupIntent', async () => {
+  //   await navigateTo('Discover Readers');
+  //   await connectReader();
 
-    await checkIfConnected();
-    await element(by.id('home-screen')).scrollTo('bottom');
+  //   await checkIfConnected();
+  //   await element(by.id('home-screen')).scrollTo('bottom');
 
-    await navigateTo('Store card via Setup Intents');
+  //   await navigateTo('Store card via Setup Intents');
 
-    await waitFor(element(by.text('EVENT LOG')))
-      .toBeVisible()
-      .withTimeout(16000);
+  //   await waitFor(element(by.text('EVENT LOG')))
+  //     .toBeVisible()
+  //     .withTimeout(16000);
 
-    await checkIfLogExist('terminal.createSetupIntent');
-    await checkIfLogExist('terminal.collectSetupIntentPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
-    await checkIfLogExist('Created');
-    await checkIfLogExist('terminal.confirmSetupIntent');
-    await checkIfLogExist('Finished');
+  //   await checkIfLogExist('terminal.createSetupIntent');
+  //   await checkIfLogExist('terminal.collectSetupIntentPaymentMethod');
+  //   await checkIfLogExist('terminal.didRequestReaderInput');
+  //   await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+  //   await checkIfLogExist('Created');
+  //   await checkIfLogExist('terminal.confirmSetupIntent');
+  //   await checkIfLogExist('Finished');
 
-    await goBack('logs-back');
-    await goBack('payment-back');
+  //   await goBack('logs-back');
+  //   await goBack('payment-back');
 
-    await disconnectReader();
-  });
+  //   await disconnectReader();
+  // });
 
-  it('In-Person Refund failed due to unsupported country', async () => {
-    await navigateTo('Discover Readers');
-    await connectReader('wisePad3');
+  // it('In-Person Refund failed due to unsupported country', async () => {
+  //   await navigateTo('Discover Readers');
+  //   await connectReader('wisePad3');
 
-    await checkIfConnected({ device: 'wisePad3' });
-    await element(by.id('home-screen')).scrollTo('bottom');
+  //   await checkIfConnected({ device: 'wisePad3' });
+  //   await element(by.id('home-screen')).scrollTo('bottom');
 
-    await navigateTo('In-Person Refund');
+  //   await navigateTo('In-Person Refund');
 
-    await waitFor(element(by.id('charge-id-text-field')))
-      .toBeVisible()
-      .withTimeout(16000);
-    await waitFor(element(by.id('amount-text-field'))).toBeVisible();
+  //   await waitFor(element(by.id('charge-id-text-field')))
+  //     .toBeVisible()
+  //     .withTimeout(16000);
+  //   await waitFor(element(by.id('amount-text-field'))).toBeVisible();
 
-    await element(by.id('amount-text-field')).replaceText('20000');
-    await element(by.id('charge-id-text-field')).replaceText(
-      'ch_3JxsjUBDuqlYGNW21EL8UyOm'
-    );
+  //   await element(by.id('amount-text-field')).replaceText('20000');
+  //   await element(by.id('charge-id-text-field')).replaceText(
+  //     'ch_3JxsjUBDuqlYGNW21EL8UyOm'
+  //   );
 
-    await waitFor(element(by.id('collect-refund-button'))).toBeVisible();
+  //   await waitFor(element(by.id('collect-refund-button'))).toBeVisible();
 
-    await element(by.id('collect-refund-button')).tap();
+  //   await element(by.id('collect-refund-button')).tap();
 
-    await waitFor(element(by.text('EVENT LOG')))
-      .toBeVisible()
-      .withTimeout(16000);
+  //   await waitFor(element(by.text('EVENT LOG')))
+  //     .toBeVisible()
+  //     .withTimeout(16000);
 
-    await checkIfLogExist('terminal.collectRefundPaymentMethod');
-    await checkIfLogExist('Collected');
-    await checkIfLogExist('terminal.processRefund');
-    await checkIfLogExist('Failed');
+  //   await checkIfLogExist('terminal.collectRefundPaymentMethod');
+  //   await checkIfLogExist('Collected');
+  //   await checkIfLogExist('terminal.processRefund');
+  //   await checkIfLogExist('Failed');
 
-    await goBack('logs-back');
-    await goBack('payment-back');
+  //   await goBack('logs-back');
+  //   await goBack('payment-back');
 
-    await disconnectReader();
-  });
+  //   await disconnectReader();
+  // });
 });
