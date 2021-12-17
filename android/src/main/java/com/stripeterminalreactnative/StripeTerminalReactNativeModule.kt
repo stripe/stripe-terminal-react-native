@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
 import com.facebook.react.bridge.*
@@ -37,24 +38,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
       }
     }
 
-    reactApplicationContext?.registerComponentCallbacks(
+    reactApplicationContext.registerComponentCallbacks(
       object : ComponentCallbacks2 {
         override fun onTrimMemory(level: Int) {
-          reactApplicationContext.currentActivity?.application?.let {
-            onTrimMemory(it, level)
-          }
+            onTrimMemory(reactApplicationContext.applicationContext as Application, level)
         }
         override fun onLowMemory() {}
-        override fun onConfigurationChanged(configuration: Configuration?) {}
+        override fun onConfigurationChanged(p0: Configuration) {}
       })
   }
 
   @ReactMethod
   fun initialize(params: ReadableMap, promise: Promise) {
-    reactApplicationContext.currentActivity?.application?.let {
-      UiThreadUtil.runOnUiThread() {
-        onCreate(it)
-      }
+    UiThreadUtil.runOnUiThread() {
+      onCreate(reactApplicationContext.applicationContext as Application)
     }
 
     val listener: TerminalListener = object : TerminalListener {
@@ -86,7 +83,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     if (!Terminal.isInitialized()) {
       val logLevel = mapToLogLevel(getStringOr(params, "logLevel"))
 
-      Terminal.initTerminal(this.currentActivity?.applicationContext!!, logLevel, TokenProvider.Companion, listener)
+      Terminal.initTerminal(this.reactApplicationContext.applicationContext, logLevel, TokenProvider.Companion, listener)
     } else {
       Terminal.getInstance().connectedReader?.let {
         result.putMap("reader", mapFromReader(it))
