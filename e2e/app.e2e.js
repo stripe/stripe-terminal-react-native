@@ -17,7 +17,10 @@ describe('Payments', () => {
   });
 
   beforeEach(async () => {
-    await device.launchApp({ permissions: { location: 'always' } });
+    await device.launchApp({
+      permissions: { location: 'always' },
+      newInstance: true,
+    });
   });
 
   afterAll(async () => {
