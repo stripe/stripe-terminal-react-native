@@ -13,7 +13,7 @@ const {
 
 describe('Payments', () => {
   beforeAll(async () => {
-    // await device.disableSynchronization();
+    await device.disableSynchronization();
   });
 
   beforeEach(async () => {
