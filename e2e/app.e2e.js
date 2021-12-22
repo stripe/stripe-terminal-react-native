@@ -14,13 +14,13 @@ const {
 describe('Payments', () => {
   beforeAll(async () => {
     // await device.disableSynchronization();
-    await device.launchApp({
-      permissions: { location: 'always' },
-    });
   });
 
   beforeEach(async () => {
-    await device.reloadReactNative();
+    await device.launchApp({
+      permissions: { location: 'always' },
+      newInstance: true,
+    });
   });
 
   afterAll(async () => {
@@ -118,7 +118,7 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Store card via readReusableCard', async () => {
@@ -141,7 +141,7 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Store card via SetupIntent', async () => {
@@ -167,7 +167,7 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('In-Person Refund failed due to unsupported country', async () => {
@@ -205,6 +205,6 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    await disconnectReader();
+    // await disconnectReader();
   });
 });
