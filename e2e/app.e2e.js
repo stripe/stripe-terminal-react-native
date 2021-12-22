@@ -14,13 +14,13 @@ const {
 describe('Payments', () => {
   beforeAll(async () => {
     // await device.disableSynchronization();
+    await device.launchApp({
+      permissions: { location: 'always' },
+    });
   });
 
   beforeEach(async () => {
-    await device.launchApp({
-      permissions: { location: 'always' },
-      newInstance: true,
-    });
+    await device.reloadReactNative();
   });
 
   afterAll(async () => {
@@ -31,7 +31,7 @@ describe('Payments', () => {
     await navigateTo('Discover Readers');
     await connectReader();
     await checkIfConnected();
-    // await disconnectReader();
+    await disconnectReader();
   });
 
   it('Install required update and connect', async () => {
@@ -46,7 +46,7 @@ describe('Payments', () => {
     await checkIfConnected({
       timeout: device.getPlatform() === 'ios' ? 32000 : 60000,
     });
-    // await disconnectReader();
+    await disconnectReader();
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
@@ -118,7 +118,7 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    // await disconnectReader();
+    await disconnectReader();
   });
 
   it('Store card via readReusableCard', async () => {
@@ -141,7 +141,7 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    // await disconnectReader();
+    await disconnectReader();
   });
 
   it('Store card via SetupIntent', async () => {
@@ -167,7 +167,7 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    // await disconnectReader();
+    await disconnectReader();
   });
 
   it('In-Person Refund failed due to unsupported country', async () => {
@@ -205,6 +205,6 @@ describe('Payments', () => {
     await goBack('logs-back');
     await goBack('payment-back');
 
-    // await disconnectReader();
+    await disconnectReader();
   });
 });
