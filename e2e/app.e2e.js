@@ -14,6 +14,7 @@ const {
 describe('Payments', () => {
   beforeAll(async () => {
     await device.launchApp({ permissions: { location: 'always' } });
+    await device.disableSynchronization();
   });
 
   beforeEach(async () => {
