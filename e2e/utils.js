@@ -30,10 +30,10 @@ export const setSimulatedUpdatePlan = async (
       by.text(defaultPlan).withAncestor(by.id('picker-container'))
     ).tap();
     await element(by.text(plan)).tap();
-    waitFor(element(by.id('close-picker')))
+    await waitFor(element(by.id('close-picker')))
       .toBeVisible()
       .withTimeout(10000);
-    element(by.id('close-picker')).tap();
+    await element(by.id('close-picker')).tap();
   }
 };
 
