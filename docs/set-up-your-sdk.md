@@ -117,7 +117,7 @@ To give the SDK access to this endpoint, create a token provider single function
 // App.ts
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
-const fechTokenProvider = async () => {
+const fetchTokenProvider = async () => {
   const response = await fetch(`${API_URL}/connection_token`, {
     method: 'POST',
     headers: {
@@ -142,7 +142,7 @@ To get started, provide your token provider implemented in [Step 3](#set-up-the-
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
 function App() {
-  const fechTokenProvider = async () => {
+  const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
       headers: {
@@ -156,7 +156,7 @@ function App() {
   return (
     <StripeTerminalProvider
       logLevel="verbose"
-      tokenProvider={fechTokenProvider}
+      tokenProvider={fetchTokenProvider}
     >
       <Screen />
     </StripeTerminalProvider>

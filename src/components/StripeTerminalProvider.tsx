@@ -16,7 +16,7 @@ export interface Props {
    This should fetch a connection token from your server and return it as a string.
     * @example
     * ```ts
-    * const fechTokenProvider = async () => {
+    * const fetchTokenProvider = async () => {
     *   const response = await fetch('http://api_url/connection_token');
     *   const { secret } = await response.json();
     *   return secret;

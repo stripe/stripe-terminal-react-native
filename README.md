@@ -47,7 +47,7 @@ Stripe Terminal SDK will fetch it when it's needed.
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
 function App() {
-  const fechTokenProvider = async () => {
+  const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
       headers: {
@@ -61,7 +61,7 @@ function App() {
   return (
     <StripeTerminalProvider
       logLevel="verbose"
-      tokenProvider={fechTokenProvider}
+      tokenProvider={fetchTokenProvider}
     >
       <Screen />
     </StripeTerminalProvider>
@@ -137,7 +137,7 @@ class Screen extends React.Component {
   }
 
   async discoverReaders() {
-    thisp.props.discoverReaders({
+    this.props.discoverReaders({
       discoveryMethod: 'bluetoothScan',
       simulated,
     });
