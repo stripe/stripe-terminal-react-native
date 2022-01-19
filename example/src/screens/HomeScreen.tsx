@@ -28,8 +28,8 @@ export default function HomeScreen() {
           title="Disconnect"
           testID="disconnect-button"
           color={colors.red}
-          onPress={() => {
-            disconnectReader();
+          onPress={async () => {
+            await disconnectReader();
           }}
         />
       </List>

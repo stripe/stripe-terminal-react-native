@@ -282,11 +282,11 @@ PODS:
     - React-perflogger (= 0.66.3)
   - RNCMaskedView (0.1.11):
     - React
-  - RNCPicker (2.1.0):
+  - RNCPicker (2.2.1):
     - React-Core
   - RNGestureHandler (1.10.3):
     - React-Core
-  - RNReanimated (2.3.0-beta.2):
+  - RNReanimated (2.3.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -312,10 +312,9 @@ PODS:
     - React-RCTNetwork
     - React-RCTSettings
     - React-RCTText
-    - React-RCTVibration
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.8.0):
+  - RNScreens (3.10.1):
     - React-Core
     - React-RCTImage
   - stripe-terminal-react-native (0.1.0):
@@ -451,11 +450,11 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
-  DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
+  DoubleConversion: cde416483dac037923206447da6e1454df403714
   FBLazyVector: de148e8310b8b878db304ceea2fec13f2c02e3a0
   FBReactNativeSpec: 6192956c9e346013d5f1809ba049af720b11c6a4
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 5337263514dd6f09803962437687240c5dc39aa4
+  glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
   RCTRequired: 59d2b744d8c2bf2d9bc7032a9f654809adcf7d50
   RCTTypeSafety: d0aaf7ccae5c70a4aaa3a5c3e9e0db97efae760e
@@ -483,10 +482,10 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: bbbdb3d8fcf327c6e2249ee71b6ef1764b7dc266
   ReactCommon: 9bac022ab71596f2b0fde1268272543184c63971
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
-  RNCPicker: f7a40b21b915b7a187624d52f52b7bc2f73ea413
+  RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
-  RNReanimated: 0a220d11e97e5de1c552e943a9a3f89b06c2cbf2
-  RNScreens: 6e1ea5787989f92b0671049b808aef64fa1ef98c
+  RNReanimated: 569c269480a76e39196aa17a5df08ef1561db5ff
+  RNScreens: 522705f2e5c9d27efb17f24aceb2bf8335bc7b8e
   stripe-terminal-react-native: eac43a8062936d5e796e6a1132d196c83600b225
   StripeTerminal: da566fa62a4e7bbf0510dd27614f3087293cd79e
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
