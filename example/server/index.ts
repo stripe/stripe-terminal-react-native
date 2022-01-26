@@ -76,7 +76,7 @@ app.get(
         postal_code: '94110',
       },
     });
-    console.log('create_location', location);
+    console.log('/create_location', location);
 
     res.json({ location: location });
   }
@@ -88,6 +88,14 @@ app.get('/get_locations', async (_: express.Request, res: express.Response) => {
   console.log('/get_locations', locations);
 
   res.json({ locations: locations.data });
+});
+
+app.get('/get_customers', async (_: express.Request, res: express.Response) => {
+  const customers = await stripe.customers.list();
+
+  console.log('/get_customers', customers);
+
+  res.json({ customers: customers.data });
 });
 
 app.post('/readers', async (req: express.Request, res: express.Response) => {
