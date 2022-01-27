@@ -194,26 +194,37 @@ useEffect(() => {
 Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
 
 - Privacy - Location When In Use Usage Description
-  - Key: `NSLocationWhenInUseUsageDescription`
-  - Value: "Location access is required in order to accept payments."
+
+Update:
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string></string>
+```
+to
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Location access is required in order to accept payments.</string>
+```
 
 > Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
 
 For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
 
-- Required background modes
-  - Key: `UIBackgroundModes`
-  - Value: `bluetooth-central` (Uses Bluetooth LE accessories)
-  - Note the value is actually an array that you will need to add `bluetooth-central` to.
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>bluetooth-central</string>
+</array>
+```
 
 For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
 
-- Privacy - Bluetooth Peripheral Usage Description
-  - Key: `NSBluetoothPeripheralUsageDescription`
-  - Value: “Bluetooth access is required in order to connect to supported bluetooth card readers.”
-- Privacy - Bluetooth Always Usage Description
-  - Key: `NSBluetoothAlwaysUsageDescription`
-  - Value: "This app uses Bluetooth to connect to supported card readers."
+```xml
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app uses Bluetooth to connect to supported card readers.</string>
+```
 
 ## Contributing
 
