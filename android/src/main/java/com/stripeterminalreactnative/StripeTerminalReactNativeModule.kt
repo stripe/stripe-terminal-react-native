@@ -1,8 +1,13 @@
 package com.stripeterminalreactnative
 
+import android.app.Application
+import android.content.ComponentCallbacks2
+import android.content.res.Configuration
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.stripe.stripeterminal.Terminal
+import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
 import com.stripe.stripeterminal.external.callable.*
 import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.models.*
@@ -32,10 +37,23 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
           .emit("onFetchTokenProviderListener", null)
       }
     }
+
+    reactApplicationContext.registerComponentCallbacks(
+      object : ComponentCallbacks2 {
+        override fun onTrimMemory(level: Int) {
+            onTrimMemory(reactApplicationContext.applicationContext as Application, level)
+        }
+        override fun onLowMemory() {}
+        override fun onConfigurationChanged(p0: Configuration) {}
+      })
   }
 
   @ReactMethod
   fun initialize(params: ReadableMap, promise: Promise) {
+    UiThreadUtil.runOnUiThread() {
+      onCreate(reactApplicationContext.applicationContext as Application)
+    }
+
     val listener: TerminalListener = object : TerminalListener {
       override fun onUnexpectedReaderDisconnect(reader: Reader) {
         val error = createError(CommonErrorType.Failed.toString(), "Reader has been disconnected unexpectedly")
@@ -62,11 +80,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
     val result = WritableNativeMap()
 
-
     if (!Terminal.isInitialized()) {
       val logLevel = mapToLogLevel(getStringOr(params, "logLevel"))
 
-      Terminal.initTerminal(this.currentActivity?.applicationContext!!, logLevel, TokenProvider.Companion, listener)
+      Terminal.initTerminal(this.reactApplicationContext.applicationContext, logLevel, TokenProvider.Companion, listener)
     } else {
       Terminal.getInstance().connectedReader?.let {
         result.putMap("reader", mapFromReader(it))

@@ -52,30 +52,6 @@ useEffect(() => {
 }, []);
 ```
 
-The Android SDK is lifecycle aware. To prevent memory leaks and ensure proper cleanup of long-running Terminal SDK processes, your application must have the `Application` subclass where `TerminalApplicationDelegate` is used to inform the SDK of lifecycle events.
-
-This subclass should do the following:
-
-- Call `TerminalApplicationDelegate.onCreate` from your application's `onCreate` method.
-- Implement the [onTrimMemory](<https://developer.android.com/reference/android/app/Application#onTrimMemory(int)>) method and call `TerminalApplicationDelegate.onTrimMemory` from your implementation.
-
-For example:
-
-```java
-// Substitute with your application name, and remember to keep it the same as your AndroidManifest.xml
-class StripeTerminalApplication : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        TerminalApplicationDelegate.onCreate(this)
-    }
-
-    override fun onTrimMemory(level: Int) {
-        super.onTrimMemory(level)
-        TerminalApplicationDelegate.onTrimMemory(this, level)
-    }
-}
-```
-
 ### iOS
 
 Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
