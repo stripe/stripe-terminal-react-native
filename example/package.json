@@ -34,7 +34,9 @@
     "babel-plugin-module-resolver": "^4.0.0",
     "detox": "^18.23.1",
     "express": "^4.17.1",
+    "express-winston": "^4.2.0",
     "metro-react-native-babel-preset": "^0.66.2",
-    "stripe": "^8.181.0"
+    "stripe": "^8.181.0",
+    "winston": "^3.3.3"
   }
 }
