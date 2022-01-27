@@ -65,6 +65,7 @@ android/keystores/debug.keystore
 lib/
 
 example/dist
+example/.env
 
 artifacts/
 docs/api-reference
