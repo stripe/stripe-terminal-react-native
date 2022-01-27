@@ -6,7 +6,7 @@ import 'dotenv/config';
 
 if (!process.env.STRIPE_PRIVATE_KEY) {
   console.error(
-    "Please you've created a .env file and followed the setup instructions at https://github.com/stripe/stripe-terminal-react-native#run-the-example-app!"
+    "No Stripe API Key found!\nPlease ensure you've created a .env file and followed the setup instructions at https://github.com/stripe/stripe-terminal-react-native#run-the-example-app!"
   );
   process.exit(-1);
 }
@@ -22,6 +22,9 @@ const app = express();
 const port = 3002;
 
 app.use(express.json());
+
+expressWinston.requestWhitelist.push('body');
+expressWinston.responseWhitelist.push('body');
 
 app.use(
   expressWinston.logger({
