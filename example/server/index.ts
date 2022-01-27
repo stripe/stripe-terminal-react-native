@@ -4,6 +4,13 @@ import winston from 'winston';
 import expressWinston from 'express-winston';
 import 'dotenv/config';
 
+if (!process.env.STRIPE_PRIVATE_KEY) {
+  console.error(
+    "Please you've created a .env file and followed the setup instructions at https://github.com/stripe/stripe-terminal-react-native#run-the-example-app!"
+  );
+  process.exit(-1);
+}
+
 const secret_key = process.env.STRIPE_PRIVATE_KEY;
 
 const stripe = new Stripe(secret_key as string, {
