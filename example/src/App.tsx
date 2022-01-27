@@ -58,7 +58,7 @@ export default function App() {
   const clearLogs = () => setlogs([]);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
 
-  const fechTokenProvider = async () => {
+  const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
       headers: {
@@ -119,7 +119,7 @@ export default function App() {
       {permissionsGranted && (
         <StripeTerminalProvider
           logLevel="verbose"
-          tokenProvider={fechTokenProvider}
+          tokenProvider={fetchTokenProvider}
         >
           <LogContext.Provider
             value={{
