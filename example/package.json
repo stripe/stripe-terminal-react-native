@@ -8,7 +8,7 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
-    "start:server": "yarn build:server && node ./dist"
+    "start:server": "nodemon --exec ts-node server/index.ts"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.11",
@@ -36,7 +36,9 @@
     "express": "^4.17.1",
     "express-winston": "^4.2.0",
     "metro-react-native-babel-preset": "^0.66.2",
+    "nodemon": "^2.0.15",
     "stripe": "^8.181.0",
+    "ts-node": "^10.4.0",
     "winston": "^3.3.3"
   }
 }
