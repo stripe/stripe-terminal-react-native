@@ -222,12 +222,6 @@ jobs:
           command: yarn install --frozen-lockfile
           name: yarn install
 
-      - run:
-          command: |
-            rm example/node_modules/react-native/scripts/find-node.sh
-            touch example/node_modules/react-native/scripts/find-node.sh
-          name: remove find node
-
       - pod_install
 
       - run:
