@@ -99,6 +99,8 @@ export default function App() {
 
     if (Platform.OS === 'android') {
       init();
+    } else {
+      setPermissionsGranted(true);
     }
   }, []);
 
