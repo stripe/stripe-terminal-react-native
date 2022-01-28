@@ -8,7 +8,7 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
-    "start:server": "yarn build:server && node ./dist"
+    "start:server": "nodemon --exec ts-node server/index.ts"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.11",
@@ -16,6 +16,7 @@
     "@react-navigation/native": "^5.x",
     "@react-navigation/stack": "^5.x",
     "@types/jest": "^27.0.2",
+    "dotenv": "^10.0.0",
     "jest": "^27.3.1",
     "react": "17.0.2",
     "react-native": "0.66.3",
@@ -33,7 +34,11 @@
     "babel-plugin-module-resolver": "^4.0.0",
     "detox": "^18.23.1",
     "express": "^4.17.1",
+    "express-winston": "^4.2.0",
     "metro-react-native-babel-preset": "^0.66.2",
-    "stripe": "^8.181.0"
+    "nodemon": "^2.0.15",
+    "stripe": "^8.181.0",
+    "ts-node": "^10.4.0",
+    "winston": "^3.3.3"
   }
 }

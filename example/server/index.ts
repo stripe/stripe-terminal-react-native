@@ -1,8 +1,17 @@
 import Stripe from 'stripe';
 import express from 'express';
+import winston from 'winston';
+import expressWinston from 'express-winston';
+import 'dotenv/config';
 
-const secret_key =
-  'sk_test_51ITUqcBDuqlYGNW2ZibB5toEOYCEbazYnrOGZI0lnkdNxBFatdifhUPEEdlIesmT21PSFPYy2qD4IqbMSi4KQk7e00ONMnQeXM';
+if (!process.env.STRIPE_PRIVATE_KEY) {
+  console.error(
+    "No Stripe API Key found!\nPlease ensure you've created a .env file and followed the setup instructions at https://github.com/stripe/stripe-terminal-react-native#run-the-example-app!"
+  );
+  process.exit(-1);
+}
+
+const secret_key = process.env.STRIPE_PRIVATE_KEY;
 
 const stripe = new Stripe(secret_key as string, {
   apiVersion: '2020-08-27',
@@ -14,12 +23,24 @@ const port = 3002;
 
 app.use(express.json());
 
+expressWinston.requestWhitelist.push('body');
+expressWinston.responseWhitelist.push('body');
+
+app.use(
+  expressWinston.logger({
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.json(),
+      winston.format.prettyPrint()
+    ),
+  })
+);
+
 app.post(
   '/connection_token',
   async (_: express.Request, res: express.Response) => {
     let connectionToken = await stripe.terminal.connectionTokens.create();
-
-    console.log('/connection_token', connectionToken);
 
     res.json({ secret: connectionToken.secret });
   }
@@ -35,8 +56,6 @@ app.post(
       capture_method: 'manual',
     });
 
-    console.log('/create_payment_intent', intent);
-
     res.json({ id: intent.id, client_secret: intent.client_secret });
   }
 );
@@ -45,8 +64,6 @@ app.post(
   '/capture_payment_intent',
   async (req: express.Request, res: express.Response) => {
     const intent = await stripe.paymentIntents.capture(req.body.id);
-
-    console.log('/capture_payment_intent', intent);
 
     res.json({ intent });
   }
@@ -76,7 +93,6 @@ app.get(
         postal_code: '94110',
       },
     });
-    console.log('/create_location', location);
 
     res.json({ location: location });
   }
@@ -85,15 +101,11 @@ app.get(
 app.get('/get_locations', async (_: express.Request, res: express.Response) => {
   const locations = await stripe.terminal.locations.list();
 
-  console.log('/get_locations', locations);
-
   res.json({ locations: locations.data });
 });
 
 app.get('/get_customers', async (_: express.Request, res: express.Response) => {
   const customers = await stripe.customers.list();
-
-  console.log('/get_customers', customers);
 
   res.json({ customers: customers.data });
 });
