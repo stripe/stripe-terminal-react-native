@@ -4,11 +4,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "yarn patchRN && react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
-    "start:server": "nodemon --exec ts-node server/index.ts"
+    "start:server": "nodemon --exec ts-node server/index.ts",
+    "patchRN": "scripts/fixRN.sh"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.11",
