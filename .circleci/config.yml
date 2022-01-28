@@ -4,7 +4,7 @@ executors:
   linux_js:
     docker:
       - image: circleci/node:14.15.0
-    resource_class: medium
+    resource_class: medium+
     environment:
       PATH: '/opt/yarn/yarn-v1.5.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
@@ -69,7 +69,7 @@ commands:
             source $BASH_ENV
       - restore_cache:
           key: |
-            brew-cache-{{ arch }}-v1
+            brew-cache-{{ arch }}-v1-3
       - run:
           name: Install node@<<parameters.node_version>>
           command: |
@@ -91,6 +91,13 @@ commands:
             HOMEBREW_NO_AUTO_UPDATE=1 brew install android-commandlinetools >/dev/null
             touch .watchmanconfig
             node -v
+      - save_cache:
+          paths:
+            - ~/Library/Caches/Homebrew
+            - /usr/local/Homebrew/Library/Taps
+            - /usr/local/Homebrew/Library/Homebrew/vendor/
+          key: |
+            brew-cache-{{ arch }}-v1-3
   android_emulator_start:
     parameters:
       device_name:
@@ -211,9 +218,6 @@ jobs:
     executor: macos_custom
 
     steps:
-      - attach_workspace:
-          at: .
-
       - setup_macos_executor
 
       - ios_simulator_start
@@ -227,9 +231,11 @@ jobs:
       - run:
           command: yarn e2e:build:ios:release
           name: build for detox
+
       - run:
           command: yarn e2e:test:ios:release
           name: test detox
+
       - store_artifacts:
           path: ./artifacts
 
@@ -237,14 +243,13 @@ jobs:
     executor:
       name: macos_custom
     steps:
-      - attach_workspace:
-          at: .
       - setup_macos_executor
 
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
       - android_emulator_start
+
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
