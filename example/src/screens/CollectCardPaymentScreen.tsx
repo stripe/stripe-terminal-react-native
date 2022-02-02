@@ -8,11 +8,12 @@ import {
   Text,
   TextInput,
 } from 'react-native';
-import { useStripeTerminal } from 'stripe-terminal-react-native';
+import { useStripeTerminal, PaymentIntent } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
+import { API_URL } from '../Config';
 
 export default function CollectCardPaymentScreen() {
   const [inputValues, setInputValues] = useState<{
@@ -24,36 +25,52 @@ export default function CollectCardPaymentScreen() {
   });
   const [enableInterac, setEnableInterac] = useState(false);
   const { params } = useRoute();
-  const { simulated } = params as Record<string, any>;
+  const { simulated, discoveryMethod } = params as Record<string, any>;
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
 
-  const { createPaymentIntent, collectPaymentMethod, processPayment } =
-    useStripeTerminal({
-      onDidRequestReaderInput: (input) => {
-        addLogs({
-          name: 'Collect Payment Method',
-          events: [
-            {
-              name: input.join(' / '),
-              description: 'terminal.didRequestReaderInput',
-            },
-          ],
-        });
+  const {
+    createPaymentIntent,
+    collectPaymentMethod,
+    processPayment,
+    retrievePaymentIntent,
+  } = useStripeTerminal({
+    onDidRequestReaderInput: (input) => {
+      addLogs({
+        name: 'Collect Payment Method',
+        events: [
+          {
+            name: input.join(' / '),
+            description: 'terminal.didRequestReaderInput',
+          },
+        ],
+      });
+    },
+    onDidRequestReaderDisplayMessage: (message) => {
+      addLogs({
+        name: 'Collect Payment Method',
+        events: [
+          {
+            name: message,
+            description: 'terminal.didRequestReaderDisplayMessage',
+          },
+        ],
+      });
+      console.log('message', message);
+    },
+  });
+
+  const createServerPaymentIntent = async () => {
+    const response = await fetch(`${API_URL}/create_payment_intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      onDidRequestReaderDisplayMessage: (message) => {
-        addLogs({
-          name: 'Collect Payment Method',
-          events: [
-            {
-              name: message,
-              description: 'terminal.didRequestReaderDisplayMessage',
-            },
-          ],
-        });
-        console.log('message', message);
-      },
+      body: JSON.stringify({}),
     });
+    const { client_secret, id } = await response.json();
+    return { client_secret, id, error: null };
+  };
 
   const _createPaymentIntent = async () => {
     clearLogs();
@@ -66,22 +83,34 @@ export default function CollectCardPaymentScreen() {
     if (enableInterac) {
       paymentMethods.push('interac_present');
     }
-    const { paymentIntent, error } = await createPaymentIntent({
-      amount: Number(inputValues.amount),
-      currency: inputValues.currency,
-      paymentMethodTypes: paymentMethods,
-      setupFutureUsage: 'off_session',
-    });
+    let paymentIntent: PaymentIntent;
+    let paymentIntentError: any;
+    if (discoveryMethod === 'internet') {
+      const { client_secret } = await createServerPaymentIntent();
 
-    if (error) {
-      if (error) {
-        console.log('error', error);
+      const response = await retrievePaymentIntent(client_secret);
+      paymentIntent = response.paymentIntent;
+      paymentIntentError = response.error;
+    } else {
+      const response = await createPaymentIntent({
+        amount: Number(inputValues.amount),
+        currency: inputValues.currency,
+        paymentMethodTypes: paymentMethods,
+        setupFutureUsage: 'off_session',
+      });
+      paymentIntent = response.paymentIntent;
+      paymentIntentError = response.error;
+    }
+
+    if (paymentIntentError) {
+      if (paymentIntentError) {
+        console.log('error', paymentIntentError);
         addLogs({
           name: 'Create Payment Intent',
           events: [
             {
-              name: error.code,
-              description: error.message,
+              name: paymentIntentError.code,
+              description: paymentIntentError.message,
             },
           ],
         });

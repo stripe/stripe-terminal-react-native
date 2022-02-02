@@ -110,20 +110,23 @@ app.get('/get_customers', async (_: express.Request, res: express.Response) => {
   res.json({ customers: customers.data });
 });
 
-app.post('/readers', async (req: express.Request, res: express.Response) => {
-  try {
-    const reader = await stripe.terminal.readers.create({
-      ...req.body,
-    });
-    res.json({ reader });
-  } catch (error) {
-    let errorMessage = 'Unknown error';
-    if (error instanceof Error) {
-      errorMessage = error.message;
+app.post(
+  '/register_reader',
+  async (req: express.Request, res: express.Response) => {
+    try {
+      const reader = await stripe.terminal.readers.create({
+        ...req.body,
+      });
+      res.json({ reader });
+    } catch (error) {
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      res.json({ error: errorMessage });
     }
-    res.json({ error: errorMessage });
   }
-});
+);
 
 app.listen(port, () => {
   console.log('Running on port ' + port);
