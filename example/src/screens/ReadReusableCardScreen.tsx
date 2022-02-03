@@ -55,7 +55,12 @@ export default function ReadReusableCardScreen() {
       ],
     });
 
-    const customerId = fetchCustomerId();
+    const { error: customerError, id: customerId } = await fetchCustomerId();
+
+    if (customerError) {
+      console.error(customerError);
+      return;
+    }
 
     const { paymentMethod, error } = await readReusableCard({
       customer: customerId,

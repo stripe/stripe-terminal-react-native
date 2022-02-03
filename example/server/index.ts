@@ -46,17 +46,6 @@ app.post(
   }
 );
 
-app.get('fetch_customer', async (_: express.Request, res: express.Response) => {
-  const customersList = await stripe.customers.list();
-
-  if (customersList.data.length === 0) {
-    res.json({ error: 'There is no any customer created yet.' });
-    return;
-  }
-
-  res.json({ id: customersList.data[0].id });
-});
-
 app.post(
   '/create_payment_intent',
   async (_: express.Request, res: express.Response) => {
