@@ -166,11 +166,11 @@ describe('Payments', () => {
     // await disconnectReader();
   });
 
-  it('In-Person Refund failed due to unsupported country', async () => {
+  it.only('In-Person Refund failed due to unsupported country', async () => {
     await navigateTo('Discover Readers');
-    await connectReader('wisePad3');
+    await connectReader('chipper2X');
 
-    await checkIfConnected({ device: 'wisePad3' });
+    await checkIfConnected({ device: 'chipper2X' });
     await element(by.id('home-screen')).scrollTo('bottom');
 
     await navigateTo('In-Person Refund');
@@ -194,8 +194,6 @@ describe('Payments', () => {
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
     await checkIfLogExist('terminal.collectRefundPaymentMethod');
-    await checkIfLogExist('Collected');
-    await checkIfLogExist('terminal.processRefund');
     await checkIfLogExist('Failed');
 
     await goBack('logs-back');
