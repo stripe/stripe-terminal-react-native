@@ -116,7 +116,11 @@ export default function App() {
         }
       } catch {}
     }
-    init();
+    if (Platform.OS === 'android') {
+      init();
+    } else {
+      handlePermissionsSuccess();
+    }
   }, []);
 
   const handlePermissionsError = () => {
