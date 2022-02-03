@@ -4,7 +4,6 @@ const {
   navigateTo,
   connectReader,
   checkIfLogExist,
-  disconnectReader,
   goBack,
   checkIfConnected,
   setSimulatedUpdatePlan,

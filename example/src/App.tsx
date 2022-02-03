@@ -76,32 +76,45 @@ export default function App() {
         const granted = await PermissionsAndroid.request(
           'android.permission.ACCESS_FINE_LOCATION',
           {
-            title: 'Location Permission Permission',
+            title: 'Location Permission',
             message: 'App needs access to your Location ',
-            buttonPositive: 'Agree',
+            buttonPositive: 'Accept',
           }
         );
 
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('You can use the Location');
+        const grantedBT = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          {
+            title: 'BT Permission',
+            message: 'App needs access to Bluetooth ',
+            buttonPositive: 'Accept',
+          }
+        );
+
+        const grantedBTScan = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+          {
+            title: 'BT Permission',
+            message: 'App needs access to Bluetooth ',
+            buttonPositive: 'Accept',
+          }
+        );
+
+        if (
+          granted === PermissionsAndroid.RESULTS.GRANTED &&
+          grantedBT === PermissionsAndroid.RESULTS.GRANTED &&
+          grantedBTScan === PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          console.log('You can use the Location and BT');
           setPermissionsGranted(true);
         } else {
-          Alert.alert(
-            'Location services are required in order to connect to a reader.'
+          console.error(
+            'Location and BT services are required in order to connect to a reader.'
           );
         }
-      } catch {
-        Alert.alert(
-          'Location services are required in order to connect to a reader.'
-        );
-      }
+      } catch {}
     }
-
-    if (Platform.OS === 'android') {
-      init();
-    } else {
-      setPermissionsGranted(true);
-    }
+    init();
   }, []);
 
   const addLogs = (newLog: Log) => {
