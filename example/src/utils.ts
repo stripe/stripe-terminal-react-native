@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { API_URL } from './Config';
 
 export const fetchCustomerId = async () => {
@@ -16,4 +17,8 @@ export const fetchCustomerId = async () => {
   const { id } = customers[0] as { id: string };
 
   return { id };
+};
+
+export const isAndroid12orHigher = () => {
+  return Platform.OS === 'android' && Platform.Version >= 31;
 };

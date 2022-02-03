@@ -6,7 +6,6 @@ import {
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import {
-  Alert,
   PermissionsAndroid,
   Platform,
   StatusBar,
@@ -27,6 +26,7 @@ import SetupIntentScreen from './screens/SetupIntentScreen';
 import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
+import { isAndroid12orHigher } from './utils';
 
 const Stack = createStackNavigator();
 
@@ -74,7 +74,7 @@ export default function App() {
     async function init() {
       try {
         const granted = await PermissionsAndroid.request(
-          'android.permission.ACCESS_FINE_LOCATION',
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
             title: 'Location Permission',
             message: 'App needs access to your Location ',
@@ -82,40 +82,57 @@ export default function App() {
           }
         );
 
-        const grantedBT = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-          {
-            title: 'BT Permission',
-            message: 'App needs access to Bluetooth ',
-            buttonPositive: 'Accept',
-          }
-        );
+        if (hasGrantedPermission(granted)) {
+          if (isAndroid12orHigher()) {
+            const grantedBT = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+              {
+                title: 'BT Permission',
+                message: 'App needs access to Bluetooth ',
+                buttonPositive: 'Accept',
+              }
+            );
 
-        const grantedBTScan = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-          {
-            title: 'BT Permission',
-            message: 'App needs access to Bluetooth ',
-            buttonPositive: 'Accept',
+            const grantedBTScan = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+              {
+                title: 'BT Permission',
+                message: 'App needs access to Bluetooth ',
+                buttonPositive: 'Accept',
+              }
+            );
+            if (
+              hasGrantedPermission(grantedBT) &&
+              hasGrantedPermission(grantedBTScan)
+            ) {
+              handlePermissionsSuccess();
+            } else {
+              handlePermissionsError();
+            }
           }
-        );
-
-        if (
-          granted === PermissionsAndroid.RESULTS.GRANTED &&
-          grantedBT === PermissionsAndroid.RESULTS.GRANTED &&
-          grantedBTScan === PermissionsAndroid.RESULTS.GRANTED
-        ) {
-          console.log('You can use the Location and BT');
-          setPermissionsGranted(true);
+          handlePermissionsSuccess();
         } else {
-          console.error(
-            'Location and BT services are required in order to connect to a reader.'
-          );
+          handlePermissionsError();
         }
       } catch {}
     }
     init();
   }, []);
+
+  const handlePermissionsError = () => {
+    console.error(
+      'Location and BT services are required in order to connect to a reader.'
+    );
+  };
+
+  const handlePermissionsSuccess = () => {
+    console.log('You can use the Location and BT');
+    setPermissionsGranted(true);
+  };
+
+  const hasGrantedPermission = (status: string) => {
+    return status === PermissionsAndroid.RESULTS.GRANTED;
+  };
 
   const addLogs = (newLog: Log) => {
     const updateLog = (log: Log) =>
