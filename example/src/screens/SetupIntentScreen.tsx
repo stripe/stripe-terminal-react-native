@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text } from 'react-native';
 import { SetupIntent, useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
+import { fetchCustomerId } from '../utils';
 
 export default function SetupIntentScreen() {
   const [_setupIntent, setSetupIntent] = useState<SetupIntent.Type>();
@@ -56,8 +57,10 @@ export default function SetupIntentScreen() {
         },
       ],
     });
+    const customerId = fetchCustomerId();
+
     const { setupIntent, error } = await createSetupIntent({
-      customerId: 'cus_KU9GGvjgrRF7Tv',
+      customerId: customerId,
     });
     if (error) {
       addLogs({

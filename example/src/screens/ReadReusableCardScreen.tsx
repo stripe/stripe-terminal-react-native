@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
+import { fetchCustomerId } from '../utils';
 
 export default function ReadReusableCardScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
@@ -54,8 +55,10 @@ export default function ReadReusableCardScreen() {
       ],
     });
 
+    const customerId = fetchCustomerId();
+
     const { paymentMethod, error } = await readReusableCard({
-      customer: 'cus_KU9GGvjgrRF7Tv',
+      customer: customerId,
     });
     if (error) {
       addLogs({
