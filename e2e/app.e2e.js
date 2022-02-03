@@ -12,10 +12,6 @@ const {
 } = require('./utils');
 
 describe('Payments', () => {
-  beforeAll(async () => {
-    // await device.disableSynchronization();
-  });
-
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
@@ -31,7 +27,7 @@ describe('Payments', () => {
     await navigateTo('Discover Readers');
     await connectReader();
     await checkIfConnected();
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Install required update and connect', async () => {
@@ -46,7 +42,7 @@ describe('Payments', () => {
     await checkIfConnected({
       timeout: device.getPlatform() === 'ios' ? 32000 : 60000,
     });
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
@@ -79,7 +75,7 @@ describe('Payments', () => {
       .withTimeout(16000);
 
     await device.reloadReactNative();
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Collect card payment', async () => {
