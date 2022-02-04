@@ -18,9 +18,9 @@ describe('Payments', () => {
     });
   });
 
-  afterAll(async () => {
-    await device.sendToHome();
-  });
+  // afterAll(async () => {
+  //   await device.sendToHome();
+  // });
 
   it('Connect and disconnect', async () => {
     await navigateTo('Discover Readers');
