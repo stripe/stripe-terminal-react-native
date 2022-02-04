@@ -11,7 +11,6 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import com.stripe.stripeterminal.TerminalApplicationDelegate;
 import com.stripeterminalreactnative.StripeTerminalReactNativePackage;
 
 import com.facebook.react.bridge.JSIModulePackage;

@@ -4,7 +4,6 @@ const {
   navigateTo,
   connectReader,
   checkIfLogExist,
-  disconnectReader,
   goBack,
   checkIfConnected,
   setSimulatedUpdatePlan,
@@ -12,10 +11,6 @@ const {
 } = require('./utils');
 
 describe('Payments', () => {
-  beforeAll(async () => {
-    // await device.disableSynchronization();
-  });
-
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
@@ -31,7 +26,7 @@ describe('Payments', () => {
     await navigateTo('Discover Readers');
     await connectReader();
     await checkIfConnected();
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Install required update and connect', async () => {
@@ -46,7 +41,7 @@ describe('Payments', () => {
     await checkIfConnected({
       timeout: device.getPlatform() === 'ios' ? 32000 : 60000,
     });
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
@@ -57,7 +52,7 @@ describe('Payments', () => {
     await changeDiscoveryMethod('Internet');
   });
 
-  // temporary skipped due to bug in stripe-termina-ios which connect the device despite an error.
+  // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.
   //
   // eslint-disable-next-line jest/no-disabled-tests
   it.skip('Required update impossible due to low battery', async () => {
@@ -78,8 +73,7 @@ describe('Payments', () => {
       .toBeVisible()
       .withTimeout(16000);
 
-    await device.reloadReactNative();
-    await disconnectReader();
+    // await disconnectReader();
   });
 
   it('Collect card payment', async () => {
@@ -172,9 +166,9 @@ describe('Payments', () => {
 
   it('In-Person Refund failed due to unsupported country', async () => {
     await navigateTo('Discover Readers');
-    await connectReader('wisePad3');
+    await connectReader('chipper2X');
 
-    await checkIfConnected({ device: 'wisePad3' });
+    await checkIfConnected({ device: 'chipper2X' });
     await element(by.id('home-screen')).scrollTo('bottom');
 
     await navigateTo('In-Person Refund');
@@ -198,8 +192,6 @@ describe('Payments', () => {
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
     await checkIfLogExist('terminal.collectRefundPaymentMethod');
-    await checkIfLogExist('Collected');
-    await checkIfLogExist('terminal.processRefund');
     await checkIfLogExist('Failed');
 
     await goBack('logs-back');
