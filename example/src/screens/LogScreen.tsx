@@ -15,13 +15,11 @@ const LogScreen = () => {
       {logs.map((log) => (
         <List key={log.name} title={log.name}>
           {log.events.map((event) => (
-            <>
-              <ListItem
-                key={event.name}
-                title={event.name}
-                description={event.description}
-              />
-            </>
+            <ListItem
+              key={event.name}
+              title={event.name}
+              description={event.description}
+            />
           ))}
         </List>
       ))}
