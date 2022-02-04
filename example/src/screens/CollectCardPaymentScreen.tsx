@@ -103,18 +103,16 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (paymentIntentError) {
-      if (paymentIntentError) {
-        console.log('error', paymentIntentError);
-        addLogs({
-          name: 'Create Payment Intent',
-          events: [
-            {
-              name: paymentIntentError.code,
-              description: paymentIntentError.message,
-            },
-          ],
-        });
-      }
+      console.log('error', paymentIntentError);
+      addLogs({
+        name: 'Create Payment Intent',
+        events: [
+          {
+            name: paymentIntentError.code,
+            description: paymentIntentError.message,
+          },
+        ],
+      });
     } else if (paymentIntent) {
       addLogs({
         name: 'Create Payment Intent',
