@@ -73,7 +73,6 @@ describe('Payments', () => {
       .toBeVisible()
       .withTimeout(16000);
 
-    await device.reloadReactNative();
     // await disconnectReader();
   });
 
