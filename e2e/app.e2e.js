@@ -9,7 +9,6 @@ const {
   setSimulatedUpdatePlan,
   changeDiscoveryMethod,
 } = require('./utils');
-const detox = require('detox');
 
 describe('Payments', () => {
   beforeEach(async () => {
@@ -20,7 +19,7 @@ describe('Payments', () => {
   });
 
   afterAll(async () => {
-    await detox.cleanup();
+    await device.sendToHome();
   });
 
   it('Connect and disconnect', async () => {
