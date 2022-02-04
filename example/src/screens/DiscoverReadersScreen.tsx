@@ -74,14 +74,17 @@ export default function DiscoverReadersScreen() {
     },
   });
 
+  const isBTReader = (reader: Reader.Type) =>
+    ['stripeM2', 'chipper2X', 'chipper1X', 'wisePad3'].includes(
+      reader.deviceType
+    );
+
   const getReaderDisplayName = (reader: Reader.Type) => {
     if (reader?.simulated) {
       return `SimulatorID - ${reader.deviceType}`;
     }
 
-    return `${reader.label || reader.serialNumber} - ${reader.deviceType} - ${
-      reader.status
-    }`;
+    return `${reader?.label || reader?.serialNumber} - ${reader.deviceType}`;
   };
 
   const [selectedLocation, setSelectedLocation] = useState<Location>();
@@ -247,6 +250,7 @@ export default function DiscoverReadersScreen() {
             key={reader.serialNumber}
             onPress={() => handleConnectReader(reader.serialNumber)}
             title={getReaderDisplayName(reader)}
+            disabled={!isBTReader(reader) && reader.status === 'offline'}
           />
         ))}
       </List>
