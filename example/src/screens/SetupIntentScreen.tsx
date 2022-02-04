@@ -66,7 +66,7 @@ export default function SetupIntentScreen() {
       const { client_secret } = await response.json();
       return { client_secret };
     } catch (error) {
-      return { error: null };
+      return { error };
     }
   };
 
