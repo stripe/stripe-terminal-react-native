@@ -7,10 +7,10 @@ const eventEmitter = new NativeEventEmitter(
 
 export function useListener(name: string, callback: (...args: any[]) => any) {
   useEffect(() => {
-    const listener = eventEmitter.addListener(name, callback);
+    eventEmitter.addListener(name, callback);
 
     return () => {
-      listener.remove();
+      eventEmitter.removeListener(name, callback);
     };
   }, [name, callback]);
 }
