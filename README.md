@@ -100,6 +100,7 @@ Location access must be enabled in order to use the SDK. You’ll need to make s
 ---
 **IMPORTANT**
 In case of supportig **Android 12** you need also to ask the user for additional permissions:
+
 `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
 ---
 
