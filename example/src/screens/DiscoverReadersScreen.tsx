@@ -79,7 +79,9 @@ export default function DiscoverReadersScreen() {
       return `SimulatorID - ${reader.deviceType}`;
     }
 
-    return `${reader.id || reader.serialNumber} - ${reader.deviceType}`;
+    return `${reader.label || reader.serialNumber} - ${reader.deviceType} - ${
+      reader.status
+    }`;
   };
 
   const [selectedLocation, setSelectedLocation] = useState<Location>();
