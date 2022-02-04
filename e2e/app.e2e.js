@@ -18,9 +18,9 @@ describe('Payments', () => {
     });
   });
 
-  // afterAll(async () => {
-  //   await device.sendToHome();
-  // });
+  afterAll(async () => {
+    await detox.cleanup();
+  });
 
   it('Connect and disconnect', async () => {
     await navigateTo('Discover Readers');
@@ -52,7 +52,7 @@ describe('Payments', () => {
     await changeDiscoveryMethod('Internet');
   });
 
-  // temporary skipped due to bug in stripe-termina-ios which connect the device despite an error.
+  // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.
   //
   // eslint-disable-next-line jest/no-disabled-tests
   it.skip('Required update impossible due to low battery', async () => {
