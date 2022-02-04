@@ -8,7 +8,12 @@ import {
   Text,
   TextInput,
 } from 'react-native';
-import { useStripeTerminal, PaymentIntent } from 'stripe-terminal-react-native';
+import {
+  useStripeTerminal,
+  PaymentIntent,
+  StripeError,
+  CommonError,
+} from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
@@ -83,8 +88,8 @@ export default function CollectCardPaymentScreen() {
     if (enableInterac) {
       paymentMethods.push('interac_present');
     }
-    let paymentIntent: PaymentIntent;
-    let paymentIntentError: any;
+    let paymentIntent: PaymentIntent.Type | undefined;
+    let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
       const { client_secret } = await createServerPaymentIntent();
 
@@ -103,7 +108,6 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (paymentIntentError) {
-      console.log('error', paymentIntentError);
       addLogs({
         name: 'Create Payment Intent',
         events: [

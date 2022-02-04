@@ -5,6 +5,7 @@ import {
   SetupIntent,
   useStripeTerminal,
   CommonError,
+  StripeError,
 } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -81,8 +82,8 @@ export default function SetupIntentScreen() {
         },
       ],
     });
-    let setupIntent: SetupIntent;
-    let setupIntentError: CommonError;
+    let setupIntent: SetupIntent.Type | undefined;
+    let setupIntentError: StripeError<CommonError> | undefined;
 
     if (discoveryMethod === 'internet') {
       const { client_secret, error } = await createServerSetupIntent();

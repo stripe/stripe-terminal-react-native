@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "jsx": "react",
+    "paths": {
+      "stripe-terminal-react-native": ["../src/index"]
+    },
   }
 }
