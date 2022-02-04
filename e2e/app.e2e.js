@@ -9,6 +9,7 @@ const {
   setSimulatedUpdatePlan,
   changeDiscoveryMethod,
 } = require('./utils');
+const detox = require('detox');
 
 describe('Payments', () => {
   beforeEach(async () => {
