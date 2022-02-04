@@ -9,6 +9,7 @@ import {
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { API_URL } from '../Config';
+import { fetchCustomerId } from '../utils';
 
 export default function SetupIntentScreen() {
   const [_setupIntent, setSetupIntent] = useState<SetupIntent.Type>();
@@ -53,15 +54,19 @@ export default function SetupIntentScreen() {
   }, []);
 
   const createServerSetupIntent = async () => {
-    const response = await fetch(`${API_URL}/create_setup_intent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    });
-    const { client_secret } = await response.json();
-    return { client_secret, error: null };
+    try {
+      const response = await fetch(`${API_URL}/create_setup_intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+      const { client_secret } = await response.json();
+      return { client_secret };
+    } catch (error) {
+      return { error: null };
+    }
   };
 
   const _createSetupIntent = async () => {
@@ -80,14 +85,27 @@ export default function SetupIntentScreen() {
     let setupIntentError: CommonError;
 
     if (discoveryMethod === 'internet') {
-      const { client_secret } = await createServerSetupIntent();
+      const { client_secret, error } = await createServerSetupIntent();
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
       const response = await retrieveSetupIntent(client_secret);
 
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     } else {
+      const { error: customerError, id: customerId } = await fetchCustomerId();
+
+      if (customerError) {
+        console.error(customerError);
+        return;
+      }
+
       const response = await createSetupIntent({
-        customerId: 'cus_KU9GGvjgrRF7Tv',
+        customerId,
       });
       setupIntent = response.setupIntent;
       setupIntentError = response.error;

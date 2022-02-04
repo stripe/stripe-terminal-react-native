@@ -105,7 +105,7 @@ commands:
         default: 'TestingAVD'
       platform_version:
         type: string
-        default: 'android-28'
+        default: 'android-30'
       build_tools_version:
         type: string
         default: '30.0.2'
@@ -142,7 +142,7 @@ commands:
           name: Start Android Emulator (background)
           command: |
             $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -version
-            $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -cores 2 -gpu auto -accel on -memory 2048 -no-audio -no-snapshot -no-boot-anim -no-window -logcat *:W | grep -i 'ReactNative\|<<parameters.logcat_grep>>'
+            $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -cores 1 -gpu auto -accel on -memory 2048 -no-audio -no-snapshot -no-boot-anim -no-window -logcat *:W | grep -i 'ReactNative\|<<parameters.logcat_grep>>'
           background: true
 
       - run:
