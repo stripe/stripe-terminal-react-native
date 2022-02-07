@@ -48,7 +48,7 @@ export default function DiscoverReadersScreen() {
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
       if (finishError) {
-        Alert.alert(
+        console.error(
           'Discover readers error',
           `${finishError.code}, ${finishError.message}`
         );
