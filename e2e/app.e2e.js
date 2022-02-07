@@ -26,7 +26,7 @@ describe('Payments', () => {
 
   it('Connect and disconnect', async () => {
     await navigateTo('Discover Readers');
-    await connectReader();
+    // await connectReader();
     await checkIfConnected();
     // await disconnectReader();
   });
