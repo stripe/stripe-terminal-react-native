@@ -25,14 +25,23 @@ For iOS, run `pod install` in the `ios` directory to ensure that you also instal
 
 ### Android
 
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_COARSE_LOCATION` permission is enabled in your app. To do this, add the following check before you initialize the Terminal SDK:
+Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. 
+
+---
+**IMPORTANT**
+In case of supportig **Android 12** you need also to ask the user for additional permissions:
+
+`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+---
+
+To do this, add the following check before you initialize the Terminal SDK:
 
 ```tsx
 useEffect(() => {
   async function init() {
     try {
       const granted = await PermissionsAndroid.request(
-        'android.permission.ACCESS_COARSE_LOCATION',
+       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
           title: 'Location Permission Permission',
           message: 'App needs access to your Location ',

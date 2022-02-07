@@ -492,6 +492,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error {
                 resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
             } else if let si = si {
+                self.setupIntents[si.stripeId] = si
                 let si = Mappers.mapFromSetupIntent(si)
                 resolve(["setupIntent": si])
             }

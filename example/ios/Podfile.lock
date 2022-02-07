@@ -320,7 +320,7 @@ PODS:
   - stripe-terminal-react-native (0.1.0):
     - React-Core
     - StripeTerminal (~> 2.0)
-  - StripeTerminal (2.4.0)
+  - StripeTerminal (2.5.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -487,9 +487,9 @@ SPEC CHECKSUMS:
   RNReanimated: da3860204e5660c0dd66739936732197d359d753
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   stripe-terminal-react-native: eac43a8062936d5e796e6a1132d196c83600b225
-  StripeTerminal: da566fa62a4e7bbf0510dd27614f3087293cd79e
+  StripeTerminal: 2c7d261881b0039693a6ba30c00e1e6133e6d393
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
 
-PODFILE CHECKSUM: 84b73709c1edcf5ac7a2639adb1bd9760a58aef7
+PODFILE CHECKSUM: 617d5d5a75b2b359fc53061af7f2624d7349ec04
 
 COCOAPODS: 1.11.2

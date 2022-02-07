@@ -38,7 +38,10 @@ export default function HomeScreen() {
         <ListItem
           title="Collect card payment"
           onPress={() => {
-            navigation.navigate('CollectCardPaymentScreen', { simulated });
+            navigation.navigate('CollectCardPaymentScreen', {
+              simulated,
+              discoveryMethod,
+            });
           }}
         />
         <ListItem
@@ -50,7 +53,7 @@ export default function HomeScreen() {
         <ListItem
           title="Store card via Setup Intents"
           onPress={() => {
-            navigation.navigate('SetupIntentScreen');
+            navigation.navigate('SetupIntentScreen', { discoveryMethod });
           }}
         />
         <ListItem

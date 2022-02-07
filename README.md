@@ -28,6 +28,28 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 #### Android
 
 - Android 5.0 (API level 21) and above
+- compileSdkVersion = 31
+- targetSdkVersion = 31
+
+**Android 12 (API Level >= 31)**
+
+To enable compatibility the library with the latest Android 12 please make sure that you meet following requirements:
+
+Add `android:exported="true"` to the `AndroidManifest.xml`:
+```xml
+<manifest ...>
+    <application android:name=".MainApplication">
+      <activity
+        android:name=".MainActivity"
+        android:exported="true">
+          <!-- content -->
+      </activity>
+    </application>
+</manifest>
+```
+
+Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish  the exact value that you need to set.
+
 
 #### iOS
 
@@ -67,6 +89,83 @@ function App() {
     </StripeTerminalProvider>
   );
 }
+```
+
+## Configure your app
+
+### Android
+
+Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. 
+
+---
+**IMPORTANT**
+In case of supportig **Android 12** you need also to ask the user for additional permissions:
+
+`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+---
+
+To do this, add the following check before you initialize the Terminal SDK:
+
+```tsx
+useEffect(() => {
+  async function init() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'Location Permission Permission',
+          message: 'App needs access to your Location ',
+          buttonPositive: 'Accept',
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the Location');
+      } else {
+        console.error(
+          'Location services are required in order to connect to a reader.'
+        );
+      }
+    } catch {}
+  }
+  init();
+}, []);
+```
+
+### iOS
+
+Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
+
+- Privacy - Location When In Use Usage Description
+
+Update:
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string></string>
+```
+to
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Location access is required in order to accept payments.</string>
+```
+
+> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
+
+For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>bluetooth-central</string>
+</array>
+```
+
+For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
+
+```xml
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app uses Bluetooth to connect to supported card readers.</string>
 ```
 
 ## Usage example
@@ -158,73 +257,7 @@ export default withStripeTerminal(PaymentScreen);
     - or
     - `yarn example android`
 
-## Configure your app
 
-### Android
-
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_COARSE_LOCATION` permission is enabled in your app. To do this, add the following check before you initialize the Terminal SDK:
-
-```tsx
-useEffect(() => {
-  async function init() {
-    try {
-      const granted = await PermissionsAndroid.request(
-        'android.permission.ACCESS_COARSE_LOCATION',
-        {
-          title: 'Location Permission Permission',
-          message: 'App needs access to your Location ',
-          buttonPositive: 'Accept',
-        }
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the Location');
-      } else {
-        console.error(
-          'Location services are required in order to connect to a reader.'
-        );
-      }
-    } catch {}
-  }
-  init();
-}, []);
-```
-
-### iOS
-
-Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
-
-- Privacy - Location When In Use Usage Description
-
-Update:
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string></string>
-```
-to
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Location access is required in order to accept payments.</string>
-```
-
-> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
-
-For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
-
-```xml
-<key>UIBackgroundModes</key>
-<array>
-  <string>bluetooth-central</string>
-</array>
-```
-
-For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
-
-```xml
-<key>NSBluetoothPeripheralUsageDescription</key>
-<string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
-<key>NSBluetoothAlwaysUsageDescription</key>
-<string>This app uses Bluetooth to connect to supported card readers.</string>
-```
 
 ## Contributing
 
