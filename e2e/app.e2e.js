@@ -10,6 +10,8 @@ const {
   changeDiscoveryMethod,
 } = require('./utils');
 
+jest.retryTimes(3);
+
 describe('Payments', () => {
   beforeEach(async () => {
     await device.launchApp({
