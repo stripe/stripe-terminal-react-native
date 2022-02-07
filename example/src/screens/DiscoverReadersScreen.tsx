@@ -74,6 +74,14 @@ export default function DiscoverReadersScreen() {
     },
   });
 
+  const getReaderDisplayName = (reader: Reader.Type) => {
+    if (reader?.simulated) {
+      return `SimulatorID - ${reader.deviceType}`;
+    }
+
+    return `${reader.id || reader.serialNumber} - ${reader.deviceType}`;
+  };
+
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [selectedUpdatePlan, setSelectedUpdatePlan] =
     useState<Reader.SimulateUpdateType>('none');
@@ -236,7 +244,7 @@ export default function DiscoverReadersScreen() {
           <ListItem
             key={reader.serialNumber}
             onPress={() => handleConnectReader(reader.serialNumber)}
-            title={`${reader.id || 'SimulatorID'} - ${reader.deviceType}`}
+            title={getReaderDisplayName(reader)}
           />
         ))}
       </List>

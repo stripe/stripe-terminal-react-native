@@ -9,7 +9,7 @@ export namespace Reader {
       serialNumber: string;
       locationId?: string;
       deviceSoftwareVersion?: string;
-      simulated: boolean;
+      simulated?: boolean;
       availableUpdate?: SoftwareUpdate;
       ipAddress?: string;
       locationStatus: LocationStatus;
