@@ -36,6 +36,7 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 To enable compatibility the library with the latest Android 12 please make sure that you meet following requirements:
 
 Add `android:exported="true"` to the `AndroidManifest.xml`:
+
 ```xml
 <manifest ...>
     <application android:name=".MainApplication">
@@ -48,8 +49,7 @@ Add `android:exported="true"` to the `AndroidManifest.xml`:
 </manifest>
 ```
 
-Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish  the exact value that you need to set.
-
+Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish the exact value that you need to set.
 
 #### iOS
 
@@ -95,14 +95,14 @@ function App() {
 
 ### Android
 
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. 
+Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
 
 ---
+
 **IMPORTANT**
 In case of supportig **Android 12** you need also to ask the user for additional permissions:
 
 `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
----
 
 To do this, add the following check before you initialize the Terminal SDK:
 
@@ -138,11 +138,14 @@ Location services must be enabled in order to use the SDK on iOS. Add the follow
 - Privacy - Location When In Use Usage Description
 
 Update:
+
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
 <string></string>
 ```
+
 to
+
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
 <string>Location access is required in order to accept payments.</string>
@@ -221,9 +224,6 @@ import {
   WithStripeTerminalProps,
   CHANGE_CONNECTION_STATUS_LISTENER_NAME,
   Reader,
-} from '@stripe/stripe-terminal-react-native';
-
-class Screen extends React.Component {
   componentDidMount() {
     this.discoverReaders();
 
@@ -250,6 +250,11 @@ export default withStripeTerminal(PaymentScreen);
 
 - Install the dependencies
   - `yarn bootstrap`
+- Set your api key in your environment
+  - `cp sample/.env.example sample/.env`
+  - edit `.env`
+- Start the backend
+  - `yarn example start:server`
 - Start the example
   - Terminal 1: `yarn example start`
   - Terminal 2: depending on what platform you want to build for run either
@@ -257,8 +262,7 @@ export default withStripeTerminal(PaymentScreen);
     - or
     - `yarn example android`
 
-
-
 ## Contributing
 
+See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
