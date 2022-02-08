@@ -26,6 +26,11 @@ git clone https://github.com/stripe/stripe-terminal-react-native.git
 
 - Install the dependencies
   - `yarn bootstrap`
+- Set your api key in your environment
+  - `cp sample/.env.example sample/.env`
+  - edit `.env`
+- Start the backend
+  - `yarn example start:server`
 - Start the example
   - Terminal 1: `yarn example start`
   - Terminal 2: depending on what platform you want to build for run either
