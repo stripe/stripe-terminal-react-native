@@ -251,7 +251,7 @@ export default withStripeTerminal(PaymentScreen);
 - Install the dependencies
   - `yarn bootstrap`
 - Set your api key in your environment
-  - `cp sample/.env.example sample/.env`
+  - `cp example/.env.example example/.env`
   - edit `.env`
 - Start the backend
   - `yarn example start:server`
