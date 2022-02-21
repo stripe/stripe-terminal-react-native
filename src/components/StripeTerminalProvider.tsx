@@ -60,9 +60,16 @@ export function StripeTerminalProvider({
   );
 
   const tokenProviderHandler = useCallback(async () => {
-    const connectionToken = await tokenProvider();
+    try {
+      const connectionToken = await tokenProvider();
 
-    setConnectionToken(connectionToken);
+      setConnectionToken(connectionToken);
+    } catch (error) {
+      console.error(error);
+      console.error(
+        "Couldn't fetch connection token. Please check your tokenProvider method"
+      );
+    }
   }, [tokenProvider]);
 
   useListener(FETCH_TOKEN_PROVIDER_LISTENER_NAME, tokenProviderHandler);
