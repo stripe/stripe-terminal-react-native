@@ -13,6 +13,7 @@ import type {
   RefundParams,
   ReadReusableCardParamsType,
   PaymentStatus,
+  InitParams,
 } from '../types';
 import {
   discoverReaders,
@@ -290,6 +291,24 @@ export function useStripeTerminal(props?: Props) {
       return response;
     },
     [setLoading]
+  );
+
+  const _initialize = useCallback(
+    async (params: InitParams) => {
+      if (!initialize || typeof initialize !== 'function') {
+        return {
+          error: {
+            code: 'Failed',
+            message:
+              'StripeTerminalProvider component is not found or has not been mounted properly',
+          },
+        };
+      }
+
+      const res = initialize(params);
+      return res;
+    },
+    [initialize]
   );
 
   const _cancelDiscovering = useCallback(async () => {
@@ -623,7 +642,7 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading]);
 
   return {
-    initialize,
+    initialize: _initialize,
     discoverReaders: _discoverReaders,
     cancelDiscovering: _cancelDiscovering,
     connectBluetoothReader: _connectBluetoothReader,

@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import {
+  Alert,
   PermissionsAndroid,
   Platform,
   StatusBar,
@@ -119,11 +120,15 @@ export default function App() {
     );
   };
 
-  const handlePermissionsSuccess = () => {
-    initStripe({
+  const handlePermissionsSuccess = async () => {
+    const { error } = await initStripe({
       logLevel: 'verbose',
     });
-    console.log('You can use the Location and BT');
+    if (error) {
+      Alert.alert('StripeTerminal init failed', error.message);
+    } else {
+      console.log('StripeTerminal has been initialized properly');
+    }
   };
 
   const hasGrantedPermission = (status: string) => {

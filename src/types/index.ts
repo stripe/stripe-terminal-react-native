@@ -70,11 +70,10 @@ export type StripeError<T = CommonError> = {
 
 export type InitializeResultType =
   | {
-      initialized: true;
       reader?: Reader.Type;
       error?: undefined;
     }
-  | { initialized: false; error: StripeError; reader?: undefined };
+  | { error: StripeError; reader?: undefined };
 
 export type DiscoverReadersResultType = Promise<{
   error?: StripeError;

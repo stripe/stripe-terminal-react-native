@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import type { Reader, InitParams } from '../types';
+import type { Reader, InitParams, InitializeResultType } from '../types';
 
 type ContextType = {
   loading: boolean;
@@ -10,7 +10,7 @@ type ContextType = {
   setIsInitialized(value: boolean): void;
   setConnectedReader(value: Reader.Type | null): void;
   setDiscoveredReaders(value: Reader.Type[]): void;
-  initialize(params: InitParams): void;
+  initialize?(params: InitParams): Promise<InitializeResultType>;
   log(code: string, message?: any): void;
 };
 
@@ -22,6 +22,6 @@ export const StripeTerminalContext = createContext<ContextType>({
   setLoading: () => {},
   setIsInitialized: () => {},
   setConnectedReader: () => {},
-  initialize: () => {},
+  initialize: undefined,
   setDiscoveredReaders: () => {},
 });
