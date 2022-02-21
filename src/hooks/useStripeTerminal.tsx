@@ -296,11 +296,13 @@ export function useStripeTerminal(props?: Props) {
   const _initialize = useCallback(
     async (params: InitParams) => {
       if (!initialize || typeof initialize !== 'function') {
+        const errorMessage =
+          'StripeTerminalProvider component is not found or has not been mounted properly';
+        log('Failed', errorMessage);
         return {
           error: {
             code: 'Failed',
-            message:
-              'StripeTerminalProvider component is not found or has not been mounted properly',
+            message: errorMessage,
           },
         };
       }
@@ -308,7 +310,7 @@ export function useStripeTerminal(props?: Props) {
       const res = initialize(params);
       return res;
     },
-    [initialize]
+    [initialize, log]
   );
 
   const _cancelDiscovering = useCallback(async () => {
