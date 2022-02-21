@@ -135,8 +135,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun setConnectionToken(token: String, promise: Promise) {
-    TokenProvider.setConnectionToken(token)
+  fun setConnectionToken(params: ReadableMap, promise: Promise) {
+    val token = getStringOr(params, "token")
+    val error = getStringOr(params, "error")
+    TokenProvider.setConnectionToken(token, error)
     promise.resolve(null)
   }
 

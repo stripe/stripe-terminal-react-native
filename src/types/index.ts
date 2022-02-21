@@ -12,6 +12,11 @@ export type InitParams = {
   logLevel?: LogLevel;
 };
 
+export type SetConnectionTokenParams = {
+  token?: string;
+  error?: string;
+};
+
 export type LogLevel = LogLevelIOS | LogLevelAndroid;
 export type LogLevelIOS = 'none' | 'verbose';
 export type LogLevelAndroid = 'none' | 'verbose' | 'error' | 'warning';

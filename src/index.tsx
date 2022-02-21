@@ -1,8 +1,6 @@
 export * from './types';
 export * from './functions';
 
-console.disableYellowBox = true;
-
 // hooks
 export {
   useStripeTerminal,

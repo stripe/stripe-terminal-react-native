@@ -12,10 +12,16 @@ class TokenProvider() {
 
     private var connectionTokenCallback: ConnectionTokenCallback? = null
 
-    fun setConnectionToken(token: String) {
+    fun setConnectionToken(token: String?, error: String?) {
       try {
-        connectionTokenCallback?.onSuccess(token)
-        connectionTokenCallback = null
+        if (!token.isNullOrEmpty()) {
+          connectionTokenCallback?.onSuccess(token)
+          connectionTokenCallback = null
+        } else {
+          connectionTokenCallback?.onFailure(
+            ConnectionTokenException(error ?: "", null)
+          )
+        }
       } catch (e: Exception) {
         connectionTokenCallback?.onFailure(
           ConnectionTokenException("Failed to fetch connection token", e)

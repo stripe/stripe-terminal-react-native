@@ -147,10 +147,10 @@ This function is called whenever the SDK needs to authenticate with Stripe or th
 To get started, provide your token provider implemented in [Step 3](#set-up-the-connection-token-endpoint) to `StripeTerminalProvider` as a prop.
 
 ```tsx
-// App.ts
+// Root.ts
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
-function App() {
+function Root() {
   const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
@@ -167,8 +167,28 @@ function App() {
       logLevel="verbose"
       tokenProvider={fetchTokenProvider}
     >
-      <Screen />
+      <App />
     </StripeTerminalProvider>
+  );
+}
+```
+
+As a last step, simply call `initialize` method from `useStripeTerminal` hook.
+Please note that `initialize` method must be called from the nested component of `StripeTerminalProvider`.
+
+```tsx
+// App.tsx
+function App() {
+  const { initialize } = useStripeTerminal()
+
+  useEffect(() => {
+    initialize({
+      logLevel: 'verbose',
+    });
+  }, [])
+
+  return (
+    <View />
   );
 }
 ```

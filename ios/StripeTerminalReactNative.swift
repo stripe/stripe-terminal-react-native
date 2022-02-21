@@ -132,8 +132,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
     
     @objc(setConnectionToken:resolver:rejecter:)
-    func setConnectionToken(token: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
-        TokenProvider.shared.setConnectionToken(token: token)
+    func setConnectionToken(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        let token = params["token"] as? String
+        let error = params["error"] as? String
+
+        TokenProvider.shared.setConnectionToken(token: token, error: error)
         resolve([:])
     }
     
