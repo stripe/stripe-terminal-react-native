@@ -57,8 +57,8 @@ export async function setConnectionToken(
 ): Promise<void> {
   try {
     await StripeTerminalSdk.setConnectionToken({ token, error });
-  } catch (error) {
-    console.warn('Unexpected error:', error);
+  } catch (e) {
+    console.warn('Unexpected error:', e);
   }
 }
 
