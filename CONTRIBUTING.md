@@ -78,12 +78,12 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 ### Publishing to npm
 
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
+We use a custom script for releasing the library to the NPM. It handles common tasks like bumping version based on semver, creating tags and releases etc.
 
-To publish new versions, run the following:
+To publish new versions, run the following command from the root directory:
 
 ```sh
-yarn release
+sh scripts/publish.sh <release_type>
 ```
 
 ### Scripts
