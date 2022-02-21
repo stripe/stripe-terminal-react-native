@@ -35,20 +35,17 @@ export async function initialize(
 
     if (error) {
       return {
-        initialized: false,
         error: error,
         reader: undefined,
       };
     } else {
       return {
-        initialized: true,
         error: undefined,
         reader,
       };
     }
   } catch (error) {
     return {
-      initialized: false,
       error: error as any,
     };
   }
