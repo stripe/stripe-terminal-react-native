@@ -53,7 +53,12 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 #### iOS
 
-- Compatible with apps targeting iOS 10 or above.
+- Compatible with apps targeting iOS 11 or above.
+
+### Expo support
+
+This library supports Expo only in [bare workflow](https://docs.expo.dev/bare/exploring-bare-workflow/), wchich means that you need to `eject` your app at first.
+This limitation comes from native modules that `stripe-terminal-react-native` implements.
 
 ## Stripe Terminal SDK initialization
 
@@ -125,7 +130,7 @@ In case of supportig **Android 12** you need also to ask the user for additional
 
 `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
 
-To do this, add the following check before you initialize the Terminal SDK:
+To do so, add the following check before you initialize the Terminal SDK:
 
 ```tsx
 useEffect(() => {
