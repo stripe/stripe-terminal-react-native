@@ -12,6 +12,11 @@ export type InitParams = {
   logLevel?: LogLevel;
 };
 
+export type SetConnectionTokenParams = {
+  token?: string;
+  error?: string;
+};
+
 export type LogLevel = LogLevelIOS | LogLevelAndroid;
 export type LogLevelIOS = 'none' | 'verbose';
 export type LogLevelAndroid = 'none' | 'verbose' | 'error' | 'warning';
@@ -65,11 +70,10 @@ export type StripeError<T = CommonError> = {
 
 export type InitializeResultType =
   | {
-      initialized: true;
       reader?: Reader.Type;
       error?: undefined;
     }
-  | { initialized: false; error: StripeError; reader?: undefined };
+  | { error: StripeError; reader?: undefined };
 
 export type DiscoverReadersResultType = Promise<{
   error?: StripeError;

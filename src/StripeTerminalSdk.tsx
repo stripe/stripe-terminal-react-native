@@ -25,6 +25,7 @@ import type {
   ProcessRefundResultType,
   ReadReusableCardParamsType,
   PaymentMethodResultType,
+  SetConnectionTokenParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -38,7 +39,7 @@ type StripeTerminalSdkType = {
   // Initialize StripeTerminalSdk native module
   initialize(params: InitParams): InitializeResultNativeType;
   // Set connection token
-  setConnectionToken(token: string): Promise<void>;
+  setConnectionToken(params: SetConnectionTokenParams): Promise<void>;
   // Discover readers by connection type
   discoverReaders(params: DiscoverReadersParams): DiscoverReadersResultType;
   // Cancel discovering readers
