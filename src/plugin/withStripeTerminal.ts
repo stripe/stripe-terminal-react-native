@@ -9,6 +9,9 @@ const pkg = require('@stripe/stripe-terminal-react-native/package.json');
 
 type StripeTerminalPluginProps = {
   runInBackgroundMode?: boolean;
+  locationWhenInUsePermission?: string;
+  bluetoothPeripheralPermission?: string;
+  bluetoothAlwaysUsagePermission?: string;
 };
 
 const withStripeTerminal: ConfigPlugin<StripeTerminalPluginProps> = (
@@ -34,12 +37,15 @@ const withStripeTerminalIos: ConfigPlugin<StripeTerminalPluginProps> = (
     }
 
     config.modResults.NSLocationWhenInUseUsageDescription =
+      props.locationWhenInUsePermission ||
       'Location access is required in order to accept payments.';
 
     config.modResults.NSBluetoothPeripheralUsageDescription =
+      props.bluetoothPeripheralPermission ||
       'Bluetooth access is required in order to connect to supported bluetooth card readers.';
 
     config.modResults.NSBluetoothAlwaysUsageDescription =
+      props.bluetoothAlwaysUsagePermission ||
       'This app uses Bluetooth to connect to supported card readers.';
     return config;
   });
