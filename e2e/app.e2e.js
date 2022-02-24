@@ -68,7 +68,7 @@ describe('Payments', () => {
     if (device.getPlatform() !== 'android') {
       return;
     }
-    await changeDiscoveryMethod('LocalMobile');
+    await changeDiscoveryMethod('Local mobile');
   });
 
   it('Change discovery method to Handoff', async () => {
