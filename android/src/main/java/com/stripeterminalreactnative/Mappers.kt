@@ -118,7 +118,7 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod {
     "embedded" -> DiscoveryMethod.EMBEDDED
     "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
     "handoff" -> DiscoveryMethod.HANDOFF
-    else -> DiscoveryMethod.INTERNET
+    else -> throw TerminalException(TerminalException.TerminalErrorCode.UNSUPPORTED_OPERATION, "discoveryMethod:$method is not supported by Stripe Terminal Android")
   }
 }
 
@@ -255,6 +255,13 @@ internal fun mapFromReaderInputOptions(options: ReaderInputOptions): WritableArr
     }
   }
   return mappedOptions
+}
+
+internal fun mapFromReaderEvent(event: ReaderEvent): String {
+  return when (event) {
+    ReaderEvent.CARD_INSERTED -> "cardInserted"
+    ReaderEvent.CARD_REMOVED -> "cardRemoved"
+  }
 }
 
 internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String {

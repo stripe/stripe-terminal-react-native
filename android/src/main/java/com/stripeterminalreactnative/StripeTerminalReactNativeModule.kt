@@ -205,6 +205,128 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun connectLocalMobileReader(params: ReadableMap, promise: Promise) {
+    val readerId = getStringOr(params, "readerId") ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide readerId"))
+      return
+    }
+
+    val selectedReader = discoveredReadersList.find {
+      it.serialNumber == readerId
+    } ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "Could not find reader with id $readerId"))
+      return
+    }
+
+    val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
+
+    val connectionConfig = ConnectionConfiguration.LocalMobileConnectionConfiguration(
+      locationId
+    )
+
+    Terminal.getInstance().connectLocalMobileReader(
+      selectedReader,
+      connectionConfig,
+      object : ReaderCallback {
+        override fun onSuccess(reader: Reader) {
+          val result = WritableNativeMap()
+          result.putMap("reader", mapFromReader(reader))
+          promise.resolve(result)
+        }
+
+        override fun onFailure(e: TerminalException) {
+          promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+        }
+      }
+    )
+  }
+
+  @ReactMethod
+  fun connectEmbeddedReader(params: ReadableMap, promise: Promise) {
+    val readerId = getStringOr(params, "readerId") ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide readerId"))
+      return
+    }
+
+    val selectedReader = discoveredReadersList.find {
+      it.serialNumber == readerId
+    } ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "Could not find reader with id $readerId"))
+      return
+    }
+
+    val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
+
+    val connectionConfig = ConnectionConfiguration.EmbeddedConnectionConfiguration(
+      locationId
+    )
+
+    Terminal.getInstance().connectEmbeddedReader(
+      selectedReader,
+      connectionConfig,
+      object : ReaderCallback {
+        override fun onSuccess(reader: Reader) {
+          val result = WritableNativeMap()
+          result.putMap("reader", mapFromReader(reader))
+          promise.resolve(result)
+        }
+
+        override fun onFailure(e: TerminalException) {
+          promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+        }
+      }
+    )
+  }
+
+  @ReactMethod
+  fun connectHandoffReader(params: ReadableMap, promise: Promise) {
+    val readerId = getStringOr(params, "readerId") ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide readerId"))
+      return
+    }
+
+    val selectedReader = discoveredReadersList.find {
+      it.serialNumber == readerId
+    } ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "Could not find reader with id $readerId"))
+      return
+    }
+
+    val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
+
+    val connectionConfig = ConnectionConfiguration.HandoffConnectionConfiguration(
+      locationId
+    )
+
+    val listener: HandoffReaderListener = object : HandoffReaderListener {
+      override fun onReportReaderEvent(event: ReaderEvent) {
+        super.onReportReaderEvent(event)
+
+        val result = WritableNativeMap()
+        result.putString("event", mapFromReaderEvent(event))
+        sendEvent("didRequestReaderInput", result)
+      }
+    }
+
+    Terminal.getInstance().connectHandoffReader(
+      selectedReader,
+      connectionConfig,
+      listener,
+      object : ReaderCallback {
+        override fun onSuccess(reader: Reader) {
+          val result = WritableNativeMap()
+          result.putMap("reader", mapFromReader(reader))
+          promise.resolve(result)
+        }
+
+        override fun onFailure(e: TerminalException) {
+          promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+        }
+      }
+    )
+  }
+
+  @ReactMethod
   fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
     val readerId = getStringOr(params, "readerId") ?: run {
       promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide readerId"))

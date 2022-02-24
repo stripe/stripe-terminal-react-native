@@ -5,11 +5,9 @@ import type {
   DiscoverReadersParams,
   DiscoverReadersResultType,
   CancelDiscoveringResultType,
-  ConnectBluetoothReaderResultType,
   ConnectBluetoothReaderParams,
   DisconnectReaderResultType,
   Reader,
-  ConnectInternetResultType,
   ConnectInternetReaderParams,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
@@ -26,6 +24,10 @@ import type {
   ReadReusableCardParamsType,
   PaymentMethodResultType,
   SetConnectionTokenParams,
+  ConnectHandoffParams,
+  ConnectEmbeddedParams,
+  ConnectLocalMobileParams,
+  ConnectReaderResultType,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -47,11 +49,20 @@ type StripeTerminalSdkType = {
   // Connect to reader via bluetooth
   connectBluetoothReader(
     params: ConnectBluetoothReaderParams
-  ): Promise<ConnectBluetoothReaderResultType>;
+  ): Promise<ConnectReaderResultType>;
   // Connect to reader via internet
   connectInternetReader(
     params: ConnectInternetReaderParams
-  ): Promise<ConnectInternetResultType>;
+  ): Promise<ConnectReaderResultType>;
+  connectHandoffReader(
+    params: ConnectHandoffParams
+  ): Promise<ConnectReaderResultType>;
+  connectEmbeddedReader(
+    params: ConnectEmbeddedParams
+  ): Promise<ConnectReaderResultType>;
+  connectLocalMobileReader(
+    params: ConnectLocalMobileParams
+  ): Promise<ConnectReaderResultType>;
   // Disconnect reader
   disconnectReader(): Promise<DisconnectReaderResultType>;
   // Create a payment intent
