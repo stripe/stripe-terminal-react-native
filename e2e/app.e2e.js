@@ -50,7 +50,7 @@ describe('Payments', () => {
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
-    if (device.getPlatform() !== 'android') {
+    if (device.getPlatform() !== 'ios') {
       return;
     }
     await changeDiscoveryMethod('Bluetooth Proximity');
@@ -61,21 +61,21 @@ describe('Payments', () => {
   });
 
   it('Change discovery method to Embedded', async () => {
-    if (device.getPlatform() !== 'ios') {
+    if (device.getPlatform() !== 'android') {
       return;
     }
     await changeDiscoveryMethod('Embedded');
   });
 
   it('Change discovery method to LocalMobile', async () => {
-    if (device.getPlatform() !== 'ios') {
+    if (device.getPlatform() !== 'android') {
       return;
     }
     await changeDiscoveryMethod('LocalMobile');
   });
 
   it('Change discovery method to Handoff', async () => {
-    if (device.getPlatform() !== 'ios') {
+    if (device.getPlatform() !== 'android') {
       return;
     }
     await changeDiscoveryMethod('Handoff');
