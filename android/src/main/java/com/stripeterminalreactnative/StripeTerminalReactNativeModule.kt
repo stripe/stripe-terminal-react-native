@@ -206,10 +206,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
-    val readerId = getStringOr(params, "readerId") ?: run {
-      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide readerId"))
+    val reader = getMapOr(params, "reader") ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide a reader object"))
       return
     }
+    val readerId = getStringOr(reader, "serialNumber") as String
 
     val selectedReader = discoveredReadersList.find {
       it.serialNumber == readerId
@@ -299,10 +300,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun connectInternetReader(params: ReadableMap, promise: Promise) {
-    val readerId = getStringOr(params, "readerId") ?: run {
-      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide readerId"))
+    val reader = getMapOr(params, "reader") ?: run {
+      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide a reader object"))
       return
     }
+    val readerId = getStringOr(reader, "serialNumber") as String
 
     val selectedReader = discoveredReadersList.find {
       it.serialNumber == readerId

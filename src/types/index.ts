@@ -33,7 +33,7 @@ export type ListLocationsParams = {
 };
 
 export type ConnectBluetoothReaderParams = {
-  readerId: string;
+  reader: Reader.Type;
   locationId?: string;
 };
 
@@ -51,7 +51,7 @@ export type Cart = {
 };
 
 export type ConnectInternetReaderParams = {
-  readerId: string;
+  reader: Reader.Type;
   failIfInUse?: boolean;
 };
 
