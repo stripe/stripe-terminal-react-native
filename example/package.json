@@ -11,7 +11,8 @@
     "start:server": "ts-node server/index.ts",
     "start:server:ci": "ts-node server/index.ts &",
     "watch:server": "nodemon --exec ts-node server/index.ts",
-    "postinstall": "scripts/fixRN.sh"
+    "postinstall": "scripts/fixRN.sh",
+    "bootstrap": "cd .. && yarn bootstrap"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.11",
