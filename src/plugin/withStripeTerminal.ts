@@ -8,7 +8,7 @@ import {
 const pkg = require('@stripe/stripe-terminal-react-native/package.json');
 
 type StripeTerminalPluginProps = {
-  runInBackgroundMode?: boolean;
+  bluetoothBackgroundMode?: boolean;
   locationWhenInUsePermission?: string;
   bluetoothPeripheralPermission?: string;
   bluetoothAlwaysUsagePermission?: string;
@@ -32,7 +32,7 @@ const withStripeTerminalIos: ConfigPlugin<StripeTerminalPluginProps> = (
   props
 ) => {
   return withInfoPlist(expoConfig, (config) => {
-    if (props.runInBackgroundMode) {
+    if (props.bluetoothBackgroundMode) {
       config.modResults.UIBackgroundModes = ['bluetooth-central'];
     }
 
