@@ -33,7 +33,7 @@ export default function DiscoverReadersScreen() {
   const navigation = useNavigation();
   const { params } = useRoute();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
-  const [connectingReaderId, setConnectingReaderId] = useState<string>();
+  const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
 
   const { simulated, discoveryMethod } = params as Record<string, any>;
@@ -58,13 +58,9 @@ export default function DiscoverReadersScreen() {
       setDiscoveringLoading(false);
     },
     onDidStartInstallingUpdate: (update) => {
-      const reader = discoveredReaders.find(
-        (r) => r.serialNumber === connectingReaderId
-      );
-
       navigation.navigate('UpdateReaderScreen', {
         update,
-        reader,
+        reader: connectingReader,
         onDidUpdate: () => {
           setTimeout(() => {
             navigation.goBack();
@@ -135,9 +131,9 @@ export default function DiscoverReadersScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleConnectReader = async (id: string) => {
+  const handleConnectReader = async (reader: Reader.Type) => {
     if (discoveryMethod === 'internet') {
-      const { error } = await handleConnectInternetReader(id);
+      const { error } = await handleConnectInternetReader(reader);
       if (error) {
         Alert.alert(error.code, error.message);
       } else if (selectedUpdatePlan !== 'required') {
@@ -147,7 +143,7 @@ export default function DiscoverReadersScreen() {
       discoveryMethod === 'bluetoothScan' ||
       discoveryMethod === 'bluetoothProximity'
     ) {
-      const { error } = await handleConnectBluetoothReader(id);
+      const { error } = await handleConnectBluetoothReader(reader);
       if (error) {
         Alert.alert(error.code, error.message);
       } else if (selectedUpdatePlan !== 'required') {
@@ -156,34 +152,34 @@ export default function DiscoverReadersScreen() {
     }
   };
 
-  const handleConnectBluetoothReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectBluetoothReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
-    const { reader, error } = await connectBluetoothReader({
-      readerId: id,
+    const { reader: connectedReader, error } = await connectBluetoothReader({
+      reader,
       locationId: selectedLocation?.id,
     });
 
     if (error) {
       console.log('connectBluetoothReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };
 
-  const handleConnectInternetReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectInternetReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
-    const { reader, error } = await connectInternetReader({
-      readerId: id,
+    const { reader: connectedReader, error } = await connectInternetReader({
+      reader,
       failIfInUse: true,
     });
 
     if (error) {
       console.log('connectInternetReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };
@@ -243,12 +239,12 @@ export default function DiscoverReadersScreen() {
       <List
         title="NEARBY READERS"
         loading={discoveringLoading}
-        description={connectingReaderId ? 'Connecting...' : undefined}
+        description={connectingReader ? 'Connecting...' : undefined}
       >
         {discoveredReaders.map((reader) => (
           <ListItem
             key={reader.serialNumber}
-            onPress={() => handleConnectReader(reader.serialNumber)}
+            onPress={() => handleConnectReader(reader)}
             title={getReaderDisplayName(reader)}
             disabled={!isBTReader(reader) && reader.status === 'offline'}
           />

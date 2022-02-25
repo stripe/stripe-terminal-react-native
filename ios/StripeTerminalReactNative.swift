@@ -184,13 +184,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     
     @objc(connectBluetoothReader:resolver:rejecter:)
     func connectBluetoothReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let readerId = params["readerId"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide readerId"))
+        guard let reader = params["reader"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide a reader object"))
             return
         }
         
+        // since simulated readers don't contain `id` property we take serialNumber as a fallback
+        let readerId = reader["serialNumber"] as? String
+        
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Could not find reader with id \(readerId)"))
+            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Could not find reader with id \(readerId ?? "")"))
             return
             
         }
@@ -212,13 +215,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     
     @objc(connectInternetReader:resolver:rejecter:)
     func connectInternetReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let readerId = params["readerId"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide readerId"))
+        guard let reader = params["reader"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide a reader object"))
             return
         }
         
+        // since simulated readers don't contain `id` property we take serialNumber as a fallback
+        let readerId = reader["serialNumber"] as? String
+        
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Could not find reader with id \(readerId)"))
+            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Could not find reader with id \(readerId ?? "")"))
             return
             
         }
