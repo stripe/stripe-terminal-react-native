@@ -30,6 +30,5 @@ internal fun validateRequiredParameters(
             invalid.add(param)
         }
     }
-    val joined = invalid.joinToString(separator = ", ")
-    return if (joined.isEmpty()) null else joined
+    return invalid.joinToString(separator = ", ").ifEmpty { null }
 }

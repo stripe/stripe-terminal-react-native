@@ -82,7 +82,7 @@ internal fun mapFromReader(reader: Reader): WritableMap {
     return item
 }
 
-internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String? {
+internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String {
     return when (status) {
         Reader.NetworkStatus.OFFLINE -> "offline"
         Reader.NetworkStatus.ONLINE -> "online"
@@ -123,97 +123,74 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod {
     }
 }
 
-internal fun createResult(key: String, value: WritableMap): WritableMap {
-    val map = WritableNativeMap()
-    map.putMap(key, value)
-    return map
-}
-
-internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-    item.putInt("amount", paymentIntent.amount.toInt())
-    item.putString("currency", paymentIntent.currency)
-    item.putString("id", paymentIntent.id)
-    item.putString("description", paymentIntent.description)
-    item.putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
-    item.putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
-    item.putString("created", convertToUnixTimestamp(paymentIntent.created))
-
-    return item
-}
-
-internal fun mapFromSetupIntent(setupIntent: SetupIntent): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-    item.putString("created", convertToUnixTimestamp(setupIntent.created))
-    item.putString("id", setupIntent.id)
-    item.putString("status", mapFromSetupIntentStatus(setupIntent.status))
-    item.putMap("latestAttempt", mapFromSetupAttempt(setupIntent.latestAttempt))
-    item.putString("usage", mapFromSetupIntentUsage(setupIntent.usage))
-    item.putString("applicationId", setupIntent.applicationId)
-    item.putString("clientSecret", setupIntent.clientSecret)
-    item.putString("description", setupIntent.description)
-    item.putString("mandateId", setupIntent.mandateId)
-    item.putString("onBehalfOfId", setupIntent.onBehalfOfId)
-    item.putString("paymentMethodId", setupIntent.paymentMethodId)
-    item.putString("singleUseMandateId", setupIntent.singleUseMandateId)
-
-    return item
-}
-
-internal fun mapFromSetupAttempt(attempt: SetupAttempt?): WritableMap? {
-    val unwrappedAttempt = attempt ?: run {
-        return null
+internal fun createResult(key: String, value: WritableMap): WritableMap =
+    WritableNativeMap().apply {
+        putMap(key, value)
     }
-    val item: WritableMap = WritableNativeMap()
-    item.putString("created", convertToUnixTimestamp(unwrappedAttempt.created))
-    item.putString("id", unwrappedAttempt.id)
-    item.putString("status", mapFromSetupAttemptStatus(unwrappedAttempt.status))
-    item.putString("usage", mapFromSetupIntentUsage(unwrappedAttempt.usage))
-    item.putBoolean("isLiveMode", unwrappedAttempt.isLiveMode)
-    item.putMap(
-        "paymentMethodDetails",
-        mapFromSetupIntentPaymentMethodDetails(unwrappedAttempt.paymentMethodDetails)
-    )
-    item.putString("customer", unwrappedAttempt.customerId)
-    item.putString("setupIntentId", unwrappedAttempt.setupIntentId)
-    item.putString("onBehalfOfId", unwrappedAttempt.onBehalfOfId)
-    item.putString("applicationId", unwrappedAttempt.applicationId)
-    item.putString("paymentMethodId", unwrappedAttempt.paymentMethodId)
 
-    return item
+internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent): WritableMap =
+    WritableNativeMap().apply {
+        putInt("amount", paymentIntent.amount.toInt())
+        putString("currency", paymentIntent.currency)
+        putString("id", paymentIntent.id)
+        putString("description", paymentIntent.description)
+        putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
+        putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+        putString("created", convertToUnixTimestamp(paymentIntent.created))
+    }
+
+internal fun mapFromSetupIntent(setupIntent: SetupIntent): WritableMap = WritableNativeMap().apply {
+    putString("created", convertToUnixTimestamp(setupIntent.created))
+    putString("id", setupIntent.id)
+    putString("status", mapFromSetupIntentStatus(setupIntent.status))
+    putMap("latestAttempt", mapFromSetupAttempt(setupIntent.latestAttempt))
+    putString("usage", mapFromSetupIntentUsage(setupIntent.usage))
+    putString("applicationId", setupIntent.applicationId)
+    putString("clientSecret", setupIntent.clientSecret)
+    putString("description", setupIntent.description)
+    putString("mandateId", setupIntent.mandateId)
+    putString("onBehalfOfId", setupIntent.onBehalfOfId)
+    putString("paymentMethodId", setupIntent.paymentMethodId)
+    putString("singleUseMandateId", setupIntent.singleUseMandateId)
+}
+
+internal fun mapFromSetupAttempt(attempt: SetupAttempt?): WritableMap? = attempt?.let {
+    WritableNativeMap().apply {
+        putString("created", convertToUnixTimestamp(it.created))
+        putString("id", it.id)
+        putString("status", mapFromSetupAttemptStatus(it.status))
+        putString("usage", mapFromSetupIntentUsage(it.usage))
+        putBoolean("isLiveMode", it.isLiveMode)
+        putMap(
+            "paymentMethodDetails",
+            mapFromSetupIntentPaymentMethodDetails(it.paymentMethodDetails)
+        )
+        putString("customer", it.customerId)
+        putString("setupIntentId", it.setupIntentId)
+        putString("onBehalfOfId", it.onBehalfOfId)
+        putString("applicationId", it.applicationId)
+        putString("paymentMethodId", it.paymentMethodId)
+    }
 }
 
 internal fun mapFromSetupIntentPaymentMethodDetails(
     details: SetupIntentPaymentMethodDetails
-): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-    item.putMap("cardPresent", mapFromSetupIntentCardPresentDetails(details.cardPresentDetails))
-    item.putMap(
-        "interacPresent",
-        mapFromSetupIntentCardPresentDetails(details.interacPresentDetails)
-    )
-
-    return item
+): WritableMap = WritableNativeMap().apply {
+    putMap("cardPresent", mapFromSetupIntentCardPresentDetails(details.cardPresentDetails))
+    putMap("interacPresent", mapFromSetupIntentCardPresentDetails(details.interacPresentDetails))
 }
 
 internal fun mapFromSetupIntentCardPresentDetails(
     details: SetupIntentCardPresentDetails?
-): WritableMap? {
-    val unwrappedDetails = details ?: run {
-        return null
+): WritableMap? = details?.let {
+    WritableNativeMap().apply {
+        putString("emvAuthData", it.emvAuthData)
+        putString("generatedCard", it.generatedCard)
     }
-    val item: WritableMap = WritableNativeMap()
-    item.putString("emvAuthData", unwrappedDetails.emvAuthData)
-    item.putString("generatedCard", unwrappedDetails.generatedCard)
-
-    return item
 }
 
-internal fun mapFromSetupIntentUsage(usage: SetupIntentUsage?): String? {
-    val unwrappedUsage = usage ?: run {
-        return null
-    }
-    return when (unwrappedUsage) {
+internal fun mapFromSetupIntentUsage(usage: SetupIntentUsage?): String? = usage?.let {
+    when (it) {
         SetupIntentUsage.OFF_SESSION -> "offSession"
         SetupIntentUsage.ON_SESSION -> "onSession"
         else -> "unknown"
@@ -283,53 +260,42 @@ internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String 
     }
 }
 
-internal fun mapFromCharge(reader: Charge): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-    item.putString("id", reader.id)
-    item.putString("status", reader.status)
-    item.putString("currency", reader.currency)
-    item.putInt("amount", reader.amount.toInt())
-    item.putString("description", reader.description)
-
-    return item
+internal fun mapFromCharge(reader: Charge): WritableMap = WritableNativeMap().apply {
+    putString("id", reader.id)
+    putString("status", reader.status)
+    putString("currency", reader.currency)
+    putInt("amount", reader.amount.toInt())
+    putString("description", reader.description)
 }
 
-internal fun mapFromLocation(location: Location?): WritableMap? {
-    val unwrappedLocation = location ?: run {
-        return null
-    }
-    val item: WritableMap = WritableNativeMap()
-    item.putString("id", unwrappedLocation.id)
-    item.putString("displayName", unwrappedLocation.displayName)
+internal fun mapFromLocation(location: Location?): WritableMap? = location?.let {
+    WritableNativeMap().apply {
+        putString("id", it.id)
+        putString("displayName", it.displayName)
 
-    mapFromAddress(unwrappedLocation.address)?.let {
-        item.putMap("address", it)
-    } ?: run {
-        item.putNull("address")
-    }
+        mapFromAddress(it.address)?.let {
+            putMap("address", it)
+        } ?: run {
+            putNull("address")
+        }
 
-    unwrappedLocation.livemode?.let {
-        item.putBoolean("livemode", it)
-    } ?: run {
-        item.putNull("livemode")
+        it.livemode?.let {
+            putBoolean("livemode", it)
+        } ?: run {
+            putNull("livemode")
+        }
     }
-
-    return item
 }
 
-internal fun mapFromAddress(address: Address?): WritableMap? {
-    if (address == null) {
-        return null
+internal fun mapFromAddress(address: Address?): WritableMap? = address?.let {
+    WritableNativeMap().apply {
+        putString("country", it.country)
+        putString("city", it.city)
+        putString("postalCode", it.postalCode)
+        putString("line1", it.line1)
+        putString("line2", it.line2)
+        putString("state", it.state)
     }
-    val item: WritableMap = WritableNativeMap()
-    item.putString("country", address.country)
-    item.putString("city", address.city)
-    item.putString("postalCode", address.postalCode)
-    item.putString("line1", address.line1)
-    item.putString("line2", address.line2)
-    item.putString("state", address.state)
-
-    return item
 }
 
 internal fun mapFromPaymentIntentStatus(status: PaymentIntentStatus?): String {
@@ -395,20 +361,19 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
 }
 
 
-private fun convertToUnixTimestamp(timestamp: Long): String {
-    return (timestamp * 1000).toString()
-}
+private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
-internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): ReadableMap? {
-    val unwrappedUpdate = update ?: run {
-        return null
+internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): ReadableMap? =
+    update?.let {
+        WritableNativeMap().apply {
+            putString("deviceSoftwareVersion", it.version)
+            putString(
+                "estimatedUpdateTime",
+                mapFromUpdateTimeEstimate(it.timeEstimate)
+            )
+            putString("requiredAt", convertToUnixTimestamp(it.requiredAt.time))
+        }
     }
-    val result = WritableNativeMap()
-    result.putString("deviceSoftwareVersion", unwrappedUpdate.version)
-    result.putString("estimatedUpdateTime", mapFromUpdateTimeEstimate(unwrappedUpdate.timeEstimate))
-    result.putString("requiredAt", convertToUnixTimestamp(unwrappedUpdate.requiredAt.time))
-    return result
-}
 
 internal fun mapFromUpdateTimeEstimate(time: ReaderSoftwareUpdate.UpdateTimeEstimate): String {
     return when (time) {
@@ -420,67 +385,53 @@ internal fun mapFromUpdateTimeEstimate(time: ReaderSoftwareUpdate.UpdateTimeEsti
     }
 }
 
-internal fun mapToCartLineItems(cartLineItems: ReadableArray): List<CartLineItem> {
-    val items: MutableList<CartLineItem> = mutableListOf()
-
-    cartLineItems.toArrayList().forEach {
-        (it as HashMap<*, *>?)?.let { item ->
-            mapToCartLineItem(item)?.let { cartLineItem ->
-                items.add(cartLineItem)
-            }
+internal fun mapToCartLineItems(cartLineItems: ReadableArray): List<CartLineItem> =
+    cartLineItems.toArrayList().mapNotNull {
+        (it as? HashMap<*, *>)?.let { item ->
+            mapToCartLineItem(item)
         }
     }
 
-    return items
-}
-
 internal fun mapToCartLineItem(cartLineItem: HashMap<*, *>): CartLineItem? {
-    val displayName = cartLineItem["displayName"] as String? ?: run { return null }
-    val quantity = cartLineItem["quantity"] as Double? ?: run { return null }
-    val amount = cartLineItem["amount"] as Double? ?: run { return null }
+    val displayName = cartLineItem["displayName"] as? String ?: return null
+    val quantity = cartLineItem["quantity"] as? Double ?: return null
+    val amount = cartLineItem["amount"] as? Double ?: return null
 
     return CartLineItem.Builder(displayName, amount.toInt(), quantity.toLong()).build()
 }
 
-internal fun mapFromRefund(refund: Refund): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-
-    putIntOrNull(item, "amount", refund.amount?.toInt())
-    item.putString("balanceTransaction", refund.balanceTransaction)
-    item.putString("chargeId", refund.chargeId)
-    item.putString("currency", refund.currency)
-    item.putString("paymentIntentId", refund.paymentIntentId)
-    item.putString("description", refund.description)
-    item.putString("failureBalanceTransaction", refund.failureBalanceTransaction)
-    item.putString("failureReason", refund.failureReason)
-    item.putString("id", refund.id)
-    item.putString("reason", refund.reason)
-    item.putString("receiptNumber", refund.receiptNumber)
-    item.putString("status", refund.status)
-    item.putString("sourceTransferReversal", refund.sourceTransferReversal)
-    item.putString("transferReversal", refund.transferReversal)
-
-    return item
+internal fun mapFromRefund(refund: Refund): WritableMap = WritableNativeMap().apply {
+    putIntOrNull(this, "amount", refund.amount?.toInt())
+    putString("balanceTransaction", refund.balanceTransaction)
+    putString("chargeId", refund.chargeId)
+    putString("currency", refund.currency)
+    putString("paymentIntentId", refund.paymentIntentId)
+    putString("description", refund.description)
+    putString("failureBalanceTransaction", refund.failureBalanceTransaction)
+    putString("failureReason", refund.failureReason)
+    putString("id", refund.id)
+    putString("reason", refund.reason)
+    putString("receiptNumber", refund.receiptNumber)
+    putString("status", refund.status)
+    putString("sourceTransferReversal", refund.sourceTransferReversal)
+    putString("transferReversal", refund.transferReversal)
 }
 
-internal fun mapFromCardDetails(cardDetails: CardDetails?): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-    item.putString("brand", cardDetails?.brand)
-    item.putString("country", cardDetails?.country)
-    item.putInt("expMonth", cardDetails?.expMonth ?: 0)
-    item.putInt("expYear", cardDetails?.expYear ?: 0)
-    item.putString("fingerprint", cardDetails?.fingerprint)
-    item.putString("funding", cardDetails?.funding)
-    item.putString("last4", cardDetails?.last4)
-    return item
-}
+internal fun mapFromCardDetails(cardDetails: CardDetails?): WritableMap =
+    WritableNativeMap().apply {
+        putString("brand", cardDetails?.brand)
+        putString("country", cardDetails?.country)
+        putInt("expMonth", cardDetails?.expMonth ?: 0)
+        putInt("expYear", cardDetails?.expYear ?: 0)
+        putString("fingerprint", cardDetails?.fingerprint)
+        putString("funding", cardDetails?.funding)
+        putString("last4", cardDetails?.last4)
+    }
 
-internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
-    val item: WritableMap = WritableNativeMap()
-    item.putString("id", paymentMethod.id)
-    item.putString("customer", paymentMethod.customer)
-    item.putBoolean("livemode", paymentMethod.livemode)
-    item.putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
-
-    return item
-}
+internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap =
+    WritableNativeMap().apply {
+        putString("id", paymentMethod.id)
+        putString("customer", paymentMethod.customer)
+        putBoolean("livemode", paymentMethod.livemode)
+        putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
+    }
