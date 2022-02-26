@@ -99,7 +99,6 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.VERIFONE_P400 -> "verifoneP400"
         DeviceType.WISEPAD_3 -> "wisePad3"
         DeviceType.WISEPOS_E -> "wisePosE"
-        else -> "unknown"
     }
 }
 
@@ -108,7 +107,6 @@ internal fun mapFromLocationStatus(status: LocationStatus): String {
         LocationStatus.NOT_SET -> "notSet"
         LocationStatus.SET -> "set"
         LocationStatus.UNKNOWN -> "unknown"
-        else -> "unknown"
     }
 }
 
@@ -193,7 +191,6 @@ internal fun mapFromSetupIntentUsage(usage: SetupIntentUsage?): String? = usage?
     when (it) {
         SetupIntentUsage.OFF_SESSION -> "offSession"
         SetupIntentUsage.ON_SESSION -> "onSession"
-        else -> "unknown"
     }
 }
 
@@ -205,7 +202,6 @@ internal fun mapFromSetupAttemptStatus(method: SetupAttemptStatus): String {
         SetupAttemptStatus.REQUIRES_ACTION -> "requiresAction"
         SetupAttemptStatus.REQUIRES_CONFIRMATION -> "requiresConfirmation"
         SetupAttemptStatus.SUCCEEDED -> "succeeded"
-        else -> "unknown"
     }
 }
 
@@ -256,7 +252,6 @@ internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String 
         ReaderDisplayMessage.SWIPE_CARD -> "swipeCard"
         ReaderDisplayMessage.TRY_ANOTHER_CARD -> "tryAnotherCard"
         ReaderDisplayMessage.TRY_ANOTHER_READ_METHOD -> "tryAnotherReadMethod"
-        else -> "unknown"
     }
 }
 
@@ -325,7 +320,6 @@ internal fun mapFromConnectionStatus(status: ConnectionStatus): String {
         ConnectionStatus.CONNECTED -> "connected"
         ConnectionStatus.NOT_CONNECTED -> "notConnected"
         ConnectionStatus.CONNECTING -> "connecting"
-        else -> "unknown"
     }
 }
 
@@ -335,7 +329,6 @@ internal fun mapFromPaymentStatus(status: PaymentStatus): String {
         PaymentStatus.PROCESSING -> "processing"
         PaymentStatus.READY -> "ready"
         PaymentStatus.WAITING_FOR_INPUT -> "waitingForInput"
-        else -> "unknown"
     }
 }
 
@@ -381,7 +374,6 @@ internal fun mapFromUpdateTimeEstimate(time: ReaderSoftwareUpdate.UpdateTimeEsti
         ReaderSoftwareUpdate.UpdateTimeEstimate.LESS_THAN_ONE_MINUTE -> "estimateLessThan1Minute"
         ReaderSoftwareUpdate.UpdateTimeEstimate.ONE_TO_TWO_MINUTES -> "estimate1To2Minutes"
         ReaderSoftwareUpdate.UpdateTimeEstimate.TWO_TO_FIVE_MINUTES -> "estimate2To5Minutes"
-        else -> "unknown"
     }
 }
 
