@@ -102,7 +102,6 @@ export default function SetupIntentScreen() {
 
       if (customerError) {
         console.error(customerError);
-        return;
       }
 
       const response = await createSetupIntent({

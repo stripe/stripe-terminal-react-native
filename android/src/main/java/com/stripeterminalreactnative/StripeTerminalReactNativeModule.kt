@@ -451,11 +451,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun createSetupIntent(params: ReadableMap, promise: Promise) {
-    val customerId = getStringOr(params, "customerId") ?: ""
-
-    val intentParams = SetupIntentParameters.Builder()
-      .setCustomer(customerId)
-      .build()
+    val intentParams = getStringOr(params, "customer")?.let { customerId ->
+      SetupIntentParameters.Builder().setCustomer(customerId).build()
+    } ?: SetupIntentParameters.NULL
 
     Terminal.getInstance().createSetupIntent(intentParams, object : SetupIntentCallback {
       override fun onSuccess(setupIntent: SetupIntent) {
@@ -691,14 +689,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun readReusableCard(params: ReadableMap, promise: Promise) {
-    validateRequiredParameters(params, listOf("customer"))?.let {
-      promise.resolve(createError(CommonErrorType.Failed.toString(), "You must provide $it parameters."))
-      return
-    }
-
-    val customer = getStringOr(params, "customer")?: ""
-
-    var reusableCardParams = ReadReusableCardParameters.Builder().setCustomer(customer).build();
+    val reusableCardParams = getStringOr(params, "customer")?.let { customerId ->
+     ReadReusableCardParameters.Builder().setCustomer(customerId).build()
+    } ?: ReadReusableCardParameters.NULL
 
     readReusableCardCancelable = Terminal.getInstance().readReusableCard(reusableCardParams, object : PaymentMethodCallback {
       override fun onSuccess(paymentMethod: PaymentMethod) {
