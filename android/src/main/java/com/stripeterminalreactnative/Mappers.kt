@@ -35,16 +35,8 @@ fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
     }
 }
 
-internal fun mapFromReaders(readers: List<Reader>): WritableArray {
-    val list: WritableArray = WritableNativeArray()
-
-    readers.forEach {
-        val reader = mapFromReader(it)
-        list.pushMap(reader)
-    }
-
-    return list
-}
+internal fun mapFromReaders(readers: List<Reader>): WritableArray =
+    readers.collectToWritableArray { mapFromReader(it) }
 
 internal fun mapFromReader(reader: Reader): WritableMap = WritableNativeMap().apply {
     putString("label", reader.label)
@@ -197,28 +189,11 @@ internal fun mapFromSetupAttemptStatus(method: SetupAttemptStatus): String {
     }
 }
 
-internal fun mapFromChargesList(charges: List<Charge>): WritableArray {
-    val list: WritableArray = WritableNativeArray()
+internal fun mapFromChargesList(charges: List<Charge>): WritableArray =
+    charges.collectToWritableArray { mapFromCharge(it) }
 
-    charges.forEach {
-        val reader = mapFromCharge(it)
-        list.pushMap(reader)
-    }
-
-    return list
-}
-
-internal fun mapFromListLocations(locations: List<Location>): WritableArray {
-    val list: WritableArray = WritableNativeArray()
-
-    locations.forEach {
-        mapFromLocation(it)?.let { location ->
-            list.pushMap(location)
-        }
-    }
-
-    return list
-}
+internal fun mapFromListLocations(locations: List<Location>): WritableArray =
+    locations.collectToWritableArray { mapFromLocation(it) }
 
 internal fun mapFromReaderInputOptions(options: ReaderInputOptions): WritableArray {
     val mappedOptions: WritableArray = WritableNativeArray()
@@ -418,4 +393,9 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap =
         putString("customer", paymentMethod.customer)
         putBoolean("livemode", paymentMethod.livemode)
         putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
+    }
+
+private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> WritableMap?) =
+    fold(WritableNativeArray()) { writableArray, item ->
+        writableArray.pushMap(transform(item)); writableArray
     }
