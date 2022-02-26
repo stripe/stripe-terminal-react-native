@@ -50,6 +50,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun initialize(params: ReadableMap, promise: Promise) {
         UiThreadUtil.runOnUiThread {
             onCreate(reactApplicationContext.applicationContext as Application)
@@ -103,6 +104,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelCollectPaymentMethod(promise: Promise) {
         val cancelable = collectPaymentMethodCancelable ?: run {
             promise.resolve(
@@ -125,6 +127,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelCollectSetupIntent(promise: Promise) {
         val cancelable = collectSetupIntentCancelable ?: run {
             promise.resolve(
@@ -147,6 +150,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun simulateReaderUpdate(update: String, promise: Promise) {
         val updateMapped = mapFromSimulateReaderUpdate(update)
         Terminal.getInstance().simulatorConfiguration = SimulatorConfiguration(updateMapped)
@@ -154,6 +158,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
         val token = getStringOr(params, "token")
         val error = getStringOr(params, "error")
@@ -162,6 +167,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun discoverReaders(params: ReadableMap, promise: Promise) {
         val discoveryMethod = mapToDiscoveryMethod(getStringOr(params, "discoveryMethod"))
         val simulated = getBoolean(params, "simulated")
@@ -207,6 +213,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelDiscovering(promise: Promise) {
         val cancelable = discoverCancelable ?: run {
             promise.resolve(
@@ -229,6 +236,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
         val reader = getMapOr(params, "reader") ?: run {
             promise.resolve(
@@ -344,6 +352,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun connectInternetReader(params: ReadableMap, promise: Promise) {
         val reader = getMapOr(params, "reader") ?: run {
             promise.resolve(
@@ -395,6 +404,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun disconnectReader(promise: Promise) {
         Terminal.getInstance().disconnectReader(object : Callback {
             override fun onSuccess() {
@@ -408,6 +418,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
         val amount = getIntOr(params, "amount") ?: 0
         val currency = getStringOr(params, "currency") ?: ""
@@ -441,6 +452,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun collectPaymentMethod(paymentIntentId: String, promise: Promise) {
         val paymentIntent = paymentIntents[paymentIntentId] ?: run {
             promise.resolve(
@@ -471,6 +483,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
         Terminal.getInstance().retrievePaymentIntent(clientSecret, object : PaymentIntentCallback {
             override fun onSuccess(paymentIntent: PaymentIntent) {
@@ -486,6 +499,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun processPayment(paymentIntentId: String, promise: Promise) {
         val paymentIntent = paymentIntents[paymentIntentId] ?: run {
             promise.resolve(
@@ -510,6 +524,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun getListLocations(params: ReadableMap, promise: Promise) {
         val listParameters = ListLocationsParameters.Builder()
         listParameters.endingBefore = getStringOr(params, "endingBefore")
@@ -532,6 +547,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
         val intentParams = getStringOr(params, "customer")?.let { customerId ->
          SetupIntentParameters.Builder().setCustomer(customerId).build()
@@ -551,6 +567,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
         Terminal.getInstance().retrieveSetupIntent(clientSecret, object : SetupIntentCallback {
             override fun onSuccess(setupIntent: SetupIntent) {
@@ -566,6 +583,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) {
         val paymentIntent = paymentIntents[paymentIntentId] ?: run {
             promise.resolve(
@@ -588,6 +606,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelReadReusableCard(promise: Promise) {
         val cancelable = readReusableCardCancelable ?: run {
             promise.resolve(
@@ -610,6 +629,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) {
         val setupIntentId = getStringOr(params, "setupIntentId")
         val customerConsentCollected = getBoolean(params, "customerConsentCollected")
@@ -643,12 +663,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun installAvailableUpdate(promise: Promise) {
         Terminal.getInstance().installAvailableUpdate()
         promise.resolve(WritableNativeMap())
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelInstallingUpdate(promise: Promise) {
         installUpdateCancelable?.cancel(object : Callback {
             override fun onSuccess() {
@@ -662,6 +684,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun setReaderDisplay(params: ReadableMap, promise: Promise) {
         validateRequiredParameters(params, listOf("currency", "tax", "total"))?.let {
             promise.resolve(
@@ -700,6 +723,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun cancelSetupIntent(setupIntentId: String, promise: Promise) {
         val setupIntent = setupIntents[setupIntentId] ?: run {
             promise.resolve(
@@ -728,6 +752,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun confirmSetupIntent(setupIntentId: String, promise: Promise) {
         val setupIntent = setupIntents[setupIntentId] ?: run {
             promise.resolve(
@@ -753,6 +778,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun clearReaderDisplay(promise: Promise) {
         Terminal.getInstance().clearReaderDisplay(object : Callback {
             override fun onSuccess() {
@@ -766,6 +792,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun collectRefundPaymentMethod(params: ReadableMap, promise: Promise) {
         validateRequiredParameters(params, listOf("chargeId", "amount", "currency"))?.let {
             promise.resolve(
@@ -795,12 +822,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun clearCachedCredentials(promise: Promise) {
         Terminal.getInstance().clearCachedCredentials()
         promise.resolve(WritableNativeMap())
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun processRefund(promise: Promise) {
         Terminal.getInstance().processRefund(object : RefundCallback {
             override fun onSuccess(refund: Refund) {
@@ -819,6 +848,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
     fun readReusableCard(params: ReadableMap, promise: Promise) {
         val reusableCardParams = getStringOr(params, "customer") ?.let { customerId ->
          ReadReusableCardParameters.Builder().setCustomer(customerId).build()
