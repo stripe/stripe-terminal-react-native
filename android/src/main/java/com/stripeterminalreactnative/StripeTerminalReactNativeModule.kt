@@ -708,8 +708,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             tax = tax!!,
             total = total!!,
             lineItems = cartLineItems
-        )
-            .build()
+        ).build()
 
         Terminal.getInstance().setReaderDisplay(cart, object : Callback {
             override fun onSuccess() {
@@ -807,8 +806,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val amount = getIntOr(params, "amount")?.toLong() ?: 0
         val currency = getStringOr(params, "currency") ?: ""
 
-        val intentParams = RefundParameters.Builder(chargeId, amount, currency)
-            .build()
+        val intentParams = RefundParameters.Builder(chargeId, amount, currency).build()
 
         Terminal.getInstance().collectRefundPaymentMethod(intentParams, object : Callback {
             override fun onSuccess() {
@@ -834,8 +832,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         Terminal.getInstance().processRefund(object : RefundCallback {
             override fun onSuccess(refund: Refund) {
                 val rf = mapFromRefund(refund)
-                val result = WritableNativeMap()
-                result.putMap("refund", rf)
+                val result = WritableNativeMap().apply {
+                    putMap("refund", rf)
+                }
 
                 promise.resolve(result)
 
@@ -858,8 +857,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             .readReusableCard(reusableCardParams, object : PaymentMethodCallback {
                 override fun onSuccess(paymentMethod: PaymentMethod) {
                     val pm = mapFromPaymentMethod(paymentMethod)
-                    val result = WritableNativeMap()
-                    result.putMap("paymentMethod", pm)
+                    val result = WritableNativeMap().apply {
+                        putMap("paymentMethod", pm)
+                    }
 
                     promise.resolve(result)
                 }
@@ -883,16 +883,18 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     private fun onPaymentIntentCallback(paymentIntent: PaymentIntent, promise: Promise) {
         val pi = mapFromPaymentIntent(paymentIntent)
-        val result = WritableNativeMap()
-        result.putMap("paymentIntent", pi)
+        val result = WritableNativeMap().apply {
+            putMap("paymentIntent", pi)
+        }
 
         promise.resolve(result)
     }
 
     private fun onSetupIntentCallback(setupIntent: SetupIntent, promise: Promise) {
         val si = mapFromSetupIntent(setupIntent)
-        val result = WritableNativeMap()
-        result.putMap("setupIntent", si)
+        val result = WritableNativeMap().apply {
+            putMap("setupIntent", si)
+        }
 
         promise.resolve(result)
     }
