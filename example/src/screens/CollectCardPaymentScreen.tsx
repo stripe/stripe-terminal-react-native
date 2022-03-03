@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
       android: {
         borderBottomWidth: 1,
         borderBottomColor: `${colors.gray}66`,
+        color: colors.dark_gray,
       },
     }),
   },
