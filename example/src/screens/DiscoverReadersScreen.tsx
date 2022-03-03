@@ -53,6 +53,7 @@ export default function DiscoverReadersScreen() {
           'Discover readers error',
           `${finishError.code}, ${finishError.message}`
         );
+        navigation.goBack();
       } else {
         console.log('onFinishDiscoveringReaders success');
       }
