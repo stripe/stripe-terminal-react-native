@@ -261,7 +261,15 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
+        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id ?: run {
+            promise.resolve(
+                createError(
+                    CommonErrorType.Failed.toString(),
+                    "You must provide a locationId"
+                )
+            )
+            return
+        }
 
         val connectionConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
             locationId
