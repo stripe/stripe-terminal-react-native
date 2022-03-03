@@ -15,6 +15,7 @@ import {
   Reader,
 } from 'stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
+import type { StripeError } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import { useNavigation, useRoute } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
@@ -52,6 +53,7 @@ export default function DiscoverReadersScreen() {
           'Discover readers error',
           `${finishError.code}, ${finishError.message}`
         );
+        navigation.goBack();
       } else {
         console.log('onFinishDiscoveringReaders success');
       }
@@ -132,23 +134,22 @@ export default function DiscoverReadersScreen() {
   }, []);
 
   const handleConnectReader = async (reader: Reader.Type) => {
+    let error: StripeError | undefined;
     if (discoveryMethod === 'internet') {
-      const { error } = await handleConnectInternetReader(reader);
-      if (error) {
-        Alert.alert(error.code, error.message);
-      } else if (selectedUpdatePlan !== 'required') {
-        navigation.goBack();
-      }
+      const result = await handleConnectInternetReader(reader);
+      error = result.error;
     } else if (
       discoveryMethod === 'bluetoothScan' ||
       discoveryMethod === 'bluetoothProximity'
     ) {
-      const { error } = await handleConnectBluetoothReader(reader);
-      if (error) {
-        Alert.alert(error.code, error.message);
-      } else if (selectedUpdatePlan !== 'required') {
-        navigation.goBack();
-      }
+      const result = await handleConnectBluetoothReader(reader);
+      error = result.error;
+    }
+    if (error) {
+      setConnectingReader(undefined);
+      Alert.alert(error.code, error.message);
+    } else if (selectedUpdatePlan !== 'required') {
+      navigation.goBack();
     }
   };
 

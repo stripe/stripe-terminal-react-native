@@ -62,7 +62,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     CommonErrorType.Failed.toString(),
                     "Reader has been disconnected unexpectedly"
                 )
-                sendEvent("didUpdateDiscoveredReaders", error)
+                val result = WritableNativeMap().apply {
+                    putMap("result", error)
+                }
+                sendEvent("didFinishDiscoveringReaders", result)
             }
 
             override fun onConnectionStatusChange(status: ConnectionStatus) {
@@ -261,7 +264,15 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
+        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id ?: run {
+            promise.resolve(
+                createError(
+                    CommonErrorType.Failed.toString(),
+                    "You must provide a locationId"
+                )
+            )
+            return
+        }
 
         val connectionConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
             locationId
@@ -550,7 +561,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
         val intentParams = getStringOr(params, "customer")?.let { customerId ->
-         SetupIntentParameters.Builder().setCustomer(customerId).build()
+            SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
         Terminal.getInstance().createSetupIntent(intentParams, object : SetupIntentCallback {
@@ -849,9 +860,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun readReusableCard(params: ReadableMap, promise: Promise) {
-        val reusableCardParams = getStringOr(params, "customer") ?.let { customerId ->
-         ReadReusableCardParameters.Builder().setCustomer(customerId).build()
-    } ?: ReadReusableCardParameters.NULL
+        val reusableCardParams = getStringOr(params, "customer")?.let { customerId ->
+            ReadReusableCardParameters.Builder().setCustomer(customerId).build()
+        } ?: ReadReusableCardParameters.NULL
 
         readReusableCardCancelable = Terminal.getInstance()
             .readReusableCard(reusableCardParams, object : PaymentMethodCallback {
