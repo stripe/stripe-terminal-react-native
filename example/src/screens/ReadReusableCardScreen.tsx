@@ -43,7 +43,7 @@ export default function ReadReusableCardScreen() {
 
   const _readReusableCard = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
 
     addLogs({
       name: 'Read Reusable Card',

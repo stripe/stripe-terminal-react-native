@@ -79,7 +79,7 @@ export default function CollectCardPaymentScreen() {
 
   const _createPaymentIntent = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],

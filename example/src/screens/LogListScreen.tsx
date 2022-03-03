@@ -6,7 +6,7 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 
-const LogScreen = () => {
+const LogListScreen = () => {
   const { logs } = useContext(LogContext);
 
   return (
@@ -41,4 +41,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LogScreen;
+export default LogListScreen;

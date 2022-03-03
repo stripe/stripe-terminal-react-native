@@ -72,7 +72,7 @@ export default function SetupIntentScreen() {
 
   const _createSetupIntent = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Create Setup Intent',
       events: [

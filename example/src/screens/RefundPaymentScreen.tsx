@@ -30,7 +30,7 @@ export default function RefundPaymentScreen() {
 
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Collect Refund Payment Method',
       events: [
