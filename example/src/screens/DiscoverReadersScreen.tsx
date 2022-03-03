@@ -134,7 +134,7 @@ export default function DiscoverReadersScreen() {
   }, []);
 
   const handleConnectReader = async (reader: Reader.Type) => {
-    let error: StripeError | null = null;
+    let error: StripeError | undefined;
     if (discoveryMethod === 'internet') {
       const result = await handleConnectInternetReader(reader);
       error = result.error;
