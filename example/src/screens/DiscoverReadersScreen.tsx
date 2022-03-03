@@ -53,7 +53,9 @@ export default function DiscoverReadersScreen() {
           'Discover readers error',
           `${finishError.code}, ${finishError.message}`
         );
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
       } else {
         console.log('onFinishDiscoveringReaders success');
       }
@@ -65,7 +67,9 @@ export default function DiscoverReadersScreen() {
         reader: connectingReader,
         onDidUpdate: () => {
           setTimeout(() => {
-            navigation.goBack();
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            }
           }, 500);
         },
       });
@@ -124,6 +128,9 @@ export default function DiscoverReadersScreen() {
     if (discoverReadersError) {
       const { code, message } = discoverReadersError;
       Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
     }
   };
 
@@ -148,7 +155,7 @@ export default function DiscoverReadersScreen() {
     if (error) {
       setConnectingReader(undefined);
       Alert.alert(error.code, error.message);
-    } else if (selectedUpdatePlan !== 'required') {
+    } else if (selectedUpdatePlan !== 'required' && navigation.canGoBack()) {
       navigation.goBack();
     }
   };

@@ -36,7 +36,9 @@ export default function LocationListScreen() {
       key={item.id}
       onPress={() => {
         params?.onSelect(item);
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
       }}
     />
   );
