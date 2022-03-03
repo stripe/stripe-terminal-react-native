@@ -59,7 +59,6 @@ export default function ReadReusableCardScreen() {
 
     if (customerError) {
       console.error(customerError);
-      return;
     }
 
     const { paymentMethod, error } = await readReusableCard({

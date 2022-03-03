@@ -13,7 +13,7 @@ export const fetchCustomerId = async () => {
     const { customers } = await response.json();
 
     if (customers.length === 0) {
-      return { error: 'There is no any customer created yet.' };
+      return { error: 'No customers available.' };
     }
     const { id } = customers[0] as { id: string };
 
