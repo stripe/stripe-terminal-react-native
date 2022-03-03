@@ -558,7 +558,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
         val intentParams = getStringOr(params, "customer")?.let { customerId ->
-         SetupIntentParameters.Builder().setCustomer(customerId).build()
+            SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
         Terminal.getInstance().createSetupIntent(intentParams, object : SetupIntentCallback {
@@ -857,9 +857,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun readReusableCard(params: ReadableMap, promise: Promise) {
-        val reusableCardParams = getStringOr(params, "customer") ?.let { customerId ->
-         ReadReusableCardParameters.Builder().setCustomer(customerId).build()
-    } ?: ReadReusableCardParameters.NULL
+        val reusableCardParams = getStringOr(params, "customer")?.let { customerId ->
+            ReadReusableCardParameters.Builder().setCustomer(customerId).build()
+        } ?: ReadReusableCardParameters.NULL
 
         readReusableCardCancelable = Terminal.getInstance()
             .readReusableCard(reusableCardParams, object : PaymentMethodCallback {
