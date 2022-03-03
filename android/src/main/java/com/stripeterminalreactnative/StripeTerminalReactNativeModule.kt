@@ -172,7 +172,27 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun discoverReaders(params: ReadableMap, promise: Promise) {
-        val discoveryMethod = mapToDiscoveryMethod(getStringOr(params, "discoveryMethod"))
+        val discoveryMethodParam = getStringOr(params, "discoveryMethod") ?: run {
+            promise.resolve(
+                createError(
+                    CommonErrorType.Failed.toString(),
+                    "You must provide a discoveryMethod"
+                )
+            )
+            return
+        }
+
+        val discoveryMethod = mapToDiscoveryMethod(discoveryMethodParam) ?: run {
+            promise.resolve(
+                createError(
+                    CommonErrorType.Failed.toString(),
+                    "Unknown discoveryMethod: $discoveryMethodParam"
+                )
+            )
+            return
+        }
+
+
         val simulated = getBoolean(params, "simulated")
 
         val config = DiscoveryConfiguration(0, discoveryMethod, simulated)
