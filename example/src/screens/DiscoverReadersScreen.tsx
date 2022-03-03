@@ -134,7 +134,7 @@ export default function DiscoverReadersScreen() {
   }, []);
 
   const handleConnectReader = async (reader: Reader.Type) => {
-    let error: StripeError;
+    let error: StripeError | undefined;
     if (discoveryMethod === 'internet') {
       const result = await handleConnectInternetReader(reader);
       error = result.error;
@@ -146,7 +146,7 @@ export default function DiscoverReadersScreen() {
       error = result.error;
     }
     if (error) {
-      setConnectingReader(null);
+      setConnectingReader(undefined);
       Alert.alert(error.code, error.message);
     } else if (selectedUpdatePlan !== 'required') {
       navigation.goBack();
