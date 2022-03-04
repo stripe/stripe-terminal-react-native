@@ -20,8 +20,8 @@ export default function RefundPaymentScreen() {
     currency: string;
   }>({
     chargeId: '',
-    amount: '',
-    currency: 'CND',
+    amount: '100',
+    currency: 'USD',
   });
   const navigation = useNavigation();
   const { addLogs, clearLogs } = useContext(LogContext);
@@ -155,6 +155,17 @@ export default function RefundPaymentScreen() {
           }
           keyboardType="number-pad"
           placeholder="Amount"
+        />
+      </List>
+      <List bolded={false} topSpacing={false} title="CURRENCY">
+        <TextInput
+          testID="currency-text-field"
+          style={styles.input}
+          value={inputValues.currency}
+          onChangeText={(value: string) =>
+            setInputValues((state) => ({ ...state, currency: value }))
+          }
+          placeholder="currency"
         />
       </List>
 
