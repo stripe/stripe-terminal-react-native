@@ -9,17 +9,6 @@ enum class CommonErrorType {
     Failed, Canceled, Unknown
 }
 
-internal fun createError(code: String, message: String?): WritableMap {
-    val errorMap: WritableMap = WritableNativeMap()
-    val errorDetails: WritableMap = WritableNativeMap()
-    errorDetails.putString("code", code)
-    errorDetails.putString("message", message)
-
-    errorMap.putMap("error", errorDetails)
-
-    return errorMap
-}
-
 internal fun createError(exception: TerminalException): WritableMap = WritableNativeMap().apply {
     putMap("error", WritableNativeMap().apply {
         putString("message", exception.errorMessage)
