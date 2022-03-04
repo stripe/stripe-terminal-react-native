@@ -1,6 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/core';
-import React, { useContext, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import React, { useContext, useEffect } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import {
   SetupIntent,
   useStripeTerminal,
@@ -13,7 +13,6 @@ import { API_URL } from '../Config';
 import { fetchCustomerId } from '../utils';
 
 export default function SetupIntentScreen() {
-  const [_setupIntent, setSetupIntent] = useState<SetupIntent.Type>();
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
   const { params } = useRoute();
@@ -126,7 +125,6 @@ export default function SetupIntentScreen() {
         ],
       });
     } else if (setupIntent) {
-      setSetupIntent(setupIntent);
       await _collectPaymentMethod(setupIntent.id);
     }
   };
@@ -161,7 +159,6 @@ export default function SetupIntentScreen() {
         ],
       });
     } else if (setupIntent) {
-      setSetupIntent(setupIntent);
       addLogs({
         name: 'Collect Setup Intent',
         events: [
@@ -203,7 +200,6 @@ export default function SetupIntentScreen() {
         ],
       });
     } else if (setupIntent) {
-      setSetupIntent(setupIntent);
       addLogs({
         name: 'Process Payment',
         events: [
