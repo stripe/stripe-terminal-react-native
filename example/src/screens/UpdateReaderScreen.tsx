@@ -19,7 +19,9 @@ export default function UpdateReaderScreen() {
     },
     onDidFinishInstallingUpdate: (_update) => {
       params?.onDidUpdate();
-      navigation.goBack();
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
     },
   });
 
