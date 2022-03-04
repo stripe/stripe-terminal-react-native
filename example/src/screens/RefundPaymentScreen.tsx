@@ -37,6 +37,7 @@ export default function RefundPaymentScreen() {
         {
           name: 'Collect',
           description: 'terminal.collectRefundPaymentMethod',
+          metadata: _refundMetadata,
         },
       ],
     });
@@ -50,8 +51,12 @@ export default function RefundPaymentScreen() {
         name: 'Collect Refund Payment Method',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.collectRefundPaymentMethod',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -61,7 +66,8 @@ export default function RefundPaymentScreen() {
         events: [
           {
             name: 'Collected',
-            description: '...',
+            description: 'terminal.collectRefundPaymentMethod',
+            metadata: _refundMetadata,
           },
         ],
       });
@@ -76,6 +82,7 @@ export default function RefundPaymentScreen() {
         {
           name: 'Processing',
           description: 'terminal.processRefund',
+          metadata: _refundMetadata,
         },
       ],
     });
@@ -85,8 +92,12 @@ export default function RefundPaymentScreen() {
         name: 'Process Refund',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.processRefund',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -97,6 +108,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Succeeded',
             description: 'terminal.processRefund',
+            metadata: _refundMetadata,
           },
         ],
       });
@@ -107,11 +119,18 @@ export default function RefundPaymentScreen() {
           {
             name: 'Pending or unsuccessful',
             description: 'terminal.processRefund',
+            metadata: _refundMetadata,
           },
         ],
       });
     }
   };
+
+  const _refundMetadata = new Map<string, any>([
+    ['amount', inputValues.amount],
+    ['chargeId', inputValues.chargeId],
+    ['currency', inputValues.currency],
+  ]);
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="always">

@@ -69,8 +69,12 @@ export default function ReadReusableCardScreen() {
         name: 'Read Reusable Card',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.readReusableCard',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -80,7 +84,11 @@ export default function ReadReusableCardScreen() {
         events: [
           {
             name: 'Finished',
-            description: 'terminal.paymentMethodId: ' + paymentMethod.id,
+            description: 'terminal.readReusableCard',
+            metadata: new Map([
+              ['customerId', customerId],
+              ['paymentMethodId', paymentMethod.id],
+            ]),
           },
         ],
       });
