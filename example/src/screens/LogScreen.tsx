@@ -4,10 +4,12 @@ import { useRoute } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import type { Event } from '../components/LogContext';
 
 const LogScreen = () => {
   const { params } = useRoute();
   const { event, log } = params as Record<string, any>;
+  const { metadata } = event as Event;
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
@@ -17,9 +19,9 @@ const LogScreen = () => {
       <Text style={styles.description}>{event.name}</Text>
       <Text style={styles.title}>EVENT DESCRIPTION</Text>
       <Text style={styles.description}>{event.description}</Text>
-      {event.metadata && (
+      {metadata && (
         <List key="metadata" title="EVENT METADATA" bolded={false}>
-          {Array.from(event.metadata).map((entry) => {
+          {Array.from(metadata).map((entry) => {
             return (
               <ListItem
                 key={entry[0]}
