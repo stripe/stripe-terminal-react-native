@@ -44,7 +44,7 @@ export default function ListItem({
         >
           {title}
         </Text>
-        {description !== null && (
+        {description !== null && description !== undefined && (
           <Text style={styles.description}>{description}</Text>
         )}
       </View>
