@@ -2,12 +2,14 @@ import React from 'react';
 import { useContext } from 'react';
 import { ScrollView, Text, StyleSheet, Dimensions } from 'react-native';
 import { LogContext } from '../components/LogContext';
+import { useNavigation } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 
 const LogListScreen = () => {
   const { logs } = useContext(LogContext);
+  const navigation = useNavigation();
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
@@ -19,6 +21,9 @@ const LogListScreen = () => {
               key={event.name}
               title={event.name}
               description={event.description}
+              onPress={() => {
+                navigation.navigate('LogScreen', { event, log });
+              }}
             />
           ))}
         </List>

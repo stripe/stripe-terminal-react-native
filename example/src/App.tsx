@@ -23,6 +23,7 @@ import DiscoveryMethodScreen from './screens/DiscoveryMethodScreen';
 import CollectCardPaymentScreen from './screens/CollectCardPaymentScreen';
 import SetupIntentScreen from './screens/SetupIntentScreen';
 import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
+import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import { isAndroid12orHigher } from './utils';
@@ -228,10 +229,18 @@ export default function App() {
               component={ReadReusableCardScreen}
             />
             <Stack.Screen
-              name="LogScreen"
+              name="LogListScreen"
               options={{
                 headerTitle: 'Logs',
                 headerBackAccessibilityLabel: 'logs-back',
+              }}
+              component={LogListScreen}
+            />
+            <Stack.Screen
+              name="LogScreen"
+              options={{
+                headerTitle: 'Event',
+                headerBackAccessibilityLabel: 'log-back',
               }}
               component={LogScreen}
             />
