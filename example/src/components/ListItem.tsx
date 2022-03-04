@@ -44,7 +44,9 @@ export default function ListItem({
         >
           {title}
         </Text>
-        {description && <Text style={styles.description}>{description}</Text>}
+        {description !== null && (
+          <Text style={styles.description}>{description}</Text>
+        )}
       </View>
       {rightElement && rightElement}
     </TouchableOpacity>
