@@ -217,12 +217,7 @@ export default function SetupIntentScreen() {
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* TODO: remove when log screen is ready */}
-      <Text style={styles.json}>{JSON.stringify(_setupIntent)}</Text>
-    </ScrollView>
-  );
+  return <ScrollView contentContainerStyle={styles.container} />;
 }
 
 const styles = StyleSheet.create({
