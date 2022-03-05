@@ -94,14 +94,14 @@ internal fun mapFromLocationStatus(status: LocationStatus): String {
     }
 }
 
-internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod {
+internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
     return when (method) {
         "bluetoothScan" -> DiscoveryMethod.BLUETOOTH_SCAN
         "internet" -> DiscoveryMethod.INTERNET
         "embedded" -> DiscoveryMethod.EMBEDDED
         "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
         "handoff" -> DiscoveryMethod.HANDOFF
-        else -> DiscoveryMethod.INTERNET
+        else -> null
     }
 }
 
