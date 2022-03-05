@@ -152,10 +152,10 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.createSetupIntent');
-    await checkIfLogExist('terminal.collectSetupIntentPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+    await checkIfLogExist('Create');
+    await checkIfLogExist('Collect');
+    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('removeCard');
     await checkIfLogExist('Created');
     await checkIfLogExist('Process');
     await checkIfLogExist('Finished');
