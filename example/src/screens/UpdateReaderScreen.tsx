@@ -15,7 +15,7 @@ export default function UpdateReaderScreen() {
   const [currentProgress, setCurrentProgress] = useState<string>();
   const { cancelInstallingUpdate } = useStripeTerminal({
     onDidReportReaderSoftwareUpdateProgress: (progress) => {
-      setCurrentProgress(progress);
+      setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
     },
     onDidFinishInstallingUpdate: (_update) => {
       params?.onDidUpdate();
