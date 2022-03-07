@@ -1,6 +1,6 @@
 import React from 'react';
 import { useContext } from 'react';
-import { ScrollView, Text, StyleSheet, Dimensions } from 'react-native';
+import { ScrollView, Text, StyleSheet } from 'react-native';
 import { LogContext } from '../components/LogContext';
 import { useNavigation } from '@react-navigation/core';
 import { colors } from '../colors';
@@ -37,7 +37,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light_gray,
     paddingBottom: 50,
     flexGrow: 1,
-    minHeight: Dimensions.get('window').height,
   },
   title: {
     marginTop: 15,

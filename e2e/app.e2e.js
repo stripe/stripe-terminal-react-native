@@ -129,8 +129,8 @@ describe('Payments', () => {
     await checkIfLogExist('terminal.readReusableCard');
 
     if (device.getPlatform() === 'ios') {
-      await checkIfLogExist('terminal.didRequestReaderInput');
-      await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+      await checkIfLogExist('insertCard / SwipeCard');
+      await checkIfLogExist('removeCard');
     }
     await checkIfLogExist('Finished');
 
