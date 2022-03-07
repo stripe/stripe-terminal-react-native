@@ -32,6 +32,7 @@ import { LogBox } from 'react-native';
 
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
+  'RCTBridge required dispatch_sync to load RNGestureHandlerModule. This may lead to deadlocks',
 ]);
 
 const Stack = createStackNavigator();
