@@ -28,6 +28,11 @@ import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import { isAndroid12orHigher } from './utils';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
+import { YellowBox } from 'react-native';
+
+YellowBox.ignoreWarnings([
+  'Non-serializable values were found in the navigation state',
+]);
 
 const Stack = createStackNavigator();
 
