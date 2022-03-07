@@ -193,7 +193,7 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('Processing');
+    await checkIfLogExist('Collect');
     await checkIfLogExist('Failed');
 
     await goBack('logs-back');
