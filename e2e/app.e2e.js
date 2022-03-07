@@ -125,7 +125,7 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.readReusableCard');
+    await checkIfLogExist('Start');
 
     if (device.getPlatform() === 'ios') {
       await checkIfLogExist('insertCard / swipeCard');
