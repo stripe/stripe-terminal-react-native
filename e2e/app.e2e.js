@@ -10,9 +10,15 @@ const {
   changeDiscoveryMethod,
 } = require('./utils');
 
+const { cleanPaymentMethods } = require('./clean');
+
 jest.retryTimes(3);
 
 describe('Payments', () => {
+  beforeAll(async () => {
+    await cleanPaymentMethods();
+  });
+
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
