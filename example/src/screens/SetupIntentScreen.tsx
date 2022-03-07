@@ -100,7 +100,7 @@ export default function SetupIntentScreen() {
       const { error: customerError, id: customerId } = await fetchCustomerId();
 
       if (customerError) {
-        console.error(customerError);
+        console.log(customerError);
       }
 
       const response = await createSetupIntent({
