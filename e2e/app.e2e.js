@@ -56,8 +56,7 @@ describe('Payments', () => {
 
   // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.
   //
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('Required update impossible due to low battery', async () => {
+  it('Required update impossible due to low battery', async () => {
     // only iOS supports simulated low battery plan
     if (device.getPlatform() !== 'ios') {
       return;
@@ -129,7 +128,7 @@ describe('Payments', () => {
     await checkIfLogExist('terminal.readReusableCard');
 
     if (device.getPlatform() === 'ios') {
-      await checkIfLogExist('insertCard / SwipeCard');
+      await checkIfLogExist('insertCard / swipeCard');
       await checkIfLogExist('removeCard');
     }
     await checkIfLogExist('Finished');
