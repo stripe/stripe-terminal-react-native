@@ -283,6 +283,21 @@ export default withStripeTerminal(PaymentScreen);
     - or
     - `yarn example android`
 
+## Runing e2e tests
+
+### Android
+
+1. Create an Android emulator with a name that matches the name found in `.detoxrc.json`
+1. Run `yarn detox build --configuration android`
+1. Run `yarn e2e:test:android`
+
+### iOS
+
+1. Create an iOS simulator with a name that matches the name found in `.detoxrc.json`
+1. Run `yarn detox build --configuration ios`
+1. launch the simulator
+1. Run `yarn e2e:test:ios`
+
 ## Contributing
 
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
