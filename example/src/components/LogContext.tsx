@@ -3,7 +3,7 @@ import { createContext } from 'react';
 export type Event = {
   name: string;
   description: string;
-  metadata?: Map<string, any>;
+  metadata?: Record<string, string>;
 };
 
 export type Log = {

@@ -53,10 +53,10 @@ export default function RefundPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.collectRefundPaymentMethod',
-            metadata: new Map([
-              ['errorCode', error.code],
-              ['errorMessage', error.message],
-            ]),
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -94,10 +94,10 @@ export default function RefundPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.processRefund',
-            metadata: new Map([
-              ['errorCode', error.code],
-              ['errorMessage', error.message],
-            ]),
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -126,11 +126,11 @@ export default function RefundPaymentScreen() {
     }
   };
 
-  const _refundMetadata = new Map<string, any>([
-    ['amount', inputValues.amount],
-    ['chargeId', inputValues.chargeId],
-    ['currency', inputValues.currency],
-  ]);
+  const _refundMetadata = {
+    amount: inputValues.amount,
+    chargeId: inputValues.chargeId,
+    currency: inputValues.currency,
+  };
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
