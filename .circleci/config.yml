@@ -282,12 +282,12 @@ jobs:
           command: yarn install --frozen-lockfile
           name: yarn install
       - run:
-          command: yarn example:build:android:release
-          name: build
-      - run:
           name: "Increment example app version"
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID
+      - run:
+          command: yarn example:build:android:release
+          name: build
       - run:
           name: "Deploy example app to Firebase"
           command: |
