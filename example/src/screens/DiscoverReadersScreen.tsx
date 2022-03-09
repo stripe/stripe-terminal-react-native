@@ -1,14 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  ScrollView,
-  Alert,
-  Modal,
-  View,
-  TouchableWithoutFeedback,
-  Platform,
-} from 'react-native';
+import { StyleSheet, Text, ScrollView, Alert, Platform } from 'react-native';
 import {
   useStripeTerminal,
   Location,
@@ -35,7 +26,6 @@ export default function DiscoverReadersScreen() {
   const { params } = useRoute();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
-  const [showPicker, setShowPicker] = useState(false);
 
   const { simulated, discoveryMethod } = params as Record<string, any>;
 
@@ -236,11 +226,22 @@ export default function DiscoverReadersScreen() {
 
       {simulated && (
         <List title="SIMULATED UPDATE PLAN">
-          <ListItem
+          <Picker
+            selectedValue={selectedUpdatePlan}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
             testID="update-plan-picker"
-            onPress={() => setShowPicker(true)}
-            title={mapToPlanDisplayName(selectedUpdatePlan)}
-          />
+            onValueChange={(itemValue) => handleChangeUpdatePlan(itemValue)}
+          >
+            {SIMULATED_UPDATE_PLANS.map((plan) => (
+              <Picker.Item
+                key={plan}
+                label={mapToPlanDisplayName(plan)}
+                testID={plan}
+                value={plan}
+              />
+            ))}
+          </Picker>
         </List>
       )}
 
@@ -258,33 +259,6 @@ export default function DiscoverReadersScreen() {
           />
         ))}
       </List>
-
-      <Modal visible={showPicker} transparent>
-        <TouchableWithoutFeedback
-          testID="close-picker"
-          onPress={() => setShowPicker(false)}
-        >
-          <View style={styles.modalOverlay} />
-        </TouchableWithoutFeedback>
-
-        <View style={styles.pickerContainer} testID="picker-container">
-          <Picker
-            selectedValue={selectedUpdatePlan}
-            style={styles.picker}
-            itemStyle={styles.pickerItem}
-            onValueChange={(itemValue) => handleChangeUpdatePlan(itemValue)}
-          >
-            {SIMULATED_UPDATE_PLANS.map((plan) => (
-              <Picker.Item
-                key={plan}
-                label={mapToPlanDisplayName(plan)}
-                testID={plan}
-                value={plan}
-              />
-            ))}
-          </Picker>
-        </View>
-      </Modal>
     </ScrollView>
   );
 }
@@ -295,10 +269,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pickerContainer: {
-    position: 'absolute',
-    bottom: 0,
     backgroundColor: colors.white,
-    left: 0,
+    color: colors.dark_gray,
     width: '100%',
     ...Platform.select({
       ios: {
@@ -331,6 +303,11 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: '100%',
+    color: colors.slate,
+    fontSize: 13,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.white,
   },
   pickerItem: {
     fontSize: 16,

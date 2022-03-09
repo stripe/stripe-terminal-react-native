@@ -44,7 +44,9 @@ export default function ListItem({
         >
           {title}
         </Text>
-        {description && <Text style={styles.description}>{description}</Text>}
+        {description !== null && description !== undefined && (
+          <Text style={styles.description}>{description}</Text>
+        )}
       </View>
       {rightElement && rightElement}
     </TouchableOpacity>
@@ -75,6 +77,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   description: {
+    color: colors.slate,
     fontSize: 13,
   },
   flex: {

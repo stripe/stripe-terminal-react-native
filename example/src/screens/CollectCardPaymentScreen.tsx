@@ -79,7 +79,7 @@ export default function CollectCardPaymentScreen() {
 
   const _createPaymentIntent = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
@@ -112,8 +112,12 @@ export default function CollectCardPaymentScreen() {
         name: 'Create Payment Intent',
         events: [
           {
-            name: paymentIntentError.code,
-            description: paymentIntentError.message,
+            name: 'Failed',
+            description: 'terminal.createPaymentIntent',
+            metadata: new Map([
+              ['errorCode', paymentIntentError.code],
+              ['errorMessage', paymentIntentError.message],
+            ]),
           },
         ],
       });
@@ -123,7 +127,8 @@ export default function CollectCardPaymentScreen() {
         events: [
           {
             name: 'Created',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            description: 'terminal.createPaymentIntent',
+            metadata: new Map([['paymentIntentId', paymentIntent.id]]),
           },
         ],
       });
@@ -135,7 +140,11 @@ export default function CollectCardPaymentScreen() {
     addLogs({
       name: 'Collect Payment Method',
       events: [
-        { name: 'Collect', description: 'terminal.collectPaymentMethod' },
+        {
+          name: 'Collect',
+          description: 'terminal.collectPaymentMethod',
+          metadata: new Map([['paymentIntentId', paymentIntentId]]),
+        },
       ],
     });
     const { paymentIntent, error } = await collectPaymentMethod(
@@ -147,8 +156,12 @@ export default function CollectCardPaymentScreen() {
         name: 'Collect Payment Method',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.collectPaymentMethod',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -158,7 +171,8 @@ export default function CollectCardPaymentScreen() {
         events: [
           {
             name: 'Collected',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            description: 'terminal.collectPaymentMethod',
+            metadata: new Map([['paymentIntentId', paymentIntent.id]]),
           },
         ],
       });
@@ -169,7 +183,13 @@ export default function CollectCardPaymentScreen() {
   const _processPayment = async (paymentIntentId: string) => {
     addLogs({
       name: 'Process Payment',
-      events: [{ name: 'Process', description: 'terminal.processPayment' }],
+      events: [
+        {
+          name: 'Process',
+          description: 'terminal.processPayment',
+          metadata: new Map([['paymentIntentId', paymentIntentId]]),
+        },
+      ],
     });
 
     const { paymentIntent, error } = await processPayment(paymentIntentId);
@@ -178,8 +198,12 @@ export default function CollectCardPaymentScreen() {
         name: 'Process Payment',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.processPayment',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -189,7 +213,8 @@ export default function CollectCardPaymentScreen() {
         events: [
           {
             name: 'Finished',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            description: 'terminal.processPayment',
+            metadata: new Map([['paymentIntentId', paymentIntentId]]),
           },
         ],
       });
@@ -204,6 +229,7 @@ export default function CollectCardPaymentScreen() {
       <List bolded={false} topSpacing={false} title="AMOUNT">
         <TextInput
           testID="amount-text-field"
+          keyboardType="numeric"
           style={styles.input}
           value={inputValues.amount}
           onChangeText={(value: string) =>

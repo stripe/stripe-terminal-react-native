@@ -20,8 +20,8 @@ export default function RefundPaymentScreen() {
     currency: string;
   }>({
     chargeId: '',
-    amount: '',
-    currency: 'CND',
+    amount: '100',
+    currency: 'USD',
   });
   const navigation = useNavigation();
   const { addLogs, clearLogs } = useContext(LogContext);
@@ -30,13 +30,14 @@ export default function RefundPaymentScreen() {
 
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Collect Refund Payment Method',
       events: [
         {
           name: 'Collect',
           description: 'terminal.collectRefundPaymentMethod',
+          metadata: _refundMetadata,
         },
       ],
     });
@@ -50,8 +51,12 @@ export default function RefundPaymentScreen() {
         name: 'Collect Refund Payment Method',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.collectRefundPaymentMethod',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -61,7 +66,8 @@ export default function RefundPaymentScreen() {
         events: [
           {
             name: 'Collected',
-            description: '...',
+            description: 'terminal.collectRefundPaymentMethod',
+            metadata: _refundMetadata,
           },
         ],
       });
@@ -76,6 +82,7 @@ export default function RefundPaymentScreen() {
         {
           name: 'Processing',
           description: 'terminal.processRefund',
+          metadata: _refundMetadata,
         },
       ],
     });
@@ -85,8 +92,12 @@ export default function RefundPaymentScreen() {
         name: 'Process Refund',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.processRefund',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -97,6 +108,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Succeeded',
             description: 'terminal.processRefund',
+            metadata: _refundMetadata,
           },
         ],
       });
@@ -107,11 +119,18 @@ export default function RefundPaymentScreen() {
           {
             name: 'Pending or unsuccessful',
             description: 'terminal.processRefund',
+            metadata: _refundMetadata,
           },
         ],
       });
     }
   };
+
+  const _refundMetadata = new Map<string, any>([
+    ['amount', inputValues.amount],
+    ['chargeId', inputValues.chargeId],
+    ['currency', inputValues.currency],
+  ]);
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
@@ -136,6 +155,17 @@ export default function RefundPaymentScreen() {
           }
           keyboardType="number-pad"
           placeholder="Amount"
+        />
+      </List>
+      <List bolded={false} topSpacing={false} title="CURRENCY">
+        <TextInput
+          testID="currency-text-field"
+          style={styles.input}
+          value={inputValues.currency}
+          onChangeText={(value: string) =>
+            setInputValues((state) => ({ ...state, currency: value }))
+          }
+          placeholder="currency"
         />
       </List>
 
@@ -185,6 +215,7 @@ const styles = StyleSheet.create({
       android: {
         borderBottomWidth: 1,
         borderBottomColor: `${colors.gray}66`,
+        color: colors.dark_gray,
       },
     }),
   },

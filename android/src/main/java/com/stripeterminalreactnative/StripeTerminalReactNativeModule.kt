@@ -59,8 +59,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listener: TerminalListener = object : TerminalListener {
             override fun onUnexpectedReaderDisconnect(reader: Reader) {
                 val error = createError(
-                    CommonErrorType.Failed.toString(),
-                    "Reader has been disconnected unexpectedly"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.UNEXPECTED_SDK_ERROR,
+                        "Reader has been disconnected unexpectedly"
+                    )
                 )
                 val result = WritableNativeMap().apply {
                     putMap("result", error)
@@ -112,8 +114,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val cancelable = collectPaymentMethodCancelable ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.CANCELED,
+                        "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."
+                    )
                 )
             )
             return
@@ -124,7 +128,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -135,8 +139,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val cancelable = collectSetupIntentCancelable ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "collectSetupIntent could not be canceled because the command has already been canceled or has completed."
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.CANCELED,
+                        "collectSetupIntent could not be canceled because the command has already been canceled or has completed."
+                    )
                 )
             )
             return
@@ -147,7 +153,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -212,27 +218,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             },
             object : Callback {
                 override fun onSuccess() {
-                    discoverReaderCallback(null)
+                    val result = WritableNativeMap().apply {
+                        putMap("result", WritableNativeMap())
+                    }
+                    sendEvent("didFinishDiscoveringReaders", result)
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    discoverReaderCallback(e)
+                    val result = WritableNativeMap().apply {
+                        putMap("result", createError(e))
+                    }
+                    sendEvent("didFinishDiscoveringReaders", result)
                 }
             }
         )
-    }
-
-    private fun discoverReaderCallback(exception: TerminalException?) {
-        val error = createError(CommonErrorType.Failed.toString(), exception?.localizedMessage)
-        val result = WritableNativeMap()
-
-        exception?.let {
-            result.putMap("result", error)
-        } ?: run {
-            result.putMap("result", WritableNativeMap())
-        }
-
-        sendEvent("didFinishDiscoveringReaders", result)
     }
 
     @ReactMethod
@@ -241,8 +240,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val cancelable = discoverCancelable ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "discoverReaders could not be canceled because the command has already been canceled or has completed."
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.CANCELED,
+                        "discoverReaders could not be canceled because the command has already been canceled or has completed."
+                    )
                 )
             )
             return
@@ -253,7 +254,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -264,8 +265,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val reader = getMapOr(params, "reader") ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "You must provide a reader object"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide a reader object"
+                    )
                 )
             )
             return
@@ -277,8 +280,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         } ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "Could not find reader with id $readerId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "Could not find reader with id $readerId"
+                    )
                 )
             )
             return
@@ -287,8 +292,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "You must provide a locationId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide a locationId"
+                    )
                 )
             )
             return
@@ -371,12 +378,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    promise.resolve(
-                        createError(
-                            CommonErrorType.Failed.toString(),
-                            e.localizedMessage
-                        )
-                    )
+                    promise.resolve(createError(e))
                 }
             }
         )
@@ -388,8 +390,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val reader = getMapOr(params, "reader") ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "You must provide a reader object"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide a reader object"
+                    )
                 )
             )
             return
@@ -401,8 +405,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         } ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "Could not find reader with id $readerId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "Could not find reader with id $readerId"
+                    )
                 )
             )
             return
@@ -423,12 +429,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    promise.resolve(
-                        createError(
-                            CommonErrorType.Failed.toString(),
-                            e.localizedMessage
-                        )
-                    )
+                    promise.resolve(createError(e))
                 }
             }
         )
@@ -443,7 +444,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -472,12 +473,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    promise.resolve(
-                        createError(
-                            CommonErrorType.Failed.toString(),
-                            e.localizedMessage
-                        )
-                    )
+                    promise.resolve(createError(e))
                 }
             })
     }
@@ -488,8 +484,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = paymentIntents[paymentIntentId] ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "There is no associated paymentIntent with id $paymentIntentId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "There is no associated paymentIntent with id $paymentIntentId"
+                    )
                 )
             )
             return
@@ -503,12 +501,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    promise.resolve(
-                        createError(
-                            CommonErrorType.Failed.toString(),
-                            e.localizedMessage
-                        )
-                    )
+                    promise.resolve(createError(e))
                 }
             })
     }
@@ -524,7 +517,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -535,8 +528,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = paymentIntents[paymentIntentId] ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "There is no associated paymentIntent with id $paymentIntentId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "There is no associated paymentIntent with id $paymentIntentId"
+                    )
                 )
             )
             return
@@ -549,7 +544,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -572,7 +567,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -592,7 +587,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -608,7 +603,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -619,8 +614,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = paymentIntents[paymentIntentId] ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "There is no associated paymentIntent with id $paymentIntentId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "There is no associated paymentIntent with id $paymentIntentId"
+                    )
                 )
             )
             return
@@ -631,7 +628,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -642,8 +639,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val cancelable = readReusableCardCancelable ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "readReusableCard could not be canceled because the command has already been canceled or has completed."
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.CANCELED,
+                        "readReusableCard could not be canceled because the command has already been canceled or has completed."
+                    )
                 )
             )
             return
@@ -654,7 +653,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -668,8 +667,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val setupIntent = setupIntents[setupIntentId] ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "There is no created paymentIntent with id $setupIntentId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "There is no created paymentIntent with id $setupIntentId"
+                    )
                 )
             )
             return
@@ -683,12 +684,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    promise.resolve(
-                        createError(
-                            CommonErrorType.Failed.toString(),
-                            e.localizedMessage
-                        )
-                    )
+                    promise.resolve(createError(e))
                 }
             })
     }
@@ -709,7 +705,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -719,8 +715,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun setReaderDisplay(params: ReadableMap, promise: Promise) {
         validateRequiredParameters(params, listOf("currency", "tax", "total"))?.let {
             promise.resolve(
-                createError(
-                    CommonErrorType.Failed.toString(),
+                TerminalException(
+                    TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
                     "You must provide $it parameters."
                 )
             )
@@ -747,7 +743,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -758,8 +754,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val setupIntent = setupIntents[setupIntentId] ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "There is no associated setupIntent with id $setupIntentId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "There is no associated setupIntent with id $setupIntentId"
+                    )
                 )
             )
             return
@@ -776,7 +774,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -787,8 +785,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val setupIntent = setupIntents[setupIntentId] ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "There is no associated setupIntent with id $setupIntentId"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "There is no associated setupIntent with id $setupIntentId"
+                    )
                 )
             )
             return
@@ -802,7 +802,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -816,7 +816,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -827,8 +827,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         validateRequiredParameters(params, listOf("chargeId", "amount", "currency"))?.let {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "You must provide $it parameters."
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide $it parameters."
+                    )
                 )
             )
             return
@@ -845,7 +847,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -872,7 +874,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(CommonErrorType.Failed.toString(), e.localizedMessage))
+                promise.resolve(createError(e))
             }
         })
     }
@@ -896,12 +898,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    promise.resolve(
-                        createError(
-                            CommonErrorType.Failed.toString(),
-                            e.localizedMessage
-                        )
-                    )
+                    promise.resolve(createError(e))
                 }
             })
     }

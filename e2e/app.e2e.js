@@ -10,9 +10,15 @@ const {
   changeDiscoveryMethod,
 } = require('./utils');
 
+const { cleanPaymentMethods } = require('./clean');
+
 jest.retryTimes(3);
 
 describe('Payments', () => {
+  beforeAll(async () => {
+    await cleanPaymentMethods();
+  });
+
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
@@ -56,8 +62,7 @@ describe('Payments', () => {
 
   // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.
   //
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('Required update impossible due to low battery', async () => {
+  it('Required update impossible due to low battery', async () => {
     // only iOS supports simulated low battery plan
     if (device.getPlatform() !== 'ios') {
       return;
@@ -102,13 +107,13 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.createPaymentIntent');
+    await checkIfLogExist('Create');
     await checkIfLogExist('Created');
-    await checkIfLogExist('terminal.collectPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+    await checkIfLogExist('Collect');
+    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('removeCard');
     await checkIfLogExist('Collected');
-    await checkIfLogExist('terminal.processPayment');
+    await checkIfLogExist('Process');
     await checkIfLogExist('Finished');
 
     await goBack('logs-back');
@@ -126,11 +131,11 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.readReusableCard');
+    await checkIfLogExist('Start');
 
     if (device.getPlatform() === 'ios') {
-      await checkIfLogExist('terminal.didRequestReaderInput');
-      await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+      await checkIfLogExist('insertCard / swipeCard');
+      await checkIfLogExist('removeCard');
     }
     await checkIfLogExist('Finished');
 
@@ -152,12 +157,12 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.createSetupIntent');
-    await checkIfLogExist('terminal.collectSetupIntentPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+    await checkIfLogExist('Create');
+    await checkIfLogExist('Collect');
+    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('removeCard');
     await checkIfLogExist('Created');
-    await checkIfLogExist('terminal.confirmSetupIntent');
+    await checkIfLogExist('Process');
     await checkIfLogExist('Finished');
 
     await goBack('logs-back');
@@ -193,7 +198,7 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.collectRefundPaymentMethod');
+    await checkIfLogExist('Collect');
     await checkIfLogExist('Failed');
 
     await goBack('logs-back');

@@ -43,7 +43,7 @@ export default function ReadReusableCardScreen() {
 
   const _readReusableCard = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
 
     addLogs({
       name: 'Read Reusable Card',
@@ -58,7 +58,7 @@ export default function ReadReusableCardScreen() {
     const { error: customerError, id: customerId } = await fetchCustomerId();
 
     if (customerError) {
-      console.error(customerError);
+      console.log(customerError);
     }
 
     const { paymentMethod, error } = await readReusableCard({
@@ -69,8 +69,12 @@ export default function ReadReusableCardScreen() {
         name: 'Read Reusable Card',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.readReusableCard',
+            metadata: new Map([
+              ['errorCode', error.code],
+              ['errorMessage', error.message],
+            ]),
           },
         ],
       });
@@ -80,7 +84,11 @@ export default function ReadReusableCardScreen() {
         events: [
           {
             name: 'Finished',
-            description: 'terminal.paymentMethodId: ' + paymentMethod.id,
+            description: 'terminal.readReusableCard',
+            metadata: new Map([
+              ['customerId', customerId],
+              ['paymentMethodId', paymentMethod.id],
+            ]),
           },
         ],
       });

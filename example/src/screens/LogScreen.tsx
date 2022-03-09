@@ -1,28 +1,37 @@
 import React from 'react';
-import { useContext } from 'react';
 import { ScrollView, Text, StyleSheet, Dimensions } from 'react-native';
-import { LogContext } from '../components/LogContext';
+import { useRoute } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import type { Event } from '../components/LogContext';
 
 const LogScreen = () => {
-  const { logs } = useContext(LogContext);
+  const { params } = useRoute();
+  const { event, log } = params as Record<string, any>;
+  const { metadata } = event as Event;
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
-      <Text style={styles.title}>EVENT LOG</Text>
-      {logs.map((log) => (
-        <List key={log.name} title={log.name}>
-          {log.events.map((event) => (
-            <ListItem
-              key={event.name}
-              title={event.name}
-              description={event.description}
-            />
-          ))}
+      <Text style={styles.title}>LOG NAME</Text>
+      <Text style={styles.description}>{log.name}</Text>
+      <Text style={styles.title}>EVENT NAME</Text>
+      <Text style={styles.description}>{event.name}</Text>
+      <Text style={styles.title}>EVENT DESCRIPTION</Text>
+      <Text style={styles.description}>{event.description}</Text>
+      {metadata && (
+        <List key="metadata" title="EVENT METADATA" bolded={false}>
+          {Array.from(metadata).map((entry) => {
+            return (
+              <ListItem
+                key={entry[0]}
+                title={entry[0]}
+                description={entry[1]}
+              />
+            );
+          })}
         </List>
-      ))}
+      )}
     </ScrollView>
   );
 };
@@ -33,6 +42,11 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
     flexGrow: 1,
     minHeight: Dimensions.get('window').height,
+  },
+  description: {
+    padding: 10,
+    backgroundColor: colors.white,
+    color: colors.dark_gray,
   },
   title: {
     marginTop: 15,

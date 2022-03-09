@@ -23,10 +23,22 @@ import DiscoveryMethodScreen from './screens/DiscoveryMethodScreen';
 import CollectCardPaymentScreen from './screens/CollectCardPaymentScreen';
 import SetupIntentScreen from './screens/SetupIntentScreen';
 import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
+import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import { isAndroid12orHigher } from './utils';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  // https://reactnavigation.org/docs/5.x/troubleshooting#i-get-the-warning-non-serializable-values-were-found-in-the-navigation-state
+  'Non-serializable values were found in the navigation state',
+  // https://github.com/software-mansion/react-native-gesture-handler/issues/722
+  'RCTBridge required dispatch_sync to load RNGestureHandlerModule. This may lead to deadlocks',
+  // https://github.com/react-native-netinfo/react-native-netinfo/issues/486
+  'new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method.',
+  'new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method.',
+]);
 
 const Stack = createStackNavigator();
 
@@ -228,10 +240,18 @@ export default function App() {
               component={ReadReusableCardScreen}
             />
             <Stack.Screen
-              name="LogScreen"
+              name="LogListScreen"
               options={{
                 headerTitle: 'Logs',
                 headerBackAccessibilityLabel: 'logs-back',
+              }}
+              component={LogListScreen}
+            />
+            <Stack.Screen
+              name="LogScreen"
+              options={{
+                headerTitle: 'Event',
+                headerBackAccessibilityLabel: 'log-back',
               }}
               component={LogScreen}
             />
