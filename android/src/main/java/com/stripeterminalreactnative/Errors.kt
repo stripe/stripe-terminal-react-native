@@ -5,10 +5,6 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.stripeterminal.external.models.TerminalException
 
-enum class CommonErrorType {
-    Failed, Canceled, Unknown
-}
-
 internal fun createError(exception: TerminalException): WritableMap = WritableNativeMap().apply {
     putMap("error", WritableNativeMap().apply {
         putString("message", exception.errorMessage)

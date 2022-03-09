@@ -181,8 +181,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val discoveryMethodParam = getStringOr(params, "discoveryMethod") ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "You must provide a discoveryMethod"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide a discoveryMethod"
+                    )
                 )
             )
             return
@@ -191,8 +193,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val discoveryMethod = mapToDiscoveryMethod(discoveryMethodParam) ?: run {
             promise.resolve(
                 createError(
-                    CommonErrorType.Failed.toString(),
-                    "Unknown discoveryMethod: $discoveryMethodParam"
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "Unknown discoveryMethod: $discoveryMethodParam"
+                    )
                 )
             )
             return

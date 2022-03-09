@@ -1,0 +1,17 @@
+before_all do
+  setup_circle_ci
+end
+
+lane :publish_to_firebase do |options|
+  commit = last_git_commit
+  build_notes = "Notes: #{commit[:message]}. Built by #{commit[:author]}"
+
+  # Upload build to Firebase
+  firebase_app_distribution(
+    app: options[:app_id].to_s,
+    groups: 'terminal-qa',
+    release_notes: build_notes,
+    apk_path: 'example/android/app/build/outputs/apk/release/app-release.apk',
+    firebase_cli_token: options[:firebase_token].to_s
+  )
+end
