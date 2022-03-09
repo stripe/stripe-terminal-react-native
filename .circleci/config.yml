@@ -268,6 +268,27 @@ jobs:
       - store_artifacts:
           path: ./artifacts
 
+  deploy-firebase-android:
+    executor: macos_custom
+    steps:
+      - setup_macos_executor
+      - ruby/install-deps
+      - install_android_build_tools
+      - run:
+          name: Install Firebase CLI
+          command: |
+            curl -sL firebase.tools | bash
+      - run:
+          command: yarn install --frozen-lockfile
+          name: yarn install
+      - run:
+          command: yarn example:build:android:release
+          name: build
+      - run:
+          name: "Deploy alpha build to Firebase"
+          command: |
+              bundle exec fastlane publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
+
 workflows:
   version: 2
   build-and-test:
@@ -283,5 +304,8 @@ workflows:
           requires:
             - install-dependencies
       - e2e-ios:
+          requires:
+            - install-dependencies
+      - deploy-firebase-android:
           requires:
             - install-dependencies
