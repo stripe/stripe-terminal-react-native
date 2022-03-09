@@ -98,6 +98,22 @@ commands:
             - /usr/local/Homebrew/Library/Homebrew/vendor/
           key: |
             brew-cache-{{ arch }}-v1-3
+
+  install_android_build_tools:
+    parameters:
+      build_tools_version:
+        type: string
+        default: '30.0.2'
+    steps:
+      - run:
+          name: Install Android Build Tools
+          shell: /bin/bash -e
+          command: |
+            yes | sdkmanager "platform-tools" "tools" >/dev/null
+            yes | sdkmanager "build-tools;<<parameters.build_tools_version>>" >/dev/null
+            yes | sdkmanager --licenses >/dev/null
+            yes | sdkmanager --list
+
   android_emulator_start:
     parameters:
       device_name:
@@ -106,22 +122,18 @@ commands:
       platform_version:
         type: string
         default: 'android-30'
-      build_tools_version:
-        type: string
-        default: '30.0.2'
       logcat_grep:
         type: string
         default: 'com.example.stripeterminalreactnative'
 
     steps:
+      - install_android_build_tools
       - run:
           name: Install Android Emulator
           shell: /bin/bash -e
           command: |
-            yes | sdkmanager "platform-tools" "tools" >/dev/null
             yes | sdkmanager "platforms;<<parameters.platform_version>>" "system-images;<<parameters.platform_version>>;default;x86_64" >/dev/null
             yes | sdkmanager "emulator" --channel=3 >/dev/null
-            yes | sdkmanager "build-tools;<<parameters.build_tools_version>>" >/dev/null
             yes | sdkmanager --licenses >/dev/null
             yes | sdkmanager --list
       - run:
@@ -161,6 +173,7 @@ commands:
             adb shell settings put global transition_animation_scale 0
             adb shell settings put global animator_duration_scale 0
             echo "Android Virtual Device is now ready."
+
 jobs:
   install-dependencies:
     executor: linux_js
@@ -214,42 +227,33 @@ jobs:
           name: Integration tests
           command: |
             yarn test
+
   e2e-ios:
     executor: macos_custom
-
     steps:
       - setup_macos_executor
-
       - ios_simulator_start
-
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-
       - pod_install
-
       - run:
           command: yarn e2e:build:ios:release
           name: build for detox
-
       - run:
           command: yarn e2e:test:ios:release
           name: test detox
-
       - store_artifacts:
           path: ./artifacts
 
   e2e-android:
-    executor:
-      name: macos_custom
+    executor: macos_custom
     steps:
       - setup_macos_executor
-
+      - android_emulator_start
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-      - android_emulator_start
-
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
