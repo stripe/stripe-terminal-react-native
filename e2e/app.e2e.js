@@ -4,7 +4,6 @@ const {
   navigateTo,
   connectReader,
   checkIfLogExist,
-  goBack,
   checkIfConnected,
   setSimulatedUpdatePlan,
   changeDiscoveryMethod,
@@ -34,7 +33,6 @@ describe('Payments', () => {
     await navigateTo('Discover Readers');
     await connectReader();
     await checkIfConnected();
-    // await disconnectReader();
   });
 
   it('Install required update and connect', async () => {
@@ -49,7 +47,6 @@ describe('Payments', () => {
     await checkIfConnected({
       timeout: device.getPlatform() === 'ios' ? 32000 : 60000,
     });
-    // await disconnectReader();
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
@@ -79,8 +76,6 @@ describe('Payments', () => {
     )
       .toBeVisible()
       .withTimeout(16000);
-
-    // await disconnectReader();
   });
 
   it('Collect card payment', async () => {
@@ -115,11 +110,6 @@ describe('Payments', () => {
     await checkIfLogExist('Collected');
     await checkIfLogExist('Process');
     await checkIfLogExist('Finished');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 
   it('Store card via readReusableCard', async () => {
@@ -138,11 +128,6 @@ describe('Payments', () => {
       await checkIfLogExist('removeCard');
     }
     await checkIfLogExist('Finished');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 
   it('Store card via SetupIntent', async () => {
@@ -164,11 +149,6 @@ describe('Payments', () => {
     await checkIfLogExist('Created');
     await checkIfLogExist('Process');
     await checkIfLogExist('Finished');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 
   it('In-Person Refund failed due to unsupported country', async () => {
@@ -200,10 +180,5 @@ describe('Payments', () => {
 
     await checkIfLogExist('Collect');
     await checkIfLogExist('Failed');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 });
