@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
+  HeaderBackButton,
   TransitionPresets,
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
@@ -241,10 +242,15 @@ export default function App() {
             />
             <Stack.Screen
               name="LogListScreen"
-              options={{
+              options={({ navigation }) => ({
                 headerTitle: 'Logs',
                 headerBackAccessibilityLabel: 'logs-back',
-              }}
+                headerLeft: () => (
+                  <HeaderBackButton
+                    onPress={() => navigation.navigate('Terminal')}
+                  />
+                ),
+              })}
               component={LogListScreen}
             />
             <Stack.Screen

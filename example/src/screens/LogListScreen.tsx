@@ -1,6 +1,6 @@
 import React from 'react';
 import { useContext } from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
+import { BackHandler, ScrollView, Text, StyleSheet } from 'react-native';
 import { LogContext } from '../components/LogContext';
 import { useNavigation } from '@react-navigation/core';
 import { colors } from '../colors';
@@ -10,6 +10,13 @@ import ListItem from '../components/ListItem';
 const LogListScreen = () => {
   const { logs } = useContext(LogContext);
   const navigation = useNavigation();
+
+  const onBackPress = () => {
+    navigation.navigate('Terminal');
+    return true;
+  };
+
+  BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
