@@ -294,6 +294,9 @@ jobs:
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID
       - run:
+          command: yarn example:build:android:release
+          name: build
+      - run:
           name: "Deploy example app to Firebase"
           command: |
               bundle exec fastlane publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
