@@ -309,3 +309,7 @@ workflows:
       - deploy-firebase-android:
           requires:
             - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
