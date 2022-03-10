@@ -145,6 +145,7 @@ commands:
           memory: 2048
           gpu: auto
           run-logcat: true
+          post-emulator-launch-assemble-command: ''
       # - run:
       #     name: Install Android Emulator
       #     shell: /bin/bash -e
@@ -264,7 +265,7 @@ jobs:
     executor: macos_custom
     steps:
       - setup_macos_executor
-      - android/accept-licenses
+      - install_android_build_tools
       - android_emulator_start
       - android/restore-gradle-cache
       - android/restore-build-cache
