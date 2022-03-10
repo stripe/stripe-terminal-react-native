@@ -106,6 +106,41 @@ commands:
           key: |
             brew-cache-{{ arch }}-v1-3
 
+  setup_android_executor:
+    parameters:
+      node_version:
+        type: string
+        default: '14.15.0'
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Configure Environment Variables
+          command: |
+            echo 'export PATH="$PATH:/usr/local/opt/node@<<parameters.node_version>>/bin:~/.yarn/bin:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            echo 'export ANDROID_HOME="/usr/local/share/android-commandlinetools"' >> $BASH_ENV
+            echo 'export ANDROID_SDK_ROOT="/usr/local/share/android-commandlinetools"' >> $BASH_ENV
+            echo 'export PATH="$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/tools:$ANDROID_SDK_ROOT/platform-tools:$PATH"' >> $BASH_ENV
+            echo 'export QEMU_AUDIO_DRV=none' >> $BASH_ENV
+            echo 'export JAVA_HOME=$(/usr/libexec/java_home)' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Install node@<<parameters.node_version>>
+          command: |
+            set +e
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
+            echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
+            echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
+            source ~/.bashrc
+            command -v nvm
+            nvm install <<parameters.node_version>>
+            nvm alias default <<parameters.node_version>>
+      - run:
+          name: Configure Detox Environment
+          command: |
+            touch .watchmanconfig
+            node -v
+
   install_android_build_tools:
     parameters:
       build_tools_version:
@@ -268,6 +303,7 @@ jobs:
       tag: 2021.10.1
     steps:
       # - setup_macos_executor
+      - setup_android_executor
       - android_emulator_start
       - android/restore-gradle-cache
       - android/restore-build-cache
