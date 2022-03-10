@@ -265,6 +265,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
+      tag: 2021.10.1
     steps:
       - setup_macos_executor
       - android_emulator_start
