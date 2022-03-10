@@ -41,7 +41,8 @@
     "e2e:test:android:release": "yarn --cwd example start:server:ci && yarn get:testbutler && detox test --configuration android.emu.release --headless --take-screenshots failing --record-logs all  --loglevel verbose",
     "e2e:test:ios:release": "yarn --cwd example start:server:ci && detox test --configuration ios.sim.release --take-screenshots failing --loglevel verbose",
     "get:testbutler": "curl -f -o ./test-butler-app.apk https://repo1.maven.org/maven2/com/linkedin/testbutler/test-butler-app/2.2.1/test-butler-app-2.2.1.apk",
-    "docs": "npx typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json"
+    "docs": "npx typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json",
+    "heroku-prebuild": "yarn install --cwd example --frozen-lockfile"
   },
   "keywords": [
     "react-native",
