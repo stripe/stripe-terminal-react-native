@@ -117,10 +117,10 @@ export default function SetupIntentScreen() {
           {
             name: 'Failed',
             description: 'terminal.createSetupIntent',
-            metadata: new Map([
-              ['errorCode', setupIntentError.code],
-              ['errorMessage', setupIntentError.message],
-            ]),
+            metadata: {
+              errorCode: setupIntentError.code,
+              errorMessage: setupIntentError.message,
+            },
           },
         ],
       });
@@ -136,7 +136,7 @@ export default function SetupIntentScreen() {
         {
           name: 'Collect',
           description: 'terminal.collectSetupIntentPaymentMethod',
-          metadata: new Map([['setupIntentId', setupIntentId]]),
+          metadata: { setupIntentId },
         },
       ],
     });
@@ -151,10 +151,10 @@ export default function SetupIntentScreen() {
           {
             name: 'Failed',
             description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: new Map([
-              ['errorCode', error.code],
-              ['errorMessage', error.message],
-            ]),
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -165,7 +165,7 @@ export default function SetupIntentScreen() {
           {
             name: 'Created',
             description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: new Map([['setupIntentId', setupIntent.id]]),
+            metadata: { setupIntentId: setupIntent.id },
           },
         ],
       });
@@ -180,7 +180,7 @@ export default function SetupIntentScreen() {
         {
           name: 'Process',
           description: 'terminal.confirmSetupIntent',
-          metadata: new Map([['setupIntentId', setupIntentId]]),
+          metadata: { setupIntentId },
         },
       ],
     });
@@ -192,10 +192,10 @@ export default function SetupIntentScreen() {
           {
             name: 'Failed',
             description: 'terminal.confirmSetupIntent',
-            metadata: new Map([
-              ['errorCode', error.code],
-              ['errorMessage', error.message],
-            ]),
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -206,7 +206,7 @@ export default function SetupIntentScreen() {
           {
             name: 'Finished',
             description: 'terminal.confirmSetupIntent',
-            metadata: new Map([['setupIntentId', setupIntent.id]]),
+            metadata: { setupIntentId: setupIntent.id },
           },
         ],
       });

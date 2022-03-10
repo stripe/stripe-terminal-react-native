@@ -114,10 +114,10 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
-            metadata: new Map([
-              ['errorCode', paymentIntentError.code],
-              ['errorMessage', paymentIntentError.message],
-            ]),
+            metadata: {
+              errorCode: paymentIntentError.code,
+              errorMessage: paymentIntentError.message,
+            },
           },
         ],
       });
@@ -128,7 +128,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Created',
             description: 'terminal.createPaymentIntent',
-            metadata: new Map([['paymentIntentId', paymentIntent.id]]),
+            metadata: { paymentIntentId: paymentIntent.id },
           },
         ],
       });
@@ -143,7 +143,7 @@ export default function CollectCardPaymentScreen() {
         {
           name: 'Collect',
           description: 'terminal.collectPaymentMethod',
-          metadata: new Map([['paymentIntentId', paymentIntentId]]),
+          metadata: { paymentIntentId },
         },
       ],
     });
@@ -158,10 +158,10 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.collectPaymentMethod',
-            metadata: new Map([
-              ['errorCode', error.code],
-              ['errorMessage', error.message],
-            ]),
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -172,7 +172,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Collected',
             description: 'terminal.collectPaymentMethod',
-            metadata: new Map([['paymentIntentId', paymentIntent.id]]),
+            metadata: { paymentIntentId: paymentIntent.id },
           },
         ],
       });
@@ -187,7 +187,7 @@ export default function CollectCardPaymentScreen() {
         {
           name: 'Process',
           description: 'terminal.processPayment',
-          metadata: new Map([['paymentIntentId', paymentIntentId]]),
+          metadata: { paymentIntentId },
         },
       ],
     });
@@ -200,10 +200,10 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.processPayment',
-            metadata: new Map([
-              ['errorCode', error.code],
-              ['errorMessage', error.message],
-            ]),
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -214,7 +214,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Finished',
             description: 'terminal.processPayment',
-            metadata: new Map([['paymentIntentId', paymentIntentId]]),
+            metadata: { paymentIntentId },
           },
         ],
       });

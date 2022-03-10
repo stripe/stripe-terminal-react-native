@@ -21,15 +21,9 @@ const LogScreen = () => {
       <Text style={styles.description}>{event.description}</Text>
       {metadata && (
         <List key="metadata" title="EVENT METADATA" bolded={false}>
-          {Array.from(metadata).map((entry) => {
-            return (
-              <ListItem
-                key={entry[0]}
-                title={entry[0]}
-                description={entry[1]}
-              />
-            );
-          })}
+          {Object.keys(metadata).map((key) => (
+            <ListItem key={key} title={key} description={metadata[key]} />
+          ))}
         </List>
       )}
     </ScrollView>
