@@ -284,7 +284,7 @@ jobs:
       - run:
           name: "Increment example app version"
           command: |
-              bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID
+              bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
       - run:
           command: yarn example:build:android:release
           name: build
@@ -311,6 +311,19 @@ workflows:
           requires:
             - install-dependencies
       - deploy-firebase-android:
+          context:
+            - stripe-terminal-react-native-US-example-app
+          name: deploy-firebase-android-us
+          requires:
+            - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
+      - deploy-firebase-android:
+          context:
+            - stripe-terminal-react-native-EU-example-app
+          name: deploy-firebase-android-eu
           requires:
             - install-dependencies
           filters:
