@@ -19,7 +19,7 @@ const stripe = new Stripe(secret_key as string, {
 });
 
 const app = express();
-const port = 3002;
+const port = process.env.PORT ? process.env.PORT : 3002;
 
 app.use(express.json());
 
