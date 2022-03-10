@@ -310,7 +310,7 @@ workflows:
       - e2e-ios:
           requires:
             - install-dependencies
-      - deploy-firebase-android:
+      - deploy-firebase-android-us:
           context:
             - stripe-terminal-react-native-US-example-app
           requires:
@@ -319,7 +319,7 @@ workflows:
           #     branches:
           #       only:
           #         - main
-      - deploy-firebase-android:
+      - deploy-firebase-android-eu:
           context:
             - stripe-terminal-react-native-EU-example-app
           requires:
