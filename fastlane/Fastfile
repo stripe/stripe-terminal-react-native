@@ -2,6 +2,16 @@ before_all do
   setup_circle_ci
 end
 
+lane :increment_version do |options|
+  latest_release = firebase_app_distribution_get_latest_release(
+    app: options[:app_id].to_s
+  )
+  increment_version_code(
+    gradle_file_path: 'example/android/app/build.gradle',
+    version_code: latest_release[:buildVersion].to_i + 1
+  )
+end
+
 lane :publish_to_firebase do |options|
   commit = last_git_commit
   build_notes = "Notes: #{commit[:message]}. Built by #{commit[:author]}"
