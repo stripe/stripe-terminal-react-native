@@ -264,6 +264,7 @@ jobs:
     executor: macos_custom
     steps:
       - setup_macos_executor
+      - android/accept-licenses
       - android_emulator_start
       - android/restore-gradle-cache
       - android/restore-build-cache
