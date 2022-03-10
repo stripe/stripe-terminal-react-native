@@ -134,7 +134,6 @@ commands:
         default: 'com.example.stripeterminalreactnative'
 
     steps:
-      - install_android_build_tools
       - android/create-avd:
           avd-name: <<parameters.device_name>>
           install: true
@@ -146,7 +145,6 @@ commands:
           memory: 2048
           gpu: auto
           run-logcat: true
-          # post-emulator-launch-assemble-command:
       # - run:
       #     name: Install Android Emulator
       #     shell: /bin/bash -e
@@ -267,9 +265,13 @@ jobs:
     steps:
       - setup_macos_executor
       - android_emulator_start
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
@@ -298,9 +300,13 @@ jobs:
           name: "Increment example app version"
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           command: yarn example:build:android:release
           name: build
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
           name: "Deploy example app to Firebase"
           command: |
