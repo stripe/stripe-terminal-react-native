@@ -315,16 +315,16 @@ workflows:
             - stripe-terminal-react-native-US-example-app
           requires:
             - install-dependencies
-          # filters:
-          #     branches:
-          #       only:
-          #         - main
+          filters:
+              branches:
+                only:
+                  - main
       - deploy-firebase-android-eu:
           context:
             - stripe-terminal-react-native-EU-example-app
           requires:
             - install-dependencies
-          # filters:
-          #     branches:
-          #       only:
-          #         - main
+          filters:
+              branches:
+                only:
+                  - main
