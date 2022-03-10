@@ -267,7 +267,7 @@ jobs:
       resource-class: large
       tag: 2021.10.1
     steps:
-      - setup_macos_executor
+      # - setup_macos_executor
       - android_emulator_start
       - android/restore-gradle-cache
       - android/restore-build-cache
