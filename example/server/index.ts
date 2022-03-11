@@ -22,6 +22,15 @@ const app = express();
 const port = process.env.PORT ? process.env.PORT : 3002;
 
 app.use(express.json());
+app.use(function (req, res, _) {
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  res.status(404).send(
+    res.json({
+      errorCode: '404',
+      errorMessage: `Route not found ${url}`,
+    })
+  );
+});
 
 expressWinston.requestWhitelist.push('body');
 expressWinston.responseWhitelist.push('body');
