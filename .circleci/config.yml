@@ -282,6 +282,9 @@ jobs:
     steps:
       - setup_macos_executor
       - ios_simulator_start
+      - run:
+          command: yarn install --frozen-lockfile
+          name: yarn install
       - pod_install
       - run:
           command: yarn e2e:build:ios:release
@@ -301,6 +304,9 @@ jobs:
       # - setup_macos_executor
       - setup_android_executor
       - android_emulator_start
+      - run:
+          command: yarn install --frozen-lockfile
+          name: yarn install
       - android/restore-gradle-cache
       - android/restore-build-cache
       - run:
@@ -325,6 +331,9 @@ jobs:
           name: Install Firebase CLI
           command: |
             curl -sL firebase.tools | bash
+      - run:
+          command: yarn install --frozen-lockfile
+          name: yarn install
       - run:
           name: "Increment example app version"
           command: |
