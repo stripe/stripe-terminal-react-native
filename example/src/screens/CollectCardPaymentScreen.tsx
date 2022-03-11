@@ -30,7 +30,7 @@ const capturePaymentIntent = async (id: string) => {
       body: JSON.stringify({ id }),
     });
     const pi = await response.json();
-    return { paymentIntent: pi, error: null };
+    return { paymentIntent: pi.intent, error: null };
   } catch (e) {
     return { error: e };
   }
