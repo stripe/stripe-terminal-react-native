@@ -293,6 +293,13 @@ export default withStripeTerminal(PaymentScreen);
 
 ### iOS
 
+prereqs: Ensure AppleSimulatorUtils are installed
+
+```
+brew tap wix/brew
+brew install applesimutils
+```
+
 1. Create an iOS simulator with a name that matches the name found in `.detoxrc.json`
 1. Run `yarn detox build --configuration ios`
 1. launch the simulator
