@@ -1,8 +1,9 @@
 version: 2.1
 
 orbs:
-  macos: circleci/macos@2.1.0
-  ruby: circleci/ruby@1.4.0
+  heroku: circleci/heroku@1.2.6
+  macos:  circleci/macos@2.1.0
+  ruby:   circleci/ruby@1.4.0
 
 executors:
   linux_js:
@@ -293,6 +294,22 @@ jobs:
           command: |
               bundle exec fastlane publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
 
+  deploy-heroku-backend:
+    executor: linux_js
+    steps:
+      - attach_project
+      - heroku/install
+      - run:
+          name: Heroku - set private key
+          command: |
+              heroku config:set STRIPE_PRIVATE_KEY=$STRIPE_PRIVATE_KEY -a $HEROKU_APP_NAME
+      - run:
+          name: Heroku - disable package pruning
+          command: |
+              heroku config:set YARN_PRODUCTION=false -a $HEROKU_APP_NAME
+      - heroku/deploy-via-git:
+          force: true # CI should override any developer machine pushes
+
 workflows:
   version: 2
   build-and-test:
@@ -310,6 +327,27 @@ workflows:
       - e2e-ios:
           requires:
             - install-dependencies
+      - deploy-heroku-backend:
+          context:
+            - stripe-terminal-react-native-EU-example-app
+          name: deploy-heroku-backend-eu
+          requires:
+            - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
+      - deploy-heroku-backend:
+          context:
+            - stripe-terminal-react-native-US-example-app
+          name: deploy-heroku-backend-us
+          requires:
+            - install-dependencies
+            - deploy-heroku-backend-eu # avoids Heroku concurrent build limit
+          filters:
+              branches:
+                only:
+                  - main
       - deploy-firebase-android:
           context:
             - stripe-terminal-react-native-US-example-app
