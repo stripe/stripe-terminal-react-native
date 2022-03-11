@@ -333,10 +333,10 @@ workflows:
           name: deploy-heroku-backend-eu
           requires:
             - install-dependencies
-          # filters:
-          #     branches:
-          #       only:
-          #         - main
+          filters:
+              branches:
+                only:
+                  - main
       - deploy-heroku-backend:
           context:
             - stripe-terminal-react-native-US-example-app
@@ -344,10 +344,10 @@ workflows:
           requires:
             - install-dependencies
             - deploy-heroku-backend-eu # avoids Heroku concurrent build limit
-          # filters:
-          #     branches:
-          #       only:
-          #         - main
+          filters:
+              branches:
+                only:
+                  - main
       - deploy-firebase-android:
           context:
             - stripe-terminal-react-native-US-example-app
