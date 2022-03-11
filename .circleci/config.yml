@@ -118,7 +118,7 @@ commands:
       - run:
           name: Configure Environment Variables
           command: |
-            echo 'export PATH="$PATH:/usr/local/opt/node@<<parameters.node_version>>/bin:~/.yarn/bin:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
             source $BASH_ENV
       - run:
           name: Install node@<<parameters.node_version>>
