@@ -109,7 +109,9 @@ describe('Payments', () => {
     await checkIfLogExist('removeCard');
     await checkIfLogExist('Collected');
     await checkIfLogExist('Process');
-    await checkIfLogExist('Finished');
+    await checkIfLogExist('Processed');
+    await checkIfLogExist('Capture');
+    await checkIfLogExist('Captured');
   });
 
   it('Store card via readReusableCard', async () => {

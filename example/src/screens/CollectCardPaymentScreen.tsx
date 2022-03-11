@@ -223,7 +223,7 @@ export default function CollectCardPaymentScreen() {
         name: 'Process Payment',
         events: [
           {
-            name: 'Finished',
+            name: 'Processed',
             description: 'terminal.processPayment',
             metadata: { paymentIntentId },
           },
@@ -259,7 +259,7 @@ export default function CollectCardPaymentScreen() {
         name: 'Capture Payment',
         events: [
           {
-            name: 'Finished',
+            name: 'Captured',
             description: 'terminal.paymentIntentId: ' + intent.id,
           },
         ],
