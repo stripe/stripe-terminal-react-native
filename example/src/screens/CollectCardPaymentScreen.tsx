@@ -77,6 +77,17 @@ export default function CollectCardPaymentScreen() {
     return { client_secret, id, error: null };
   };
 
+  const capturePaymentIntent = async (id: string) => {
+    const response = await fetch(`${API_URL}/capture_payment_intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+    return await response.json();
+  };
+
   const _createPaymentIntent = async () => {
     clearLogs();
     navigation.navigate('LogListScreen');
@@ -212,9 +223,44 @@ export default function CollectCardPaymentScreen() {
         name: 'Process Payment',
         events: [
           {
-            name: 'Finished',
+            name: 'Processed',
             description: 'terminal.processPayment',
             metadata: { paymentIntentId },
+          },
+        ],
+      });
+      _capturePayment(paymentIntentId);
+    }
+  };
+
+  const _capturePayment = async (paymentIntentId: string) => {
+    addLogs({
+      name: 'Capture Payment',
+      events: [{ name: 'Capture', description: 'terminal.capturePayment' }],
+    });
+
+    const { intent, error } = await capturePaymentIntent(paymentIntentId);
+    if (error) {
+      addLogs({
+        name: 'Capture Payment',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.capturePayment',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
+          },
+        ],
+      });
+    } else if (intent) {
+      addLogs({
+        name: 'Capture Payment',
+        events: [
+          {
+            name: 'Captured',
+            description: 'terminal.paymentIntentId: ' + intent.id,
           },
         ],
       });
