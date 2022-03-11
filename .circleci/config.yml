@@ -343,7 +343,7 @@ workflows:
           name: deploy-heroku-backend-us
           requires:
             - install-dependencies
-            - deploy-firebase-android-eu # avoids Heroku concurrent build limit
+            - deploy-heroku-backend-eu # avoids Heroku concurrent build limit
           # filters:
           #     branches:
           #       only:
