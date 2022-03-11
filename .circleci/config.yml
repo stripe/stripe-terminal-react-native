@@ -124,16 +124,22 @@ commands:
           name: Install node@<<parameters.node_version>>
           command: |
             set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
-            source ~/.bashrc
             command -v nvm
             nvm install <<parameters.node_version>>
             nvm alias default <<parameters.node_version>>
+            nvm use default
+            node -v
+      - run:
+          name: Install yarn
+          command: |
+            set +e
+            curl -o- -L https://yarnpkg.com/install.sh | bash
+            source ~/.bashrc
+            yarn -v
       - run:
           name: Configure Detox Environment
           command: |
             touch .watchmanconfig
-            node -v
 
   install_android_build_tools:
     parameters:
