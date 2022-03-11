@@ -322,6 +322,8 @@ workflows:
           requires:
             - install-dependencies
       - e2e-android:
+          context:
+            - stripe-terminal-react-native-android-test # sets API_URL_ANDROID to allow the emulator to access the example app backend
           requires:
             - install-dependencies
       - e2e-ios:
