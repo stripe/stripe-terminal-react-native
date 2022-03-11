@@ -307,7 +307,8 @@ jobs:
           name: Heroku - disable package pruning
           command: |
               heroku config:set YARN_PRODUCTION=false -a $HEROKU_APP_NAME
-      - heroku/deploy-via-git
+      - heroku/deploy-via-git:
+          force: true # CI should override any developer machine pushes
 
 workflows:
   version: 2
