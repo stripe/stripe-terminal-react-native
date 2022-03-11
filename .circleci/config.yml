@@ -135,7 +135,6 @@ commands:
           name: Configure Detox Environment
           command: |
             touch .watchmanconfig
-            node -v
 
   install_android_build_tools:
     parameters:
