@@ -17,7 +17,7 @@ executors:
     parameters:
       xcode_version:
         type: string
-        default: '12.4.0'
+        default: '13.3.0'
     macos:
       xcode: <<parameters.xcode_version>>
 
@@ -32,7 +32,7 @@ commands:
       - run:
           name: Start iOS simulator (background)
           background: true
-          command: xcrun simctl boot "11" || true
+          command: xcrun simctl boot "13" || true
 
   pod_install:
     parameters:
