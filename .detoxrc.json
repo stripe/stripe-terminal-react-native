@@ -27,8 +27,8 @@
     "simulator": {
       "type": "ios.simulator",
       "device": {
-        "type": "iPhone 13",
-        "os": "iOS 15.2"
+        "type": "iPhone 11",
+        "os": "iOS 13.7"
       }
     },
     "emulator": {
