@@ -20,22 +20,6 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import { API_URL } from '../Config';
 
-const capturePaymentIntent = async (id: string) => {
-  try {
-    const response = await fetch(`${API_URL}/capture_payment_intent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id }),
-    });
-    const pi = await response.json();
-    return { paymentIntent: pi.intent, error: null };
-  } catch (e) {
-    return { error: e };
-  }
-};
-
 export default function CollectCardPaymentScreen() {
   const [inputValues, setInputValues] = useState<{
     amount: string;
@@ -91,6 +75,17 @@ export default function CollectCardPaymentScreen() {
     });
     const { client_secret, id } = await response.json();
     return { client_secret, id, error: null };
+  };
+
+  const capturePaymentIntent = async (id: string) => {
+    const response = await fetch(`${API_URL}/capture_payment_intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+    return await response.json();
   };
 
   const _createPaymentIntent = async () => {
@@ -244,26 +239,28 @@ export default function CollectCardPaymentScreen() {
       events: [{ name: 'Capture', description: 'terminal.capturePayment' }],
     });
 
-    const { paymentIntent, error } = await capturePaymentIntent(
-      paymentIntentId
-    );
+    const { intent, error } = await capturePaymentIntent(paymentIntentId);
     if (error) {
       addLogs({
         name: 'Capture Payment',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.capturePayment',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
-    } else if (paymentIntent) {
+    } else if (intent) {
       addLogs({
         name: 'Capture Payment',
         events: [
           {
             name: 'Finished',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            description: 'terminal.paymentIntentId: ' + intent.id,
           },
         ],
       });
