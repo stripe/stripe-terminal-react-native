@@ -24,6 +24,12 @@ executors:
     environment:
       HOMEBREW_NO_AUTO_UPDATE: 1
 
+  android_custom:
+    docker:
+      - image: android/android-machine
+    resource-class: large
+    tag: 2021.10.1
+
 commands:
   attach_project:
     steps:
@@ -141,21 +147,6 @@ commands:
           command: |
             touch .watchmanconfig
 
-  install_android_build_tools:
-    parameters:
-      build_tools_version:
-        type: string
-        default: '30.0.2'
-    steps:
-      - run:
-          name: Install Android Build Tools
-          shell: /bin/bash -e
-          command: |
-            yes | sdkmanager "platform-tools" "tools" >/dev/null
-            yes | sdkmanager "build-tools;<<parameters.build_tools_version>>" >/dev/null
-            yes | sdkmanager --licenses >/dev/null
-            yes | sdkmanager --list
-
   android_emulator_start:
     parameters:
       device_name:
@@ -167,7 +158,6 @@ commands:
       logcat_grep:
         type: string
         default: 'com.example.stripeterminalreactnative'
-
     steps:
       - android/create-avd:
           avd-name: <<parameters.device_name>>
@@ -181,51 +171,6 @@ commands:
           gpu: auto
           run-logcat: true
           post-emulator-launch-assemble-command: ''
-      # - run:
-      #     name: Install Android Emulator
-      #     shell: /bin/bash -e
-      #     command: |
-      #       yes | sdkmanager "platforms;<<parameters.platform_version>>" "system-images;<<parameters.platform_version>>;default;x86_64" >/dev/null
-      #       yes | sdkmanager "emulator" --channel=3 >/dev/null
-      #       yes | sdkmanager --licenses >/dev/null
-      #       yes | sdkmanager --list
-      # - run:
-      #     name: ADB Start Stop
-      #     command: |
-      #       adb start-server
-      #       adb devices
-      #       adb kill-server
-      #       ls -la ~/.android
-      # - run:
-      #     name: Create Android Emulator
-      #     command:
-      #       avdmanager create avd --force --name <<parameters.device_name>> --package
-      #       "system-images;<<parameters.platform_version>>;default;x86_64" --tag
-      #       default --device pixel
-
-      # - run:
-      #     name: Start Android Emulator (background)
-      #     command: |
-      #       $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -version
-      #       $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -cores 1 -gpu auto -accel on -memory 2048 -no-audio -no-snapshot -no-boot-anim -no-window -logcat *:W | grep -i 'ReactNative\|<<parameters.logcat_grep>>'
-      #     background: true
-
-      # - run:
-      #     name: Wait for AVD to be ready
-      #     no_output_timeout: '5m'
-      #     command: |
-      #       export BOOT=""
-      #       echo "Waiting for AVD to finish booting"
-      #       export PATH=$(dirname $(dirname $(command -v android)))/platform-tools:$PATH
-      #       until [[ "$BOOT" =~ "1" ]]; do
-      #         sleep 5
-      #         export BOOT=$(adb -e shell getprop sys.boot_completed 2>&1)
-      #       done
-      #       sleep 15
-      #       adb shell settings put global window_animation_scale 0
-      #       adb shell settings put global transition_animation_scale 0
-      #       adb shell settings put global animator_duration_scale 0
-      #       echo "Android Virtual Device is now ready."
 
 jobs:
   install-dependencies:
@@ -300,12 +245,8 @@ jobs:
           path: ./artifacts
 
   e2e-android:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: 2021.10.1
+    executor: android_custom
     steps:
-      # - setup_macos_executor
       - setup_android_executor
       - android_emulator_start
       - run:
@@ -326,11 +267,10 @@ jobs:
           path: ./artifacts
 
   deploy-firebase-android:
-    executor: macos_custom
+    executor: android_custom
     steps:
-      - setup_macos_executor
+      - setup_android_executor
       - ruby/install-deps
-      - install_android_build_tools
       - run:
           name: Install Firebase CLI
           command: |
@@ -416,10 +356,10 @@ workflows:
           name: deploy-firebase-android-us
           requires:
             - install-dependencies
-          filters:
-              branches:
-                only:
-                  - main
+          # filters:
+          #     branches:
+          #       only:
+          #         - main
       - deploy-firebase-android:
           context:
             - stripe-terminal-react-native-EU-example-app
