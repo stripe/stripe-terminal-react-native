@@ -302,11 +302,11 @@ jobs:
       - run:
           name: Heroku - set private key
           command: |
-              heroku config:set STRIPE_PRIVATE_KEY=$STRIPE_PRIVATE_KEY
+              heroku config:set STRIPE_PRIVATE_KEY=$STRIPE_PRIVATE_KEY -a $HEROKU_APP_NAME
       - run:
           name: Heroku - disable package pruning
           command: |
-              heroku config:set YARN_PRODUCTION=false
+              heroku config:set YARN_PRODUCTION=false -a $HEROKU_APP_NAME
       - heroku/deploy-via-git
 
 workflows:
