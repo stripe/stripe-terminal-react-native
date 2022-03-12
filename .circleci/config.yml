@@ -268,7 +268,8 @@ jobs:
       tag: 2021.10.1
     steps:
       - setup_android_executor
-      - ruby/install-deps
+      - ruby/install-deps:
+          key: -gems-{{ arch }}-v1
       - run:
           name: Install Firebase CLI
           command: |
