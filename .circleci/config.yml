@@ -24,12 +24,6 @@ executors:
     environment:
       HOMEBREW_NO_AUTO_UPDATE: 1
 
-  android_custom:
-    docker:
-      - image: android/android-machine
-    resource-class: large
-    tag: 2021.10.1
-
 commands:
   attach_project:
     steps:
@@ -245,7 +239,9 @@ jobs:
           path: ./artifacts
 
   e2e-android:
-    executor: android_custom
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
       - setup_android_executor
       - android_emulator_start
@@ -267,7 +263,9 @@ jobs:
           path: ./artifacts
 
   deploy-firebase-android:
-    executor: android_custom
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
       - setup_android_executor
       - ruby/install-deps
