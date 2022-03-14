@@ -165,7 +165,7 @@ export default function DiscoverReadersScreen() {
 
     const { reader: connectedReader, error } = await connectBluetoothReader({
       reader,
-      locationId: selectedLocation?.id,
+      locationId: selectedLocation?.id || reader?.location?.id,
     });
 
     if (error) {
