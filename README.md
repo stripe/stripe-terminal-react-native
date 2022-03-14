@@ -64,7 +64,6 @@ First, create an endpoint on your backend server that creates a new connection t
 Next, create a token provider that will fetch connection token from your server and provide it to StripeTerminalProvider as a parameter.
 Stripe Terminal SDK will fetch it when it's needed.
 
-
 ```tsx
 // Root.ts
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
@@ -98,17 +97,15 @@ Please note that `initialize` method must be called from the nested component of
 ```tsx
 // App.tsx
 function App() {
-  const { initialize } = useStripeTerminal()
+  const { initialize } = useStripeTerminal();
 
   useEffect(() => {
     initialize({
       logLevel: 'verbose',
     });
-  }, [])
+  }, [initialize]);
 
-  return (
-    <View />
-  );
+  return <View />;
 }
 ```
 
@@ -226,7 +223,7 @@ export default function PaymentScreen() {
       discoveryMethod: 'bluetoothScan',
       simulated: true,
     });
-  }, []);
+  }, [discoverReaders]);
 
   return <View />;
 }
