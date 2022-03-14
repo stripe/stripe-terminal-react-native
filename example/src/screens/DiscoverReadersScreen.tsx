@@ -163,9 +163,11 @@ export default function DiscoverReadersScreen() {
   const handleConnectBluetoothReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
+    console.log(selectedLocation || reader.location.id);
+
     const { reader: connectedReader, error } = await connectBluetoothReader({
       reader,
-      locationId: selectedLocation?.id,
+      locationId: selectedLocation?.id || reader.location.id,
     });
 
     if (error) {
