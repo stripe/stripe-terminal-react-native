@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  android: circleci/android@2.0.0
   heroku: circleci/heroku@1.2.6
   macos:  circleci/macos@2.1.0
   ruby:   circleci/ruby@1.4.0
@@ -20,6 +21,8 @@ executors:
         default: '12.4.0'
     macos:
       xcode: <<parameters.xcode_version>>
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
 
 commands:
   attach_project:
@@ -90,10 +93,10 @@ commands:
           name: Configure Detox Environment
           command: |
             brew update >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/cask >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install android-commandlinetools >/dev/null
+            brew tap wix/brew >/dev/null
+            brew tap homebrew/cask >/dev/null
+            brew install applesimutils >/dev/null
+            brew install android-commandlinetools >/dev/null
             touch .watchmanconfig
             node -v
       - save_cache:
@@ -104,20 +107,39 @@ commands:
           key: |
             brew-cache-{{ arch }}-v1-3
 
-  install_android_build_tools:
+  setup_android_executor:
     parameters:
-      build_tools_version:
+      node_version:
         type: string
-        default: '30.0.2'
+        default: '14.15.0'
     steps:
+      - attach_workspace:
+          at: .
       - run:
-          name: Install Android Build Tools
-          shell: /bin/bash -e
+          name: Configure Environment Variables
           command: |
-            yes | sdkmanager "platform-tools" "tools" >/dev/null
-            yes | sdkmanager "build-tools;<<parameters.build_tools_version>>" >/dev/null
-            yes | sdkmanager --licenses >/dev/null
-            yes | sdkmanager --list
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            source $BASH_ENV
+      - run:
+          name: Install node@<<parameters.node_version>>
+          command: |
+            set +e
+            command -v nvm
+            nvm install <<parameters.node_version>>
+            nvm alias default <<parameters.node_version>>
+            nvm use default
+            node -v
+      - run:
+          name: Install yarn
+          command: |
+            set +e
+            curl -o- -L https://yarnpkg.com/install.sh | bash
+            source ~/.bashrc
+            yarn -v
+      - run:
+          name: Configure Detox Environment
+          command: |
+            touch .watchmanconfig
 
   android_emulator_start:
     parameters:
@@ -130,54 +152,19 @@ commands:
       logcat_grep:
         type: string
         default: 'com.example.stripeterminalreactnative'
-
     steps:
-      - install_android_build_tools
-      - run:
-          name: Install Android Emulator
-          shell: /bin/bash -e
-          command: |
-            yes | sdkmanager "platforms;<<parameters.platform_version>>" "system-images;<<parameters.platform_version>>;default;x86_64" >/dev/null
-            yes | sdkmanager "emulator" --channel=3 >/dev/null
-            yes | sdkmanager --licenses >/dev/null
-            yes | sdkmanager --list
-      - run:
-          name: ADB Start Stop
-          command: |
-            adb start-server
-            adb devices
-            adb kill-server
-            ls -la ~/.android
-      - run:
-          name: Create Android Emulator
-          command:
-            avdmanager create avd --force --name <<parameters.device_name>> --package
-            "system-images;<<parameters.platform_version>>;default;x86_64" --tag
-            default --device pixel
-
-      - run:
-          name: Start Android Emulator (background)
-          command: |
-            $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -version
-            $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -cores 1 -gpu auto -accel on -memory 2048 -no-audio -no-snapshot -no-boot-anim -no-window -logcat *:W | grep -i 'ReactNative\|<<parameters.logcat_grep>>'
-          background: true
-
-      - run:
-          name: Wait for AVD to be ready
-          no_output_timeout: '5m'
-          command: |
-            export BOOT=""
-            echo "Waiting for AVD to finish booting"
-            export PATH=$(dirname $(dirname $(command -v android)))/platform-tools:$PATH
-            until [[ "$BOOT" =~ "1" ]]; do
-              sleep 5
-              export BOOT=$(adb -e shell getprop sys.boot_completed 2>&1)
-            done
-            sleep 15
-            adb shell settings put global window_animation_scale 0
-            adb shell settings put global transition_animation_scale 0
-            adb shell settings put global animator_duration_scale 0
-            echo "Android Virtual Device is now ready."
+      - android/create-avd:
+          avd-name: <<parameters.device_name>>
+          install: true
+          system-image: system-images;<<parameters.platform_version>>;default;x86_64
+      - android/start-emulator:
+          avd-name: <<parameters.device_name>>
+          no-window: true
+          restore-gradle-cache-prefix: v1a
+          memory: 2048
+          gpu: auto
+          run-logcat: true
+          post-emulator-launch-assemble-command: ''
 
 jobs:
   install-dependencies:
@@ -252,16 +239,22 @@ jobs:
           path: ./artifacts
 
   e2e-android:
-    executor: macos_custom
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
-      - setup_macos_executor
+      - setup_android_executor
       - android_emulator_start
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
@@ -270,11 +263,13 @@ jobs:
           path: ./artifacts
 
   deploy-firebase-android:
-    executor: macos_custom
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
-      - setup_macos_executor
-      - ruby/install-deps
-      - install_android_build_tools
+      - setup_android_executor
+      - ruby/install-deps:
+          key: -gems-{{ arch }}-v1
       - run:
           name: Install Firebase CLI
           command: |
@@ -286,9 +281,13 @@ jobs:
           name: "Increment example app version"
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           command: yarn example:build:android:release
           name: build
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
           name: "Deploy example app to Firebase"
           command: |
