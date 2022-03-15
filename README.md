@@ -271,6 +271,9 @@ export default withStripeTerminal(PaymentScreen);
 - Set your api key in your environment
   - `cp example/.env.example example/.env`
   - edit `.env`
+
+To start and monitor each process:
+
 - Start the backend
   - `yarn example start:server`
 - Start the example
@@ -279,6 +282,12 @@ export default withStripeTerminal(PaymentScreen);
     - `yarn example ios`
     - or
     - `yarn example android`
+
+To launch the watcher, server, and perform an initial build you can run:
+
+- `yarn example ios:all`
+  or
+- `yarn example android:all`
 
 ## Runing e2e tests
 
@@ -325,8 +334,9 @@ The Example backend is deployed to Heroku via a CI job that executes after a suc
 https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L296
 
 A separate backend instance is generated for each supported region (EU and US):
-* https://stripe-terminal-rn-example-eu.herokuapp.com/
-* https://stripe-terminal-rn-example-us.herokuapp.com/
+
+- https://stripe-terminal-rn-example-eu.herokuapp.com/
+- https://stripe-terminal-rn-example-us.herokuapp.com/
 
 ## Contributing
 
