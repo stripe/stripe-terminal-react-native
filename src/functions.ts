@@ -253,22 +253,23 @@ export async function retrievePaymentIntent(
   }
 }
 
-export async function getListLocations(
+export async function getLocations(
   params: ListLocationsParams
 ): Promise<ListLocationsResultType> {
   try {
-    const { error, locationsList, hasMore } =
-      await StripeTerminalSdk.getListLocations(params);
+    const { error, locations, hasMore } = await StripeTerminalSdk.getLocations(
+      params
+    );
 
     if (error) {
       return {
         error,
-        locationsList: undefined,
+        locations: undefined,
         hasMore: undefined,
       };
     }
     return {
-      locationsList: locationsList!,
+      locations: locations!,
       hasMore: hasMore!,
       error: undefined,
     };

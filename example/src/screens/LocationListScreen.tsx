@@ -15,14 +15,14 @@ export default function LocationListScreen() {
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<any, any>>();
 
-  const { getListLocations, loading } = useStripeTerminal();
+  const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>([]);
 
   useEffect(() => {
     async function init() {
-      const { locationsList } = await getListLocations({ limit: 20 });
-      if (locationsList) {
-        setList(locationsList);
+      const { locations } = await getLocations({ limit: 20 });
+      if (locations) {
+        setList(locations);
       }
     }
     init();

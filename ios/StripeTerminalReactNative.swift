@@ -332,20 +332,20 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
-    @objc(getListLocations:resolver:rejecter:)
-    func getListLocations(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(getLocations:resolver:rejecter:)
+    func getLocations(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let limit = params["limit"] as? NSNumber
         let endingBefore = params["endingBefore"] as? String
         let startingAfter = params["startingAfter"] as? String
 
         let listParameters = ListLocationsParameters(limit: limit, endingBefore: endingBefore, startingAfter: startingAfter)
 
-        Terminal.shared.listLocations(parameters: listParameters) { locationsList, hasMore, error in
+        Terminal.shared.listLocations(parameters: listParameters) { locations, hasMore, error in
             if let error = error {
                 resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            } else if let locationsList = locationsList {
-                let list = Mappers.mapFromLocationsList(locationsList)
-                resolve(["locationsList": list, "hasMore": hasMore])
+            } else if let locations = locations {
+                let list = Mappers.mapFromLocationsList(locations)
+                resolve(["locations": list, "hasMore": hasMore])
             }
         }
     }

@@ -62,7 +62,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  getListLocations:(NSDictionary *)params
+                  getLocations:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

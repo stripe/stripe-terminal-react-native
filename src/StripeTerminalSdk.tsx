@@ -92,9 +92,7 @@ type StripeTerminalSdkType = {
   // Cancel Setup Intent
   cancelSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
-  getListLocations(
-    params: ListLocationsParams
-  ): Promise<ListLocationsResultType>;
+  getLocations(params: ListLocationsParams): Promise<ListLocationsResultType>;
   // Confirm Setup Intent
   confirmSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;

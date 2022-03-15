@@ -174,12 +174,12 @@ export type SetupIntentResultType =
 
 export type ListLocationsResultType =
   | {
-      locationsList: Location[];
+      locations: Location[];
       hasMore: boolean;
       error?: undefined;
     }
   | {
-      locationsList?: undefined;
+      locations?: undefined;
       hasMore?: undefined;
       error: StripeError;
     };
