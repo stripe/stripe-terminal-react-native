@@ -6,7 +6,7 @@ import type {
   ConnectInternetReaderParams,
   CreatePaymentIntentParams,
   ConnectBluetoothReaderParams,
-  ListLocationsParams,
+  GetLocationsParams,
   Cart,
   CreateSetupIntentParams,
   CollectSetupIntentPaymentMethodParams,
@@ -412,7 +412,7 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _getLocations = useCallback(
-    async (params: ListLocationsParams) => {
+    async (params: GetLocationsParams) => {
       setLoading(true);
 
       const response = await getLocations(params);

@@ -13,8 +13,8 @@ import type {
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
-  ListLocationsParams,
-  ListLocationsResultType,
+  GetLocationsParams,
+  GetLocationsResultType,
   StripeError,
   Cart,
   CreateSetupIntentParams,
@@ -254,8 +254,8 @@ export async function retrievePaymentIntent(
 }
 
 export async function getLocations(
-  params: ListLocationsParams
-): Promise<ListLocationsResultType> {
+  params: GetLocationsParams
+): Promise<GetLocationsResultType> {
   try {
     const { error, locations, hasMore } = await StripeTerminalSdk.getLocations(
       params

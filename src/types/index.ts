@@ -26,7 +26,7 @@ export type DiscoverReadersParams = {
   discoveryMethod: Reader.DiscoveryMethod;
 };
 
-export type ListLocationsParams = {
+export type GetLocationsParams = {
   limit?: number;
   endingBefore?: string;
   startingAfter?: string;
@@ -172,7 +172,7 @@ export type SetupIntentResultType =
       error: StripeError;
     };
 
-export type ListLocationsResultType =
+export type GetLocationsResultType =
   | {
       locations: Location[];
       hasMore: boolean;
