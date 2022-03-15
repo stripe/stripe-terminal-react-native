@@ -73,14 +73,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
 
-    override fun getName(): String {
-        return "StripeTerminalReactNative"
-    }
-
-    override fun getConstants(): MutableMap<String, Any> {
-        return ReactNativeConstants.values().associate { it.name to it.listenerName }.toMutableMap()
-    }
-
     init {
         TokenProvider.tokenProviderCallback = object : TokenProviderCallback {
             override fun invoke() {
@@ -100,6 +92,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 override fun onConfigurationChanged(p0: Configuration) {}
             })
     }
+
+    override fun getConstants(): MutableMap<String, Any> =
+        ReactNativeConstants.values().associate { it.name to it.listenerName }.toMutableMap()
+
+    override fun getName(): String = "StripeTerminalReactNative"
+
+    override fun hasConstants(): Boolean = true
 
     @ReactMethod
     @Suppress("unused")
