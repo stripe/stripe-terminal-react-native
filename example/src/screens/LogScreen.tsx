@@ -21,8 +21,12 @@ const LogScreen = () => {
       <Text style={styles.description}>{event.description}</Text>
       {metadata && (
         <List key="metadata" title="EVENT METADATA" bolded={false}>
-          {Object.keys(metadata).map((key) => (
-            <ListItem key={key} title={key} description={metadata[key]} />
+          {Object.keys(metadata).map((key, index) => (
+            <ListItem
+              key={key + index}
+              title={key}
+              description={metadata[key]}
+            />
           ))}
         </List>
       )}
