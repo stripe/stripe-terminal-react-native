@@ -1,17 +1,17 @@
 import StripeTerminal
 
-let UPDATE_DISCOVERED_READERS_LISTENER_NAME = "didUpdateDiscoveredReaders";
-let FINISH_DISCOVERING_READERS_LISTENER_NAME = "didFinishDiscoveringReaders";
-let REPORT_UNEXPECTED_READER_DISCONNECT_LISTENER_NAME = "didReportUnexpectedReaderDisconnect";
-let REPORT_AVAILABLE_UPDATE_LISTENER_NAME = "didReportAvailableUpdate"
-let START_INSTALLING_UPDATE_LISTENER_NAME = "didStartInstallingUpdate"
-let REPORT_UPDATE_PROGRESS_LISTENER_NAME = "didReportReaderSoftwareUpdateProgress"
-let FINISH_INSTALLING_UPDATE_LISTENER_NAME = "didFinishInstallingUpdate"
-let FETCH_TOKEN_PROVIDER_LISTENER_NAME = "onFetchTokenProviderListener"
-let REQUEST_READER_INPUT_LISTENER_NAME = "didRequestReaderInput"
+let UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders";
+let FINISH_DISCOVERING_READERS = "didFinishDiscoveringReaders";
+let REPORT_UNEXPECTED_READER_DISCONNECT = "didReportUnexpectedReaderDisconnect";
+let REPORT_AVAILABLE_UPDATE = "didReportAvailableUpdate"
+let START_INSTALLING_UPDATE = "didStartInstallingUpdate"
+let REPORT_UPDATE_PROGRESS = "didReportReaderSoftwareUpdateProgress"
+let FINISH_INSTALLING_UPDATE = "didFinishInstallingUpdate"
+let FETCH_TOKEN_PROVIDER = "onFetchTokenProviderListener"
+let REQUEST_READER_INPUT = "didRequestReaderInput"
 let REQUEST_READER_DISPLAY_MESSAGE = "didRequestReaderDisplayMessage"
-let CHANGE_PAYMENT_STATUS_LISTENER_NAME = "didChangePaymentStatus"
-let CHANGE_CONNECTION_STATUS_LISTENER_NAME = "didChangeConnectionStatus"
+let CHANGE_PAYMENT_STATUS = "didChangePaymentStatus"
+let CHANGE_CONNECTION_STATUS = "didChangeConnectionStatus"
 
 @objc(StripeTerminalReactNative)
 class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, TerminalDelegate  {
@@ -21,18 +21,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     override func supportedEvents() -> [String]! {
         return [
-            UPDATE_DISCOVERED_READERS_LISTENER_NAME,
-            FINISH_DISCOVERING_READERS_LISTENER_NAME,
-            REPORT_UNEXPECTED_READER_DISCONNECT_LISTENER_NAME,
-            REPORT_AVAILABLE_UPDATE_LISTENER_NAME,
-            START_INSTALLING_UPDATE_LISTENER_NAME,
-            REPORT_UPDATE_PROGRESS_LISTENER_NAME,
-            FINISH_INSTALLING_UPDATE_LISTENER_NAME,
-            FETCH_TOKEN_PROVIDER_LISTENER_NAME,
-            REQUEST_READER_INPUT_LISTENER_NAME,
+            UPDATE_DISCOVERED_READERS,
+            FINISH_DISCOVERING_READERS,
+            REPORT_UNEXPECTED_READER_DISCONNECT,
+            REPORT_AVAILABLE_UPDATE,
+            START_INSTALLING_UPDATE,
+            REPORT_UPDATE_PROGRESS,
+            FINISH_INSTALLING_UPDATE,
+            FETCH_TOKEN_PROVIDER,
+            REQUEST_READER_INPUT,
             REQUEST_READER_DISPLAY_MESSAGE,
-            CHANGE_PAYMENT_STATUS_LISTENER_NAME,
-            CHANGE_CONNECTION_STATUS_LISTENER_NAME
+            CHANGE_PAYMENT_STATUS,
+            CHANGE_CONNECTION_STATUS
         ]
     }
 
@@ -50,7 +50,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         discoveredReadersList = readers
         guard terminal.connectionStatus == .notConnected else { return }
 
-        sendEvent(withName: UPDATE_DISCOVERED_READERS_LISTENER_NAME, body: ["readers": Mappers.mapFromReaders(readers)])
+        sendEvent(withName: UPDATE_DISCOVERED_READERS, body: ["readers": Mappers.mapFromReaders(readers)])
     }
 
     @objc(initialize:resolver:rejecter:)
@@ -154,10 +154,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error {
                 let _error = Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription)
 
-                self.sendEvent(withName: FINISH_DISCOVERING_READERS_LISTENER_NAME, body: ["result": _error])
+                self.sendEvent(withName: FINISH_DISCOVERING_READERS, body: ["result": _error])
                 self.discoverCancelable = nil
             } else {
-                self.sendEvent(withName: FINISH_DISCOVERING_READERS_LISTENER_NAME, body: ["result": ["error": nil]])
+                self.sendEvent(withName: FINISH_DISCOVERING_READERS, body: ["result": ["error": nil]])
                 self.discoverCancelable = nil
             }
         }
@@ -253,7 +253,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
         let error = Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Reader has been disconnected unexpectedly")
-        sendEvent(withName: REPORT_UNEXPECTED_READER_DISCONNECT_LISTENER_NAME, body: error)
+        sendEvent(withName: REPORT_UNEXPECTED_READER_DISCONNECT, body: error)
     }
 
     @objc(createPaymentIntent:resolver:rejecter:)
@@ -373,12 +373,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didChangePaymentStatus status: PaymentStatus) {
         let result = Mappers.mapFromPaymentStatus(status)
-        sendEvent(withName: CHANGE_PAYMENT_STATUS_LISTENER_NAME, body: ["result": result])
+        sendEvent(withName: CHANGE_PAYMENT_STATUS, body: ["result": result])
     }
 
     func terminal(_ terminal: Terminal, didChangeConnectionStatus status: ConnectionStatus) {
         let result = Mappers.mapFromConnectionStatus(status)
-        sendEvent(withName: CHANGE_CONNECTION_STATUS_LISTENER_NAME, body: ["result": result])
+        sendEvent(withName: CHANGE_CONNECTION_STATUS, body: ["result": result])
     }
 
     @objc(cancelPaymentIntent:resolver:rejecter:)
@@ -617,29 +617,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
-        sendEvent(withName: REPORT_AVAILABLE_UPDATE_LISTENER_NAME, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
+        sendEvent(withName: REPORT_AVAILABLE_UPDATE, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
 
     func reader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
         self.installUpdateCancelable = cancelable
-        sendEvent(withName: START_INSTALLING_UPDATE_LISTENER_NAME, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
+        sendEvent(withName: START_INSTALLING_UPDATE, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
 
     func reader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
         let result: [AnyHashable : Any?] = [
             "progress": String(progress),
         ]
-        sendEvent(withName: REPORT_UPDATE_PROGRESS_LISTENER_NAME, body: ["result": result])
+        sendEvent(withName: REPORT_UPDATE_PROGRESS, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
         let result = Mappers.mapFromReaderSoftwareUpdate(update)
-        sendEvent(withName: FINISH_INSTALLING_UPDATE_LISTENER_NAME, body: ["result": result ?? [:]])
+        sendEvent(withName: FINISH_INSTALLING_UPDATE, body: ["result": result ?? [:]])
     }
 
     func reader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
         let result = Mappers.mapFromReaderInputOptions(inputOptions)
-        sendEvent(withName: REQUEST_READER_INPUT_LISTENER_NAME, body: ["result": result])
+        sendEvent(withName: REQUEST_READER_INPUT, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
