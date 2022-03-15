@@ -355,10 +355,10 @@ workflows:
           name: deploy-firebase-android-us
           requires:
             - install-dependencies
-          filters:
-              branches:
-                only:
-                  - main
+          # filters:
+              # branches:
+              #   only:
+              #     - main
       - deploy-firebase-android:
           context:
             - stripe-terminal-react-native-EU-example-app
