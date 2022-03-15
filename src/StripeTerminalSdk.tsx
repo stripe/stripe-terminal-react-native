@@ -18,8 +18,8 @@ import type {
   SetupIntentResultType,
   CreateSetupIntentParams,
   ClearReaderDisplayResultType,
-  ListLocationsParams,
-  ListLocationsResultType,
+  GetLocationsParams,
+  GetLocationsResultType,
   RefundParams,
   CollectRefundPaymentMethodType,
   ProcessRefundResultType,
@@ -92,9 +92,7 @@ type StripeTerminalSdkType = {
   // Cancel Setup Intent
   cancelSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
-  getListLocations(
-    params: ListLocationsParams
-  ): Promise<ListLocationsResultType>;
+  getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;
   // Confirm Setup Intent
   confirmSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;

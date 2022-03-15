@@ -555,7 +555,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun getListLocations(params: ReadableMap, promise: Promise) {
+    fun getLocations(params: ReadableMap, promise: Promise) {
         val listParameters = ListLocationsParameters.Builder()
         listParameters.endingBefore = getStringOr(params, "endingBefore")
         listParameters.startingAfter = getStringOr(params, "startingAfter")
@@ -565,7 +565,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             override fun onSuccess(locations: List<Location>, hasMore: Boolean) {
                 val list = mapFromListLocations(locations)
                 val result = WritableNativeMap()
-                result.putArray("locationsList", list)
+                result.putArray("locations", list)
                 result.putBoolean("hasMore", hasMore)
                 promise.resolve(result)
             }

@@ -6,7 +6,7 @@ import type {
   ConnectInternetReaderParams,
   CreatePaymentIntentParams,
   ConnectBluetoothReaderParams,
-  ListLocationsParams,
+  GetLocationsParams,
   Cart,
   CreateSetupIntentParams,
   CollectSetupIntentPaymentMethodParams,
@@ -24,7 +24,7 @@ import {
   createPaymentIntent,
   collectPaymentMethod,
   retrievePaymentIntent,
-  getListLocations,
+  getLocations,
   processPayment,
   createSetupIntent,
   cancelPaymentIntent,
@@ -411,11 +411,11 @@ export function useStripeTerminal(props?: Props) {
     [setLoading]
   );
 
-  const _getListLocations = useCallback(
-    async (params: ListLocationsParams) => {
+  const _getLocations = useCallback(
+    async (params: GetLocationsParams) => {
       setLoading(true);
 
-      const response = await getListLocations(params);
+      const response = await getLocations(params);
 
       setLoading(false);
 
@@ -653,7 +653,7 @@ export function useStripeTerminal(props?: Props) {
     createPaymentIntent: _createPaymentIntent,
     collectPaymentMethod: _collectPaymentMethod,
     retrievePaymentIntent: _retrievePaymentIntent,
-    getListLocations: _getListLocations,
+    getLocations: _getLocations,
     processPayment: _processPayment,
     createSetupIntent: _createSetupIntent,
     cancelPaymentIntent: _cancelPaymentIntent,
