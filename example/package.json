@@ -12,9 +12,9 @@
     "ios:all": "concurrently \"yarn start\" \"yarn start:server\" \"yarn ios\"",
     "postinstall": "scripts/fixRN.sh",
     "start": "react-native start",
-    "start:server": "ts-node server/index.ts",
-    "start:server:ci": "ts-node server/index.ts &",
-    "watch:server": "nodemon --exec ts-node server/index.ts"
+    "start:server": "ts-node --project ./tsconfig.server.json server/index.ts",
+    "start:server:ci": "yarn start:server &",
+    "watch:server": "nodemon --exec yarn start:server"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.11",
