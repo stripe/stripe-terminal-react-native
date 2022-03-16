@@ -70,13 +70,13 @@ commands:
             source $BASH_ENV
       - restore_cache:
           key: |
-            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
       - restore_cache:
           key: |
-            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
       - restore_cache:
           key: |
-            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
       - run:
           name: Install node@<<parameters.node_version>>
           command: |
@@ -99,17 +99,17 @@ commands:
           paths:
             - ~/Library/Caches/Homebrew
           key: |
-            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
       - save_cache:
           paths:
             - /usr/local/Homebrew/Library/Taps
           key: |
-            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
       - save_cache:
           paths:
             - /usr/local/Homebrew/Library/Homebrew/vendor/
           key: |
-            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
 
   setup_android_executor:
     parameters:
