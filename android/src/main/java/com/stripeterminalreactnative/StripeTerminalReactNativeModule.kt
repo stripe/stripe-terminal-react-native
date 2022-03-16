@@ -3,14 +3,63 @@ package com.stripeterminalreactnative
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
+import com.facebook.react.bridge.WritableNativeArray
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
-import com.stripe.stripeterminal.external.callable.*
+import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.Callback
-import com.stripe.stripeterminal.external.models.*
+import com.stripe.stripeterminal.external.callable.Cancelable
+import com.stripe.stripeterminal.external.callable.DiscoveryListener
+import com.stripe.stripeterminal.external.callable.LocationListCallback
+import com.stripe.stripeterminal.external.callable.PaymentIntentCallback
+import com.stripe.stripeterminal.external.callable.PaymentMethodCallback
+import com.stripe.stripeterminal.external.callable.ReaderCallback
+import com.stripe.stripeterminal.external.callable.RefundCallback
+import com.stripe.stripeterminal.external.callable.SetupIntentCallback
+import com.stripe.stripeterminal.external.callable.TerminalListener
+import com.stripe.stripeterminal.external.models.Cart
+import com.stripe.stripeterminal.external.models.ConnectionConfiguration
+import com.stripe.stripeterminal.external.models.ConnectionStatus
+import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
+import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.Location
+import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentIntentParameters
+import com.stripe.stripeterminal.external.models.PaymentMethod
+import com.stripe.stripeterminal.external.models.PaymentStatus
+import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
+import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
+import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.Refund
+import com.stripe.stripeterminal.external.models.RefundParameters
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
+import com.stripe.stripeterminal.external.models.SetupIntentParameters
+import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripeterminalreactnative.ReactNativeConstants.CHANGE_CONNECTION_STATUS
+import com.stripeterminalreactnative.ReactNativeConstants.CHANGE_PAYMENT_STATUS
+import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
+import com.stripeterminalreactnative.ReactNativeConstants.FINISH_DISCOVERING_READERS
+import com.stripeterminalreactnative.ReactNativeConstants.FINISH_INSTALLING_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_AVAILABLE_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
+import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
+import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
+import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.UPDATE_DISCOVERED_READERS
 
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
@@ -25,16 +74,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
 
-    override fun getName(): String {
-        return "StripeTerminalReactNative"
-    }
-
     init {
         TokenProvider.tokenProviderCallback = object : TokenProviderCallback {
             override fun invoke() {
                 reactApplicationContext
                     .getJSModule(RCTDeviceEventEmitter::class.java)
-                    .emit("onFetchTokenProviderListener", null)
+                    .emit(FETCH_TOKEN_PROVIDER.listenerName, null)
             }
         }
 
@@ -48,6 +93,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 override fun onConfigurationChanged(p0: Configuration) {}
             })
     }
+
+    override fun getConstants(): MutableMap<String, Any> =
+        ReactNativeConstants.values().associate { it.name to it.listenerName }.toMutableMap()
+
+    override fun getName(): String = "StripeTerminalReactNative"
+
+    override fun hasConstants(): Boolean = true
 
     @ReactMethod
     @Suppress("unused")
@@ -64,7 +116,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         "Reader has been disconnected unexpectedly"
                     )
                 )
-                sendEvent("didReportUnexpectedReaderDisconnect", error)
+                sendEvent(REPORT_UNEXPECTED_READER_DISCONNECT.listenerName, error)
             }
 
             override fun onConnectionStatusChange(status: ConnectionStatus) {
@@ -73,7 +125,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val result = WritableNativeMap()
                 result.putString("result", mapFromConnectionStatus(status))
 
-                sendEvent("didChangeConnectionStatus", result)
+                sendEvent(CHANGE_CONNECTION_STATUS.listenerName, result)
             }
 
             override fun onPaymentStatusChange(status: PaymentStatus) {
@@ -82,7 +134,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val result = WritableNativeMap()
                 result.putString("result", mapFromPaymentStatus(status))
 
-                sendEvent("didChangePaymentStatus", result)
+                sendEvent(CHANGE_PAYMENT_STATUS.listenerName, result)
             }
         }
         val result = WritableNativeMap()
@@ -214,7 +266,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     val result = WritableNativeMap()
                     result.putArray("readers", readersArray)
 
-                    sendEvent("didUpdateDiscoveredReaders", result)
+                    sendEvent(UPDATE_DISCOVERED_READERS.listenerName, result)
                 }
             },
             object : Callback {
@@ -222,14 +274,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     val result = WritableNativeMap().apply {
                         putMap("result", WritableNativeMap())
                     }
-                    sendEvent("didFinishDiscoveringReaders", result)
+                    sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
                 }
 
                 override fun onFailure(e: TerminalException) {
                     val result = WritableNativeMap().apply {
                         putMap("result", createError(e))
                     }
-                    sendEvent("didFinishDiscoveringReaders", result)
+                    sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
                 }
             }
         )
@@ -311,7 +363,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 super.onReportAvailableUpdate(update)
                 val result = WritableNativeMap()
                 result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                sendEvent("didReportAvailableUpdate", result)
+                sendEvent(REPORT_AVAILABLE_UPDATE.listenerName, result)
             }
 
             override fun onStartInstallingUpdate(
@@ -324,7 +376,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val result = WritableNativeMap()
                 result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                sendEvent("didStartInstallingUpdate", result)
+                sendEvent(START_INSTALLING_UPDATE.listenerName, result)
             }
 
             override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
@@ -333,7 +385,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val map = WritableNativeMap()
                 map.putString("progress", progress.toString())
                 result.putMap("result", map)
-                sendEvent("didReportReaderSoftwareUpdateProgress", result)
+                sendEvent(REPORT_UPDATE_PROGRESS.listenerName, result)
             }
 
             override fun onFinishInstallingUpdate(
@@ -347,7 +399,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 } ?: run {
                     result.putMap("result", WritableNativeMap())
                 }
-                sendEvent("didFinishInstallingUpdate", result)
+                sendEvent(FINISH_INSTALLING_UPDATE.listenerName, result)
             }
 
             override fun onRequestReaderInput(options: ReaderInputOptions) {
@@ -355,7 +407,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val result = WritableNativeMap()
                 result.putArray("result", mapFromReaderInputOptions(options))
-                sendEvent("didRequestReaderInput", result)
+                sendEvent(REQUEST_READER_INPUT.listenerName, result)
             }
 
             override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
@@ -363,7 +415,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val result = WritableNativeMap()
                 result.putString("result", mapFromReaderDisplayMessage(message))
-                sendEvent("didRequestReaderDisplayMessage", result)
+                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName, result)
             }
         }
 

@@ -240,13 +240,13 @@ Example:
 import {
   withStripeTerminal,
   WithStripeTerminalProps,
-  CHANGE_CONNECTION_STATUS_LISTENER_NAME,
+  CHANGE_CONNECTION_STATUS,
   Reader,
   componentDidMount() {
     this.discoverReaders();
 
     const eventSubscription = props.emitter.addListener(
-      CHANGE_CONNECTION_STATUS_LISTENER_NAME, // didChangeConnectionStatus
+      CHANGE_CONNECTION_STATUS, // didChangeConnectionStatus
       (status: Reader.ConnectionStatus) => {
         // access to the current connection status
       }
