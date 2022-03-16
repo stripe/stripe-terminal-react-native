@@ -54,6 +54,7 @@ import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
 import com.stripeterminalreactnative.ReactNativeConstants.FINISH_DISCOVERING_READERS
 import com.stripeterminalreactnative.ReactNativeConstants.FINISH_INSTALLING_UPDATE
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_AVAILABLE_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
@@ -115,10 +116,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         "Reader has been disconnected unexpectedly"
                     )
                 )
-                val result = WritableNativeMap().apply {
-                    putMap("result", error)
-                }
-                sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
+                sendEvent(REPORT_UNEXPECTED_READER_DISCONNECT.listenerName, error)
             }
 
             override fun onConnectionStatusChange(status: ConnectionStatus) {
