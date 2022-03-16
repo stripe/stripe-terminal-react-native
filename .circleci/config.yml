@@ -96,7 +96,6 @@ commands:
             brew tap wix/brew >/dev/null
             brew tap homebrew/cask >/dev/null
             brew install applesimutils >/dev/null
-            brew install android-commandlinetools >/dev/null
             touch .watchmanconfig
             node -v
       - save_cache:
