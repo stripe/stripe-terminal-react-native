@@ -85,10 +85,7 @@ commands:
       - run:
           name: Configure Detox Environment
           command: |
-            brew update >/dev/null
-            brew tap wix/brew >/dev/null
-            brew tap homebrew/cask >/dev/null
-            brew install applesimutils >/dev/null
+            brew bundle install >/dev/null
             touch .watchmanconfig
             node -v
       - save_cache:
