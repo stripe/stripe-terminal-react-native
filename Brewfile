@@ -1,3 +1,3 @@
 tap "wix/brew"
-tao "homebrew/cask"
+tap "homebrew/cask"
 brew "applesimutils"
