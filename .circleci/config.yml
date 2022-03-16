@@ -91,6 +91,7 @@ commands:
       - run:
           name: Configure Detox Environment
           command: |
+            brew update >/dev/null
             brew bundle install >/dev/null
             touch .watchmanconfig
             node -v
