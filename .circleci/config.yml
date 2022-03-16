@@ -30,13 +30,6 @@ commands:
       - attach_workspace:
           at: ~/project
 
-  ios_simulator_start:
-    steps:
-      - run:
-          name: Start iOS simulator (background)
-          background: true
-          command: xcrun simctl boot "11" || true
-
   pod_install:
     parameters:
       pod_install_directory:
@@ -222,8 +215,11 @@ jobs:
   e2e-ios:
     executor: macos_custom
     steps:
+      - macos/preboot-simulator:
+          version: 11
+          platform: iOS
+          device: iPhone 13 Pro Max
       - setup_macos_executor
-      - ios_simulator_start
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
