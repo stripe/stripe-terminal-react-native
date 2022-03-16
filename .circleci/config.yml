@@ -30,13 +30,6 @@ commands:
       - attach_workspace:
           at: ~/project
 
-  ios_simulator_start:
-    steps:
-      - run:
-          name: Start iOS simulator (background)
-          background: true
-          command: xcrun simctl boot "11" || true
-
   pod_install:
     parameters:
       pod_install_directory:
@@ -77,7 +70,13 @@ commands:
             source $BASH_ENV
       - restore_cache:
           key: |
-            brew-cache-{{ arch }}-v1-3
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+      - restore_cache:
+          key: |
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+      - restore_cache:
+          key: |
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
       - run:
           name: Install node@<<parameters.node_version>>
           command: |
@@ -93,19 +92,24 @@ commands:
           name: Configure Detox Environment
           command: |
             brew update >/dev/null
-            brew tap wix/brew >/dev/null
-            brew tap homebrew/cask >/dev/null
-            brew install applesimutils >/dev/null
-            brew install android-commandlinetools >/dev/null
+            brew bundle install >/dev/null
             touch .watchmanconfig
             node -v
       - save_cache:
           paths:
             - ~/Library/Caches/Homebrew
+          key: |
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+      - save_cache:
+          paths:
             - /usr/local/Homebrew/Library/Taps
+          key: |
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
+      - save_cache:
+          paths:
             - /usr/local/Homebrew/Library/Homebrew/vendor/
           key: |
-            brew-cache-{{ arch }}-v1-3
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
 
   setup_android_executor:
     parameters:
@@ -223,8 +227,11 @@ jobs:
   e2e-ios:
     executor: macos_custom
     steps:
+      - macos/preboot-simulator:
+          version: "13.7"
+          platform: iOS
+          device: iPhone 11
       - setup_macos_executor
-      - ios_simulator_start
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
