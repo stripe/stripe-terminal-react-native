@@ -216,9 +216,9 @@ jobs:
     executor: macos_custom
     steps:
       - macos/preboot-simulator:
-          version: "11"
+          version: "13.7"
           platform: iOS
-          device: iPhone 13 Pro Max
+          device: iPhone 11
       - setup_macos_executor
       - run:
           command: yarn install --frozen-lockfile
