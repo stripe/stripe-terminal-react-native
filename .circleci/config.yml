@@ -228,7 +228,7 @@ jobs:
     executor: macos_custom
     steps:
       - macos/preboot-simulator:
-          version: "15.2"
+          version: "15.4"
           platform: iOS
           device: iPhone 13
       - setup_macos_executor
