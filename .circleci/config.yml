@@ -134,13 +134,6 @@ commands:
             nvm use default
             node -v
       - run:
-          name: Install yarn
-          command: |
-            set +e
-            curl -o- -L https://yarnpkg.com/install.sh | bash
-            source ~/.bashrc
-            yarn -v
-      - run:
           name: Configure Detox Environment
           command: |
             touch .watchmanconfig
