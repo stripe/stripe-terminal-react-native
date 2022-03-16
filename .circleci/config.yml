@@ -137,7 +137,7 @@ commands:
           name: Install yarn
           command: |
             set +e
-            curl -o- -L https://yarnpkg.com/install.sh | bash
+            npm install --global yarn
             source ~/.bashrc
             yarn -v
       - run:
