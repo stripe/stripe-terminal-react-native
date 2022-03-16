@@ -306,6 +306,10 @@ jobs:
       - attach_project
       - heroku/install
       - run:
+          name: Heroku - restart dynos
+          command: |
+              heroku restart -a $HEROKU_APP_NAME
+      - run:
           name: Heroku - set private key
           command: |
               heroku config:set STRIPE_PRIVATE_KEY=$STRIPE_PRIVATE_KEY -a $HEROKU_APP_NAME
