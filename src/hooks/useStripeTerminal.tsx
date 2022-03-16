@@ -173,10 +173,17 @@ export function useStripeTerminal(props?: Props) {
       if (error) {
         log(`code: ${error.code}, message: ${error.message}`);
       }
+      setConnectedReader(null);
+      setDiscoveredReaders([]);
       onDidReportUnexpectedReaderDisconnect?.(error);
       emitter.emit(REPORT_UNEXPECTED_READER_DISCONNECT);
     },
-    [onDidReportUnexpectedReaderDisconnect, log]
+    [
+      onDidReportUnexpectedReaderDisconnect,
+      log,
+      setConnectedReader,
+      setDiscoveredReaders,
+    ]
   );
 
   const didReportAvailableUpdate = useCallback(

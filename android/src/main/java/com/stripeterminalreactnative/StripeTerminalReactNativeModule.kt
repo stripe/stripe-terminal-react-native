@@ -64,10 +64,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         "Reader has been disconnected unexpectedly"
                     )
                 )
-                val result = WritableNativeMap().apply {
-                    putMap("result", error)
-                }
-                sendEvent("didFinishDiscoveringReaders", result)
+                sendEvent("didReportUnexpectedReaderDisconnect", error)
             }
 
             override fun onConnectionStatusChange(status: ConnectionStatus) {
