@@ -1,17 +1,19 @@
 import StripeTerminal
 
-let UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders";
-let FINISH_DISCOVERING_READERS = "didFinishDiscoveringReaders";
-let REPORT_UNEXPECTED_READER_DISCONNECT = "didReportUnexpectedReaderDisconnect";
-let REPORT_AVAILABLE_UPDATE = "didReportAvailableUpdate"
-let START_INSTALLING_UPDATE = "didStartInstallingUpdate"
-let REPORT_UPDATE_PROGRESS = "didReportReaderSoftwareUpdateProgress"
-let FINISH_INSTALLING_UPDATE = "didFinishInstallingUpdate"
-let FETCH_TOKEN_PROVIDER = "onFetchTokenProviderListener"
-let REQUEST_READER_INPUT = "didRequestReaderInput"
-let REQUEST_READER_DISPLAY_MESSAGE = "didRequestReaderDisplayMessage"
-let CHANGE_PAYMENT_STATUS = "didChangePaymentStatus"
-let CHANGE_CONNECTION_STATUS = "didChangeConnectionStatus"
+enum ReactNativeConstants: String, CaseIterable {
+    case UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders"
+    case FINISH_DISCOVERING_READERS = "didFinishDiscoveringReaders"
+    case REPORT_UNEXPECTED_READER_DISCONNECT = "didReportUnexpectedReaderDisconnect"
+    case REPORT_AVAILABLE_UPDATE = "didReportAvailableUpdate"
+    case START_INSTALLING_UPDATE = "didStartInstallingUpdate"
+    case REPORT_UPDATE_PROGRESS = "didReportReaderSoftwareUpdateProgress"
+    case FINISH_INSTALLING_UPDATE = "didFinishInstallingUpdate"
+    case FETCH_TOKEN_PROVIDER = "onFetchTokenProviderListener"
+    case REQUEST_READER_INPUT = "didRequestReaderInput"
+    case REQUEST_READER_DISPLAY_MESSAGE = "didRequestReaderDisplayMessage"
+    case CHANGE_PAYMENT_STATUS = "didChangePaymentStatus"
+    case CHANGE_CONNECTION_STATUS = "didChangeConnectionStatus"
+}
 
 @objc(StripeTerminalReactNative)
 class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, TerminalDelegate  {
@@ -20,20 +22,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var setupIntents: [AnyHashable : SetupIntent] = [:]
 
     override func supportedEvents() -> [String]! {
-        return [
-            UPDATE_DISCOVERED_READERS,
-            FINISH_DISCOVERING_READERS,
-            REPORT_UNEXPECTED_READER_DISCONNECT,
-            REPORT_AVAILABLE_UPDATE,
-            START_INSTALLING_UPDATE,
-            REPORT_UPDATE_PROGRESS,
-            FINISH_INSTALLING_UPDATE,
-            FETCH_TOKEN_PROVIDER,
-            REQUEST_READER_INPUT,
-            REQUEST_READER_DISPLAY_MESSAGE,
-            CHANGE_PAYMENT_STATUS,
-            CHANGE_CONNECTION_STATUS
-        ]
+        return ReactNativeConstants.allCases.map {
+            $0.rawValue
+        }
+    }
+    
+    @objc override func constantsToExport() -> [AnyHashable : Any]! {
+        return ReactNativeConstants.allCases.reduce(into: [String: String]()) {
+            $0[String(describing: $1)] = $1.rawValue
+        }
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -50,7 +47,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         discoveredReadersList = readers
         guard terminal.connectionStatus == .notConnected else { return }
 
-        sendEvent(withName: UPDATE_DISCOVERED_READERS, body: ["readers": Mappers.mapFromReaders(readers)])
+        sendEvent(withName: ReactNativeConstants.UPDATE_DISCOVERED_READERS.rawValue, body: ["readers": Mappers.mapFromReaders(readers)])
     }
 
     @objc(initialize:resolver:rejecter:)
@@ -154,10 +151,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error {
                 let _error = Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription)
 
-                self.sendEvent(withName: FINISH_DISCOVERING_READERS, body: ["result": _error])
+                self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": _error])
                 self.discoverCancelable = nil
             } else {
-                self.sendEvent(withName: FINISH_DISCOVERING_READERS, body: ["result": ["error": nil]])
+                self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": ["error": nil]])
                 self.discoverCancelable = nil
             }
         }
@@ -253,7 +250,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
         let error = Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Reader has been disconnected unexpectedly")
-        sendEvent(withName: REPORT_UNEXPECTED_READER_DISCONNECT, body: error)
+        sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
     }
 
     @objc(createPaymentIntent:resolver:rejecter:)
@@ -373,12 +370,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didChangePaymentStatus status: PaymentStatus) {
         let result = Mappers.mapFromPaymentStatus(status)
-        sendEvent(withName: CHANGE_PAYMENT_STATUS, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.CHANGE_PAYMENT_STATUS.rawValue, body: ["result": result])
     }
 
     func terminal(_ terminal: Terminal, didChangeConnectionStatus status: ConnectionStatus) {
         let result = Mappers.mapFromConnectionStatus(status)
-        sendEvent(withName: CHANGE_CONNECTION_STATUS, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
 
     @objc(cancelPaymentIntent:resolver:rejecter:)
@@ -617,33 +614,33 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
-        sendEvent(withName: REPORT_AVAILABLE_UPDATE, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
+        sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
 
     func reader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
         self.installUpdateCancelable = cancelable
-        sendEvent(withName: START_INSTALLING_UPDATE, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
+        sendEvent(withName: ReactNativeConstants.START_INSTALLING_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
 
     func reader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
         let result: [AnyHashable : Any?] = [
             "progress": String(progress),
         ]
-        sendEvent(withName: REPORT_UPDATE_PROGRESS, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.REPORT_UPDATE_PROGRESS.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
         let result = Mappers.mapFromReaderSoftwareUpdate(update)
-        sendEvent(withName: FINISH_INSTALLING_UPDATE, body: ["result": result ?? [:]])
+        sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result ?? [:]])
     }
 
     func reader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
         let result = Mappers.mapFromReaderInputOptions(inputOptions)
-        sendEvent(withName: REQUEST_READER_INPUT, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.REQUEST_READER_INPUT.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
-        sendEvent(withName: REQUEST_READER_DISPLAY_MESSAGE, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
     }
 }
