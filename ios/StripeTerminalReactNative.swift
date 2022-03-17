@@ -74,12 +74,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelCollectPaymentMethod:rejecter:)
     func cancelCollectPaymentMethod(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cancelable = collectPaymentMethodCancelable else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."))
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."))
             return
         }
         cancelable.cancel() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             }
             else {
                 resolve([:])
@@ -91,12 +91,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelCollectSetupIntent:rejecter:)
     func cancelCollectSetupIntent(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cancelable = collectSetupIntentCancelable else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "collectSetupIntent could not be canceled because the command has already been canceled or has completed."))
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectSetupIntent could not be canceled because the command has already been canceled or has completed."))
             return
         }
         cancelable.cancel() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             }
             else {
                 resolve([:])
@@ -108,12 +108,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelReadReusableCard:rejecter:)
     func cancelReadReusableCard(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cancelable = readReusableCardCancelable else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "readReusableCard could not be canceled because the command has already been canceled or has completed."))
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "readReusableCard could not be canceled because the command has already been canceled or has completed."))
             return
         }
         cancelable.cancel() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             }
             else {
                 resolve([:])
@@ -148,8 +148,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         )
 
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
-            if let error = error {
-                let _error = Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription)
+            if let error = error as NSError? {
+                let _error = Errors.createError(nsError: error)
 
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": _error])
                 self.discoverCancelable = nil
@@ -164,12 +164,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelDiscovering:rejecter:)
     func cancelDiscovering(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cancelable = discoverCancelable else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "discoverReaders could not be canceled because the command has already been canceled or has completed."))
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "discoverReaders could not be canceled because the command has already been canceled or has completed."))
             return
         }
         cancelable.cancel() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
                 self.discoverCancelable = nil
             } else {
                 resolve([:])
@@ -182,7 +182,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(connectBluetoothReader:resolver:rejecter:)
     func connectBluetoothReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide a reader object"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
             return
         }
 
@@ -190,7 +190,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let readerId = reader["serialNumber"] as? String
 
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Could not find reader with id \(readerId ?? "")"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
             return
 
         }
@@ -204,8 +204,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            } else if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else {
+                resolve([:])
             }
         }
     }
@@ -213,7 +215,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(connectInternetReader:resolver:rejecter:)
     func connectInternetReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide a reader object"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
             return
         }
 
@@ -221,9 +223,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let readerId = reader["serialNumber"] as? String
 
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Could not find reader with id \(readerId ?? "")"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
             return
-
         }
 
         let connectionConfig = InternetConnectionConfiguration(failIfInUse: params["failIfInUse"] as? Bool ?? false)
@@ -231,8 +232,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         Terminal.shared.connectInternetReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            } else if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             }
         }
     }
@@ -240,8 +241,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(disconnectReader:rejecter:)
     func disconnectReader(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.disconnectReader() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else {
                 resolve([:])
             }
@@ -249,7 +250,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
-        let error = Errors.createError(code: CommonErrorType.Failed.rawValue, message: "Reader has been disconnected unexpectedly")
+        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
         sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
     }
 
@@ -264,8 +265,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         paymentIntentParams.setupFutureUsage = setupFutureUsage
 
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
                 self.paymentIntents[pi.stripeId] = pi
@@ -278,8 +279,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func createSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let setupIntentParams = SetupIntentParameters(customer: params["customerId"] as? String)
         Terminal.shared.createSetupIntent(setupIntentParams) { si, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else if let si = si {
                 let setupIntent = Mappers.mapFromSetupIntent(si)
                 self.setupIntents[si.stripeId] = si
@@ -291,19 +292,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(collectPaymentMethod:resolver:rejecter:)
     func collectPaymentMethod(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let id = paymentIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide paymentIntentId."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
         guard let paymentIntent = paymentIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "There is no associated paymentIntent with id \(id)"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
 
         self.collectPaymentMethodCancelable = Terminal.shared.collectPaymentMethod(paymentIntent) { pi, collectError  in
-            if let error = collectError {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            }
-            else if let paymentIntent = pi {
+            if let error = collectError as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else if let paymentIntent = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent)
                 resolve(["paymentIntent": paymentIntent])
             }
@@ -314,13 +314,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(retrievePaymentIntent:resolver:rejecter:)
     func retrievePaymentIntent(secret: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let clientSecret = secret else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide cliectSecret."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide cliectSecret."))
             return
         }
 
         Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret) { pi, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
                 self.paymentIntents[pi.stripeId] = pi
@@ -338,8 +338,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let listParameters = ListLocationsParameters(limit: limit, endingBefore: endingBefore, startingAfter: startingAfter)
 
         Terminal.shared.listLocations(parameters: listParameters) { locations, hasMore, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else if let locations = locations {
                 let list = Mappers.mapFromLocationsList(locations)
                 resolve(["locations": list, "hasMore": hasMore])
@@ -350,17 +350,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(processPayment:resolver:rejecter:)
     func processPayment(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let id = paymentIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide paymentIntentId."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
         guard let paymentIntent = paymentIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "There is no associated paymentIntent with id \(id)"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
 
         Terminal.shared.processPayment(paymentIntent) { pi, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
                 resolve(["paymentIntent": paymentIntent])
@@ -381,22 +381,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelPaymentIntent:resolver:rejecter:)
     func cancelPaymentIntent(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let id = paymentIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide paymentIntentId."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
         guard let paymentIntent = paymentIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "There is no associated paymentIntent with id \(id)"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
         Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
-            if let error = collectError {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            }
-            else if let pi = pi {
+            if let error = collectError as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
-
                 self.paymentIntents[pi.stripeId] = nil
-
                 resolve(["paymentIntent": paymentIntent])
             }
         }
@@ -411,10 +408,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelInstallingUpdate:rejecter:)
     func cancelInstallingUpdate(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.installUpdateCancelable?.cancel() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            }
-            else {
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else {
                 resolve([:])
             }
         }
@@ -425,7 +421,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["currency", "tax", "total"])
 
         guard invalidParams == nil else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide \(invalidParams!) parameters."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
             return
         }
 
@@ -438,15 +434,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let cartLineItems = Mappers.mapToCartLineItems(params["lineItems"] as? NSArray ?? NSArray())
 
         guard let lineItems = (cartLineItems as NSArray).mutableCopy() as? NSMutableArray else {
-            resolve(Errors.createError(code: CommonErrorType.Unknown.rawValue, message: "Unknown error occured."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Unknown error occured."))
             return
         }
 
         cart.lineItems = lineItems
 
         Terminal.shared.setReaderDisplay(cart) { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else {
                 resolve([:])
             }
@@ -456,22 +452,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(cancelSetupIntent:resolver:rejecter:)
     func cancelSetupIntent(setupIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let id = setupIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide setupIntentId."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntentId."))
             return
         }
         guard let setupIntent = setupIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "There is no associated setupIntentId with id \(id)"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated setupIntentId with id \(id)"))
             return
         }
         Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
-            if let error = collectError {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            }
-            else if let si = si {
+            if let error = collectError as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else if let si = si {
                 let setupIntent = Mappers.mapFromSetupIntent(si)
-
                 self.setupIntents[si.stripeId] = nil
-
                 resolve(["setupIntent": setupIntent])
             }
         }
@@ -480,23 +473,23 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(clearReaderDisplay:rejecter:)
     func clearReaderDisplay(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.clearReaderDisplay() { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else {
                 resolve([:])
-             }
+            }
         }
     }
 
     @objc(retrieveSetupIntent:resolver:rejecter:)
     func retrieveSetupIntent(secret: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let clientSecret = secret else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide cliectSecret."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide cliectSecret."))
             return
         }
         Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret) { si, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else if let si = si {
                 self.setupIntents[si.stripeId] = si
                 let si = Mappers.mapFromSetupIntent(si)
@@ -510,21 +503,20 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let setupIntentId = params["setupIntentId"] as? String
 
         guard let id = setupIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide setupIntentId."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntentId."))
             return
         }
         guard let setupIntent = setupIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "There is no created setupIntent with id \(id)"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no created setupIntent with id \(id)"))
             return
         }
 
         let customerConsentCollected = params["customerConsentCollected"] as? Bool ?? false
 
         self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, customerConsentCollected: customerConsentCollected) { si, collectError  in
-            if let error = collectError {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            }
-            else if let setupIntent = si {
+            if let error = collectError as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else if let setupIntent = si {
                 let setupIntent = Mappers.mapFromSetupIntent(setupIntent)
                 resolve(["setupIntent": setupIntent])
             }
@@ -535,20 +527,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(confirmSetupIntent:resolver:rejecter:)
     func confirmSetupIntent(setupIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let id = setupIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide setupIntentId."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntentId."))
             return
         }
         guard let setupIntent = setupIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "There is no created setupIntent with id \(id)"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no created setupIntent with id \(id)"))
             return
         }
 
 
         Terminal.shared.confirmSetupIntent(setupIntent) { si, collectError  in
-            if let error = collectError {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
-            }
-            else if let setupIntent = si {
+            if let error = collectError as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else if let setupIntent = si {
                 let setupIntent = Mappers.mapFromSetupIntent(setupIntent)
                 resolve(["setupIntent": setupIntent])
             }
@@ -560,7 +551,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["chargeId", "amount", "currency"])
 
         guard invalidParams == nil else {
-            resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: "You must provide \(invalidParams!) parameters."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
             return
         }
         let chargeId = params["chargeId"] as? String
@@ -571,8 +562,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let refundParams = RefundParameters(chargeId: chargeId!, amount: intAmount, currency: currency!)
 
         Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else {
                 resolve([:])
             }
@@ -582,8 +573,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(processRefund:rejecter:)
     func processRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.processRefund() { rf, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else {
                 let refund = Mappers.mapFromRefund(rf!)
                 resolve(["refund": refund])
@@ -598,8 +589,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             readReusableCardParams.customer = customerId
         }
         Terminal.shared.readReusableCard(readReusableCardParams) { pm, error in
-            if let error = error {
-                resolve(Errors.createError(code: CommonErrorType.Failed.rawValue, message: error.localizedDescription))
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
             } else {
                 let pm = Mappers.mapFromPaymentMethod(pm!)
                 resolve(["paymentMethod": pm])

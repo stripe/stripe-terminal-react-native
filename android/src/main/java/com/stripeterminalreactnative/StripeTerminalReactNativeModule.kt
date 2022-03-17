@@ -164,7 +164,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(
                 createError(
                     TerminalException(
-                        TerminalException.TerminalErrorCode.CANCELED,
+                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
                         "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."
                     )
                 )
@@ -189,7 +189,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(
                 createError(
                     TerminalException(
-                        TerminalException.TerminalErrorCode.CANCELED,
+                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
                         "collectSetupIntent could not be canceled because the command has already been canceled or has completed."
                     )
                 )
@@ -294,7 +294,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(
                 createError(
                     TerminalException(
-                        TerminalException.TerminalErrorCode.CANCELED,
+                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
                         "discoverReaders could not be canceled because the command has already been canceled or has completed."
                     )
                 )
@@ -693,7 +693,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(
                 createError(
                     TerminalException(
-                        TerminalException.TerminalErrorCode.CANCELED,
+                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
                         "readReusableCard could not be canceled because the command has already been canceled or has completed."
                     )
                 )
