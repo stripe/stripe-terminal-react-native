@@ -18,7 +18,7 @@ executors:
     parameters:
       xcode_version:
         type: string
-        default: '12.4.0'
+        default: '13.3.0'
     macos:
       xcode: <<parameters.xcode_version>>
     environment:
@@ -50,80 +50,12 @@ commands:
             - <<parameters.pod_install_directory>>/Pods
           key: cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
 
-  setup_macos_executor:
+  install_node:
     parameters:
-      node_version:
-        type: string
-        default: '14.15.0'
+        node_version:
+          type: string
+          default: '14.15.0'
     steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Configure Environment Variables
-          command: |
-            echo 'export PATH="$PATH:/usr/local/opt/node@<<parameters.node_version>>/bin:~/.yarn/bin:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
-            echo 'export ANDROID_HOME="/usr/local/share/android-commandlinetools"' >> $BASH_ENV
-            echo 'export ANDROID_SDK_ROOT="/usr/local/share/android-commandlinetools"' >> $BASH_ENV
-            echo 'export PATH="$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/tools:$ANDROID_SDK_ROOT/platform-tools:$PATH"' >> $BASH_ENV
-            echo 'export QEMU_AUDIO_DRV=none' >> $BASH_ENV
-            echo 'export JAVA_HOME=$(/usr/libexec/java_home)' >> $BASH_ENV
-            source $BASH_ENV
-      - restore_cache:
-          key: |
-            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
-      - restore_cache:
-          key: |
-            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
-      - restore_cache:
-          key: |
-            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
-      - run:
-          name: Install node@<<parameters.node_version>>
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
-            echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
-            echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
-            source ~/.bashrc
-            command -v nvm
-            nvm install <<parameters.node_version>>
-            nvm alias default <<parameters.node_version>>
-      - run:
-          name: Configure Detox Environment
-          command: |
-            brew update >/dev/null
-            brew bundle install >/dev/null
-            touch .watchmanconfig
-            node -v
-      - save_cache:
-          paths:
-            - ~/Library/Caches/Homebrew
-          key: |
-            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
-      - save_cache:
-          paths:
-            - /usr/local/Homebrew/Library/Taps
-          key: |
-            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
-      - save_cache:
-          paths:
-            - /usr/local/Homebrew/Library/Homebrew/vendor/
-          key: |
-            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v1
-
-  setup_android_executor:
-    parameters:
-      node_version:
-        type: string
-        default: '14.15.0'
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Configure Environment Variables
-          command: |
-            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
-            source $BASH_ENV
       - run:
           name: Install node@<<parameters.node_version>>
           command: |
@@ -133,6 +65,9 @@ commands:
             nvm alias default <<parameters.node_version>>
             nvm use default
             node -v
+
+  install_yarn:
+    steps:
       - run:
           name: Install yarn
           command: |
@@ -140,6 +75,60 @@ commands:
             npm install --global yarn
             source ~/.bashrc
             yarn -v
+
+  setup_macos_executor:
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Configure Environment Variables
+          command: |
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            source $BASH_ENV
+      - install_node
+      - install_yarn
+      - restore_cache:
+          key: |
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - restore_cache:
+          key: |
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - restore_cache:
+          key: |
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - run:
+          name: Configure Detox Environment
+          command: |
+            brew update >/dev/null
+            brew bundle install >/dev/null
+            touch .watchmanconfig
+      - save_cache:
+          paths:
+            - ~/Library/Caches/Homebrew
+          key: |
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - save_cache:
+          paths:
+            - /usr/local/Homebrew/Library/Taps
+          key: |
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - save_cache:
+          paths:
+            - /usr/local/Homebrew/Library/Homebrew/vendor/
+          key: |
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+
+  setup_android_executor:
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Configure Environment Variables
+          command: |
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            source $BASH_ENV
+      - install_node
+      - install_yarn
       - run:
           name: Configure Detox Environment
           command: |
@@ -228,9 +217,9 @@ jobs:
     executor: macos_custom
     steps:
       - macos/preboot-simulator:
-          version: "13.7"
+          version: "15.4"
           platform: iOS
-          device: iPhone 11
+          device: iPhone 13
       - setup_macos_executor
       - run:
           command: yarn install --frozen-lockfile
