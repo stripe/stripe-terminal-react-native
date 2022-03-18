@@ -49,6 +49,7 @@ import {
   connectEmbeddedReader,
   connectHandoffReader,
   connectLocalMobileReader,
+  setSimulatedCard,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -549,6 +550,18 @@ export function useStripeTerminal(props?: Props) {
     [setLoading, _isInitialized]
   );
 
+  const _setSimulatedCard = useCallback(
+    async (cardNumber: string) => {
+      setLoading(true);
+
+      const response = await setSimulatedCard(cardNumber);
+      setLoading(false);
+
+      return response;
+    },
+    [setLoading]
+  );
+
   const _simulateReaderUpdate = useCallback(
     async (update: Reader.SimulateUpdateType) => {
       if (!_isInitialized()) {
@@ -703,6 +716,7 @@ export function useStripeTerminal(props?: Props) {
     connectEmbeddedReader: _connectEmbeddedReader,
     connectHandoffReader: _connectHandoffReader,
     connectLocalMobileReader: _connectLocalMobileReader,
+    setSimulatedCard: _setSimulatedCard,
     emitter: emitter,
     discoveredReaders,
     connectedReader,

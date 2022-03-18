@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { ScrollView, Platform, StyleSheet, TextInput } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  Platform,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
@@ -35,9 +41,11 @@ export default function ReaderDisplayScreen() {
 
     if (error) {
       console.log('error', error);
+      Alert.alert('setReaderDisplay error', error.message);
       return;
     }
 
+    Alert.alert('setReaderDisplay success');
     console.log('setReaderDisplay success');
   };
 
@@ -46,6 +54,10 @@ export default function ReaderDisplayScreen() {
 
     if (error) {
       console.log('error', error);
+      Alert.alert('clearReaderDisplay error', error.message);
+    } else {
+      console.log('clearReaderDisplay success');
+      Alert.alert('clearReaderDisplay success');
     }
   };
 
@@ -68,6 +80,7 @@ export default function ReaderDisplayScreen() {
       <List bolded={false} topSpacing={false} title="Currency">
         <TextInput
           autoCapitalize="none"
+          testID="currency-field"
           placeholder="Currency"
           onChangeText={(value) => setCart((c) => ({ ...c, currency: value }))}
           value={cart.currency}
@@ -78,6 +91,7 @@ export default function ReaderDisplayScreen() {
         <TextInput
           autoCapitalize="none"
           placeholder="Tax"
+          testID="tax-field"
           keyboardType="number-pad"
           onChangeText={(value) => setCart((c) => ({ ...c, tax: value }))}
           value={String(cart.tax)}
@@ -86,6 +100,7 @@ export default function ReaderDisplayScreen() {
       </List>
       <List bolded={false} topSpacing={false} title="Charge Amount">
         <TextInput
+          testID="total-field"
           autoCapitalize="none"
           placeholder="Total"
           onChangeText={(value) => setCart((c) => ({ ...c, amount: value }))}
@@ -96,10 +111,15 @@ export default function ReaderDisplayScreen() {
       <List bolded={false} topSpacing={false} title="Display Actions">
         <ListItem
           title="Set reader display"
+          testID="set-reader-display"
           disabled={!cart.currency || !cart.tax || !cart.amount}
           onPress={_setCartDisplay}
         />
-        <ListItem title="Clear reader display" onPress={_clearReaderDisplay} />
+        <ListItem
+          testID="clear-reader-display"
+          title="Clear reader display"
+          onPress={_clearReaderDisplay}
+        />
       </List>
     </ScrollView>
   );
@@ -119,11 +139,7 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   buttonsContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 22,
+    marginTop: 14,
   },
   row: {
     flexDirection: 'row',
@@ -134,7 +150,6 @@ const styles = StyleSheet.create({
   input: {
     height: 44,
     backgroundColor: colors.white,
-    color: colors.dark_gray,
     paddingLeft: 16,
     marginBottom: 12,
     borderBottomColor: colors.gray,

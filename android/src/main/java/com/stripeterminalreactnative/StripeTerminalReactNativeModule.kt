@@ -3,15 +3,7 @@ package com.stripeterminalreactnative
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.UiThreadUtil
-import com.facebook.react.bridge.WritableNativeArray
-import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
@@ -121,6 +113,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
+    fun setSimulatedCard(cardNumber: String, promise: Promise) {
+        terminal.simulatorConfiguration = SimulatorConfiguration(
+            terminal.simulatorConfiguration.update,
+            SimulatedCard(testCardNumber = cardNumber)
+        )
+        promise.resolve(WritableNativeMap())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
         tokenProvider.setConnectionToken(
             token = params.getString("token"),
@@ -172,9 +174,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "Could not find a reader with serialNumber $serialNumber"
         }
 
-        val locationId = requireParam(params.getString("locationId") ?: selectedReader.location?.id) {
-            "You must provide a locationId"
-        }
+        val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
         CoroutineScope(Dispatchers.IO).launch {
             val connectedReader =

@@ -10,10 +10,11 @@
     "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
     "ios": "react-native run-ios",
     "ios:all": "concurrently \"yarn start\" \"yarn start:server\" \"yarn ios\"",
-    "postinstall": "scripts/fixRN.sh",
+    "postinstall": "scripts/fixRN.sh && patch-package",
     "start": "react-native start",
     "start:server": "ts-node --project ./tsconfig.server.json server/index.ts",
-    "start:server:ci": "yarn start:server &",
+    "start:server:canada": "PORT=3003 yarn start:server",
+    "start:server:ci": "yarn start:server & yarn start:server:canada &",
     "watch:server": "nodemon --exec yarn start:server"
   },
   "dependencies": {
@@ -25,6 +26,7 @@
     "@types/react-native-dotenv": "^0.2.0",
     "dotenv": "^10.0.0",
     "jest": "^27.3.1",
+    "postinstall-postinstall": "^2.1.0",
     "react": "17.0.2",
     "react-native": "0.66.3",
     "react-native-config": "^1.4.5",
@@ -32,6 +34,7 @@
     "react-native-gesture-handler": "^1.10.3",
     "react-native-reanimated": "2.5.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
+    "react-native-launch-arguments": "^3.0.1",
     "react-native-safe-area-context": "^3.3.2",
     "react-native-screens": "^3.8.0"
   },
@@ -47,6 +50,7 @@
     "express-winston": "^4.2.0",
     "metro-react-native-babel-preset": "^0.66.2",
     "nodemon": "^2.0.15",
+    "patch-package": "^6.4.7",
     "stripe": "^8.181.0",
     "ts-node": "^10.4.0",
     "winston": "^3.3.3"

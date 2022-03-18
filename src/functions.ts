@@ -600,6 +600,20 @@ export async function simulateReaderUpdate(
   }
 }
 
+export async function setSimulatedCard(
+  cardNumber: string
+): Promise<{ error?: StripeError }> {
+  try {
+    await StripeTerminalSdk.setSimulatedCard(cardNumber);
+
+    return {};
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}
+
 export async function collectRefundPaymentMethod(
   params: RefundParams
 ): Promise<{

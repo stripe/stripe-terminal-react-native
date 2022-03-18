@@ -45,7 +45,7 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
-          title="Set Reader Display"
+          title="Set reader display"
           onPress={() => {
             navigation.navigate('ReaderDisplayScreen');
           }}

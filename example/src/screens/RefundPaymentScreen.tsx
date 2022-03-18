@@ -1,19 +1,16 @@
 import { useNavigation } from '@react-navigation/core';
-import React, { useContext, useState } from 'react';
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-} from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { Platform, StyleSheet, Text, TextInput } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
+import { API_URL } from '../Config';
 
 export default function RefundPaymentScreen() {
+  const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
     amount: string;
@@ -21,15 +18,41 @@ export default function RefundPaymentScreen() {
   }>({
     chargeId: '',
     amount: '100',
-    currency: 'USD',
+    currency: 'CAD',
   });
   const navigation = useNavigation();
   const { addLogs, clearLogs } = useContext(LogContext);
 
-  const { collectRefundPaymentMethod, processRefund } = useStripeTerminal();
+  const { collectRefundPaymentMethod, processRefund, setSimulatedCard } =
+    useStripeTerminal();
+
+  const fetchLatestChargeId = async (): Promise<string | undefined> => {
+    const response = await fetch(`${API_URL}/fetch_latest_interac_charge`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const { id } = await response.json();
+    return id;
+  };
+
+  useEffect(() => {
+    async function getLatestRefundId() {
+      const id = await fetchLatestChargeId();
+
+      if (id) {
+        setInputValues((state) => ({ ...state, chargeId: id }));
+      }
+    }
+    getLatestRefundId();
+  }, []);
 
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
+
+    await setSimulatedCard(testCardNumber);
+
     navigation.navigate('LogListScreen');
     addLogs({
       name: 'Collect Refund Payment Method',
@@ -133,7 +156,21 @@ export default function RefundPaymentScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="always">
+    <KeyboardAwareScrollView
+      style={styles.container}
+      keyboardShouldPersistTaps="always"
+      testID="refund-scroll-view"
+    >
+      <List bolded={false} topSpacing={false} title="CARD NUMBER">
+        <TextInput
+          testID="card-number-text-field"
+          keyboardType="numeric"
+          style={styles.input}
+          value={testCardNumber}
+          onChangeText={(value) => setTestCardNumber(value)}
+          placeholder="card number"
+        />
+      </List>
       <List bolded={false} topSpacing={false} title="CHARGE ID">
         <TextInput
           style={styles.input}
@@ -189,15 +226,15 @@ export default function RefundPaymentScreen() {
           in-person refund; if not, use the Stripe API.
         </Text>
       </List>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.light_gray,
-    flex: 1,
-    paddingVertical: 22,
+    paddingBottom: 22,
+    height: '100%',
   },
   buttonWrapper: {
     marginBottom: 60,
