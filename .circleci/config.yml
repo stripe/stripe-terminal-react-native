@@ -176,6 +176,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            set -e
             yarn install --cwd example
             yarn install
             ./scripts/yarnDiffCheck.sh
