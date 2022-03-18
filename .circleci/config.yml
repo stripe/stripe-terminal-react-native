@@ -179,6 +179,7 @@ jobs:
             set -e
             yarn install --cwd example
             yarn install
+            echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
             git diff --exit-code
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
