@@ -73,7 +73,7 @@ After installing this npm package, add the [config plugin](https://docs.expo.io/
   "plugins": [
     [
       // ...
-      "react-native-stripe-terminal",
+      "stripe-terminal-react-native",
       {
         "bluetoothBackgroundMode": true,
         "locationWhenInUsePermission": "Location access is required in order to accept payments.",
