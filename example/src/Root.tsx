@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
@@ -16,6 +16,18 @@ export default function Root() {
     const { secret } = await response.json();
     return secret;
   };
+
+  useEffect(() => {
+    // test connection_token endpoint since native SDK's doesn't fetch it on init
+    async function init() {
+      try {
+        await fetchTokenProvider();
+      } catch (error) {
+        console.error("Couldn't fetch connection token!");
+      }
+    }
+    init();
+  }, []);
 
   return (
     <StripeTerminalProvider
