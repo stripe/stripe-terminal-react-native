@@ -179,7 +179,7 @@ jobs:
             set -e
             yarn install --cwd example
             yarn install
-            ./scripts/yarnDiffCheck.sh
+            git diff --exit-code
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
           paths: [node_modules]
