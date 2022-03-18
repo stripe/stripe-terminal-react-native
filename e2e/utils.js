@@ -26,14 +26,7 @@ export const setSimulatedUpdatePlan = async (
     await element(by.type('UIPickerView')).setColumnToValue(0, plan);
     await picker.tap();
   } else {
-    await element(
-      by.text(defaultPlan).withAncestor(by.id('picker-container'))
-    ).tap();
     await element(by.text(plan)).tap();
-    await waitFor(element(by.id('close-picker')))
-      .toBeVisible()
-      .withTimeout(10000);
-    await element(by.id('close-picker')).tap();
   }
 };
 

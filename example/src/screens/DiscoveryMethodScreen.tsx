@@ -12,7 +12,9 @@ export default function DiscoveryMethodScreen() {
 
   const onSelect = (method: Reader.DiscoveryMethod) => {
     onChange(method);
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   };
 
   return (

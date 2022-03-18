@@ -4,15 +4,20 @@ const {
   navigateTo,
   connectReader,
   checkIfLogExist,
-  goBack,
   checkIfConnected,
   setSimulatedUpdatePlan,
   changeDiscoveryMethod,
 } = require('./utils');
 
+const { cleanPaymentMethods } = require('./clean');
+
 jest.retryTimes(3);
 
 describe('Payments', () => {
+  beforeAll(async () => {
+    await cleanPaymentMethods();
+  });
+
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
@@ -28,7 +33,6 @@ describe('Payments', () => {
     await navigateTo('Discover Readers');
     await connectReader();
     await checkIfConnected();
-    // await disconnectReader();
   });
 
   it('Install required update and connect', async () => {
@@ -43,7 +47,6 @@ describe('Payments', () => {
     await checkIfConnected({
       timeout: device.getPlatform() === 'ios' ? 32000 : 60000,
     });
-    // await disconnectReader();
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
@@ -56,8 +59,7 @@ describe('Payments', () => {
 
   // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.
   //
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('Required update impossible due to low battery', async () => {
+  it('Required update impossible due to low battery', async () => {
     // only iOS supports simulated low battery plan
     if (device.getPlatform() !== 'ios') {
       return;
@@ -74,8 +76,6 @@ describe('Payments', () => {
     )
       .toBeVisible()
       .withTimeout(16000);
-
-    // await disconnectReader();
   });
 
   it('Collect card payment', async () => {
@@ -102,19 +102,16 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.createPaymentIntent');
+    await checkIfLogExist('Create');
     await checkIfLogExist('Created');
-    await checkIfLogExist('terminal.collectPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+    await checkIfLogExist('Collect');
+    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('removeCard');
     await checkIfLogExist('Collected');
-    await checkIfLogExist('terminal.processPayment');
-    await checkIfLogExist('Finished');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
+    await checkIfLogExist('Process');
+    await checkIfLogExist('Processed');
+    await checkIfLogExist('Capture');
+    await checkIfLogExist('Captured');
   });
 
   it('Store card via readReusableCard', async () => {
@@ -126,18 +123,13 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.readReusableCard');
+    await checkIfLogExist('Start');
 
     if (device.getPlatform() === 'ios') {
-      await checkIfLogExist('terminal.didRequestReaderInput');
-      await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+      await checkIfLogExist('insertCard / swipeCard');
+      await checkIfLogExist('removeCard');
     }
     await checkIfLogExist('Finished');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 
   it('Store card via SetupIntent', async () => {
@@ -152,18 +144,13 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.createSetupIntent');
-    await checkIfLogExist('terminal.collectSetupIntentPaymentMethod');
-    await checkIfLogExist('terminal.didRequestReaderInput');
-    await checkIfLogExist('terminal.didRequestReaderDisplayMessage');
+    await checkIfLogExist('Create');
+    await checkIfLogExist('Collect');
+    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('removeCard');
     await checkIfLogExist('Created');
-    await checkIfLogExist('terminal.confirmSetupIntent');
+    await checkIfLogExist('Process');
     await checkIfLogExist('Finished');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 
   it('In-Person Refund failed due to unsupported country', async () => {
@@ -193,12 +180,7 @@ describe('Payments', () => {
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 
-    await checkIfLogExist('terminal.collectRefundPaymentMethod');
+    await checkIfLogExist('Collect');
     await checkIfLogExist('Failed');
-
-    await goBack('logs-back');
-    await goBack('payment-back');
-
-    // await disconnectReader();
   });
 });

@@ -77,9 +77,20 @@ export default function CollectCardPaymentScreen() {
     return { client_secret, id, error: null };
   };
 
+  const capturePaymentIntent = async (id: string) => {
+    const response = await fetch(`${API_URL}/capture_payment_intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+    return await response.json();
+  };
+
   const _createPaymentIntent = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
@@ -112,8 +123,12 @@ export default function CollectCardPaymentScreen() {
         name: 'Create Payment Intent',
         events: [
           {
-            name: paymentIntentError.code,
-            description: paymentIntentError.message,
+            name: 'Failed',
+            description: 'terminal.createPaymentIntent',
+            metadata: {
+              errorCode: paymentIntentError.code,
+              errorMessage: paymentIntentError.message,
+            },
           },
         ],
       });
@@ -123,7 +138,8 @@ export default function CollectCardPaymentScreen() {
         events: [
           {
             name: 'Created',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            description: 'terminal.createPaymentIntent',
+            metadata: { paymentIntentId: paymentIntent.id },
           },
         ],
       });
@@ -135,7 +151,11 @@ export default function CollectCardPaymentScreen() {
     addLogs({
       name: 'Collect Payment Method',
       events: [
-        { name: 'Collect', description: 'terminal.collectPaymentMethod' },
+        {
+          name: 'Collect',
+          description: 'terminal.collectPaymentMethod',
+          metadata: { paymentIntentId },
+        },
       ],
     });
     const { paymentIntent, error } = await collectPaymentMethod(
@@ -147,8 +167,12 @@ export default function CollectCardPaymentScreen() {
         name: 'Collect Payment Method',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.collectPaymentMethod',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -158,7 +182,8 @@ export default function CollectCardPaymentScreen() {
         events: [
           {
             name: 'Collected',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            description: 'terminal.collectPaymentMethod',
+            metadata: { paymentIntentId: paymentIntent.id },
           },
         ],
       });
@@ -169,7 +194,13 @@ export default function CollectCardPaymentScreen() {
   const _processPayment = async (paymentIntentId: string) => {
     addLogs({
       name: 'Process Payment',
-      events: [{ name: 'Process', description: 'terminal.processPayment' }],
+      events: [
+        {
+          name: 'Process',
+          description: 'terminal.processPayment',
+          metadata: { paymentIntentId },
+        },
+      ],
     });
 
     const { paymentIntent, error } = await processPayment(paymentIntentId);
@@ -178,8 +209,12 @@ export default function CollectCardPaymentScreen() {
         name: 'Process Payment',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.processPayment',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
@@ -188,8 +223,44 @@ export default function CollectCardPaymentScreen() {
         name: 'Process Payment',
         events: [
           {
-            name: 'Finished',
-            description: 'terminal.paymentIntentId: ' + paymentIntent.id,
+            name: 'Processed',
+            description: 'terminal.processPayment',
+            metadata: { paymentIntentId },
+          },
+        ],
+      });
+      _capturePayment(paymentIntentId);
+    }
+  };
+
+  const _capturePayment = async (paymentIntentId: string) => {
+    addLogs({
+      name: 'Capture Payment',
+      events: [{ name: 'Capture', description: 'terminal.capturePayment' }],
+    });
+
+    const { intent, error } = await capturePaymentIntent(paymentIntentId);
+    if (error) {
+      addLogs({
+        name: 'Capture Payment',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.capturePayment',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
+          },
+        ],
+      });
+    } else if (intent) {
+      addLogs({
+        name: 'Capture Payment',
+        events: [
+          {
+            name: 'Captured',
+            description: 'terminal.paymentIntentId: ' + intent.id,
           },
         ],
       });
@@ -204,6 +275,7 @@ export default function CollectCardPaymentScreen() {
       <List bolded={false} topSpacing={false} title="AMOUNT">
         <TextInput
           testID="amount-text-field"
+          keyboardType="numeric"
           style={styles.input}
           value={inputValues.amount}
           onChangeText={(value: string) =>
@@ -286,6 +358,7 @@ const styles = StyleSheet.create({
       android: {
         borderBottomWidth: 1,
         borderBottomColor: `${colors.gray}66`,
+        color: colors.dark_gray,
       },
     }),
   },

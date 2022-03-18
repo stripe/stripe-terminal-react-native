@@ -197,7 +197,6 @@ dependencies {
         exclude group: 'androidx.appcompat'
     }
 
-    implementation "com.stripe:stripeterminal:2.3.1"
     androidTestUtil 'com.linkedin.testbutler:test-butler-app:2.2.1'
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"

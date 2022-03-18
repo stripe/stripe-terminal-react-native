@@ -1,9 +1,15 @@
 version: 2.1
 
+orbs:
+  android:  circleci/android@2.0.0
+  heroku:   circleci/heroku@1.2.6
+  macos:    circleci/macos@2.1.0
+  ruby:     circleci/ruby@1.4.0
+
 executors:
   linux_js:
     docker:
-      - image: circleci/node:14.15.0
+      - image: cimg/node:14.15.0
     resource_class: medium+
     environment:
       PATH: '/opt/yarn/yarn-v1.5.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -12,22 +18,17 @@ executors:
     parameters:
       xcode_version:
         type: string
-        default: '12.4.0'
+        default: '13.3.0'
     macos:
       xcode: <<parameters.xcode_version>>
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
 
 commands:
   attach_project:
     steps:
       - attach_workspace:
           at: ~/project
-
-  ios_simulator_start:
-    steps:
-      - run:
-          name: Start iOS simulator (background)
-          background: true
-          command: xcrun simctl boot "11" || true
 
   pod_install:
     parameters:
@@ -49,55 +50,90 @@ commands:
             - <<parameters.pod_install_directory>>/Pods
           key: cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
 
-  setup_macos_executor:
+  install_node:
     parameters:
-      node_version:
-        type: string
-        default: '14.15.0'
+        node_version:
+          type: string
+          default: '14.15.0'
+    steps:
+      - run:
+          name: Install node@<<parameters.node_version>>
+          command: |
+            set +e
+            command -v nvm
+            nvm install <<parameters.node_version>>
+            nvm alias default <<parameters.node_version>>
+            nvm use default
+            node -v
+
+  install_yarn:
+    steps:
+      - run:
+          name: Install yarn
+          command: |
+            set +e
+            npm install --global yarn
+            source ~/.bashrc
+            yarn -v
+
+  setup_macos_executor:
     steps:
       - attach_workspace:
           at: .
       - run:
           name: Configure Environment Variables
           command: |
-            echo 'export PATH="$PATH:/usr/local/opt/node@<<parameters.node_version>>/bin:~/.yarn/bin:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
-            echo 'export ANDROID_HOME="/usr/local/share/android-commandlinetools"' >> $BASH_ENV
-            echo 'export ANDROID_SDK_ROOT="/usr/local/share/android-commandlinetools"' >> $BASH_ENV
-            echo 'export PATH="$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/tools:$ANDROID_SDK_ROOT/platform-tools:$PATH"' >> $BASH_ENV
-            echo 'export QEMU_AUDIO_DRV=none' >> $BASH_ENV
-            echo 'export JAVA_HOME=$(/usr/libexec/java_home)' >> $BASH_ENV
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
             source $BASH_ENV
+      - install_node
+      - install_yarn
       - restore_cache:
           key: |
-            brew-cache-{{ arch }}-v1-3
-      - run:
-          name: Install node@<<parameters.node_version>>
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
-            echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
-            echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
-            source ~/.bashrc
-            command -v nvm
-            nvm install <<parameters.node_version>>
-            nvm alias default <<parameters.node_version>>
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - restore_cache:
+          key: |
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - restore_cache:
+          key: |
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
       - run:
           name: Configure Detox Environment
           command: |
             brew update >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew tap wix/brew >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew tap homebrew/cask >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install applesimutils >/dev/null
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install android-commandlinetools >/dev/null
+            brew bundle install >/dev/null
             touch .watchmanconfig
-            node -v
       - save_cache:
           paths:
             - ~/Library/Caches/Homebrew
+          key: |
+            brew-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - save_cache:
+          paths:
             - /usr/local/Homebrew/Library/Taps
+          key: |
+            brew-taps-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+      - save_cache:
+          paths:
             - /usr/local/Homebrew/Library/Homebrew/vendor/
           key: |
-            brew-cache-{{ arch }}-v1-3
+            brew-vendor-cache-{{ arch }}-{{checksum "Brewfile"}}-v2
+
+  setup_android_executor:
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Configure Environment Variables
+          command: |
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            source $BASH_ENV
+      - install_node
+      - install_yarn
+      - run:
+          name: Configure Detox Environment
+          command: |
+            touch .watchmanconfig
+
   android_emulator_start:
     parameters:
       device_name:
@@ -106,61 +142,23 @@ commands:
       platform_version:
         type: string
         default: 'android-30'
-      build_tools_version:
-        type: string
-        default: '30.0.2'
       logcat_grep:
         type: string
         default: 'com.example.stripeterminalreactnative'
-
     steps:
-      - run:
-          name: Install Android Emulator
-          shell: /bin/bash -e
-          command: |
-            yes | sdkmanager "platform-tools" "tools" >/dev/null
-            yes | sdkmanager "platforms;<<parameters.platform_version>>" "system-images;<<parameters.platform_version>>;default;x86_64" >/dev/null
-            yes | sdkmanager "emulator" --channel=3 >/dev/null
-            yes | sdkmanager "build-tools;<<parameters.build_tools_version>>" >/dev/null
-            yes | sdkmanager --licenses >/dev/null
-            yes | sdkmanager --list
-      - run:
-          name: ADB Start Stop
-          command: |
-            adb start-server
-            adb devices
-            adb kill-server
-            ls -la ~/.android
-      - run:
-          name: Create Android Emulator
-          command:
-            avdmanager create avd --force --name <<parameters.device_name>> --package
-            "system-images;<<parameters.platform_version>>;default;x86_64" --tag
-            default --device pixel
+      - android/create-avd:
+          avd-name: <<parameters.device_name>>
+          install: true
+          system-image: system-images;<<parameters.platform_version>>;default;x86_64
+      - android/start-emulator:
+          avd-name: <<parameters.device_name>>
+          no-window: true
+          restore-gradle-cache-prefix: v1a
+          memory: 2048
+          gpu: auto
+          run-logcat: true
+          post-emulator-launch-assemble-command: ''
 
-      - run:
-          name: Start Android Emulator (background)
-          command: |
-            $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -version
-            $ANDROID_HOME/emulator/emulator @<<parameters.device_name>> -cores 1 -gpu auto -accel on -memory 2048 -no-audio -no-snapshot -no-boot-anim -no-window -logcat *:W | grep -i 'ReactNative\|<<parameters.logcat_grep>>'
-          background: true
-
-      - run:
-          name: Wait for AVD to be ready
-          no_output_timeout: '5m'
-          command: |
-            export BOOT=""
-            echo "Waiting for AVD to finish booting"
-            export PATH=$(dirname $(dirname $(command -v android)))/platform-tools:$PATH
-            until [[ "$BOOT" =~ "1" ]]; do
-              sleep 5
-              export BOOT=$(adb -e shell getprop sys.boot_completed 2>&1)
-            done
-            sleep 15
-            adb shell settings put global window_animation_scale 0
-            adb shell settings put global transition_animation_scale 0
-            adb shell settings put global animator_duration_scale 0
-            echo "Android Virtual Device is now ready."
 jobs:
   install-dependencies:
     executor: linux_js
@@ -214,45 +212,45 @@ jobs:
           name: Integration tests
           command: |
             yarn test
+
   e2e-ios:
     executor: macos_custom
-
     steps:
+      - macos/preboot-simulator:
+          version: "15.4"
+          platform: iOS
+          device: iPhone 13
       - setup_macos_executor
-
-      - ios_simulator_start
-
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-
       - pod_install
-
       - run:
           command: yarn e2e:build:ios:release
           name: build for detox
-
       - run:
           command: yarn e2e:test:ios:release
           name: test detox
-
       - store_artifacts:
           path: ./artifacts
 
   e2e-android:
     executor:
-      name: macos_custom
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
-      - setup_macos_executor
-
+      - setup_android_executor
+      - android_emulator_start
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-      - android_emulator_start
-
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
@@ -260,7 +258,59 @@ jobs:
       - store_artifacts:
           path: ./artifacts
 
+  deploy-firebase-android:
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
+    steps:
+      - setup_android_executor
+      - ruby/install-deps:
+          key: -gems-{{ arch }}-v1
+      - run:
+          name: Install Firebase CLI
+          command: |
+            curl -Lo ./firebase_bin https://firebase.tools/bin/linux/v10.2.2
+      - run:
+          command: yarn install --frozen-lockfile
+          name: yarn install
+      - run:
+          name: "Increment example app version"
+          command: |
+              bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          command: yarn example:build:android:release
+          name: build
+      - android/save-gradle-cache
+      - android/save-build-cache
+      - run:
+          name: "Deploy example app to Firebase"
+          command: |
+              bundle exec fastlane publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
+
+  deploy-heroku-backend:
+    executor: linux_js
+    steps:
+      - attach_project
+      - heroku/install
+      - run:
+          name: Heroku - restart dynos
+          command: |
+              heroku restart -a $HEROKU_APP_NAME
+      - run:
+          name: Heroku - set private key
+          command: |
+              heroku config:set STRIPE_PRIVATE_KEY=$STRIPE_PRIVATE_KEY -a $HEROKU_APP_NAME
+      - run:
+          name: Heroku - disable package pruning
+          command: |
+              heroku config:set YARN_PRODUCTION=false -a $HEROKU_APP_NAME
+      - heroku/deploy-via-git:
+          force: true # CI should override any developer machine pushes
+
 workflows:
+  version: 2
   build-and-test:
     jobs:
       - install-dependencies
@@ -271,8 +321,51 @@ workflows:
           requires:
             - install-dependencies
       - e2e-android:
+          context:
+            - stripe-terminal-react-native-android-test # sets API_URL_ANDROID to allow the emulator to access the example app backend
           requires:
             - install-dependencies
       - e2e-ios:
           requires:
             - install-dependencies
+      - deploy-heroku-backend:
+          context:
+            - stripe-terminal-react-native-EU-example-app
+          name: deploy-heroku-backend-eu
+          requires:
+            - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
+      - deploy-heroku-backend:
+          context:
+            - stripe-terminal-react-native-US-example-app
+          name: deploy-heroku-backend-us
+          requires:
+            - install-dependencies
+            - deploy-heroku-backend-eu # avoids Heroku concurrent build limit
+          filters:
+              branches:
+                only:
+                  - main
+      - deploy-firebase-android:
+          context:
+            - stripe-terminal-react-native-US-example-app
+          name: deploy-firebase-android-us
+          requires:
+            - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
+      - deploy-firebase-android:
+          context:
+            - stripe-terminal-react-native-EU-example-app
+          name: deploy-firebase-android-eu
+          requires:
+            - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
