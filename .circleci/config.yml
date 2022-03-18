@@ -176,8 +176,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            yarn install --cwd example --frozen-lockfile
-            yarn install --frozen-lockfile
+            yarn install --cwd example
+            yarn install
+            ./scripts/yarnDiffCheck.sh
       - save_cache:
           key: dependencies-{{ checksum "package.json" }}
           paths: [node_modules]
