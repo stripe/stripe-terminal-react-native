@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet } from 'react-native';
 
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
 import { API_URL } from './Config';
 
 export default function Root() {
+  const [initialized, setInitialized] = useState(false);
+
   const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
@@ -22,8 +25,10 @@ export default function Root() {
     async function init() {
       try {
         await fetchTokenProvider();
+        setInitialized(true);
       } catch (error) {
-        console.error("Couldn't fetch connection token!");
+        console.error(error);
+        Alert.alert("Couldn't fetch connection token!");
       }
     }
     init();
@@ -34,7 +39,11 @@ export default function Root() {
       logLevel="verbose"
       tokenProvider={fetchTokenProvider}
     >
-      <App />
+      {initialized ? (
+        <App />
+      ) : (
+        <ActivityIndicator style={StyleSheet.absoluteFillObject} />
+      )}
     </StripeTerminalProvider>
   );
 }
