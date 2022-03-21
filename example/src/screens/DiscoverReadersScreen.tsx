@@ -17,10 +17,12 @@ import {
 import type { NavigationAction } from '@react-navigation/routers';
 import type { StripeError } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
-import { useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
+
+import type { RouteParamList } from '../App';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -32,12 +34,12 @@ const SIMULATED_UPDATE_PLANS = [
 
 export default function DiscoverReadersScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReaders'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
 
-  const { simulated, discoveryMethod } = params as Record<string, any>;
+  const { simulated, discoveryMethod } = params;
 
   const {
     cancelDiscovering,

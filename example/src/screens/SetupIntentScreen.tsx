@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/core';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useContext, useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import {
@@ -12,11 +12,13 @@ import { LogContext } from '../components/LogContext';
 import { API_URL } from '../Config';
 import { fetchCustomerId } from '../utils';
 
+import type { RouteParamList } from '../App';
+
 export default function SetupIntentScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
-  const { params } = useRoute();
-  const { discoveryMethod } = params as Record<string, any>;
+  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
+  const { discoveryMethod } = params;
 
   const {
     createSetupIntent,
