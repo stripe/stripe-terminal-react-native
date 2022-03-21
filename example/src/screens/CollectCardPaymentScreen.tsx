@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useState, useContext } from 'react';
 import {
   Platform,
@@ -19,6 +19,7 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import { API_URL } from '../Config';
+import type { RouteParamList } from '../App';
 
 export default function CollectCardPaymentScreen() {
   const [inputValues, setInputValues] = useState<{
@@ -29,8 +30,9 @@ export default function CollectCardPaymentScreen() {
     currency: 'USD',
   });
   const [enableInterac, setEnableInterac] = useState(false);
-  const { params } = useRoute();
-  const { simulated, discoveryMethod } = params as Record<string, any>;
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
+  const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
 

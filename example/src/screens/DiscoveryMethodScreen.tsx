@@ -5,9 +5,11 @@ import type { Reader } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import ListItem from '../components/ListItem';
 
+import type { RouteParamList } from '../App';
+
 export default function DiscoveryMethodScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<any, any>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoveryMethod'>>();
   const onChange = params?.onChange;
 
   const onSelect = (method: Reader.DiscoveryMethod) => {

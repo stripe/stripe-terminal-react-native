@@ -14,7 +14,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { colors } from './colors';
-import { LogContext, Log } from './components/LogContext';
+import { LogContext, Log, Event } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
 import LocationListScreen from './screens/LocationListScreen';
@@ -28,8 +28,41 @@ import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import { isAndroid12orHigher } from './utils';
-import { useStripeTerminal } from 'stripe-terminal-react-native';
+import {
+  Reader,
+  Location,
+  useStripeTerminal,
+} from 'stripe-terminal-react-native';
 import { LogBox } from 'react-native';
+
+export type RouteParamList = {
+  UpdateReader: {
+    update: Reader.SoftwareUpdate;
+    reader: Reader.Type;
+    onDidUpdate: () => void;
+  };
+  LocationList: {
+    onSelect: (location: Location) => void;
+  };
+  DiscoveryMethod: {
+    onChange: (method: Reader.DiscoveryMethod) => void;
+  };
+  SetupIntent: {
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  DiscoverReaders: {
+    simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  CollectCardPayment: {
+    simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  Log: {
+    event: Event;
+    log: Log;
+  };
+};
 
 LogBox.ignoreLogs([
   // https://reactnavigation.org/docs/5.x/troubleshooting#i-get-the-warning-non-serializable-values-were-found-in-the-navigation-state
