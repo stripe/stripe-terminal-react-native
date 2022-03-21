@@ -55,6 +55,38 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 - Compatible with apps targeting iOS 10 or above.
 
+### Expo initialization
+
+> This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
+
+> First install the package with yarn, npm, or [`expo install`](https://docs.expo.io/workflow/expo-cli/#expo-install).
+
+```sh
+expo install stripe-terminal-react-native
+```
+
+After installing this npm package, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+
+```json
+{
+  // ...
+  "plugins": [
+    [
+      // ...
+      "stripe-terminal-react-native",
+      {
+        "bluetoothBackgroundMode": true,
+        "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+        "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+        "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+      }
+    ]
+  ]
+}
+```
+
+Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide.
+
 ## Stripe Terminal SDK initialization
 
 To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
