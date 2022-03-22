@@ -87,22 +87,22 @@ internal fun mapFromDeviceType(type: DeviceType): String {
 }
 
 internal fun mapFromLocationStatus(status: LocationStatus): String {
-  return when (status) {
-    LocationStatus.NOT_SET -> "notSet"
-    LocationStatus.SET -> "set"
-    LocationStatus.UNKNOWN -> "unknown"
-  }
+    return when (status) {
+        LocationStatus.NOT_SET -> "notSet"
+        LocationStatus.SET -> "set"
+        LocationStatus.UNKNOWN -> "unknown"
+    }
 }
 
 internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod {
-  return when (method) {
-    "bluetoothScan" -> DiscoveryMethod.BLUETOOTH_SCAN
-    "internet" -> DiscoveryMethod.INTERNET
-    "embedded" -> DiscoveryMethod.EMBEDDED
-    "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
-    "handoff" -> DiscoveryMethod.HANDOFF
-    else -> throw TerminalException(TerminalException.TerminalErrorCode.UNSUPPORTED_OPERATION, "discoveryMethod:$method is not supported by Stripe Terminal Android")
-  }
+    return when (method) {
+        "bluetoothScan" -> DiscoveryMethod.BLUETOOTH_SCAN
+        "internet" -> DiscoveryMethod.INTERNET
+        "embedded" -> DiscoveryMethod.EMBEDDED
+        "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
+        "handoff" -> DiscoveryMethod.HANDOFF
+        else -> throw TerminalException(TerminalException.TerminalErrorCode.UNSUPPORTED_OPERATION, "discoveryMethod:$method is not supported by Stripe Terminal Android")
+    }
 }
 
 internal fun createResult(key: String, value: WritableMap): WritableMap =
@@ -223,10 +223,10 @@ internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String 
 }
 
 internal fun mapFromReaderEvent(event: ReaderEvent): String {
-  return when (event) {
-    ReaderEvent.CARD_INSERTED -> "cardInserted"
-    ReaderEvent.CARD_REMOVED -> "cardRemoved"
-  }
+    return when (event) {
+        ReaderEvent.CARD_INSERTED -> "cardInserted"
+        ReaderEvent.CARD_REMOVED -> "cardRemoved"
+    }
 }
 
 internal fun mapFromCharge(reader: Charge): WritableMap = WritableNativeMap().apply {
