@@ -222,13 +222,6 @@ internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String 
     }
 }
 
-internal fun mapFromReaderEvent(event: ReaderEvent): String {
-    return when (event) {
-        ReaderEvent.CARD_INSERTED -> "cardInserted"
-        ReaderEvent.CARD_REMOVED -> "cardRemoved"
-    }
-}
-
 internal fun mapFromCharge(reader: Charge): WritableMap = WritableNativeMap().apply {
     putString("id", reader.id)
     putString("status", reader.status)

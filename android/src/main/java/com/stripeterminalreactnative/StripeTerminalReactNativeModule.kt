@@ -15,8 +15,39 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
-import com.stripe.stripeterminal.external.callable.*
-import com.stripe.stripeterminal.external.models.*
+import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
+import com.stripe.stripeterminal.external.callable.Callback
+import com.stripe.stripeterminal.external.callable.Cancelable
+import com.stripe.stripeterminal.external.callable.DiscoveryListener
+import com.stripe.stripeterminal.external.callable.LocationListCallback
+import com.stripe.stripeterminal.external.callable.PaymentIntentCallback
+import com.stripe.stripeterminal.external.callable.PaymentMethodCallback
+import com.stripe.stripeterminal.external.callable.ReaderCallback
+import com.stripe.stripeterminal.external.callable.RefundCallback
+import com.stripe.stripeterminal.external.callable.SetupIntentCallback
+import com.stripe.stripeterminal.external.callable.TerminalListener
+import com.stripe.stripeterminal.external.models.Cart
+import com.stripe.stripeterminal.external.models.ConnectionConfiguration
+import com.stripe.stripeterminal.external.models.ConnectionStatus
+import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
+import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.Location
+import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentIntentParameters
+import com.stripe.stripeterminal.external.models.PaymentMethod
+import com.stripe.stripeterminal.external.models.PaymentStatus
+import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
+import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
+import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.Refund
+import com.stripe.stripeterminal.external.models.RefundParameters
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
+import com.stripe.stripeterminal.external.models.SetupIntentParameters
+import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.ReactNativeConstants.CHANGE_CONNECTION_STATUS
 import com.stripeterminalreactnative.ReactNativeConstants.CHANGE_PAYMENT_STATUS
 import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
@@ -220,7 +251,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
+
         val simulated = getBoolean(params, "simulated")
+
         val config = DiscoveryConfiguration(0, discoveryMethod, simulated)
 
         discoverCancelable = Terminal.getInstance().discoverReaders(
@@ -441,176 +474,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         Terminal.getInstance().connectInternetReader(
             selectedReader,
             connectionConfig,
-            object : ReaderCallback {
-                override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
-            }
-        )
-    }
-
-    @ReactMethod
-    fun connectLocalMobileReader(params: ReadableMap, promise: Promise) {
-        val reader = getMapOr(params, "reader") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a reader object"
-                    )
-                )
-            )
-            return
-        }
-
-        val readerId = getStringOr(reader, "serialNumber") as String
-
-        val selectedReader = discoveredReadersList.find {
-            it.serialNumber == readerId
-        } ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Could not find reader with id $readerId"
-                    )
-                )
-            )
-            return
-        }
-
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
-
-        val connectionConfig = ConnectionConfiguration.LocalMobileConnectionConfiguration(
-            locationId
-        )
-
-        Terminal.getInstance().connectLocalMobileReader(
-            selectedReader,
-            connectionConfig,
-            object : ReaderCallback {
-                override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
-            }
-        )
-    }
-
-    @ReactMethod
-    fun connectEmbeddedReader(params: ReadableMap, promise: Promise) {
-        val reader = getMapOr(params, "reader") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a reader object"
-                    )
-                )
-            )
-            return
-        }
-
-        val readerId = getStringOr(reader, "serialNumber") as String
-
-        val selectedReader = discoveredReadersList.find {
-            it.serialNumber == readerId
-        } ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Could not find reader with id $readerId"
-                    )
-                )
-            )
-            return
-        }
-
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
-
-        val connectionConfig = ConnectionConfiguration.EmbeddedConnectionConfiguration(
-            locationId
-        )
-
-        Terminal.getInstance().connectEmbeddedReader(
-            selectedReader,
-            connectionConfig,
-            object : ReaderCallback {
-                override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
-            }
-        )
-    }
-
-    @ReactMethod
-    fun connectHandoffReader(params: ReadableMap, promise: Promise) {
-        val reader = getMapOr(params, "reader") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a reader object"
-                    )
-                )
-            )
-            return
-        }
-
-        val readerId = getStringOr(reader, "serialNumber") as String
-
-        val selectedReader = discoveredReadersList.find {
-            it.serialNumber == readerId
-        } ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Could not find reader with id $readerId"
-                    )
-                )
-            )
-            return
-        }
-
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id.orEmpty()
-
-        val connectionConfig = ConnectionConfiguration.HandoffConnectionConfiguration(
-            locationId
-        )
-
-        val listener: HandoffReaderListener = object : HandoffReaderListener {
-            override fun onReportReaderEvent(event: ReaderEvent) {
-                super.onReportReaderEvent(event)
-
-                val result = WritableNativeMap()
-                result.putString("event", mapFromReaderEvent(event))
-                sendEvent("didRequestReaderInput", result)
-            }
-        }
-
-        Terminal.getInstance().connectHandoffReader(
-            selectedReader,
-            connectionConfig,
-            listener,
             object : ReaderCallback {
                 override fun onSuccess(reader: Reader) {
                     val result = WritableNativeMap()
