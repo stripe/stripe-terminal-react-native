@@ -11,18 +11,20 @@ import { Location, useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import ListItem from '../components/ListItem';
 
+import type { RouteParamList } from '../App';
+
 export default function LocationListScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<any, any>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'LocationList'>>();
 
-  const { getListLocations, loading } = useStripeTerminal();
+  const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>([]);
 
   useEffect(() => {
     async function init() {
-      const { locationsList } = await getListLocations({ limit: 20 });
-      if (locationsList) {
-        setList(locationsList);
+      const { locations } = await getLocations({ limit: 20 });
+      if (locations) {
+        setList(locations);
       }
     }
     init();
@@ -36,7 +38,9 @@ export default function LocationListScreen() {
       key={item.id}
       onPress={() => {
         params?.onSelect(item);
-        navigation.goBack();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
       }}
     />
   );

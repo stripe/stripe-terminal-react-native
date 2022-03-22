@@ -7,12 +7,12 @@ target 'StripeTerminalReactNativeExample' do
   config = use_native_modules!
 
   use_react_native!(
-    :path => config[:reactNativePath],
+    path: config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
-    :hermes_enabled => false
+    hermes_enabled: false
   )
-  
-  pod 'stripe-terminal-react-native', :path => '../..'
+
+  pod 'stripe-terminal-react-native', path: '../..'
 
   post_install do |installer|
     react_native_post_install(installer)

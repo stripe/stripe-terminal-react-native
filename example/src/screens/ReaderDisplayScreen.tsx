@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderBottomColor: colors.slate,
     borderBottomWidth: 1.5,
+    color: colors.dark_gray,
     marginBottom: 12,
   },
 });

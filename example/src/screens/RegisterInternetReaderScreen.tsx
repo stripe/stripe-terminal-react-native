@@ -116,8 +116,8 @@ export default function RegisterInternetReaderScreen() {
       </View>
 
       <Text style={styles.info}>
-        Internet-connected readers like the Verifone P400 must be registered to
-        your account and associated to a location before they can be discovered.
+        Internet-connected readers like the WisePOS E must be registered to your
+        account and associated to a location before they can be discovered.
       </Text>
       <Text style={styles.info}>
         Press 0-7-1-3-9 on your reader to display a registration code.
@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     marginBottom: 12,
     borderBottomColor: colors.gray,
+    color: colors.dark_gray,
     ...Platform.select({
       ios: {
         borderBottomWidth: StyleSheet.hairlineWidth,

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
+  HeaderBackButton,
   TransitionPresets,
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
@@ -13,7 +14,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { colors } from './colors';
-import { LogContext, Log } from './components/LogContext';
+import { LogContext, Log, Event } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
 import LocationListScreen from './screens/LocationListScreen';
@@ -23,10 +24,55 @@ import DiscoveryMethodScreen from './screens/DiscoveryMethodScreen';
 import CollectCardPaymentScreen from './screens/CollectCardPaymentScreen';
 import SetupIntentScreen from './screens/SetupIntentScreen';
 import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
+import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import { isAndroid12orHigher } from './utils';
-import { useStripeTerminal } from 'stripe-terminal-react-native';
+import {
+  Reader,
+  Location,
+  useStripeTerminal,
+} from 'stripe-terminal-react-native';
+import { LogBox } from 'react-native';
+
+export type RouteParamList = {
+  UpdateReader: {
+    update: Reader.SoftwareUpdate;
+    reader: Reader.Type;
+    onDidUpdate: () => void;
+  };
+  LocationList: {
+    onSelect: (location: Location) => void;
+  };
+  DiscoveryMethod: {
+    onChange: (method: Reader.DiscoveryMethod) => void;
+  };
+  SetupIntent: {
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  DiscoverReaders: {
+    simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  CollectCardPayment: {
+    simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  Log: {
+    event: Event;
+    log: Log;
+  };
+};
+
+LogBox.ignoreLogs([
+  // https://reactnavigation.org/docs/5.x/troubleshooting#i-get-the-warning-non-serializable-values-were-found-in-the-navigation-state
+  'Non-serializable values were found in the navigation state',
+  // https://github.com/software-mansion/react-native-gesture-handler/issues/722
+  'RCTBridge required dispatch_sync to load RNGestureHandlerModule. This may lead to deadlocks',
+  // https://github.com/react-native-netinfo/react-native-netinfo/issues/486
+  'new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method.',
+  'new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method.',
+]);
 
 const Stack = createStackNavigator();
 
@@ -228,10 +274,23 @@ export default function App() {
               component={ReadReusableCardScreen}
             />
             <Stack.Screen
-              name="LogScreen"
-              options={{
+              name="LogListScreen"
+              options={({ navigation }) => ({
                 headerTitle: 'Logs',
                 headerBackAccessibilityLabel: 'logs-back',
+                headerLeft: () => (
+                  <HeaderBackButton
+                    onPress={() => navigation.navigate('Terminal')}
+                  />
+                ),
+              })}
+              component={LogListScreen}
+            />
+            <Stack.Screen
+              name="LogScreen"
+              options={{
+                headerTitle: 'Event',
+                headerBackAccessibilityLabel: 'log-back',
               }}
               component={LogScreen}
             />

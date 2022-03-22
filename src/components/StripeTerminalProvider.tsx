@@ -3,8 +3,10 @@ import type { Reader, InitParams, LogLevel } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
 import { useListener } from '../hooks/useListener';
+import { NativeModules } from 'react-native';
 
-const FETCH_TOKEN_PROVIDER_LISTENER_NAME = 'onFetchTokenProviderListener';
+const { FETCH_TOKEN_PROVIDER } =
+  NativeModules.StripeTerminalReactNative.getConstants();
 
 /**
  *  StripeTerminalProvider Component Props
@@ -75,7 +77,7 @@ export function StripeTerminalProvider({
     }
   };
 
-  useListener(FETCH_TOKEN_PROVIDER_LISTENER_NAME, tokenProviderHandler);
+  useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
   const _initialize = useCallback(
     async (params: InitParams) => {

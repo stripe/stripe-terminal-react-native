@@ -26,14 +26,14 @@ export type DiscoverReadersParams = {
   discoveryMethod: Reader.DiscoveryMethod;
 };
 
-export type ListLocationsParams = {
+export type GetLocationsParams = {
   limit?: number;
   endingBefore?: string;
   startingAfter?: string;
 };
 
 export type ConnectBluetoothReaderParams = {
-  readerId: string;
+  reader: Reader.Type;
   locationId?: string;
 };
 
@@ -66,7 +66,7 @@ export type Cart = {
 };
 
 export type ConnectInternetReaderParams = {
-  readerId: string;
+  reader: Reader.Type;
   failIfInUse?: boolean;
 };
 
@@ -180,14 +180,14 @@ export type SetupIntentResultType =
       error: StripeError;
     };
 
-export type ListLocationsResultType =
+export type GetLocationsResultType =
   | {
-      locationsList: Location[];
+      locations: Location[];
       hasMore: boolean;
       error?: undefined;
     }
   | {
-      locationsList?: undefined;
+      locations?: undefined;
       hasMore?: undefined;
       error: StripeError;
     };

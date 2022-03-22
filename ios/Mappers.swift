@@ -3,15 +3,15 @@ import StripeTerminal
 class Mappers {
     class func mapFromReaders(_ readers: [Reader]) -> [NSDictionary] {
         var readersList: [NSDictionary] = []
-        
+
         for reader in readers {
             let result = mapFromReader(reader)
             readersList.append(result)
         }
-        
+
         return readersList
     }
-    
+
     class func mapFromReader(_ reader: Reader) -> NSDictionary {
         let result: NSDictionary = [
             "label": reader.label ?? NSNull(),
@@ -32,7 +32,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromLocationStatus(_ status: LocationStatus) -> String {
         switch status {
         case LocationStatus.notSet: return "notSet"
@@ -41,7 +41,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromReaderNetworkStatus(_ status: ReaderNetworkStatus) -> String {
         switch status {
         case ReaderNetworkStatus.offline: return "offline"
@@ -49,7 +49,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromBatteryStatus(_ status: BatteryStatus) -> String {
         switch status {
         case BatteryStatus.critical: return "critical"
@@ -59,7 +59,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromDeviceType(_ type: DeviceType) -> String {
         switch type {
         case DeviceType.chipper1X: return "chipper1X"
@@ -72,21 +72,21 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
-    
+
+
     class func mapToCartLineItem(_ cartLineItem: NSDictionary) -> CartLineItem? {
         guard let displayName = cartLineItem["displayName"] as? String else { return nil }
         guard let quantity = cartLineItem["quantity"] as? NSNumber else { return nil }
         guard let amount = cartLineItem["amount"] as? NSNumber else { return nil }
-        
+
         let lineItem = CartLineItem(displayName: displayName, quantity: Int(truncating: quantity), amount: Int(truncating: amount))
-        
+
         return lineItem
     }
-    
+
     class func mapToCartLineItems(_ cartLineItems: NSArray) -> [CartLineItem] {
         var items = [CartLineItem]()
-        
+
         cartLineItems.forEach {
             if let item = $0 as? NSDictionary {
                 if let lineItem = Mappers.mapToCartLineItem(item) {
@@ -96,20 +96,20 @@ class Mappers {
         }
         return items
     }
-    
-    
+
+
     class func mapToDiscoveryMethod(_ discoveryMethod: String?) -> DiscoveryMethod {
         if let method = discoveryMethod {
             switch method {
             case "bluetoothProximity": return DiscoveryMethod.bluetoothProximity
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
-            case "internet": return DiscoveryMethod.internet                
+            case "internet": return DiscoveryMethod.internet
             default: return DiscoveryMethod.internet
             }
         }
-        return DiscoveryMethod.internet      
+        return DiscoveryMethod.internet
     }
-    
+
     class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent) -> NSDictionary {
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
@@ -121,7 +121,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromSetupIntent(_ setupIntent: SetupIntent) -> NSDictionary {
         let result: NSDictionary = [
             "id": setupIntent.stripeId,
@@ -132,7 +132,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromSetupIntentUsage(_ usage: SetupIntentUsage) -> String {
         switch usage {
         case SetupIntentUsage.offSession: return "offSession"
@@ -140,7 +140,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromSetupAttempt(_ attempt: SetupAttempt?) -> NSDictionary? {
         guard let unwrappedAttempt = attempt else {
             return nil
@@ -158,7 +158,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromSetupAttemptPaymentMethodDetails(_ details: SetupAttemptPaymentMethodDetails?) -> NSDictionary? {
         guard let unwrappedDetails = details else {
             return nil
@@ -170,7 +170,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromSetupAttemptCardPresentDetails(_ details: SetupAttemptCardPresentDetails?) -> NSDictionary? {
         guard let unwrappedDetails = details else {
             return nil
@@ -181,8 +181,8 @@ class Mappers {
         ]
         return result
     }
-    
-    
+
+
     class func mapFromSetupIntentStatus(_ status: SetupIntentStatus) -> String {
         switch status {
         case SetupIntentStatus.canceled: return "canceled"
@@ -194,7 +194,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromPaymentIntentStatus(_ status: PaymentIntentStatus) -> String {
         switch status {
         case PaymentIntentStatus.canceled: return "canceled"
@@ -206,7 +206,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromReaderDisplayMessage(_ displayMessage: ReaderDisplayMessage) -> String {
         switch displayMessage {
         case ReaderDisplayMessage.insertCard: return "insertCard"
@@ -220,11 +220,11 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromReaderInputOptions(_ inputOptions: ReaderInputOptions) -> NSMutableArray {
         let array = inputOptions.rawValue.bitComponents()
         let mappedOptions: NSMutableArray = []
-        
+
         array.forEach { item in
             switch item {
             case 0: return
@@ -234,21 +234,21 @@ class Mappers {
             default: return
             }
         }
-        
+
         return mappedOptions
     }
-    
+
     class func mapFromCharges(_ charges: [Charge]) -> [NSDictionary] {
         var list: [NSDictionary] = []
-        
+
         for charge in charges {
             let result = mapFromCharge(charge)
             list.append(result)
         }
-        
+
         return list
     }
-    
+
     class func mapFromReaderSoftwareUpdate(_ update: ReaderSoftwareUpdate?) -> NSDictionary? {
         guard let unwrappedUpdate = update else {
             return nil
@@ -260,7 +260,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromUpdateTimeEstimate(_ time: UpdateTimeEstimate) -> String {
         switch time {
         case UpdateTimeEstimate.estimate1To2Minutes: return "estimate1To2Minutes"
@@ -270,21 +270,21 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
-    
-    class func mapFromLocationsList(_ locationsList: [Location]) -> [NSDictionary] {
+
+
+    class func mapFromLocationsList(_ locations: [Location]) -> [NSDictionary] {
         var list: [NSDictionary] = []
-        
-        for location in locationsList {
+
+        for location in locations {
             let result = mapFromLocation(location)
             if let result = result {
                 list.append(result)
             }
         }
-        
+
         return list
     }
-    
+
     class func mapFromLocation(_ location: Location?) -> NSDictionary? {
         guard let unwrappedLocation = location else {
             return nil
@@ -297,7 +297,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromAddress(_ address: Address?) -> NSDictionary? {
         if let address = address {
             let result: NSDictionary = [
@@ -313,7 +313,7 @@ class Mappers {
             return nil
         }
     }
-    
+
     class func mapFromCharge(_ charge: Charge) -> NSDictionary {
         let result: NSDictionary = [
             "amount": charge.amount,
@@ -324,7 +324,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func convertDateToUnixTimestamp(date: Date?) -> String? {
         if let date = date {
             let value = date.timeIntervalSince1970 * 1000.0
@@ -332,7 +332,7 @@ class Mappers {
         }
         return nil
     }
-    
+
     class func mapToSimulateReaderUpdate(_ update: String) -> SimulateReaderUpdate {
         switch update {
         case "available": return SimulateReaderUpdate.available
@@ -343,7 +343,7 @@ class Mappers {
         default: return SimulateReaderUpdate.none
         }
     }
-    
+
     class func mapFromCardPresent(_ cardPresent: CardPresentDetails) -> NSDictionary {
         let result: NSDictionary = [
             "last4": cardPresent.last4,
@@ -361,7 +361,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromPaymentMethodDetailsType(_ type: PaymentMethodType) -> String {
         switch type {
         case PaymentMethodType.card: return "card"
@@ -370,7 +370,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromPaymentMethodDetails(_ paymentMethodDetails: PaymentMethodDetails) -> NSDictionary {
         var cardPresentMapped: NSDictionary?
         if let cardPresent = paymentMethodDetails.cardPresent{
@@ -380,7 +380,7 @@ class Mappers {
         if let interacPresent = paymentMethodDetails.interacPresent{
             interacPresentMapped = mapFromCardPresent(interacPresent)
         }
-        
+
         let result: NSDictionary = [
             "type": mapFromPaymentMethodDetailsType(paymentMethodDetails.type),
             "cardPresent": cardPresentMapped ?? NSNull(),
@@ -388,7 +388,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromRefund(_ refund: Refund) -> NSDictionary {
         var paymentMethodDetailsMapped: NSDictionary?
         if let paymentMethodDetails = refund.paymentMethodDetails{
@@ -408,7 +408,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromRefundStatus(_ type: RefundStatus) -> String {
         switch type {
         case RefundStatus.failed: return "failed"
@@ -418,7 +418,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromCardDetails(_ cardDetails: CardDetails) -> NSDictionary {
         let result: NSDictionary = [
             "brand": cardDetails.brand,
@@ -431,7 +431,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromPaymentMethod(_ paymentMethod: PaymentMethod) -> NSDictionary {
         let result: NSDictionary = [
             "id": paymentMethod.stripeId,
@@ -442,7 +442,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromPaymentStatus(_ paymentStatus: PaymentStatus) -> String {
         switch paymentStatus {
         case PaymentStatus.notReady: return "notReady"
@@ -452,7 +452,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromConnectionStatus(_ connectionStatus: ConnectionStatus) -> String {
         switch connectionStatus {
         case ConnectionStatus.connected: return "connected"
@@ -475,7 +475,7 @@ extension UInt {
     init(bitComponents : [UInt]) {
         self = bitComponents.reduce(0, +)
     }
-    
+
     func bitComponents() -> [UInt] {
         return (0 ..< 8*MemoryLayout<UInt>.size).map( { 1 << $0 }).filter( { self & $0 != 0 } )
     }
