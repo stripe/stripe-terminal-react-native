@@ -142,9 +142,7 @@ export function useStripeTerminal(props?: Props) {
   );
 
   // TODO: check why NativeEventListeners are not registering properly if there is no below fix
-  useListener(FETCH_TOKEN_PROVIDER, () => {
-    console.log('fetch!!!');
-  });
+  useListener(FETCH_TOKEN_PROVIDER, () => null);
 
   const _initialize = useCallback(
     async (params: InitParams) => {
