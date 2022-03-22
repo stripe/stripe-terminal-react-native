@@ -205,6 +205,7 @@ const styles = StyleSheet.create({
   input: {
     height: 44,
     backgroundColor: colors.white,
+    color: colors.dark_gray,
     paddingLeft: 16,
     marginBottom: 12,
     borderBottomColor: colors.gray,
