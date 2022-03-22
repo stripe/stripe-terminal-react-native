@@ -26,7 +26,6 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{ts,tsx,js}\"",
     "prepare": "bob build",
-    "release": "release-it",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
     "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
