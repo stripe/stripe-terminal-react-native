@@ -12,6 +12,11 @@ export type InitParams = {
   logLevel?: LogLevel;
 };
 
+export type SetConnectionTokenParams = {
+  token?: string;
+  error?: string;
+};
+
 export type LogLevel = LogLevelIOS | LogLevelAndroid;
 export type LogLevelIOS = 'none' | 'verbose';
 export type LogLevelAndroid = 'none' | 'verbose' | 'error' | 'warning';
@@ -21,14 +26,14 @@ export type DiscoverReadersParams = {
   discoveryMethod: Reader.DiscoveryMethod;
 };
 
-export type ListLocationsParams = {
+export type GetLocationsParams = {
   limit?: number;
   endingBefore?: string;
   startingAfter?: string;
 };
 
 export type ConnectBluetoothReaderParams = {
-  readerId: string;
+  reader: Reader.Type;
   locationId?: string;
 };
 
@@ -46,7 +51,7 @@ export type Cart = {
 };
 
 export type ConnectInternetReaderParams = {
-  readerId: string;
+  reader: Reader.Type;
   failIfInUse?: boolean;
 };
 
@@ -65,11 +70,10 @@ export type StripeError<T = CommonError> = {
 
 export type InitializeResultType =
   | {
-      initialized: true;
       reader?: Reader.Type;
       error?: undefined;
     }
-  | { initialized: false; error: StripeError; reader?: undefined };
+  | { error: StripeError; reader?: undefined };
 
 export type DiscoverReadersResultType = Promise<{
   error?: StripeError;
@@ -168,14 +172,14 @@ export type SetupIntentResultType =
       error: StripeError;
     };
 
-export type ListLocationsResultType =
+export type GetLocationsResultType =
   | {
-      locationsList: Location[];
+      locations: Location[];
       hasMore: boolean;
       error?: undefined;
     }
   | {
-      locationsList?: undefined;
+      locations?: undefined;
       hasMore?: undefined;
       error: StripeError;
     };

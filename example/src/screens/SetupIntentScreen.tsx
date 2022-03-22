@@ -1,6 +1,6 @@
-import { useNavigation, useRoute } from '@react-navigation/core';
-import React, { useContext, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text } from 'react-native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import React, { useContext, useEffect } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import {
   SetupIntent,
   useStripeTerminal,
@@ -12,12 +12,13 @@ import { LogContext } from '../components/LogContext';
 import { API_URL } from '../Config';
 import { fetchCustomerId } from '../utils';
 
+import type { RouteParamList } from '../App';
+
 export default function SetupIntentScreen() {
-  const [_setupIntent, setSetupIntent] = useState<SetupIntent.Type>();
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
-  const { params } = useRoute();
-  const { discoveryMethod } = params as Record<string, any>;
+  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
+  const { discoveryMethod } = params;
 
   const {
     createSetupIntent,
@@ -72,7 +73,7 @@ export default function SetupIntentScreen() {
 
   const _createSetupIntent = async () => {
     clearLogs();
-    navigation.navigate('LogScreen');
+    navigation.navigate('LogListScreen');
     addLogs({
       name: 'Create Setup Intent',
       events: [
@@ -101,8 +102,7 @@ export default function SetupIntentScreen() {
       const { error: customerError, id: customerId } = await fetchCustomerId();
 
       if (customerError) {
-        console.error(customerError);
-        return;
+        console.log(customerError);
       }
 
       const response = await createSetupIntent({
@@ -117,13 +117,16 @@ export default function SetupIntentScreen() {
         name: 'Create Setup Intent',
         events: [
           {
-            name: setupIntentError.code,
-            description: setupIntentError.message,
+            name: 'Failed',
+            description: 'terminal.createSetupIntent',
+            metadata: {
+              errorCode: setupIntentError.code,
+              errorMessage: setupIntentError.message,
+            },
           },
         ],
       });
     } else if (setupIntent) {
-      setSetupIntent(setupIntent);
       await _collectPaymentMethod(setupIntent.id);
     }
   };
@@ -135,6 +138,7 @@ export default function SetupIntentScreen() {
         {
           name: 'Collect',
           description: 'terminal.collectSetupIntentPaymentMethod',
+          metadata: { setupIntentId },
         },
       ],
     });
@@ -147,19 +151,23 @@ export default function SetupIntentScreen() {
         name: 'Collect Setup Intent',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.collectSetupIntentPaymentMethod',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
     } else if (setupIntent) {
-      setSetupIntent(setupIntent);
       addLogs({
         name: 'Collect Setup Intent',
         events: [
           {
             name: 'Created',
-            description: 'terminal.setupIntentId: ' + setupIntent.id,
+            description: 'terminal.collectSetupIntentPaymentMethod',
+            metadata: { setupIntentId: setupIntent.id },
           },
         ],
       });
@@ -174,6 +182,7 @@ export default function SetupIntentScreen() {
         {
           name: 'Process',
           description: 'terminal.confirmSetupIntent',
+          metadata: { setupIntentId },
         },
       ],
     });
@@ -183,31 +192,30 @@ export default function SetupIntentScreen() {
         name: 'Process Payment',
         events: [
           {
-            name: error.code,
-            description: error.message,
+            name: 'Failed',
+            description: 'terminal.confirmSetupIntent',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
           },
         ],
       });
     } else if (setupIntent) {
-      setSetupIntent(setupIntent);
       addLogs({
         name: 'Process Payment',
         events: [
           {
             name: 'Finished',
-            description: 'terminal.setupIntentId: ' + setupIntent.id,
+            description: 'terminal.confirmSetupIntent',
+            metadata: { setupIntentId: setupIntent.id },
           },
         ],
       });
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* TODO: remove when log screen is ready */}
-      <Text style={styles.json}>{JSON.stringify(_setupIntent)}</Text>
-    </ScrollView>
-  );
+  return <ScrollView contentContainerStyle={styles.container} />;
 }
 
 const styles = StyleSheet.create({

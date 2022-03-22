@@ -25,14 +25,14 @@ For iOS, run `pod install` in the `ios` directory to ensure that you also instal
 
 ### Android
 
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. 
+Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
 
 ---
+
 **IMPORTANT**
 In case of supportig **Android 12** you need also to ask the user for additional permissions:
 
-`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
----
+## `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
 
 To do this, add the following check before you initialize the Terminal SDK:
 
@@ -41,7 +41,7 @@ useEffect(() => {
   async function init() {
     try {
       const granted = await PermissionsAndroid.request(
-       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
           title: 'Location Permission Permission',
           message: 'App needs access to your Location ',
@@ -147,10 +147,10 @@ This function is called whenever the SDK needs to authenticate with Stripe or th
 To get started, provide your token provider implemented in [Step 3](#set-up-the-connection-token-endpoint) to `StripeTerminalProvider` as a prop.
 
 ```tsx
-// App.ts
+// Root.ts
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
-function App() {
+function Root() {
   const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
@@ -167,8 +167,26 @@ function App() {
       logLevel="verbose"
       tokenProvider={fetchTokenProvider}
     >
-      <Screen />
+      <App />
     </StripeTerminalProvider>
   );
+}
+```
+
+As a last step, simply call `initialize` method from `useStripeTerminal` hook.
+Please note that `initialize` method must be called from the nested component of `StripeTerminalProvider`.
+
+```tsx
+// App.tsx
+function App() {
+  const { initialize } = useStripeTerminal();
+
+  useEffect(() => {
+    initialize({
+      logLevel: 'verbose',
+    });
+  }, [initialize]);
+
+  return <View />;
 }
 ```

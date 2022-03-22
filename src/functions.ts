@@ -13,8 +13,8 @@ import type {
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
-  ListLocationsParams,
-  ListLocationsResultType,
+  GetLocationsParams,
+  GetLocationsResultType,
   StripeError,
   Cart,
   CreateSetupIntentParams,
@@ -35,30 +35,30 @@ export async function initialize(
 
     if (error) {
       return {
-        initialized: false,
         error: error,
         reader: undefined,
       };
     } else {
       return {
-        initialized: true,
         error: undefined,
         reader,
       };
     }
   } catch (error) {
     return {
-      initialized: false,
       error: error as any,
     };
   }
 }
 
-export async function setConnectionToken(token: string): Promise<void> {
+export async function setConnectionToken(
+  token?: string,
+  error?: string
+): Promise<void> {
   try {
-    await StripeTerminalSdk.setConnectionToken(token);
-  } catch (error) {
-    console.warn('Unexpected error:', error);
+    await StripeTerminalSdk.setConnectionToken({ token, error });
+  } catch (e) {
+    console.warn('Unexpected error:', e);
   }
 }
 
@@ -253,22 +253,23 @@ export async function retrievePaymentIntent(
   }
 }
 
-export async function getListLocations(
-  params: ListLocationsParams
-): Promise<ListLocationsResultType> {
+export async function getLocations(
+  params: GetLocationsParams
+): Promise<GetLocationsResultType> {
   try {
-    const { error, locationsList, hasMore } =
-      await StripeTerminalSdk.getListLocations(params);
+    const { error, locations, hasMore } = await StripeTerminalSdk.getLocations(
+      params
+    );
 
     if (error) {
       return {
         error,
-        locationsList: undefined,
+        locations: undefined,
         hasMore: undefined,
       };
     }
     return {
-      locationsList: locationsList!,
+      locations: locations!,
       hasMore: hasMore!,
       error: undefined,
     };

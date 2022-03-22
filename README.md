@@ -55,6 +55,38 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 - Compatible with apps targeting iOS 10 or above.
 
+### Expo initialization
+
+> This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
+
+> First install the package with yarn, npm, or [`expo install`](https://docs.expo.io/workflow/expo-cli/#expo-install).
+
+```sh
+expo install stripe-terminal-react-native
+```
+
+After installing this npm package, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+
+```json
+{
+  // ...
+  "plugins": [
+    [
+      // ...
+      "stripe-terminal-react-native",
+      {
+        "bluetoothBackgroundMode": true,
+        "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+        "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+        "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+      }
+    ]
+  ]
+}
+```
+
+Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide.
+
 ## Stripe Terminal SDK initialization
 
 To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
@@ -65,10 +97,10 @@ Next, create a token provider that will fetch connection token from your server 
 Stripe Terminal SDK will fetch it when it's needed.
 
 ```tsx
-// App.ts
+// Root.ts
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
-function App() {
+function Root() {
   const fetchTokenProvider = async () => {
     const response = await fetch(`${API_URL}/connection_token`, {
       method: 'POST',
@@ -85,9 +117,27 @@ function App() {
       logLevel="verbose"
       tokenProvider={fetchTokenProvider}
     >
-      <Screen />
+      <App />
     </StripeTerminalProvider>
   );
+}
+```
+
+As a last step, simply call `initialize` method from `useStripeTerminal` hook.
+Please note that `initialize` method must be called from the nested component of `StripeTerminalProvider`.
+
+```tsx
+// App.tsx
+function App() {
+  const { initialize } = useStripeTerminal();
+
+  useEffect(() => {
+    initialize({
+      logLevel: 'verbose',
+    });
+  }, [initialize]);
+
+  return <View />;
 }
 ```
 
@@ -205,7 +255,7 @@ export default function PaymentScreen() {
       discoveryMethod: 'bluetoothScan',
       simulated: true,
     });
-  }, []);
+  }, [discoverReaders]);
 
   return <View />;
 }
@@ -222,13 +272,13 @@ Example:
 import {
   withStripeTerminal,
   WithStripeTerminalProps,
-  CHANGE_CONNECTION_STATUS_LISTENER_NAME,
+  CHANGE_CONNECTION_STATUS,
   Reader,
   componentDidMount() {
     this.discoverReaders();
 
     const eventSubscription = props.emitter.addListener(
-      CHANGE_CONNECTION_STATUS_LISTENER_NAME, // didChangeConnectionStatus
+      CHANGE_CONNECTION_STATUS, // didChangeConnectionStatus
       (status: Reader.ConnectionStatus) => {
         // access to the current connection status
       }
@@ -253,6 +303,9 @@ export default withStripeTerminal(PaymentScreen);
 - Set your api key in your environment
   - `cp example/.env.example example/.env`
   - edit `.env`
+
+To start and monitor each process:
+
 - Start the backend
   - `yarn example start:server`
 - Start the example
@@ -261,6 +314,61 @@ export default withStripeTerminal(PaymentScreen);
     - `yarn example ios`
     - or
     - `yarn example android`
+
+To launch the watcher, server, and perform an initial build you can run:
+
+- `yarn example ios:all`
+  or
+- `yarn example android:all`
+
+## Runing e2e tests
+
+### Android
+
+1. Create an Android emulator with a name that matches the name found in `.detoxrc.json`
+1. Run `yarn detox build --configuration android`
+1. Run `yarn e2e:test:android`
+
+### iOS
+
+prereqs: Ensure AppleSimulatorUtils are installed
+
+```
+brew tap wix/brew
+brew install applesimutils
+```
+
+1. Create an iOS simulator with a name that matches the name found in `.detoxrc.json`
+1. Run `yarn detox build --configuration ios`
+1. launch the simulator
+1. Run `yarn e2e:test:ios`
+
+## Deploying Example App
+
+// TODO - find a better location for this Stripe-specifc section prior to launch
+
+### Android
+
+The Android example app is deployed to [Firebase App Distribution](https://firebase.google.com/docs/app-distribution) via a CI job that executes after a successful merge to main:
+
+https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L265
+
+A unique APK is generated for each supported region (EU and US). See the [App Distribution Console](https://console.firebase.google.com/project/internal-terminal/appdistribution/app/android:com.example.stripeterminalreactnative/releases) to view releases, enable build access for users, and generate invite links.
+
+### iOS
+
+// TODO
+
+### Backend
+
+The Example backend is deployed to Heroku via a CI job that executes after a successful merge to main:
+
+https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L296
+
+A separate backend instance is generated for each supported region (EU and US):
+
+- https://stripe-terminal-rn-example-eu.herokuapp.com/
+- https://stripe-terminal-rn-example-us.herokuapp.com/
 
 ## Contributing
 

@@ -15,11 +15,14 @@ import {
   Reader,
 } from 'stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
+import type { StripeError } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
-import { useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
+
+import type { RouteParamList } from '../App';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -31,12 +34,12 @@ const SIMULATED_UPDATE_PLANS = [
 
 export default function DiscoverReadersScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReaders'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
-  const [connectingReaderId, setConnectingReaderId] = useState<string>();
+  const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
 
-  const { simulated, discoveryMethod } = params as Record<string, any>;
+  const { simulated, discoveryMethod } = params;
 
   const {
     cancelDiscovering,
@@ -52,22 +55,23 @@ export default function DiscoverReadersScreen() {
           'Discover readers error',
           `${finishError.code}, ${finishError.message}`
         );
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
       } else {
         console.log('onFinishDiscoveringReaders success');
       }
       setDiscoveringLoading(false);
     },
     onDidStartInstallingUpdate: (update) => {
-      const reader = discoveredReaders.find(
-        (r) => r.serialNumber === connectingReaderId
-      );
-
       navigation.navigate('UpdateReaderScreen', {
         update,
-        reader,
+        reader: connectingReader,
         onDidUpdate: () => {
           setTimeout(() => {
-            navigation.goBack();
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            }
           }, 500);
         },
       });
@@ -126,6 +130,9 @@ export default function DiscoverReadersScreen() {
     if (discoverReadersError) {
       const { code, message } = discoverReadersError;
       Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
     }
   };
 
@@ -135,55 +142,54 @@ export default function DiscoverReadersScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleConnectReader = async (id: string) => {
+  const handleConnectReader = async (reader: Reader.Type) => {
+    let error: StripeError | undefined;
     if (discoveryMethod === 'internet') {
-      const { error } = await handleConnectInternetReader(id);
-      if (error) {
-        Alert.alert(error.code, error.message);
-      } else if (selectedUpdatePlan !== 'required') {
-        navigation.goBack();
-      }
+      const result = await handleConnectInternetReader(reader);
+      error = result.error;
     } else if (
       discoveryMethod === 'bluetoothScan' ||
       discoveryMethod === 'bluetoothProximity'
     ) {
-      const { error } = await handleConnectBluetoothReader(id);
-      if (error) {
-        Alert.alert(error.code, error.message);
-      } else if (selectedUpdatePlan !== 'required') {
-        navigation.goBack();
-      }
+      const result = await handleConnectBluetoothReader(reader);
+      error = result.error;
+    }
+    if (error) {
+      setConnectingReader(undefined);
+      Alert.alert(error.code, error.message);
+    } else if (selectedUpdatePlan !== 'required' && navigation.canGoBack()) {
+      navigation.goBack();
     }
   };
 
-  const handleConnectBluetoothReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectBluetoothReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
-    const { reader, error } = await connectBluetoothReader({
-      readerId: id,
-      locationId: selectedLocation?.id,
+    const { reader: connectedReader, error } = await connectBluetoothReader({
+      reader,
+      locationId: selectedLocation?.id || reader?.location?.id,
     });
 
     if (error) {
       console.log('connectBluetoothReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };
 
-  const handleConnectInternetReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectInternetReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
-    const { reader, error } = await connectInternetReader({
-      readerId: id,
+    const { reader: connectedReader, error } = await connectInternetReader({
+      reader,
       failIfInUse: true,
     });
 
     if (error) {
       console.log('connectInternetReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };
@@ -230,25 +236,44 @@ export default function DiscoverReadersScreen() {
         )}
       </List>
 
-      {simulated && (
+      {simulated && discoveryMethod !== 'internet' && (
         <List title="SIMULATED UPDATE PLAN">
-          <ListItem
-            testID="update-plan-picker"
-            onPress={() => setShowPicker(true)}
-            title={mapToPlanDisplayName(selectedUpdatePlan)}
-          />
+          {Platform.OS !== 'ios' ? (
+            <Picker
+              selectedValue={selectedUpdatePlan}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+              testID="update-plan-picker"
+              onValueChange={(itemValue) => handleChangeUpdatePlan(itemValue)}
+            >
+              {SIMULATED_UPDATE_PLANS.map((plan) => (
+                <Picker.Item
+                  key={plan}
+                  label={mapToPlanDisplayName(plan)}
+                  testID={plan}
+                  value={plan}
+                />
+              ))}
+            </Picker>
+          ) : (
+            <ListItem
+              testID="update-plan-picker"
+              onPress={() => setShowPicker(true)}
+              title={mapToPlanDisplayName(selectedUpdatePlan)}
+            />
+          )}
         </List>
       )}
 
       <List
         title="NEARBY READERS"
         loading={discoveringLoading}
-        description={connectingReaderId ? 'Connecting...' : undefined}
+        description={connectingReader ? 'Connecting...' : undefined}
       >
         {discoveredReaders.map((reader) => (
           <ListItem
             key={reader.serialNumber}
-            onPress={() => handleConnectReader(reader.serialNumber)}
+            onPress={() => handleConnectReader(reader)}
             title={getReaderDisplayName(reader)}
             disabled={!isBTReader(reader) && reader.status === 'offline'}
           />
@@ -327,6 +352,15 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+        fontSize: 13,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.white,
+      },
+    }),
   },
   pickerItem: {
     fontSize: 16,

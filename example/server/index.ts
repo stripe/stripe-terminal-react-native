@@ -19,7 +19,7 @@ const stripe = new Stripe(secret_key as string, {
 });
 
 const app = express();
-const port = 3002;
+const port = process.env.PORT ? process.env.PORT : 3002;
 
 app.use(express.json());
 
@@ -127,6 +127,17 @@ app.post(
     }
   }
 );
+
+// 404 error handler - this should always be the last route
+app.use(function (req, res, _) {
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  res.status(404).send(
+    res.json({
+      errorCode: '404',
+      errorMessage: `Route not found ${url}`,
+    })
+  );
+});
 
 app.listen(port, () => {
   console.log('Running on port ' + port);

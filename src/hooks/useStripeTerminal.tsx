@@ -6,13 +6,14 @@ import type {
   ConnectInternetReaderParams,
   CreatePaymentIntentParams,
   ConnectBluetoothReaderParams,
-  ListLocationsParams,
+  GetLocationsParams,
   Cart,
   CreateSetupIntentParams,
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
   ReadReusableCardParamsType,
   PaymentStatus,
+  InitParams,
 } from '../types';
 import {
   discoverReaders,
@@ -23,7 +24,7 @@ import {
   createPaymentIntent,
   collectPaymentMethod,
   retrievePaymentIntent,
-  getListLocations,
+  getLocations,
   processPayment,
   createSetupIntent,
   cancelPaymentIntent,
@@ -47,27 +48,21 @@ import {
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+import { NativeModules } from 'react-native';
 
-// TODO: Get events names from react native constants
-export const UPDATE_DISCOVERED_READERS_LISTENER_NAME =
-  'didUpdateDiscoveredReaders';
-export const FINISH_DISCOVERING_READERS_LISTENER_NAME =
-  'didFinishDiscoveringReaders';
-export const REPORT_UNEXPECTED_READER_DISCONNECT =
-  'didReportUnexpectedReaderDisconnect';
-
-export const REPORT_AVAILABLE_UPDATE_LISTENER_NAME = 'didReportAvailableUpdate';
-export const START_INSTALLING_UPDATE_LISTENER_NAME = 'didStartInstallingUpdate';
-export const REPORT_UPDATE_PROGRESS_LISTENER_NAME =
-  'didReportReaderSoftwareUpdateProgress';
-export const FINISH_INSTALLING_UPDATE_LISTENER_NAME =
-  'didFinishInstallingUpdate';
-export const REQUEST_READER_INPUT_LISTENER_NAME = 'didRequestReaderInput';
-export const REQUEST_READER_DISPLAY_MESSAGE = 'didRequestReaderDisplayMessage';
-
-export const CHANGE_PAYMENT_STATUS_LISTENER_NAME = 'didChangePaymentStatus';
-export const CHANGE_CONNECTION_STATUS_LISTENER_NAME =
-  'didChangeConnectionStatus';
+export const {
+  CHANGE_CONNECTION_STATUS,
+  CHANGE_PAYMENT_STATUS,
+  FINISH_DISCOVERING_READERS,
+  FINISH_INSTALLING_UPDATE,
+  REQUEST_READER_DISPLAY_MESSAGE,
+  REQUEST_READER_INPUT,
+  REPORT_AVAILABLE_UPDATE,
+  REPORT_UNEXPECTED_READER_DISCONNECT,
+  REPORT_UPDATE_PROGRESS,
+  START_INSTALLING_UPDATE,
+  UPDATE_DISCOVERED_READERS,
+} = NativeModules.StripeTerminalReactNative.getConstants();
 
 /**
  *  useStripeTerminal hook Props
@@ -147,7 +142,7 @@ export function useStripeTerminal(props?: Props) {
 
       setDiscoveredReaders(readers);
       onUpdateDiscoveredReaders?.(readers);
-      emitter.emit(UPDATE_DISCOVERED_READERS_LISTENER_NAME);
+      emitter.emit(UPDATE_DISCOVERED_READERS);
     },
     [onUpdateDiscoveredReaders, setDiscoveredReaders, log]
   );
@@ -162,7 +157,7 @@ export function useStripeTerminal(props?: Props) {
         );
       }
       onFinishDiscoveringReaders?.(result.error);
-      emitter.emit(FINISH_DISCOVERING_READERS_LISTENER_NAME);
+      emitter.emit(FINISH_DISCOVERING_READERS);
     },
     [onFinishDiscoveringReaders, log]
   );
@@ -172,17 +167,24 @@ export function useStripeTerminal(props?: Props) {
       if (error) {
         log(`code: ${error.code}, message: ${error.message}`);
       }
+      setConnectedReader(null);
+      setDiscoveredReaders([]);
       onDidReportUnexpectedReaderDisconnect?.(error);
       emitter.emit(REPORT_UNEXPECTED_READER_DISCONNECT);
     },
-    [onDidReportUnexpectedReaderDisconnect, log]
+    [
+      onDidReportUnexpectedReaderDisconnect,
+      log,
+      setConnectedReader,
+      setDiscoveredReaders,
+    ]
   );
 
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didReportAvailableUpdate', result);
       onDidReportAvailableUpdate?.(result);
-      emitter.emit(REPORT_AVAILABLE_UPDATE_LISTENER_NAME);
+      emitter.emit(REPORT_AVAILABLE_UPDATE);
     },
     [onDidReportAvailableUpdate, log]
   );
@@ -191,7 +193,7 @@ export function useStripeTerminal(props?: Props) {
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didStartInstallingUpdate', result);
       onDidStartInstallingUpdate?.(result);
-      emitter.emit(START_INSTALLING_UPDATE_LISTENER_NAME);
+      emitter.emit(START_INSTALLING_UPDATE);
     },
     [onDidStartInstallingUpdate, log]
   );
@@ -200,7 +202,7 @@ export function useStripeTerminal(props?: Props) {
     ({ result }: EventResult<{ progress: string }>) => {
       log('didReportReaderSoftwareUpdateProgress', result);
       onDidReportReaderSoftwareUpdateProgress?.(result.progress);
-      emitter.emit(REPORT_UPDATE_PROGRESS_LISTENER_NAME);
+      emitter.emit(REPORT_UPDATE_PROGRESS);
     },
     [onDidReportReaderSoftwareUpdateProgress, log]
   );
@@ -209,7 +211,7 @@ export function useStripeTerminal(props?: Props) {
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didFinishInstallingUpdate', result);
       onDidFinishInstallingUpdate?.(result);
-      emitter.emit(FINISH_INSTALLING_UPDATE_LISTENER_NAME);
+      emitter.emit(FINISH_INSTALLING_UPDATE);
     },
     [onDidFinishInstallingUpdate, log]
   );
@@ -218,7 +220,7 @@ export function useStripeTerminal(props?: Props) {
     ({ result }: EventResult<Reader.InputOptions[]>) => {
       log('didRequestReaderInput', result);
       onDidRequestReaderInput?.(result);
-      emitter.emit(REQUEST_READER_INPUT_LISTENER_NAME);
+      emitter.emit(REQUEST_READER_INPUT);
     },
     [onDidRequestReaderInput, log]
   );
@@ -236,7 +238,7 @@ export function useStripeTerminal(props?: Props) {
     ({ result }: EventResult<PaymentStatus>) => {
       log('didChangePaymentStatus', result);
       onDidChangePaymentStatus?.(result);
-      emitter.emit(CHANGE_PAYMENT_STATUS_LISTENER_NAME);
+      emitter.emit(CHANGE_PAYMENT_STATUS);
     },
     [onDidChangePaymentStatus, log]
   );
@@ -245,41 +247,26 @@ export function useStripeTerminal(props?: Props) {
     ({ result }: EventResult<Reader.ConnectionStatus>) => {
       log('didChangeConnectionStatus', result);
       onDidChangeConnectionStatus?.(result);
-      emitter.emit(CHANGE_CONNECTION_STATUS_LISTENER_NAME);
+      emitter.emit(CHANGE_CONNECTION_STATUS);
     },
     [onDidChangeConnectionStatus, log]
   );
 
-  useListener(REPORT_AVAILABLE_UPDATE_LISTENER_NAME, didReportAvailableUpdate);
-  useListener(START_INSTALLING_UPDATE_LISTENER_NAME, didStartInstallingUpdate);
-  useListener(
-    REPORT_UPDATE_PROGRESS_LISTENER_NAME,
-    didReportReaderSoftwareUpdateProgress
-  );
-  useListener(
-    FINISH_INSTALLING_UPDATE_LISTENER_NAME,
-    didFinishInstallingUpdate
-  );
+  useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
+  useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
+  useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
+  useListener(FINISH_INSTALLING_UPDATE, didFinishInstallingUpdate);
 
-  useListener(
-    UPDATE_DISCOVERED_READERS_LISTENER_NAME,
-    didUpdateDiscoveredReaders
-  );
-  useListener(
-    FINISH_DISCOVERING_READERS_LISTENER_NAME,
-    didFinishDiscoveringReaders
-  );
+  useListener(UPDATE_DISCOVERED_READERS, didUpdateDiscoveredReaders);
+  useListener(FINISH_DISCOVERING_READERS, didFinishDiscoveringReaders);
   useListener(
     REPORT_UNEXPECTED_READER_DISCONNECT,
     didReportUnexpectedReaderDisconnect
   );
-  useListener(REQUEST_READER_INPUT_LISTENER_NAME, didRequestReaderInput);
+  useListener(REQUEST_READER_INPUT, didRequestReaderInput);
   useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
-  useListener(CHANGE_PAYMENT_STATUS_LISTENER_NAME, didChangePaymentStatus);
-  useListener(
-    CHANGE_CONNECTION_STATUS_LISTENER_NAME,
-    didChangeConnectionStatus
-  );
+  useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
+  useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
   const _discoverReaders = useCallback(
     async (params: DiscoverReadersParams) => {
@@ -290,6 +277,26 @@ export function useStripeTerminal(props?: Props) {
       return response;
     },
     [setLoading]
+  );
+
+  const _initialize = useCallback(
+    async (params: InitParams) => {
+      if (!initialize || typeof initialize !== 'function') {
+        const errorMessage =
+          'StripeTerminalProvider component is not found or has not been mounted properly';
+        log('Failed', errorMessage);
+        return {
+          error: {
+            code: 'Failed',
+            message: errorMessage,
+          },
+        };
+      }
+
+      const res = initialize(params);
+      return res;
+    },
+    [initialize, log]
   );
 
   const _cancelDiscovering = useCallback(async () => {
@@ -390,11 +397,11 @@ export function useStripeTerminal(props?: Props) {
     [setLoading]
   );
 
-  const _getListLocations = useCallback(
-    async (params: ListLocationsParams) => {
+  const _getLocations = useCallback(
+    async (params: GetLocationsParams) => {
       setLoading(true);
 
-      const response = await getListLocations(params);
+      const response = await getLocations(params);
 
       setLoading(false);
 
@@ -623,7 +630,7 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading]);
 
   return {
-    initialize,
+    initialize: _initialize,
     discoverReaders: _discoverReaders,
     cancelDiscovering: _cancelDiscovering,
     connectBluetoothReader: _connectBluetoothReader,
@@ -632,7 +639,7 @@ export function useStripeTerminal(props?: Props) {
     createPaymentIntent: _createPaymentIntent,
     collectPaymentMethod: _collectPaymentMethod,
     retrievePaymentIntent: _retrievePaymentIntent,
-    getListLocations: _getListLocations,
+    getLocations: _getLocations,
     processPayment: _processPayment,
     createSetupIntent: _createSetupIntent,
     cancelPaymentIntent: _cancelPaymentIntent,

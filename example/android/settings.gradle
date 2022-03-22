@@ -4,3 +4,12 @@ include ':app'
 
 include ':stripeterminalreactnative'
 project(':stripeterminalreactnative').projectDir = new File(rootProject.projectDir, '../../android')
+
+def buildCacheDir = System.getenv("ANDROID_BUILD_CACHE") ?: "/var/tmp/stripe-internal-android-rn-build-cache"
+
+buildCache {
+    local {
+        enabled = true
+        directory = buildCacheDir
+    }
+}

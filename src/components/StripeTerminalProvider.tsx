@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { Reader, InitParams, LogLevel } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
 import { useListener } from '../hooks/useListener';
+import { NativeModules } from 'react-native';
 
-const FETCH_TOKEN_PROVIDER_LISTENER_NAME = 'onFetchTokenProviderListener';
+const { FETCH_TOKEN_PROVIDER } =
+  NativeModules.StripeTerminalReactNative.getConstants();
 
 /**
  *  StripeTerminalProvider Component Props
@@ -59,13 +61,23 @@ export function StripeTerminalProvider({
     [logLevel]
   );
 
-  const tokenProviderHandler = useCallback(async () => {
-    const connectionToken = await tokenProvider();
+  const tokenProviderHandler = async () => {
+    try {
+      const connectionToken = await tokenProvider();
 
-    setConnectionToken(connectionToken);
-  }, [tokenProvider]);
+      setConnectionToken(connectionToken);
+    } catch (error) {
+      const errorMessage =
+        "Couldn't fetch connection token. Please check your tokenProvider method";
 
-  useListener(FETCH_TOKEN_PROVIDER_LISTENER_NAME, tokenProviderHandler);
+      setConnectionToken(undefined, errorMessage);
+
+      console.error(error);
+      console.error(errorMessage);
+    }
+  };
+
+  useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
   const _initialize = useCallback(
     async (params: InitParams) => {
@@ -90,23 +102,6 @@ export function StripeTerminalProvider({
     },
     [setLoading, setConnectedReader, setIsInitialized, log]
   );
-
-  useEffect(() => {
-    async function init() {
-      const { initialized, error: initError } = await _initialize({
-        logLevel,
-      });
-      if (!initError) {
-        setIsInitialized(initialized);
-      } else {
-        console.error(initError);
-      }
-      setLoading(false);
-    }
-    if (!isInitialized) {
-      init();
-    }
-  }, [_initialize, isInitialized, logLevel]);
 
   return (
     <StripeTerminalContext.Provider
