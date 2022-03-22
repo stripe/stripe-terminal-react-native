@@ -181,8 +181,8 @@ export default function DiscoverReadersScreen() {
   const handleConnectEmbeddedReader = async (id: string) => {
     setConnectingReaderId(id);
 
-    const { reader, error } = await connectEmbeddedReader({
-      readerId: id,
+    const { reader: connectedReader, error } = await connectEmbeddedReader({
+      reader,
       locationId: selectedLocation?.id,
     });
 
@@ -197,8 +197,8 @@ export default function DiscoverReadersScreen() {
   const handleConnectHandoffReader = async (id: string) => {
     setConnectingReaderId(id);
 
-    const { reader, error } = await connectHandoffReader({
-      readerId: id,
+    const { reader: connectedReader, error } = await connectHandoffReader({
+      reader,
       locationId: selectedLocation?.id,
     });
 
@@ -213,8 +213,8 @@ export default function DiscoverReadersScreen() {
   const handleConnectLocalMobileReader = async (id: string) => {
     setConnectingReaderId(id);
 
-    const { reader, error } = await connectLocalMobileReader({
-      readerId: id,
+    const { reader: connectedReader, error } = await connectLocalMobileReader({
+      reader,
       locationId: selectedLocation?.id,
     });
 

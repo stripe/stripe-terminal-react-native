@@ -43,17 +43,17 @@ export type ConnectUsbReaderParams = {
 };
 
 export type ConnectLocalMobileParams = {
-  readerId: string;
+  reader: Reader.Type;
   locationId?: string;
 };
 
 export type ConnectHandoffParams = {
-  readerId: string;
+  reader: Reader.Type;
   locationId?: string;
 };
 
 export type ConnectEmbeddedParams = {
-  readerId: string;
+  reader: Reader.Type;
   locationId?: string;
 };
 
