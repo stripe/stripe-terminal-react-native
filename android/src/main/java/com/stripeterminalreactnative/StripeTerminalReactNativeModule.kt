@@ -220,9 +220,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
-
         val simulated = getBoolean(params, "simulated")
-
         val config = DiscoveryConfiguration(0, discoveryMethod, simulated)
 
         discoverCancelable = Terminal.getInstance().discoverReaders(
