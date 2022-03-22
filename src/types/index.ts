@@ -37,6 +37,11 @@ export type ConnectBluetoothReaderParams = {
   locationId?: string;
 };
 
+export type ConnectUsbReaderParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
 export type LineItem = {
   displayName: string;
   quantity: number;
@@ -91,6 +96,13 @@ export type ConnectBluetoothReaderResultType =
   | { reader?: undefined; error: StripeError };
 
 export type ConnectInternetResultType =
+  | {
+      reader: Reader.Type;
+      error?: undefined;
+    }
+  | { reader?: undefined; error: StripeError };
+
+export type ConnectUsbReaderResultType =
   | {
       reader: Reader.Type;
       error?: undefined;

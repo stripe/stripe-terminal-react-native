@@ -6,6 +6,7 @@ import type {
   ConnectInternetReaderParams,
   CreatePaymentIntentParams,
   ConnectBluetoothReaderParams,
+  ConnectUsbReaderParams,
   GetLocationsParams,
   Cart,
   CreateSetupIntentParams,
@@ -21,6 +22,7 @@ import {
   connectBluetoothReader,
   disconnectReader,
   connectInternetReader,
+  connectUsbReader,
   createPaymentIntent,
   collectPaymentMethod,
   retrievePaymentIntent,
@@ -343,6 +345,22 @@ export function useStripeTerminal(props?: Props) {
     [setConnectedReader, setLoading]
   );
 
+  const _connectUsbReader = useCallback(
+    async (params: ConnectUsbReaderParams) => {
+      setLoading(true);
+
+      const response = await connectUsbReader(params);
+
+      if (response.reader && !response.error) {
+        setConnectedReader(response.reader);
+      }
+      setLoading(false);
+
+      return response;
+    },
+    [setConnectedReader, setLoading]
+  );
+
   const _disconnectReader = useCallback(async () => {
     setLoading(true);
 
@@ -636,6 +654,7 @@ export function useStripeTerminal(props?: Props) {
     connectBluetoothReader: _connectBluetoothReader,
     disconnectReader: _disconnectReader,
     connectInternetReader: _connectInternetReader,
+    connectUsbReader: _connectUsbReader,
     createPaymentIntent: _createPaymentIntent,
     collectPaymentMethod: _collectPaymentMethod,
     retrievePaymentIntent: _retrievePaymentIntent,

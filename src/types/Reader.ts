@@ -63,7 +63,8 @@ export namespace Reader {
     | 'internet'
     | 'embedded'
     | 'localMobile'
-    | 'handoff';
+    | 'handoff'
+    | 'usb';
 
   export type SimulateUpdateType =
     | 'random'

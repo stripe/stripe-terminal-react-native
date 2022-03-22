@@ -47,6 +47,7 @@ export default function DiscoverReadersScreen() {
     connectBluetoothReader,
     discoveredReaders,
     connectInternetReader,
+    connectUsbReader,
     simulateReaderUpdate,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
@@ -153,6 +154,9 @@ export default function DiscoverReadersScreen() {
     ) {
       const result = await handleConnectBluetoothReader(reader);
       error = result.error;
+    } else if (discoveryMethod === 'usb') {
+      const result = await handleConnectUsbReader(reader);
+      error = result.error;
     }
     if (error) {
       setConnectingReader(undefined);
@@ -188,6 +192,22 @@ export default function DiscoverReadersScreen() {
 
     if (error) {
       console.log('connectInternetReader error:', error);
+    } else {
+      console.log('Reader connected successfully', connectedReader);
+    }
+    return { error };
+  };
+
+  const handleConnectUsbReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
+
+    const { reader: connectedReader, error } = await connectUsbReader({
+      reader,
+      locationId: selectedLocation?.id || reader?.location?.id,
+    });
+
+    if (error) {
+      console.log('connectUsbReader error:', error);
     } else {
       console.log('Reader connected successfully', connectedReader);
     }

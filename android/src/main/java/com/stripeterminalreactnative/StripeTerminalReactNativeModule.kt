@@ -15,6 +15,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
+import com.stripe.stripeterminal.external.UsbConnectivity
 import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.callable.Cancelable
@@ -26,6 +27,7 @@ import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.callable.RefundCallback
 import com.stripe.stripeterminal.external.callable.SetupIntentCallback
 import com.stripe.stripeterminal.external.callable.TerminalListener
+import com.stripe.stripeterminal.external.callable.UsbReaderListener
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionStatus
@@ -479,6 +481,121 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     val result = WritableNativeMap()
                     result.putMap("reader", mapFromReader(reader))
                     promise.resolve(result)
+                }
+
+                override fun onFailure(e: TerminalException) {
+                    promise.resolve(createError(e))
+                }
+            }
+        )
+    }
+
+    @OptIn(UsbConnectivity::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun connectUsbReader(params: ReadableMap, promise: Promise) {
+        val reader = getMapOr(params, "reader") ?: run {
+            promise.resolve(
+                createError(
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide a reader object"
+                    )
+                )
+            )
+            return
+        }
+        val readerId = getStringOr(reader, "serialNumber")
+
+        val selectedReader = discoveredReadersList.find {
+            it.serialNumber == readerId
+        } ?: run {
+            promise.resolve(
+                createError(
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "Could not find reader with id $readerId"
+                    )
+                )
+            )
+            return
+        }
+
+        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id ?: run {
+            promise.resolve(
+                createError(
+                    TerminalException(
+                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide a locationId"
+                    )
+                )
+            )
+            return
+        }
+
+        val listener: UsbReaderListener = object : UsbReaderListener {
+            override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
+                sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
+                    putMap("result", mapFromReaderSoftwareUpdate(update))
+                }
+            }
+
+            override fun onStartInstallingUpdate(
+                update: ReaderSoftwareUpdate,
+                cancelable: Cancelable?
+            ) {
+                installUpdateCancelable = cancelable
+                sendEvent(START_INSTALLING_UPDATE.listenerName) {
+                    putMap("result", mapFromReaderSoftwareUpdate(update))
+                }
+            }
+
+            override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
+                sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
+                    putMap("result", nativeMapOf {
+                        putString("progress", progress.toString())
+                    })
+                }
+            }
+
+            override fun onFinishInstallingUpdate(
+                update: ReaderSoftwareUpdate?,
+                e: TerminalException?
+            ) {
+                sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
+                    update?.let {
+                        putMap("result", mapFromReaderSoftwareUpdate(update))
+                    } ?: run {
+                        putMap("result", WritableNativeMap())
+                    }
+                }
+            }
+
+            override fun onRequestReaderInput(options: ReaderInputOptions) {
+                sendEvent(REQUEST_READER_INPUT.listenerName) {
+                    putArray("result", mapFromReaderInputOptions(options))
+                }
+            }
+
+            override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
+                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
+                    putString("result", mapFromReaderDisplayMessage(message))
+                }
+                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
+                    putString("result", mapFromReaderDisplayMessage(message))
+                }
+            }
+        }
+
+        Terminal.getInstance().connectUsbReader(
+            selectedReader,
+            ConnectionConfiguration.UsbConnectionConfiguration(locationId),
+            listener,
+            object : ReaderCallback {
+                override fun onSuccess(reader: Reader) {
+                    promise.resolve(nativeMapOf {
+                        putMap("reader", mapFromReader(reader))
+                    })
                 }
 
                 override fun onFailure(e: TerminalException) {
@@ -960,6 +1077,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         reactApplicationContext
             .getJSModule(RCTDeviceEventEmitter::class.java)
             .emit(eventName, result)
+    }
+
+    private fun sendEvent(eventName: String, resultBuilder: WritableNativeMap.() -> Unit) {
+        reactApplicationContext
+            .getJSModule(RCTDeviceEventEmitter::class.java)
+            .emit(eventName, WritableNativeMap().apply {
+                resultBuilder()
+            })
     }
 
     private fun onPaymentIntentCallback(paymentIntent: PaymentIntent, promise: Promise) {
