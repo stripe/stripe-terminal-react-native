@@ -1,12 +1,10 @@
 package com.stripeterminalreactnative
 
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.stripeterminal.external.models.TerminalException
 
-internal fun createError(exception: TerminalException): WritableMap = WritableNativeMap().apply {
-    putMap("error", WritableNativeMap().apply {
+internal fun createError(exception: TerminalException): ReadableMap = nativeMapOf {
+    putMap("error", nativeMapOf {
         putString("message", exception.errorMessage)
         putString("code", exception.errorCode.toString())
     })

@@ -122,21 +122,15 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onConnectionStatusChange(status: ConnectionStatus) {
-                super.onConnectionStatusChange(status)
-
-                val result = WritableNativeMap()
-                result.putString("result", mapFromConnectionStatus(status))
-
-                sendEvent(CHANGE_CONNECTION_STATUS.listenerName, result)
+                sendEvent(CHANGE_CONNECTION_STATUS.listenerName) {
+                    putString("result", mapFromConnectionStatus(status))
+                }
             }
 
             override fun onPaymentStatusChange(status: PaymentStatus) {
-                super.onPaymentStatusChange(status)
-
-                val result = WritableNativeMap()
-                result.putString("result", mapFromPaymentStatus(status))
-
-                sendEvent(CHANGE_PAYMENT_STATUS.listenerName, result)
+                sendEvent(CHANGE_PAYMENT_STATUS.listenerName) {
+                    putString("result", mapFromPaymentStatus(status))
+                }
             }
         }
         val result = WritableNativeMap()
@@ -263,27 +257,22 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             object : DiscoveryListener {
                 override fun onUpdateDiscoveredReaders(readers: List<Reader>) {
                     discoveredReadersList = readers
-
-                    val readersArray = mapFromReaders(readers)
-                    val result = WritableNativeMap()
-                    result.putArray("readers", readersArray)
-
-                    sendEvent(UPDATE_DISCOVERED_READERS.listenerName, result)
+                    sendEvent(UPDATE_DISCOVERED_READERS.listenerName) {
+                        putArray("readers", mapFromReaders(readers))
+                    }
                 }
             },
             object : Callback {
                 override fun onSuccess() {
-                    val result = WritableNativeMap().apply {
+                    sendEvent(FINISH_DISCOVERING_READERS.listenerName) {
                         putMap("result", WritableNativeMap())
                     }
-                    sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    val result = WritableNativeMap().apply {
+                    sendEvent(FINISH_DISCOVERING_READERS.listenerName) {
                         putMap("result", createError(e))
                     }
-                    sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
                 }
             }
         )
@@ -362,62 +351,52 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         val listener: BluetoothReaderListener = object : BluetoothReaderListener {
             override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
-                super.onReportAvailableUpdate(update)
-                val result = WritableNativeMap()
-                result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                sendEvent(REPORT_AVAILABLE_UPDATE.listenerName, result)
+                sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
+                    putMap("result", mapFromReaderSoftwareUpdate(update))
+                }
             }
 
             override fun onStartInstallingUpdate(
                 update: ReaderSoftwareUpdate,
                 cancelable: Cancelable?
             ) {
-                super.onStartInstallingUpdate(update, cancelable)
-
                 installUpdateCancelable = cancelable
-
-                val result = WritableNativeMap()
-                result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                sendEvent(START_INSTALLING_UPDATE.listenerName, result)
+                sendEvent(START_INSTALLING_UPDATE.listenerName) {
+                    putMap("result", mapFromReaderSoftwareUpdate(update))
+                }
             }
 
             override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
-                super.onReportReaderSoftwareUpdateProgress(progress)
-                val result = WritableNativeMap()
-                val map = WritableNativeMap()
-                map.putString("progress", progress.toString())
-                result.putMap("result", map)
-                sendEvent(REPORT_UPDATE_PROGRESS.listenerName, result)
+                sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
+                    putMap("result", nativeMapOf {
+                        putString("progress", progress.toString())
+                    })
+                }
             }
 
             override fun onFinishInstallingUpdate(
                 update: ReaderSoftwareUpdate?,
                 e: TerminalException?
             ) {
-                super.onFinishInstallingUpdate(update, e)
-                val result = WritableNativeMap()
-                update?.let {
-                    result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                } ?: run {
-                    result.putMap("result", WritableNativeMap())
+                sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
+                    update?.let {
+                        putMap("result", mapFromReaderSoftwareUpdate(update))
+                    } ?: run {
+                        putMap("result", WritableNativeMap())
+                    }
                 }
-                sendEvent(FINISH_INSTALLING_UPDATE.listenerName, result)
             }
 
             override fun onRequestReaderInput(options: ReaderInputOptions) {
-                super.onRequestReaderInput(options)
-
-                val result = WritableNativeMap()
-                result.putArray("result", mapFromReaderInputOptions(options))
-                sendEvent(REQUEST_READER_INPUT.listenerName, result)
+                sendEvent(REQUEST_READER_INPUT.listenerName) {
+                    putArray("result", mapFromReaderInputOptions(options))
+                }
             }
 
             override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                super.onRequestReaderDisplayMessage(message)
-
-                val result = WritableNativeMap()
-                result.putString("result", mapFromReaderDisplayMessage(message))
-                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName, result)
+                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
+                    putString("result", mapFromReaderDisplayMessage(message))
+                }
             }
         }
 
@@ -427,9 +406,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             listener,
             object : ReaderCallback {
                 override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
+                    promise.resolve(nativeMapOf {
+                        putMap("reader", mapFromReader(reader))
+                    })
                 }
 
                 override fun onFailure(e: TerminalException) {
@@ -478,9 +457,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             connectionConfig,
             object : ReaderCallback {
                 override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
+                    promise.resolve(nativeMapOf {
+                        putMap("reader", mapFromReader(reader))
+                    })
                 }
 
                 override fun onFailure(e: TerminalException) {
@@ -638,7 +617,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             .createPaymentIntent(intentParams.build(), object : PaymentIntentCallback {
                 override fun onSuccess(paymentIntent: PaymentIntent) {
                     paymentIntents[paymentIntent.id] = paymentIntent
-
                     onPaymentIntentCallback(paymentIntent, promise)
                 }
 
@@ -666,7 +644,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             .collectPaymentMethod(paymentIntent, object : PaymentIntentCallback {
                 override fun onSuccess(paymentIntent: PaymentIntent) {
                     paymentIntents[paymentIntent.id] = paymentIntent
-
                     onPaymentIntentCallback(paymentIntent, promise)
                 }
 
@@ -682,7 +659,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         Terminal.getInstance().retrievePaymentIntent(clientSecret, object : PaymentIntentCallback {
             override fun onSuccess(paymentIntent: PaymentIntent) {
                 paymentIntents[paymentIntent.id] = paymentIntent
-
                 onPaymentIntentCallback(paymentIntent, promise)
             }
 
@@ -709,7 +685,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         Terminal.getInstance().processPayment(paymentIntent, object : PaymentIntentCallback {
             override fun onSuccess(paymentIntent: PaymentIntent) {
                 paymentIntents[paymentIntent.id] = paymentIntent
-
                 onPaymentIntentCallback(paymentIntent, promise)
             }
 
@@ -729,11 +704,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         Terminal.getInstance().listLocations(listParameters.build(), object : LocationListCallback {
             override fun onSuccess(locations: List<Location>, hasMore: Boolean) {
-                val list = mapFromListLocations(locations)
-                val result = WritableNativeMap()
-                result.putArray("locations", list)
-                result.putBoolean("hasMore", hasMore)
-                promise.resolve(result)
+                promise.resolve(nativeMapOf {
+                    putArray("locations", mapFromListLocations(locations))
+                    putBoolean("hasMore", hasMore)
+                })
             }
 
             override fun onFailure(e: TerminalException) {
@@ -933,13 +907,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
-        val params = SetupIntentCancellationParameters.Builder()
-            .build()
+        val params = SetupIntentCancellationParameters.Builder().build()
 
         Terminal.getInstance().cancelSetupIntent(setupIntent, params, object : SetupIntentCallback {
             override fun onSuccess(setupIntent: SetupIntent) {
                 setupIntents[setupIntent.id] = null
-
                 onSetupIntentCallback(setupIntent, promise)
             }
 
@@ -967,7 +939,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         Terminal.getInstance().confirmSetupIntent(setupIntent, object : SetupIntentCallback {
             override fun onSuccess(setupIntent: SetupIntent) {
                 setupIntents[setupIntent.id] = null
-
                 onSetupIntentCallback(setupIntent, promise)
             }
 
@@ -1034,13 +1005,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun processRefund(promise: Promise) {
         Terminal.getInstance().processRefund(object : RefundCallback {
             override fun onSuccess(refund: Refund) {
-                val rf = mapFromRefund(refund)
-                val result = WritableNativeMap().apply {
-                    putMap("refund", rf)
-                }
-
-                promise.resolve(result)
-
+                promise.resolve(nativeMapOf {
+                    putMap("refund", mapFromRefund(refund))
+                })
             }
 
             override fun onFailure(e: TerminalException) {
@@ -1059,12 +1026,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         readReusableCardCancelable = Terminal.getInstance()
             .readReusableCard(reusableCardParams, object : PaymentMethodCallback {
                 override fun onSuccess(paymentMethod: PaymentMethod) {
-                    val pm = mapFromPaymentMethod(paymentMethod)
-                    val result = WritableNativeMap().apply {
-                        putMap("paymentMethod", pm)
-                    }
-
-                    promise.resolve(result)
+                    promise.resolve(nativeMapOf {
+                        putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+                    })
                 }
 
                 override fun onFailure(e: TerminalException) {
@@ -1082,26 +1046,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private fun sendEvent(eventName: String, resultBuilder: WritableNativeMap.() -> Unit) {
         reactApplicationContext
             .getJSModule(RCTDeviceEventEmitter::class.java)
-            .emit(eventName, WritableNativeMap().apply {
+            .emit(eventName, nativeMapOf {
                 resultBuilder()
             })
     }
 
     private fun onPaymentIntentCallback(paymentIntent: PaymentIntent, promise: Promise) {
-        val pi = mapFromPaymentIntent(paymentIntent)
-        val result = WritableNativeMap().apply {
-            putMap("paymentIntent", pi)
-        }
-
-        promise.resolve(result)
+        promise.resolve(nativeMapOf {
+            putMap("paymentIntent", mapFromPaymentIntent(paymentIntent))
+        })
     }
 
     private fun onSetupIntentCallback(setupIntent: SetupIntent, promise: Promise) {
-        val si = mapFromSetupIntent(setupIntent)
-        val result = WritableNativeMap().apply {
-            putMap("setupIntent", si)
-        }
-
-        promise.resolve(result)
+        promise.resolve(nativeMapOf {
+            putMap("setupIntent", mapFromSetupIntent(setupIntent))
+        })
     }
 }
