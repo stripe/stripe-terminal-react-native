@@ -23,10 +23,10 @@ export default function DiscoveryMethodScreen() {
     <View style={styles.container}>
       <ListItem
         onPress={() => onSelect('bluetoothScan')}
-        title="Bluetooth scan"
+        title="Bluetooth Scan"
       />
       <Text style={styles.info}>
-        Discover a reader by scanning for Bluetooth LE devices.
+        Discover a reader by scanning for Bluetooth or Bluetooth LE devices.
       </Text>
       <ListItem
         onPress={() => onSelect('bluetoothProximity')}
@@ -46,6 +46,10 @@ export default function DiscoveryMethodScreen() {
       <Text style={styles.info}>
         Discovers readers that have been registered to your account via the
         Stripe API or Dashboard.
+      </Text>
+      <ListItem title="USB" onPress={() => onSelect('usb')} />
+      <Text style={styles.info}>
+        Discover a reader connected to this device via USB.
       </Text>
     </View>
   );

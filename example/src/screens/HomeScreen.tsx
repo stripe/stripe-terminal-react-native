@@ -153,6 +153,8 @@ function mapFromDiscoveryMethod(method: Reader.DiscoveryMethod) {
       return 'Bluetooth Proximity';
     case 'internet':
       return 'Internet';
+    case 'usb':
+      return 'USB';
     default:
       return '';
   }

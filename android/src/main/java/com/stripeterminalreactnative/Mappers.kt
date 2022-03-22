@@ -35,6 +35,12 @@ fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
     }
 }
 
+internal fun nativeMapOf(block: WritableNativeMap.() -> Unit): ReadableMap {
+    return WritableNativeMap().apply {
+        block()
+    }
+}
+
 internal fun mapFromReaders(readers: List<Reader>): WritableArray =
     readers.collectToWritableArray { mapFromReader(it) }
 
@@ -101,6 +107,7 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
         "embedded" -> DiscoveryMethod.EMBEDDED
         "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
         "handoff" -> DiscoveryMethod.HANDOFF
+        "usb" -> DiscoveryMethod.USB
         else -> null
     }
 }
