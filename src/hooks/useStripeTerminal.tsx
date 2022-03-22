@@ -45,6 +45,11 @@ import {
   cancelReadReusableCard,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
+import { useListener } from './useListener';
+import { NativeModules } from 'react-native';
+
+const { FETCH_TOKEN_PROVIDER } =
+  NativeModules.StripeTerminalReactNative.getConstants();
 
 /**
  *  useStripeTerminal hook Props
@@ -135,6 +140,11 @@ export function useStripeTerminal(props?: Props) {
     },
     [setLoading]
   );
+
+  // TODO: check why NativeEventListeners are not registering properly if there is no below fix
+  useListener(FETCH_TOKEN_PROVIDER, () => {
+    console.log('fetch!!!');
+  });
 
   const _initialize = useCallback(
     async (params: InitParams) => {
