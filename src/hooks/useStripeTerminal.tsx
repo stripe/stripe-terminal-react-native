@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useContext } from 'react';
 import type {
   DiscoverReadersParams,
   Reader,
@@ -101,34 +101,19 @@ export function useStripeTerminal(props?: Props) {
     onDidChangeConnectionStatus,
   } = props || {};
 
-  useEffect(() => {
-    setUserCallbacks({
-      onUpdateDiscoveredReaders,
-      onFinishDiscoveringReaders,
-      onDidFinishInstallingUpdate,
-      onDidReportAvailableUpdate,
-      onDidReportReaderSoftwareUpdateProgress,
-      onDidReportUnexpectedReaderDisconnect,
-      onDidStartInstallingUpdate,
-      onDidRequestReaderInput,
-      onDidRequestReaderDisplayMessage,
-      onDidChangePaymentStatus,
-      onDidChangeConnectionStatus,
-    });
-  }, [
-    onDidChangeConnectionStatus,
-    onDidChangePaymentStatus,
+  setUserCallbacks({
+    onUpdateDiscoveredReaders,
+    onFinishDiscoveringReaders,
     onDidFinishInstallingUpdate,
     onDidReportAvailableUpdate,
     onDidReportReaderSoftwareUpdateProgress,
     onDidReportUnexpectedReaderDisconnect,
-    onDidRequestReaderDisplayMessage,
-    onDidRequestReaderInput,
     onDidStartInstallingUpdate,
-    onFinishDiscoveringReaders,
-    onUpdateDiscoveredReaders,
-    setUserCallbacks,
-  ]);
+    onDidRequestReaderInput,
+    onDidRequestReaderDisplayMessage,
+    onDidChangePaymentStatus,
+    onDidChangeConnectionStatus,
+  });
 
   const _discoverReaders = useCallback(
     async (params: DiscoverReadersParams) => {
