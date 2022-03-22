@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     marginBottom: 12,
     borderBottomColor: colors.gray,
+    color: colors.dark_gray,
     ...Platform.select({
       ios: {
         borderBottomWidth: StyleSheet.hairlineWidth,

@@ -1,17 +1,19 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Reader, useStripeTerminal } from 'stripe-terminal-react-native';
+import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import icon from '../assets/icon.png';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 
+import type { RouteParamList } from '../App';
+
 export default function UpdateReaderScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<any, any>>();
-  const updateInfo = params?.update as Reader.SoftwareUpdate;
-  const reader = params?.reader as Reader.Type;
+  const { params } = useRoute<RouteProp<RouteParamList, 'UpdateReader'>>();
+  const updateInfo = params?.update;
+  const reader = params?.reader;
   const [currentProgress, setCurrentProgress] = useState<string>();
   const { cancelInstallingUpdate } = useStripeTerminal({
     onDidReportReaderSoftwareUpdateProgress: (progress) => {

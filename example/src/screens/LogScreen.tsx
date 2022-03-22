@@ -1,15 +1,15 @@
 import React from 'react';
 import { ScrollView, Text, StyleSheet, Dimensions } from 'react-native';
-import { useRoute } from '@react-navigation/core';
+import { useRoute, RouteProp } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import type { Event } from '../components/LogContext';
+import type { RouteParamList } from '../App';
 
 const LogScreen = () => {
-  const { params } = useRoute();
-  const { event, log } = params as Record<string, any>;
-  const { metadata } = event as Event;
+  const { params } = useRoute<RouteProp<RouteParamList, 'Log'>>();
+  const { event, log } = params;
+  const { metadata } = event;
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
