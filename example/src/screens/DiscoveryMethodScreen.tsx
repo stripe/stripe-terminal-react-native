@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import type { Reader } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import ListItem from '../components/ListItem';
@@ -28,14 +28,7 @@ export default function DiscoveryMethodScreen() {
       <Text style={styles.info}>
         Discover a reader by scanning for Bluetooth LE devices.
       </Text>
-      <ListItem
-        onPress={() => onSelect('bluetoothProximity')}
-        title="Bluetooth Proximity"
-      />
-      <Text style={styles.info}>
-        Discover a reader by holding it next to the iOS device (only supported
-        for the BBPOS Chipper 2X BT).
-      </Text>
+
       <Text style={styles.info}>
         {
           'Note: the Stripe Terminal SDK can discover supported readers automatically - you should not connect to the reader in the iOS Settings > Bluetooth page.'
@@ -47,6 +40,28 @@ export default function DiscoveryMethodScreen() {
         Discovers readers that have been registered to your account via the
         Stripe API or Dashboard.
       </Text>
+
+      {Platform.OS === 'android' ? (
+        <>
+          <ListItem onPress={() => onSelect('embedded')} title="Embedded" />
+          <ListItem onPress={() => onSelect('handoff')} title="Handoff" />
+          <ListItem
+            onPress={() => onSelect('localMobile')}
+            title="Local mobile"
+          />
+        </>
+      ) : (
+        <>
+          <ListItem
+            onPress={() => onSelect('bluetoothProximity')}
+            title="Bluetooth Proximity"
+          />
+          <Text style={styles.info}>
+            Discover a reader by holding it next to the iOS device (only
+            supported for the BBPOS Chipper 2X BT).
+          </Text>
+        </>
+      )}
     </View>
   );
 }

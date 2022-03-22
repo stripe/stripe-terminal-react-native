@@ -37,6 +37,21 @@ export type ConnectBluetoothReaderParams = {
   locationId?: string;
 };
 
+export type ConnectLocalMobileParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
+export type ConnectHandoffParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
+export type ConnectEmbeddedParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
 export type LineItem = {
   displayName: string;
   quantity: number;
@@ -83,14 +98,7 @@ export type CancelDiscoveringResultType = Promise<{
   error?: StripeError;
 }>;
 
-export type ConnectBluetoothReaderResultType =
-  | {
-      reader: Reader.Type;
-      error?: undefined;
-    }
-  | { reader?: undefined; error: StripeError };
-
-export type ConnectInternetResultType =
+export type ConnectReaderResultType =
   | {
       reader: Reader.Type;
       error?: undefined;

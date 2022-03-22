@@ -6,10 +6,8 @@ import type {
   DiscoverReadersResultType,
   ConnectBluetoothReaderParams,
   CancelDiscoveringResultType,
-  ConnectBluetoothReaderResultType,
   DisconnectReaderResultType,
   ConnectInternetReaderParams,
-  ConnectInternetResultType,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
@@ -25,6 +23,10 @@ import type {
   PaymentMethodResultType,
   ReadReusableCardParamsType,
   ProcessRefundResultType,
+  ConnectLocalMobileParams,
+  ConnectReaderResultType,
+  ConnectHandoffParams,
+  ConnectEmbeddedParams,
 } from './types';
 
 export async function initialize(
@@ -94,7 +96,7 @@ export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> 
 
 export async function connectBluetoothReader(
   params: ConnectBluetoothReaderParams
-): Promise<ConnectBluetoothReaderResultType> {
+): Promise<ConnectReaderResultType> {
   try {
     const { error, reader } = await StripeTerminalSdk.connectBluetoothReader(
       params
@@ -117,9 +119,84 @@ export async function connectBluetoothReader(
   }
 }
 
+export async function connectHandoffReader(
+  params: ConnectHandoffParams
+): Promise<ConnectReaderResultType> {
+  try {
+    const { error, reader } = await StripeTerminalSdk.connectHandoffReader(
+      params
+    );
+
+    if (error) {
+      return {
+        error,
+        reader: undefined,
+      };
+    }
+    return {
+      reader: reader!,
+      error: undefined,
+    };
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}
+
+export async function connectEmbeddedReader(
+  params: ConnectEmbeddedParams
+): Promise<ConnectReaderResultType> {
+  try {
+    const { error, reader } = await StripeTerminalSdk.connectEmbeddedReader(
+      params
+    );
+
+    if (error) {
+      return {
+        error,
+        reader: undefined,
+      };
+    }
+    return {
+      reader: reader!,
+      error: undefined,
+    };
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}
+
+export async function connectLocalMobileReader(
+  params: ConnectLocalMobileParams
+): Promise<ConnectReaderResultType> {
+  try {
+    const { error, reader } = await StripeTerminalSdk.connectLocalMobileReader(
+      params
+    );
+
+    if (error) {
+      return {
+        error,
+        reader: undefined,
+      };
+    }
+    return {
+      reader: reader!,
+      error: undefined,
+    };
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}
+
 export async function connectInternetReader(
   params: ConnectInternetReaderParams
-): Promise<ConnectInternetResultType> {
+): Promise<ConnectReaderResultType> {
   try {
     const { error, reader } = await StripeTerminalSdk.connectInternetReader(
       params

@@ -14,6 +14,8 @@ import type {
   ReadReusableCardParamsType,
   PaymentStatus,
   InitParams,
+  ConnectEmbeddedParams,
+  ConnectLocalMobileParams,
 } from '../types';
 import {
   discoverReaders,
@@ -44,6 +46,9 @@ import {
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
   cancelReadReusableCard,
+  connectEmbeddedReader,
+  connectHandoffReader,
+  connectLocalMobileReader,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -332,6 +337,54 @@ export function useStripeTerminal(props?: Props) {
       setLoading(true);
 
       const response = await connectInternetReader(params);
+
+      if (response.reader) {
+        setConnectedReader(response.reader);
+      }
+      setLoading(false);
+
+      return response;
+    },
+    [setConnectedReader, setLoading]
+  );
+
+  const _connectEmbeddedReader = useCallback(
+    async (params: ConnectEmbeddedParams) => {
+      setLoading(true);
+
+      const response = await connectEmbeddedReader(params);
+
+      if (response.reader) {
+        setConnectedReader(response.reader);
+      }
+      setLoading(false);
+
+      return response;
+    },
+    [setConnectedReader, setLoading]
+  );
+
+  const _connectLocalMobileReader = useCallback(
+    async (params: ConnectLocalMobileParams) => {
+      setLoading(true);
+
+      const response = await connectLocalMobileReader(params);
+
+      if (response.reader) {
+        setConnectedReader(response.reader);
+      }
+      setLoading(false);
+
+      return response;
+    },
+    [setConnectedReader, setLoading]
+  );
+
+  const _connectHandoffReader = useCallback(
+    async (params: ConnectEmbeddedParams) => {
+      setLoading(true);
+
+      const response = await connectHandoffReader(params);
 
       if (response.reader) {
         setConnectedReader(response.reader);
@@ -659,6 +712,9 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
     cancelReadReusableCard: _cancelReadReusableCard,
+    connectEmbeddedReader: _connectEmbeddedReader,
+    connectHandoffReader: _connectHandoffReader,
+    connectLocalMobileReader: _connectLocalMobileReader,
     emitter: emitter,
     discoveredReaders,
     connectedReader,

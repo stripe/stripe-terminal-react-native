@@ -48,6 +48,9 @@ export default function DiscoverReadersScreen() {
     discoveredReaders,
     connectInternetReader,
     simulateReaderUpdate,
+    connectEmbeddedReader,
+    connectLocalMobileReader,
+    connectHandoffReader,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
       if (finishError) {
@@ -151,15 +154,73 @@ export default function DiscoverReadersScreen() {
       discoveryMethod === 'bluetoothScan' ||
       discoveryMethod === 'bluetoothProximity'
     ) {
-      const result = await handleConnectBluetoothReader(reader);
-      error = result.error;
+      const results = await handleConnectBluetoothReader(reader);
+      error = results.error;
+    } else if (discoveryMethod === 'localMobile') {
+      const results = await handleConnectLocalMobileReader(reader);
+      error = results.error;
+    } else if (discoveryMethod === 'handoff') {
+      const results = await handleConnectHandoffReader(reader);
+      error = results.error;
+    } else if (discoveryMethod === 'embedded') {
+      const results = await handleConnectEmbeddedReader(reader);
+      error = results.error;
     }
+
     if (error) {
       setConnectingReader(undefined);
       Alert.alert(error.code, error.message);
     } else if (selectedUpdatePlan !== 'required' && navigation.canGoBack()) {
       navigation.goBack();
     }
+  };
+
+  const handleConnectEmbeddedReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
+
+    const { reader: connectedReader, error } = await connectEmbeddedReader({
+      reader,
+      locationId: selectedLocation?.id,
+    });
+
+    if (error) {
+      console.log('connectEmbeddedReader error:', error);
+    } else {
+      console.log('Reader connected successfully', connectedReader);
+    }
+    return { error };
+  };
+
+  const handleConnectHandoffReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
+
+    const { reader: connectedReader, error } = await connectHandoffReader({
+      reader,
+      locationId: selectedLocation?.id,
+    });
+
+    if (error) {
+      console.log('connectHandoffReader error:', error);
+    } else {
+      console.log('Reader connected successfully', connectedReader);
+    }
+    return { error };
+  };
+
+  const handleConnectLocalMobileReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
+
+    const { reader: connectedReader, error } = await connectLocalMobileReader({
+      reader,
+      locationId: selectedLocation?.id,
+    });
+
+    if (error) {
+      console.log('connectLocalMobileReader error:', error);
+    } else {
+      console.log('Reader connected successfully', connectedReader);
+    }
+    return { error };
   };
 
   const handleConnectBluetoothReader = async (reader: Reader.Type) => {
