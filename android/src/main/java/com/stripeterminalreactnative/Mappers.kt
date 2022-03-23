@@ -4,20 +4,10 @@ import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.log.LogLevel
 
-fun getStringOr(map: ReadableMap, key: String, default: String? = null): String? =
-    if (map.hasKey(key)) map.getString(key) else default
-
-fun getIntOr(map: ReadableMap, key: String, default: Int? = null): Int? =
-    if (map.hasKey(key)) map.getInt(key) else default
+fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
 
 fun getBoolean(map: ReadableMap, key: String): Boolean =
     if (map.hasKey(key)) map.getBoolean(key) else false
-
-fun getMapOr(map: ReadableMap, key: String, default: ReadableMap? = null): ReadableMap? =
-    if (map.hasKey(key)) map.getMap(key) else default
-
-fun getArrayOr(map: ReadableMap, key: String, default: ReadableArray? = null): ReadableArray? =
-    if (map.hasKey(key)) map.getArray(key) else default
 
 fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
@@ -44,7 +34,7 @@ internal fun nativeMapOf(block: WritableNativeMap.() -> Unit): ReadableMap {
 internal fun mapFromReaders(readers: List<Reader>): WritableArray =
     readers.collectToWritableArray { mapFromReader(it) }
 
-internal fun mapFromReader(reader: Reader): WritableMap = WritableNativeMap().apply {
+internal fun mapFromReader(reader: Reader): ReadableMap = nativeMapOf {
     putString("label", reader.label)
     putString("serialNumber", reader.serialNumber)
     putString("id", reader.id)
@@ -112,23 +102,17 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
     }
 }
 
-internal fun createResult(key: String, value: WritableMap): WritableMap =
-    WritableNativeMap().apply {
-        putMap(key, value)
-    }
+internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent): ReadableMap = nativeMapOf {
+    putInt("amount", paymentIntent.amount.toInt())
+    putString("currency", paymentIntent.currency)
+    putString("id", paymentIntent.id)
+    putString("description", paymentIntent.description)
+    putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
+    putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+    putString("created", convertToUnixTimestamp(paymentIntent.created))
+}
 
-internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent): WritableMap =
-    WritableNativeMap().apply {
-        putInt("amount", paymentIntent.amount.toInt())
-        putString("currency", paymentIntent.currency)
-        putString("id", paymentIntent.id)
-        putString("description", paymentIntent.description)
-        putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
-        putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
-        putString("created", convertToUnixTimestamp(paymentIntent.created))
-    }
-
-internal fun mapFromSetupIntent(setupIntent: SetupIntent): WritableMap = WritableNativeMap().apply {
+internal fun mapFromSetupIntent(setupIntent: SetupIntent): ReadableMap = nativeMapOf {
     putString("created", convertToUnixTimestamp(setupIntent.created))
     putString("id", setupIntent.id)
     putString("status", mapFromSetupIntentStatus(setupIntent.status))
@@ -143,8 +127,8 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent): WritableMap = Writabl
     putString("singleUseMandateId", setupIntent.singleUseMandateId)
 }
 
-internal fun mapFromSetupAttempt(attempt: SetupAttempt?): WritableMap? = attempt?.let {
-    WritableNativeMap().apply {
+internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt?.let {
+    nativeMapOf {
         putString("created", convertToUnixTimestamp(it.created))
         putString("id", it.id)
         putString("status", mapFromSetupAttemptStatus(it.status))
@@ -164,15 +148,15 @@ internal fun mapFromSetupAttempt(attempt: SetupAttempt?): WritableMap? = attempt
 
 internal fun mapFromSetupIntentPaymentMethodDetails(
     details: SetupIntentPaymentMethodDetails
-): WritableMap = WritableNativeMap().apply {
+): ReadableMap = nativeMapOf {
     putMap("cardPresent", mapFromSetupIntentCardPresentDetails(details.cardPresentDetails))
     putMap("interacPresent", mapFromSetupIntentCardPresentDetails(details.interacPresentDetails))
 }
 
 internal fun mapFromSetupIntentCardPresentDetails(
     details: SetupIntentCardPresentDetails?
-): WritableMap? = details?.let {
-    WritableNativeMap().apply {
+): ReadableMap? = details?.let {
+    nativeMapOf {
         putString("emvAuthData", it.emvAuthData)
         putString("generatedCard", it.generatedCard)
     }
@@ -229,7 +213,7 @@ internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String 
     }
 }
 
-internal fun mapFromCharge(reader: Charge): WritableMap = WritableNativeMap().apply {
+internal fun mapFromCharge(reader: Charge): ReadableMap = nativeMapOf {
     putString("id", reader.id)
     putString("status", reader.status)
     putString("currency", reader.currency)
@@ -237,8 +221,8 @@ internal fun mapFromCharge(reader: Charge): WritableMap = WritableNativeMap().ap
     putString("description", reader.description)
 }
 
-internal fun mapFromLocation(location: Location?): WritableMap? = location?.let {
-    WritableNativeMap().apply {
+internal fun mapFromLocation(location: Location?): ReadableMap? = location?.let {
+    nativeMapOf {
         putString("id", it.id)
         putString("displayName", it.displayName)
 
@@ -256,8 +240,8 @@ internal fun mapFromLocation(location: Location?): WritableMap? = location?.let 
     }
 }
 
-internal fun mapFromAddress(address: Address?): WritableMap? = address?.let {
-    WritableNativeMap().apply {
+internal fun mapFromAddress(address: Address?): ReadableMap? = address?.let {
+    nativeMapOf {
         putString("country", it.country)
         putString("city", it.city)
         putString("postalCode", it.postalCode)
@@ -327,12 +311,11 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
     }
 }
 
-
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
 internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): ReadableMap? =
     update?.let {
-        WritableNativeMap().apply {
+        nativeMapOf {
             putString("deviceSoftwareVersion", it.version)
             putString(
                 "estimatedUpdateTime",
@@ -366,7 +349,7 @@ internal fun mapToCartLineItem(cartLineItem: HashMap<*, *>): CartLineItem? {
     return CartLineItem.Builder(displayName, amount.toInt(), quantity.toLong()).build()
 }
 
-internal fun mapFromRefund(refund: Refund): WritableMap = WritableNativeMap().apply {
+internal fun mapFromRefund(refund: Refund): ReadableMap = nativeMapOf {
     putIntOrNull(this, "amount", refund.amount?.toInt())
     putString("balanceTransaction", refund.balanceTransaction)
     putString("chargeId", refund.chargeId)
@@ -383,26 +366,24 @@ internal fun mapFromRefund(refund: Refund): WritableMap = WritableNativeMap().ap
     putString("transferReversal", refund.transferReversal)
 }
 
-internal fun mapFromCardDetails(cardDetails: CardDetails?): WritableMap =
-    WritableNativeMap().apply {
-        putString("brand", cardDetails?.brand)
-        putString("country", cardDetails?.country)
-        putInt("expMonth", cardDetails?.expMonth ?: 0)
-        putInt("expYear", cardDetails?.expYear ?: 0)
-        putString("fingerprint", cardDetails?.fingerprint)
-        putString("funding", cardDetails?.funding)
-        putString("last4", cardDetails?.last4)
-    }
+internal fun mapFromCardDetails(cardDetails: CardDetails?): ReadableMap = nativeMapOf {
+    putString("brand", cardDetails?.brand)
+    putString("country", cardDetails?.country)
+    putInt("expMonth", cardDetails?.expMonth ?: 0)
+    putInt("expYear", cardDetails?.expYear ?: 0)
+    putString("fingerprint", cardDetails?.fingerprint)
+    putString("funding", cardDetails?.funding)
+    putString("last4", cardDetails?.last4)
+}
 
-internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap =
-    WritableNativeMap().apply {
-        putString("id", paymentMethod.id)
-        putString("customer", paymentMethod.customer)
-        putBoolean("livemode", paymentMethod.livemode)
-        putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
-    }
+internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): ReadableMap = nativeMapOf {
+    putString("id", paymentMethod.id)
+    putString("customer", paymentMethod.customer)
+    putBoolean("livemode", paymentMethod.livemode)
+    putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
+}
 
-private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> WritableMap?) =
+private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?) =
     fold(WritableNativeArray()) { writableArray, item ->
         writableArray.pushMap(transform(item)); writableArray
     }

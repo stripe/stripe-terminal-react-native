@@ -76,6 +76,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
 
+    private val terminal: Terminal
+        get() = Terminal.getInstance()
+
     init {
         TokenProvider.tokenProviderCallback = object : TokenProviderCallback {
             override fun invoke() {
@@ -122,27 +125,21 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onConnectionStatusChange(status: ConnectionStatus) {
-                super.onConnectionStatusChange(status)
-
-                val result = WritableNativeMap()
-                result.putString("result", mapFromConnectionStatus(status))
-
-                sendEvent(CHANGE_CONNECTION_STATUS.listenerName, result)
+                sendEvent(CHANGE_CONNECTION_STATUS.listenerName) {
+                    putString("result", mapFromConnectionStatus(status))
+                }
             }
 
             override fun onPaymentStatusChange(status: PaymentStatus) {
-                super.onPaymentStatusChange(status)
-
-                val result = WritableNativeMap()
-                result.putString("result", mapFromPaymentStatus(status))
-
-                sendEvent(CHANGE_PAYMENT_STATUS.listenerName, result)
+                sendEvent(CHANGE_PAYMENT_STATUS.listenerName) {
+                    putString("result", mapFromPaymentStatus(status))
+                }
             }
         }
         val result = WritableNativeMap()
 
         if (!Terminal.isInitialized()) {
-            val logLevel = mapToLogLevel(getStringOr(params, "logLevel"))
+            val logLevel = mapToLogLevel(params.getString("logLevel"))
 
             Terminal.initTerminal(
                 this.reactApplicationContext.applicationContext,
@@ -151,7 +148,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 listener
             )
         } else {
-            Terminal.getInstance().connectedReader?.let {
+            terminal.connectedReader?.let {
                 result.putMap("reader", mapFromReader(it))
             }
         }
@@ -161,17 +158,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelCollectPaymentMethod(promise: Promise) {
-        val cancelable = collectPaymentMethodCancelable ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
-                        "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."
-                    )
-                )
-            )
-            return
+    fun cancelCollectPaymentMethod(promise: Promise) = withExceptionResolver(promise) {
+        val cancelable = requireCancelable(collectPaymentMethodCancelable) {
+            "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."
         }
         cancelable.cancel(object : Callback {
             override fun onSuccess() {
@@ -186,17 +175,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelCollectSetupIntent(promise: Promise) {
-        val cancelable = collectSetupIntentCancelable ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
-                        "collectSetupIntent could not be canceled because the command has already been canceled or has completed."
-                    )
-                )
-            )
-            return
+    fun cancelCollectSetupIntent(promise: Promise) = withExceptionResolver(promise) {
+        val cancelable = requireCancelable(collectSetupIntentCancelable) {
+            "collectSetupIntent could not be canceled because the command has already been canceled or has completed."
         }
         cancelable.cancel(object : Callback {
             override fun onSuccess() {
@@ -213,77 +194,53 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun simulateReaderUpdate(update: String, promise: Promise) {
         val updateMapped = mapFromSimulateReaderUpdate(update)
-        Terminal.getInstance().simulatorConfiguration = SimulatorConfiguration(updateMapped)
+        terminal.simulatorConfiguration = SimulatorConfiguration(updateMapped)
         promise.resolve(WritableNativeMap())
     }
 
     @ReactMethod
     @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
-        val token = getStringOr(params, "token")
-        val error = getStringOr(params, "error")
+        val token = params.getString("token")
+        val error = params.getString("error")
         TokenProvider.setConnectionToken(token, error)
         promise.resolve(null)
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun discoverReaders(params: ReadableMap, promise: Promise) {
-        val discoveryMethodParam = getStringOr(params, "discoveryMethod") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a discoveryMethod"
-                    )
-                )
-            )
-            return
+    fun discoverReaders(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val discoveryMethodParam = requireParam(params.getString("discoveryMethod")) {
+            "You must provide a discoveryMethod"
         }
-
-        val discoveryMethod = mapToDiscoveryMethod(discoveryMethodParam) ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Unknown discoveryMethod: $discoveryMethodParam"
-                    )
-                )
-            )
-            return
+        val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
+            "Unknown discoveryMethod: $discoveryMethodParam"
         }
-
 
         val simulated = getBoolean(params, "simulated")
-
         val config = DiscoveryConfiguration(0, discoveryMethod, simulated)
 
-        discoverCancelable = Terminal.getInstance().discoverReaders(
+        discoverCancelable = terminal.discoverReaders(
             config,
             object : DiscoveryListener {
                 override fun onUpdateDiscoveredReaders(readers: List<Reader>) {
                     discoveredReadersList = readers
-
-                    val readersArray = mapFromReaders(readers)
-                    val result = WritableNativeMap()
-                    result.putArray("readers", readersArray)
-
-                    sendEvent(UPDATE_DISCOVERED_READERS.listenerName, result)
+                    sendEvent(UPDATE_DISCOVERED_READERS.listenerName) {
+                        putArray("readers", mapFromReaders(readers))
+                    }
                 }
             },
             object : Callback {
                 override fun onSuccess() {
-                    val result = WritableNativeMap().apply {
+                    sendEvent(FINISH_DISCOVERING_READERS.listenerName) {
                         putMap("result", WritableNativeMap())
                     }
-                    sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
                 }
 
                 override fun onFailure(e: TerminalException) {
-                    val result = WritableNativeMap().apply {
+                    sendEvent(FINISH_DISCOVERING_READERS.listenerName) {
                         putMap("result", createError(e))
                     }
-                    sendEvent(FINISH_DISCOVERING_READERS.listenerName, result)
                 }
             }
         )
@@ -291,17 +248,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelDiscovering(promise: Promise) {
-        val cancelable = discoverCancelable ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
-                        "discoverReaders could not be canceled because the command has already been canceled or has completed."
-                    )
-                )
-            )
-            return
+    fun cancelDiscovering(promise: Promise) = withExceptionResolver(promise) {
+        val cancelable = requireCancelable(discoverCancelable) {
+            "discoverReaders could not be canceled because the command has already been canceled or has completed."
         }
         cancelable.cancel(object : Callback {
             override fun onSuccess() {
@@ -316,221 +265,152 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
-        val reader = getMapOr(params, "reader") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a reader object"
-                    )
-                )
-            )
-            return
-        }
-        val readerId = getStringOr(reader, "serialNumber") as String
+    fun connectBluetoothReader(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val reader = requireParam(params.getMap("reader")) {
+                "You must provide a reader object"
+            }
+            val readerId = reader.getString("serialNumber") as String
 
-        val selectedReader = discoveredReadersList.find {
-            it.serialNumber == readerId
-        } ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Could not find reader with id $readerId"
-                    )
-                )
-            )
-            return
-        }
-
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a locationId"
-                    )
-                )
-            )
-            return
-        }
-
-        val connectionConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
-            locationId
-        )
-
-        val listener: BluetoothReaderListener = object : BluetoothReaderListener {
-            override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
-                super.onReportAvailableUpdate(update)
-                val result = WritableNativeMap()
-                result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                sendEvent(REPORT_AVAILABLE_UPDATE.listenerName, result)
+            val selectedReader = requireParam(discoveredReadersList.find {
+                it.serialNumber == readerId
+            }) {
+                "Could not find reader with id $readerId"
             }
 
-            override fun onStartInstallingUpdate(
-                update: ReaderSoftwareUpdate,
-                cancelable: Cancelable?
-            ) {
-                super.onStartInstallingUpdate(update, cancelable)
-
-                installUpdateCancelable = cancelable
-
-                val result = WritableNativeMap()
-                result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                sendEvent(START_INSTALLING_UPDATE.listenerName, result)
-            }
-
-            override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
-                super.onReportReaderSoftwareUpdateProgress(progress)
-                val result = WritableNativeMap()
-                val map = WritableNativeMap()
-                map.putString("progress", progress.toString())
-                result.putMap("result", map)
-                sendEvent(REPORT_UPDATE_PROGRESS.listenerName, result)
-            }
-
-            override fun onFinishInstallingUpdate(
-                update: ReaderSoftwareUpdate?,
-                e: TerminalException?
-            ) {
-                super.onFinishInstallingUpdate(update, e)
-                val result = WritableNativeMap()
-                update?.let {
-                    result.putMap("result", mapFromReaderSoftwareUpdate(update))
-                } ?: run {
-                    result.putMap("result", WritableNativeMap())
-                }
-                sendEvent(FINISH_INSTALLING_UPDATE.listenerName, result)
-            }
-
-            override fun onRequestReaderInput(options: ReaderInputOptions) {
-                super.onRequestReaderInput(options)
-
-                val result = WritableNativeMap()
-                result.putArray("result", mapFromReaderInputOptions(options))
-                sendEvent(REQUEST_READER_INPUT.listenerName, result)
-            }
-
-            override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                super.onRequestReaderDisplayMessage(message)
-
-                val result = WritableNativeMap()
-                result.putString("result", mapFromReaderDisplayMessage(message))
-                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName, result)
-            }
-        }
-
-        Terminal.getInstance().connectBluetoothReader(
-            selectedReader,
-            connectionConfig,
-            listener,
-            object : ReaderCallback {
-                override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
+            val locationId =
+                requireParam(params.getString("locationId") ?: selectedReader.location?.id) {
+                    "You must provide a locationId"
                 }
 
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
+            val connectionConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
+                locationId
+            )
+
+            val listener: BluetoothReaderListener = object : BluetoothReaderListener {
+                override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
+                    sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
+                        putMap("result", mapFromReaderSoftwareUpdate(update))
+                    }
+                }
+
+                override fun onStartInstallingUpdate(
+                    update: ReaderSoftwareUpdate,
+                    cancelable: Cancelable?
+                ) {
+                    installUpdateCancelable = cancelable
+                    sendEvent(START_INSTALLING_UPDATE.listenerName) {
+                        putMap("result", mapFromReaderSoftwareUpdate(update))
+                    }
+                }
+
+                override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
+                    sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
+                        putMap("result", nativeMapOf {
+                            putString("progress", progress.toString())
+                        })
+                    }
+                }
+
+                override fun onFinishInstallingUpdate(
+                    update: ReaderSoftwareUpdate?,
+                    e: TerminalException?
+                ) {
+                    sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
+                        update?.let {
+                            putMap("result", mapFromReaderSoftwareUpdate(update))
+                        } ?: run {
+                            putMap("result", WritableNativeMap())
+                        }
+                    }
+                }
+
+                override fun onRequestReaderInput(options: ReaderInputOptions) {
+                    sendEvent(REQUEST_READER_INPUT.listenerName) {
+                        putArray("result", mapFromReaderInputOptions(options))
+                    }
+                }
+
+                override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
+                    sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
+                        putString("result", mapFromReaderDisplayMessage(message))
+                    }
                 }
             }
-        )
-    }
+
+            terminal.connectBluetoothReader(
+                selectedReader,
+                connectionConfig,
+                listener,
+                object : ReaderCallback {
+                    override fun onSuccess(reader: Reader) {
+                        promise.resolve(nativeMapOf {
+                            putMap("reader", mapFromReader(reader))
+                        })
+                    }
+
+                    override fun onFailure(e: TerminalException) {
+                        promise.resolve(createError(e))
+                    }
+                }
+            )
+        }
 
     @ReactMethod
     @Suppress("unused")
-    fun connectInternetReader(params: ReadableMap, promise: Promise) {
-        val reader = getMapOr(params, "reader") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a reader object"
-                    )
-                )
-            )
-            return
-        }
-        val readerId = getStringOr(reader, "serialNumber") as String
-
-        val selectedReader = discoveredReadersList.find {
-            it.serialNumber == readerId
-        } ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Could not find reader with id $readerId"
-                    )
-                )
-            )
-            return
-        }
-
-        val connectionConfig = ConnectionConfiguration.InternetConnectionConfiguration(
-            failIfInUse = getBoolean(params, "failIfInUse")
-        )
-
-        Terminal.getInstance().connectInternetReader(
-            selectedReader,
-            connectionConfig,
-            object : ReaderCallback {
-                override fun onSuccess(reader: Reader) {
-                    val result = WritableNativeMap()
-                    result.putMap("reader", mapFromReader(reader))
-                    promise.resolve(result)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
+    fun connectInternetReader(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val reader = requireParam(params.getMap("reader")) {
+                "You must provide a reader object"
             }
-        )
-    }
+            val readerId = reader.getString("serialNumber") as String
+
+            val selectedReader = requireParam(discoveredReadersList.find {
+                it.serialNumber == readerId
+            }) {
+                "Could not find reader with id $readerId"
+            }
+
+            val connectionConfig = ConnectionConfiguration.InternetConnectionConfiguration(
+                failIfInUse = getBoolean(params, "failIfInUse")
+            )
+
+            terminal.connectInternetReader(
+                selectedReader,
+                connectionConfig,
+                object : ReaderCallback {
+                    override fun onSuccess(reader: Reader) {
+                        promise.resolve(nativeMapOf {
+                            putMap("reader", mapFromReader(reader))
+                        })
+                    }
+
+                    override fun onFailure(e: TerminalException) {
+                        promise.resolve(createError(e))
+                    }
+                }
+            )
+        }
 
     @OptIn(UsbConnectivity::class)
     @ReactMethod
     @Suppress("unused")
-    fun connectUsbReader(params: ReadableMap, promise: Promise) {
-        val reader = getMapOr(params, "reader") ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a reader object"
-                    )
-                )
-            )
-            return
+    fun connectUsbReader(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val reader = requireParam(params.getMap("reader")) {
+            "You must provide a reader object"
         }
-        val readerId = getStringOr(reader, "serialNumber")
+        val readerId = reader.getString("serialNumber")
 
-        val selectedReader = discoveredReadersList.find {
-            it.serialNumber == readerId
-        } ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "Could not find reader with id $readerId"
-                    )
-                )
-            )
-            return
+        val selectedReader = requireParam(
+            discoveredReadersList.find { it.serialNumber == readerId }
+        ) {
+            "Could not find reader with id $readerId"
         }
 
-        val locationId = getStringOr(params, "locationId") ?: selectedReader.location?.id ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide a locationId"
-                    )
-                )
-            )
-            return
+        val locationId = requireParam(
+            params.getString("locationId") ?: selectedReader.location?.id
+        ) {
+            "You must provide a locationId"
         }
 
         val listener: UsbReaderListener = object : UsbReaderListener {
@@ -587,7 +467,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        Terminal.getInstance().connectUsbReader(
+        terminal.connectUsbReader(
             selectedReader,
             ConnectionConfiguration.UsbConnectionConfiguration(locationId),
             listener,
@@ -608,7 +488,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun disconnectReader(promise: Promise) {
-        Terminal.getInstance().disconnectReader(object : Callback {
+        terminal.disconnectReader(object : Callback {
             override fun onSuccess() {
                 promise.resolve(WritableNativeMap())
             }
@@ -622,9 +502,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
-        val amount = getIntOr(params, "amount") ?: 0
-        val currency = getStringOr(params, "currency") ?: ""
-        val setupFutureUsage = getStringOr(params, "currency")
+        val amount = getInt(params, "amount") ?: 0
+        val currency = params.getString("currency") ?: ""
+        val setupFutureUsage = params.getString("currency")
 
         val intentParams = PaymentIntentParameters.Builder()
             .setAmount(amount.toLong())
@@ -634,55 +514,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             intentParams.setSetupFutureUsage(it)
         }
 
-        Terminal.getInstance()
-            .createPaymentIntent(intentParams.build(), object : PaymentIntentCallback {
-                override fun onSuccess(paymentIntent: PaymentIntent) {
-                    paymentIntents[paymentIntent.id] = paymentIntent
-
-                    onPaymentIntentCallback(paymentIntent, promise)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
-            })
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun collectPaymentMethod(paymentIntentId: String, promise: Promise) {
-        val paymentIntent = paymentIntents[paymentIntentId] ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "There is no associated paymentIntent with id $paymentIntentId"
-                    )
-                )
-            )
-            return
-        }
-        collectPaymentMethodCancelable = Terminal.getInstance()
-            .collectPaymentMethod(paymentIntent, object : PaymentIntentCallback {
-                override fun onSuccess(paymentIntent: PaymentIntent) {
-                    paymentIntents[paymentIntent.id] = paymentIntent
-
-                    onPaymentIntentCallback(paymentIntent, promise)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
-            })
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
-        Terminal.getInstance().retrievePaymentIntent(clientSecret, object : PaymentIntentCallback {
+        terminal.createPaymentIntent(intentParams.build(), object : PaymentIntentCallback {
             override fun onSuccess(paymentIntent: PaymentIntent) {
                 paymentIntents[paymentIntent.id] = paymentIntent
-
                 onPaymentIntentCallback(paymentIntent, promise)
             }
 
@@ -694,22 +528,50 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun processPayment(paymentIntentId: String, promise: Promise) {
-        val paymentIntent = paymentIntents[paymentIntentId] ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "There is no associated paymentIntent with id $paymentIntentId"
-                    )
-                )
-            )
-            return
+    fun collectPaymentMethod(paymentIntentId: String, promise: Promise) =
+        withExceptionResolver(promise) {
+            val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
+                "There is no associated paymentIntent with id $paymentIntentId"
+            }
+            collectPaymentMethodCancelable = terminal
+                .collectPaymentMethod(paymentIntent, object : PaymentIntentCallback {
+                    override fun onSuccess(paymentIntent: PaymentIntent) {
+                        paymentIntents[paymentIntent.id] = paymentIntent
+                        onPaymentIntentCallback(paymentIntent, promise)
+                    }
+
+                    override fun onFailure(e: TerminalException) {
+                        promise.resolve(createError(e))
+                    }
+                })
         }
-        Terminal.getInstance().processPayment(paymentIntent, object : PaymentIntentCallback {
+
+    @ReactMethod
+    @Suppress("unused")
+    fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
+        terminal.retrievePaymentIntent(clientSecret, object : PaymentIntentCallback {
             override fun onSuccess(paymentIntent: PaymentIntent) {
                 paymentIntents[paymentIntent.id] = paymentIntent
+                onPaymentIntentCallback(paymentIntent, promise)
+            }
 
+            override fun onFailure(e: TerminalException) {
+                promise.resolve(createError(e))
+            }
+        })
+    }
+
+
+    @ReactMethod
+    @Suppress("unused")
+    fun processPayment(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
+        val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
+            "There is no associated paymentIntent with id $paymentIntentId"
+        }
+
+        terminal.processPayment(paymentIntent, object : PaymentIntentCallback {
+            override fun onSuccess(paymentIntent: PaymentIntent) {
+                paymentIntents[paymentIntent.id] = paymentIntent
                 onPaymentIntentCallback(paymentIntent, promise)
             }
 
@@ -723,17 +585,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun getLocations(params: ReadableMap, promise: Promise) {
         val listParameters = ListLocationsParameters.Builder()
-        listParameters.endingBefore = getStringOr(params, "endingBefore")
-        listParameters.startingAfter = getStringOr(params, "startingAfter")
-        listParameters.limit = getIntOr(params, "endingBefore")
+        listParameters.endingBefore = params.getString("endingBefore")
+        listParameters.startingAfter = params.getString("startingAfter")
+        listParameters.limit = getInt(params, "endingBefore")
 
-        Terminal.getInstance().listLocations(listParameters.build(), object : LocationListCallback {
+        terminal.listLocations(listParameters.build(), object : LocationListCallback {
             override fun onSuccess(locations: List<Location>, hasMore: Boolean) {
-                val list = mapFromListLocations(locations)
-                val result = WritableNativeMap()
-                result.putArray("locations", list)
-                result.putBoolean("hasMore", hasMore)
-                promise.resolve(result)
+                promise.resolve(nativeMapOf {
+                    putArray("locations", mapFromListLocations(locations))
+                    putBoolean("hasMore", hasMore)
+                })
             }
 
             override fun onFailure(e: TerminalException) {
@@ -745,14 +606,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
-        val intentParams = getStringOr(params, "customer")?.let { customerId ->
+        val intentParams = params.getString("customer")?.let { customerId ->
             SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
-        Terminal.getInstance().createSetupIntent(intentParams, object : SetupIntentCallback {
+        terminal.createSetupIntent(intentParams, object : SetupIntentCallback {
             override fun onSuccess(setupIntent: SetupIntent) {
                 setupIntents[setupIntent.id] = setupIntent
-
                 onSetupIntentCallback(setupIntent, promise)
             }
 
@@ -765,10 +625,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
-        Terminal.getInstance().retrieveSetupIntent(clientSecret, object : SetupIntentCallback {
+        terminal.retrieveSetupIntent(clientSecret, object : SetupIntentCallback {
             override fun onSuccess(setupIntent: SetupIntent) {
                 setupIntents[setupIntent.id] = setupIntent
-
                 onSetupIntentCallback(setupIntent, promise)
             }
 
@@ -780,42 +639,27 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) {
-        val paymentIntent = paymentIntents[paymentIntentId] ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "There is no associated paymentIntent with id $paymentIntentId"
-                    )
-                )
-            )
-            return
-        }
-        Terminal.getInstance().cancelPaymentIntent(paymentIntent, object : PaymentIntentCallback {
-            override fun onSuccess(paymentIntent: PaymentIntent) {
-                onPaymentIntentCallback(paymentIntent, promise)
+    fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) =
+        withExceptionResolver(promise) {
+            val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
+                "There is no associated paymentIntent with id $paymentIntentId"
             }
+            terminal.cancelPaymentIntent(paymentIntent, object : PaymentIntentCallback {
+                override fun onSuccess(paymentIntent: PaymentIntent) {
+                    onPaymentIntentCallback(paymentIntent, promise)
+                }
 
-            override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(e))
-            }
-        })
-    }
+                override fun onFailure(e: TerminalException) {
+                    promise.resolve(createError(e))
+                }
+            })
+        }
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelReadReusableCard(promise: Promise) {
-        val cancelable = readReusableCardCancelable ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.CANCEL_FAILED,
-                        "readReusableCard could not be canceled because the command has already been canceled or has completed."
-                    )
-                )
-            )
-            return
+    fun cancelReadReusableCard(promise: Promise) = withExceptionResolver(promise) {
+        val cancelable = requireCancelable(readReusableCardCancelable) {
+            "readReusableCard could not be canceled because the command has already been canceled or has completed."
         }
         cancelable.cancel(object : Callback {
             override fun onSuccess() {
@@ -830,39 +674,32 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) {
-        val setupIntentId = getStringOr(params, "setupIntentId")
-        val customerConsentCollected = getBoolean(params, "customerConsentCollected")
+    fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val setupIntentId = params.getString("setupIntentId")
+            val customerConsentCollected = getBoolean(params, "customerConsentCollected")
 
-        val setupIntent = setupIntents[setupIntentId] ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "There is no created paymentIntent with id $setupIntentId"
-                    )
-                )
-            )
-            return
+            val setupIntent = requireParam(setupIntents[setupIntentId]) {
+                "There is no created paymentIntent with id $setupIntentId"
+            }
+            collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
+                setupIntent,
+                customerConsentCollected,
+                object : SetupIntentCallback {
+                    override fun onSuccess(setupIntent: SetupIntent) {
+                        onSetupIntentCallback(setupIntent, promise)
+                    }
+
+                    override fun onFailure(e: TerminalException) {
+                        promise.resolve(createError(e))
+                    }
+                })
         }
-        collectSetupIntentCancelable = Terminal.getInstance().collectSetupIntentPaymentMethod(
-            setupIntent,
-            customerConsentCollected,
-            object : SetupIntentCallback {
-                override fun onSuccess(setupIntent: SetupIntent) {
-                    onSetupIntentCallback(setupIntent, promise)
-                }
-
-                override fun onFailure(e: TerminalException) {
-                    promise.resolve(createError(e))
-                }
-            })
-    }
 
     @ReactMethod
     @Suppress("unused")
     fun installAvailableUpdate(promise: Promise) {
-        Terminal.getInstance().installAvailableUpdate()
+        terminal.installAvailableUpdate()
         promise.resolve(WritableNativeMap())
     }
 
@@ -882,32 +719,28 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setReaderDisplay(params: ReadableMap, promise: Promise) {
-        validateRequiredParameters(params, listOf("currency", "tax", "total"))?.let {
-            promise.resolve(
-                TerminalException(
-                    TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                    "You must provide $it parameters."
-                )
-            )
-            return
+    fun setReaderDisplay(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val currency = requireParam(params.getString("currency")) {
+            "You must provide a currency value"
+        }
+        val tax = requireParam(getInt(params, "total")?.toLong()) {
+            "You must provide a tax value"
+        }
+        val total = requireParam(getInt(params, "total")?.toLong()) {
+            "You must provide a total value"
         }
 
-        val currency = getStringOr(params, "currency")
-        val tax = getIntOr(params, "total")?.toLong()
-        val total = getIntOr(params, "total")?.toLong()
-
         val cartLineItems =
-            mapToCartLineItems(getArrayOr(params, "lineItems") ?: WritableNativeArray())
+            mapToCartLineItems(params.getArray("lineItems") ?: WritableNativeArray())
 
         val cart = Cart.Builder(
-            currency = currency!!,
-            tax = tax!!,
-            total = total!!,
+            currency = currency,
+            tax = tax,
+            total = total,
             lineItems = cartLineItems
         ).build()
 
-        Terminal.getInstance().setReaderDisplay(cart, object : Callback {
+        terminal.setReaderDisplay(cart, object : Callback {
             override fun onSuccess() {
                 promise.resolve(WritableNativeMap())
             }
@@ -920,67 +753,50 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelSetupIntent(setupIntentId: String, promise: Promise) {
-        val setupIntent = setupIntents[setupIntentId] ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "There is no associated setupIntent with id $setupIntentId"
-                    )
-                )
-            )
-            return
+    fun cancelSetupIntent(setupIntentId: String, promise: Promise) =
+        withExceptionResolver(promise) {
+            val setupIntent = requireParam(setupIntents[setupIntentId]) {
+                "There is no associated setupIntent with id $setupIntentId"
+            }
+
+            val params = SetupIntentCancellationParameters.Builder().build()
+
+            terminal.cancelSetupIntent(setupIntent, params, object : SetupIntentCallback {
+                override fun onSuccess(setupIntent: SetupIntent) {
+                    setupIntents[setupIntent.id] = null
+                    onSetupIntentCallback(setupIntent, promise)
+                }
+
+                override fun onFailure(e: TerminalException) {
+                    promise.resolve(createError(e))
+                }
+            })
         }
-
-        val params = SetupIntentCancellationParameters.Builder()
-            .build()
-
-        Terminal.getInstance().cancelSetupIntent(setupIntent, params, object : SetupIntentCallback {
-            override fun onSuccess(setupIntent: SetupIntent) {
-                setupIntents[setupIntent.id] = null
-
-                onSetupIntentCallback(setupIntent, promise)
-            }
-
-            override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(e))
-            }
-        })
-    }
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmSetupIntent(setupIntentId: String, promise: Promise) {
-        val setupIntent = setupIntents[setupIntentId] ?: run {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "There is no associated setupIntent with id $setupIntentId"
-                    )
-                )
-            )
-            return
+    fun confirmSetupIntent(setupIntentId: String, promise: Promise) =
+        withExceptionResolver(promise) {
+            val setupIntent = requireParam(setupIntents[setupIntentId]) {
+                "There is no associated setupIntent with id $setupIntentId"
+            }
+
+            terminal.confirmSetupIntent(setupIntent, object : SetupIntentCallback {
+                override fun onSuccess(setupIntent: SetupIntent) {
+                    setupIntents[setupIntent.id] = null
+                    onSetupIntentCallback(setupIntent, promise)
+                }
+
+                override fun onFailure(e: TerminalException) {
+                    promise.resolve(createError(e))
+                }
+            })
         }
-
-        Terminal.getInstance().confirmSetupIntent(setupIntent, object : SetupIntentCallback {
-            override fun onSuccess(setupIntent: SetupIntent) {
-                setupIntents[setupIntent.id] = null
-
-                onSetupIntentCallback(setupIntent, promise)
-            }
-
-            override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(e))
-            }
-        })
-    }
 
     @ReactMethod
     @Suppress("unused")
     fun clearReaderDisplay(promise: Promise) {
-        Terminal.getInstance().clearReaderDisplay(object : Callback {
+        terminal.clearReaderDisplay(object : Callback {
             override fun onSuccess() {
                 promise.resolve(WritableNativeMap())
             }
@@ -993,54 +809,46 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun collectRefundPaymentMethod(params: ReadableMap, promise: Promise) {
-        validateRequiredParameters(params, listOf("chargeId", "amount", "currency"))?.let {
-            promise.resolve(
-                createError(
-                    TerminalException(
-                        TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                        "You must provide $it parameters."
-                    )
-                )
-            )
-            return
+    fun collectRefundPaymentMethod(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val chargeId = requireParam(params.getString("chargeId")) {
+                "You must provide a chargeId"
+            }
+            val amount = requireParam(getInt(params, "amount")?.toLong()) {
+                "You must provide an amount"
+            }
+            val currency = requireParam(params.getString("currency")) {
+                "You must provide a currency value"
+            }
+
+            val intentParams = RefundParameters.Builder(chargeId, amount, currency).build()
+
+            terminal.collectRefundPaymentMethod(intentParams, object : Callback {
+                override fun onSuccess() {
+                    promise.resolve(WritableNativeMap())
+                }
+
+                override fun onFailure(e: TerminalException) {
+                    promise.resolve(createError(e))
+                }
+            })
         }
-        val chargeId = getStringOr(params, "chargeId") ?: ""
-        val amount = getIntOr(params, "amount")?.toLong() ?: 0
-        val currency = getStringOr(params, "currency") ?: ""
-
-        val intentParams = RefundParameters.Builder(chargeId, amount, currency).build()
-
-        Terminal.getInstance().collectRefundPaymentMethod(intentParams, object : Callback {
-            override fun onSuccess() {
-                promise.resolve(WritableNativeMap())
-            }
-
-            override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(e))
-            }
-        })
-    }
 
     @ReactMethod
     @Suppress("unused")
     fun clearCachedCredentials(promise: Promise) {
-        Terminal.getInstance().clearCachedCredentials()
+        terminal.clearCachedCredentials()
         promise.resolve(WritableNativeMap())
     }
 
     @ReactMethod
     @Suppress("unused")
     fun processRefund(promise: Promise) {
-        Terminal.getInstance().processRefund(object : RefundCallback {
+        terminal.processRefund(object : RefundCallback {
             override fun onSuccess(refund: Refund) {
-                val rf = mapFromRefund(refund)
-                val result = WritableNativeMap().apply {
-                    putMap("refund", rf)
-                }
-
-                promise.resolve(result)
-
+                promise.resolve(nativeMapOf {
+                    putMap("refund", mapFromRefund(refund))
+                })
             }
 
             override fun onFailure(e: TerminalException) {
@@ -1052,19 +860,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun readReusableCard(params: ReadableMap, promise: Promise) {
-        val reusableCardParams = getStringOr(params, "customer")?.let { customerId ->
+        val reusableCardParams = params.getString("customer")?.let { customerId ->
             ReadReusableCardParameters.Builder().setCustomer(customerId).build()
         } ?: ReadReusableCardParameters.NULL
 
-        readReusableCardCancelable = Terminal.getInstance()
+        readReusableCardCancelable = terminal
             .readReusableCard(reusableCardParams, object : PaymentMethodCallback {
                 override fun onSuccess(paymentMethod: PaymentMethod) {
-                    val pm = mapFromPaymentMethod(paymentMethod)
-                    val result = WritableNativeMap().apply {
-                        putMap("paymentMethod", pm)
-                    }
-
-                    promise.resolve(result)
+                    promise.resolve(nativeMapOf {
+                        putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+                    })
                 }
 
                 override fun onFailure(e: TerminalException) {
@@ -1082,26 +887,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private fun sendEvent(eventName: String, resultBuilder: WritableNativeMap.() -> Unit) {
         reactApplicationContext
             .getJSModule(RCTDeviceEventEmitter::class.java)
-            .emit(eventName, WritableNativeMap().apply {
+            .emit(eventName, nativeMapOf {
                 resultBuilder()
             })
     }
 
     private fun onPaymentIntentCallback(paymentIntent: PaymentIntent, promise: Promise) {
-        val pi = mapFromPaymentIntent(paymentIntent)
-        val result = WritableNativeMap().apply {
-            putMap("paymentIntent", pi)
-        }
-
-        promise.resolve(result)
+        promise.resolve(nativeMapOf {
+            putMap("paymentIntent", mapFromPaymentIntent(paymentIntent))
+        })
     }
 
     private fun onSetupIntentCallback(setupIntent: SetupIntent, promise: Promise) {
-        val si = mapFromSetupIntent(setupIntent)
-        val result = WritableNativeMap().apply {
-            putMap("setupIntent", si)
-        }
-
-        promise.resolve(result)
+        promise.resolve(nativeMapOf {
+            putMap("setupIntent", mapFromSetupIntent(setupIntent))
+        })
     }
 }
