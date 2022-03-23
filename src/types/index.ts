@@ -250,6 +250,22 @@ type CardDetails = {
   last4: string;
 };
 
+export type UserCallbacks = {
+  onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
+  onFinishDiscoveringReaders?(error?: StripeError): void;
+  onDidReportUnexpectedReaderDisconnect?(error?: StripeError): void;
+  onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
+  onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
+  onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
+  onDidFinishInstallingUpdate?(update: Reader.SoftwareUpdate): void;
+
+  onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
+  onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;
+
+  onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
+  onDidChangePaymentStatus?(status: PaymentStatus): void;
+};
+
 export namespace PaymentMethod {
   export type Type = IOS.Type &
     Android.Props & {
