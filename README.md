@@ -55,11 +55,11 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 - Compatible with apps targeting iOS 10 or above.
 
-### Expo initialization
+### Using with Expo
 
-> This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
+This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
 
-> First install the package with yarn, npm, or [`expo install`](https://docs.expo.io/workflow/expo-cli/#expo-install).
+First install the package with yarn, npm, or [`expo install`](https://docs.expo.io/workflow/expo-cli/#expo-install).
 
 ```sh
 expo install stripe-terminal-react-native
@@ -69,19 +69,21 @@ After installing this npm package, add the [config plugin](https://docs.expo.io/
 
 ```json
 {
-  // ...
-  "plugins": [
-    [
-      // ...
-      "stripe-terminal-react-native",
-      {
-        "bluetoothBackgroundMode": true,
-        "locationWhenInUsePermission": "Location access is required in order to accept payments.",
-        "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
-        "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
-      }
+  expo: {
+    // ...
+    "plugins": [
+      [
+        "stripe-terminal-react-native",
+        {
+          "bluetoothBackgroundMode": true,
+          "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+          "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+          "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+        }
+      ],
+      …
     ]
-  ]
+  }
 }
 ```
 
