@@ -139,7 +139,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val result = WritableNativeMap()
 
         if (!Terminal.isInitialized()) {
-            val logLevel = mapToLogLevel(getStringOr(params, "logLevel"))
+            val logLevel = mapToLogLevel(params.getString("logLevel"))
 
             Terminal.initTerminal(
                 this.reactApplicationContext.applicationContext,
@@ -201,8 +201,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
-        val token = getStringOr(params, "token")
-        val error = getStringOr(params, "error")
+        val token = params.getString("token")
+        val error = params.getString("error")
         TokenProvider.setConnectionToken(token, error)
         promise.resolve(null)
     }
@@ -210,7 +210,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun discoverReaders(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val discoveryMethodParam = requireParam(getStringOr(params, "discoveryMethod")) {
+        val discoveryMethodParam = requireParam(params.getString("discoveryMethod")) {
             "You must provide a discoveryMethod"
         }
         val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
@@ -267,10 +267,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun connectBluetoothReader(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val reader = requireParam(getMapOr(params, "reader")) {
+            val reader = requireParam(params.getMap("reader")) {
                 "You must provide a reader object"
             }
-            val readerId = getStringOr(reader, "serialNumber") as String
+            val readerId = reader.getString("serialNumber") as String
 
             val selectedReader = requireParam(discoveredReadersList.find {
                 it.serialNumber == readerId
@@ -279,7 +279,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             val locationId =
-                requireParam(getStringOr(params, "locationId") ?: selectedReader.location?.id) {
+                requireParam(params.getString("locationId") ?: selectedReader.location?.id) {
                     "You must provide a locationId"
                 }
 
@@ -360,10 +360,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun connectInternetReader(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val reader = requireParam(getMapOr(params, "reader")) {
+            val reader = requireParam(params.getMap("reader")) {
                 "You must provide a reader object"
             }
-            val readerId = getStringOr(reader, "serialNumber") as String
+            val readerId = reader.getString("serialNumber") as String
 
             val selectedReader = requireParam(discoveredReadersList.find {
                 it.serialNumber == readerId
@@ -396,10 +396,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun connectUsbReader(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val reader = requireParam(getMapOr(params, "reader")) {
+        val reader = requireParam(params.getMap("reader")) {
             "You must provide a reader object"
         }
-        val readerId = getStringOr(reader, "serialNumber")
+        val readerId = reader.getString("serialNumber")
 
         val selectedReader = requireParam(
             discoveredReadersList.find { it.serialNumber == readerId }
@@ -408,7 +408,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         val locationId = requireParam(
-            getStringOr(params, "locationId") ?: selectedReader.location?.id
+            params.getString("locationId") ?: selectedReader.location?.id
         ) {
             "You must provide a locationId"
         }
@@ -502,9 +502,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
-        val amount = getIntOr(params, "amount") ?: 0
-        val currency = getStringOr(params, "currency") ?: ""
-        val setupFutureUsage = getStringOr(params, "currency")
+        val amount = getInt(params, "amount") ?: 0
+        val currency = params.getString("currency") ?: ""
+        val setupFutureUsage = params.getString("currency")
 
         val intentParams = PaymentIntentParameters.Builder()
             .setAmount(amount.toLong())
@@ -585,9 +585,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun getLocations(params: ReadableMap, promise: Promise) {
         val listParameters = ListLocationsParameters.Builder()
-        listParameters.endingBefore = getStringOr(params, "endingBefore")
-        listParameters.startingAfter = getStringOr(params, "startingAfter")
-        listParameters.limit = getIntOr(params, "endingBefore")
+        listParameters.endingBefore = params.getString("endingBefore")
+        listParameters.startingAfter = params.getString("startingAfter")
+        listParameters.limit = getInt(params, "endingBefore")
 
         terminal.listLocations(listParameters.build(), object : LocationListCallback {
             override fun onSuccess(locations: List<Location>, hasMore: Boolean) {
@@ -606,7 +606,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
-        val intentParams = getStringOr(params, "customer")?.let { customerId ->
+        val intentParams = params.getString("customer")?.let { customerId ->
             SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
@@ -676,7 +676,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentId = getStringOr(params, "setupIntentId")
+            val setupIntentId = params.getString("setupIntentId")
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
 
             val setupIntent = requireParam(setupIntents[setupIntentId]) {
@@ -720,18 +720,18 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setReaderDisplay(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val currency = requireParam(getStringOr(params, "currency")) {
+        val currency = requireParam(params.getString("currency")) {
             "You must provide a currency value"
         }
-        val tax = requireParam(getIntOr(params, "total")?.toLong()) {
+        val tax = requireParam(getInt(params, "total")?.toLong()) {
             "You must provide a tax value"
         }
-        val total = requireParam(getIntOr(params, "total")?.toLong()) {
+        val total = requireParam(getInt(params, "total")?.toLong()) {
             "You must provide a total value"
         }
 
         val cartLineItems =
-            mapToCartLineItems(getArrayOr(params, "lineItems") ?: WritableNativeArray())
+            mapToCartLineItems(params.getArray("lineItems") ?: WritableNativeArray())
 
         val cart = Cart.Builder(
             currency = currency,
@@ -811,13 +811,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectRefundPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val chargeId = requireParam(getStringOr(params, "chargeId")) {
+            val chargeId = requireParam(params.getString("chargeId")) {
                 "You must provide a chargeId"
             }
-            val amount = requireParam(getIntOr(params, "amount")?.toLong()) {
+            val amount = requireParam(getInt(params, "amount")?.toLong()) {
                 "You must provide an amount"
             }
-            val currency = requireParam(getStringOr(params, "currency")) {
+            val currency = requireParam(params.getString("currency")) {
                 "You must provide a currency value"
             }
 
@@ -860,7 +860,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun readReusableCard(params: ReadableMap, promise: Promise) {
-        val reusableCardParams = getStringOr(params, "customer")?.let { customerId ->
+        val reusableCardParams = params.getString("customer")?.let { customerId ->
             ReadReusableCardParameters.Builder().setCustomer(customerId).build()
         } ?: ReadReusableCardParameters.NULL
 

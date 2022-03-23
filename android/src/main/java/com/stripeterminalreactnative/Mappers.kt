@@ -4,20 +4,10 @@ import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.log.LogLevel
 
-fun getStringOr(map: ReadableMap, key: String, default: String? = null): String? =
-    if (map.hasKey(key)) map.getString(key) else default
-
-fun getIntOr(map: ReadableMap, key: String, default: Int? = null): Int? =
-    if (map.hasKey(key)) map.getInt(key) else default
+fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
 
 fun getBoolean(map: ReadableMap, key: String): Boolean =
     if (map.hasKey(key)) map.getBoolean(key) else false
-
-fun getMapOr(map: ReadableMap, key: String, default: ReadableMap? = null): ReadableMap? =
-    if (map.hasKey(key)) map.getMap(key) else default
-
-fun getArrayOr(map: ReadableMap, key: String, default: ReadableArray? = null): ReadableArray? =
-    if (map.hasKey(key)) map.getArray(key) else default
 
 fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
