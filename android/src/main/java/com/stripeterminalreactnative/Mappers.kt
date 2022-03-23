@@ -200,10 +200,10 @@ internal fun mapFromReaderInputOptions(options: ReaderInputOptions): WritableArr
 }
 
 internal fun mapFromReaderEvent(event: ReaderEvent): String {
-  return when (event) {
-    ReaderEvent.CARD_INSERTED -> "cardInserted"
-    ReaderEvent.CARD_REMOVED -> "cardRemoved"
-  }
+    return when (event) {
+        ReaderEvent.CARD_INSERTED -> "cardInserted"
+        ReaderEvent.CARD_REMOVED -> "cardRemoved"
+    }
 }
 
 internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String {

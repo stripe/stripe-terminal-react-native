@@ -155,16 +155,16 @@ export default function DiscoverReadersScreen() {
       discoveryMethod === 'bluetoothScan' ||
       discoveryMethod === 'bluetoothProximity'
     ) {
-      const { error } = await handleConnectBluetoothReader(reader);
+      const result = await handleConnectBluetoothReader(reader);
       error = result.error;
     } else if (discoveryMethod === 'localMobile') {
-      const { error } = await handleConnectLocalMobileReader(id);
+      const result = await handleConnectLocalMobileReader(reader);
       error = result.error;
     } else if (discoveryMethod === 'handoff') {
-      const { error } = await handleConnectHandoffReader(id);
+      const result = await handleConnectHandoffReader(reader);
       error = result.error;
     } else if (discoveryMethod === 'embedded') {
-      const { error } = await handleConnectEmbeddedReader(id);
+      const result = await handleConnectEmbeddedReader(reader);
       error = result.error;
     } else if (discoveryMethod === 'usb') {
       const result = await handleConnectUsbReader(reader);
@@ -178,8 +178,8 @@ export default function DiscoverReadersScreen() {
     }
   };
 
-  const handleConnectEmbeddedReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectEmbeddedReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
     const { reader: connectedReader, error } = await connectEmbeddedReader({
       reader,
@@ -189,13 +189,13 @@ export default function DiscoverReadersScreen() {
     if (error) {
       console.log('connectEmbeddedReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };
 
-  const handleConnectHandoffReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectHandoffReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
     const { reader: connectedReader, error } = await connectHandoffReader({
       reader,
@@ -205,13 +205,13 @@ export default function DiscoverReadersScreen() {
     if (error) {
       console.log('connectHandoffReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };
 
-  const handleConnectLocalMobileReader = async (id: string) => {
-    setConnectingReaderId(id);
+  const handleConnectLocalMobileReader = async (reader: Reader.Type) => {
+    setConnectingReader(reader);
 
     const { reader: connectedReader, error } = await connectLocalMobileReader({
       reader,
@@ -221,7 +221,7 @@ export default function DiscoverReadersScreen() {
     if (error) {
       console.log('connectLocalMobileReader error:', error);
     } else {
-      console.log('Reader connected successfully', reader);
+      console.log('Reader connected successfully', connectedReader);
     }
     return { error };
   };

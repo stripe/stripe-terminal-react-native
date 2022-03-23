@@ -389,10 +389,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     "You must provide a locationId"
                 }
 
-            val connectionConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
-                locationId
-            )
-
             val listener: BluetoothReaderListener = object : BluetoothReaderListener {
                 override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
                     sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
@@ -446,7 +442,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             terminal.connectBluetoothReader(
                 selectedReader,
-                connectionConfig,
+                ConnectionConfiguration.BluetoothConnectionConfiguration(locationId),
                 listener,
                 object : ReaderCallback {
                     override fun onSuccess(reader: Reader) {
@@ -564,9 +560,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
-                    putString("result", mapFromReaderDisplayMessage(message))
-                }
                 sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
                     putString("result", mapFromReaderDisplayMessage(message))
                 }
