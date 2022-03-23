@@ -8,7 +8,6 @@ import type {
   CancelDiscoveringResultType,
   DisconnectReaderResultType,
   ConnectInternetReaderParams,
-  ConnectInternetResultType,
   ConnectUsbReaderParams,
   ConnectUsbReaderResultType,
   CreatePaymentIntentParams,
