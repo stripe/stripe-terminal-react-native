@@ -43,6 +43,9 @@ import com.stripeterminalreactnative.listener.RNDiscoveryListener
 import com.stripeterminalreactnative.listener.RNHandoffReaderListener
 import com.stripeterminalreactnative.listener.RNTerminalListener
 import com.stripeterminalreactnative.listener.RNUsbReaderListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
@@ -175,24 +178,27 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         discoveryMethod: DiscoveryMethod,
         listener: ReaderListenable? = null
     ) = withExceptionResolver(promise) {
-        val readerId = requireParam(params.getString("readerId")) {
-            "You must provide a readerId"
+        val reader = requireParam(params.getMap("reader")) {
+            "You must provide a reader"
         }
 
+        val serialNumber = reader.getString("serialNumber")
+
         val selectedReader = requireParam(discoveredReadersList.find {
-            it.serialNumber == readerId
+            it.serialNumber == serialNumber
         }) {
-            "Could not find a reader with id $readerId"
+            "Could not find a reader with serialNumber $serialNumber"
         }
 
         val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
-        val connectedReader = runBlocking {
-            terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
+        CoroutineScope(Dispatchers.IO).launch {
+            val connectedReader =
+                terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
+            promise.resolve(nativeMapOf {
+                putMap("reader", mapFromReader(connectedReader))
+            })
         }
-        promise.resolve(nativeMapOf {
-            putMap("reader", mapFromReader(connectedReader))
-        })
     }
 
     @ReactMethod
