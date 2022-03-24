@@ -1,3 +1,24 @@
+- [Stripe Terminal React Native SDK](#stripe-terminal-react-native-sdk)
+  - [Getting started](#getting-started)
+  - [Requirements](#requirements)
+    - [JS](#js)
+    - [Android](#android)
+    - [iOS](#ios)
+  - [Installation](#installation)
+  - [Usage With React Native CLI](#usage-with-react-native-cli)
+    - [iOS](#ios-1)
+      - [Permissions](#permissions)
+    - [Android](#android-1)
+      - [Permissions](#permissions-1)
+      - [Manifest](#manifest)
+  - [Usage With Expo](#usage-with-expo)
+  - [Stripe Terminal SDK initialization](#stripe-terminal-sdk-initialization)
+  - [Basic Usage Example](#basic-usage-example)
+  - [Further Usage Examples](#further-usage-examples)
+  - [Additional Docs](#additional-docs)
+  - [Internal Docs](#internal-docs)
+  - [Contributing](#contributing)
+
 # Stripe Terminal React Native SDK
 
 Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe's payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.
@@ -234,7 +255,7 @@ function App() {
 }
 ```
 
-## Usage example
+## Basic Usage Example
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
@@ -309,7 +330,7 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-### Usage Examples
+## Further Usage Examples
 
 You can find further examples of common SDK actions here:
 
@@ -320,13 +341,13 @@ You can find further examples of common SDK actions here:
 - [Refunds](/docs/refund-transactions.md)
 - [Saving Cards](/docs/saving-cards.md)
 
-### Additional Docs
+## Additional Docs
 
 - [Setting up the SDK](/docs/set-up-your-sdk.md)
 - [Running the Example Application](/docs/example-applications.md)
 - [Running e2e tests locally](/docs/e2e-tests.md)
 
-### Internal Docs
+## Internal Docs
 
 - [Deploying the example apps](/docs/deploying-example-app.md)
 
