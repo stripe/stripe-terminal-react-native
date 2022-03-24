@@ -30,7 +30,6 @@ import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
 import com.stripe.stripeterminal.external.models.SetupIntentParameters
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
-import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
@@ -60,6 +59,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
 
+    private val tokenProvider: TokenProvider = TokenProvider(context)
+
     private val terminal: Terminal
         get() = Terminal.getInstance()
 
@@ -67,14 +68,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         get() = reactApplicationContext
 
     init {
-        TokenProvider.tokenProviderCallback = object : TokenProviderCallback {
-            override fun invoke() {
-                context
-                    .getJSModule(RCTDeviceEventEmitter::class.java)
-                    .emit(FETCH_TOKEN_PROVIDER.listenerName, null)
-            }
-        }
-
         context.registerComponentCallbacks(
             object : ComponentCallbacks2 {
                 override fun onTrimMemory(level: Int) {
@@ -102,7 +95,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             Terminal.initTerminal(
                 this.context.applicationContext,
                 mapToLogLevel(params.getString("logLevel")),
-                TokenProvider.Companion,
+                tokenProvider,
                 RNTerminalListener(context)
             )
             WritableNativeMap()
@@ -139,7 +132,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
-        TokenProvider.setConnectionToken(
+        tokenProvider.setConnectionToken(
             token = params.getString("token"),
             error = params.getString("error"),
         )

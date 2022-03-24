@@ -8,11 +8,13 @@ internal object ReactExtensions {
 
     fun ReactApplicationContext.sendEvent(
         eventName: String,
-        resultBuilder: WritableNativeMap.() -> Unit
+        resultBuilder: (WritableNativeMap.() -> Unit)? = null,
     ) {
         getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit(eventName, nativeMapOf {
-                resultBuilder()
+            .emit(eventName, resultBuilder?.let {
+                nativeMapOf {
+                    it()
+                }
             })
     }
 }
