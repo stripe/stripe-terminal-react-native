@@ -2,19 +2,21 @@ package com.stripeterminalreactnative
 
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.WritableMap
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.TerminalException.TerminalErrorCode
 import kotlinx.coroutines.CancellationException
 import kotlin.jvm.Throws
 
-internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf {
+internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { createError(throwable) }
+
+internal fun WritableMap.createError(throwable: Throwable): ReadableMap = apply {
     putMap("error", nativeMapOf {
         writeError(throwable)
     })
 }
 
-private fun WritableNativeMap.writeError(throwable: Throwable?) {
+private fun WritableMap.writeError(throwable: Throwable?) {
     when (throwable) {
         is TerminalException -> {
             putString("message", throwable.errorMessage)

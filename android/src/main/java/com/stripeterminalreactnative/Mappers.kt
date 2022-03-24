@@ -2,6 +2,7 @@ package com.stripeterminalreactnative
 
 import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.models.*
+import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.log.LogLevel
 
 fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -25,8 +26,14 @@ fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
     }
 }
 
-internal fun nativeMapOf(block: WritableNativeMap.() -> Unit): ReadableMap {
+internal fun nativeMapOf(block: WritableMap.() -> Unit): ReadableMap {
     return WritableNativeMap().apply {
+        block()
+    }
+}
+
+internal fun nativeArrayOf(block: WritableArray.() -> Unit): ReadableArray {
+    return WritableNativeArray().apply {
         block()
     }
 }
@@ -180,23 +187,23 @@ internal fun mapFromSetupAttemptStatus(method: SetupAttemptStatus): String {
     }
 }
 
-internal fun mapFromChargesList(charges: List<Charge>): WritableArray =
+internal fun mapFromChargesList(charges: List<Charge>): ReadableArray =
     charges.collectToWritableArray { mapFromCharge(it) }
 
-internal fun mapFromListLocations(locations: List<Location>): WritableArray =
+internal fun mapFromListLocations(locations: List<Location>): ReadableArray =
     locations.collectToWritableArray { mapFromLocation(it) }
 
-internal fun mapFromReaderInputOptions(options: ReaderInputOptions): WritableArray {
-    val mappedOptions: WritableArray = WritableNativeArray()
-    val optionsArray = options.toString().split('/')
-    optionsArray.forEach {
+internal fun mapFromReaderInputOptions(options: ReaderInputOptions): ReadableArray = nativeArrayOf {
+    options.toString().split('/').forEach {
         when (it.trim()) {
-            "Insert" -> mappedOptions.pushString("insertCard")
-            "Swipe" -> mappedOptions.pushString("swipeCard")
-            "Tap" -> mappedOptions.pushString("tapCard")
+            ReaderInputOption.INSERT.toString() -> pushString("insertCard")
+            ReaderInputOption.SWIPE.toString() -> pushString("swipeCard")
+            ReaderInputOption.TAP.toString() -> pushString("tapCard")
+            ReaderInputOption.NONE.toString() -> {
+                // no-op
+            }
         }
     }
-    return mappedOptions
 }
 
 internal fun mapFromReaderEvent(event: ReaderEvent): String {

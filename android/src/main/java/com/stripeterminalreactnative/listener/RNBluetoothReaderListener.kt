@@ -1,7 +1,6 @@
 package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
@@ -15,6 +14,7 @@ import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
+import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
@@ -53,10 +53,13 @@ class RNBluetoothReaderListener(
         e: TerminalException?
     ) {
         context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
-            update?.let {
-                putMap("result", mapFromReaderSoftwareUpdate(update))
+            putMap("result", update?.let {
+                mapFromReaderSoftwareUpdate(update)
             } ?: run {
-                putMap("result", WritableNativeMap())
+                nativeMapOf {  }
+            })
+            e?.let {
+                createError(e)
             }
         }
     }
