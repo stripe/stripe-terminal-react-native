@@ -20,6 +20,7 @@ import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.DiscoveryListener
+import com.stripe.stripeterminal.external.callable.HandoffReaderListener
 import com.stripe.stripeterminal.external.callable.LocationListCallback
 import com.stripe.stripeterminal.external.callable.PaymentIntentCallback
 import com.stripe.stripeterminal.external.callable.PaymentMethodCallback
@@ -41,6 +42,7 @@ import com.stripe.stripeterminal.external.models.PaymentStatus
 import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
+import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.Refund
@@ -264,6 +266,110 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun connectLocalMobileReader(params: ReadableMap, promise: Promise) {
+        val readerId = requireParam(params.getString("readerId")) {
+            "You must provide readerId"
+        }
+
+        val selectedReader = requireParam(discoveredReadersList.find {
+            it.serialNumber == readerId
+        }) {
+            "Could not find reader with id $readerId"
+        }
+
+        val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+
+        Terminal.getInstance().connectLocalMobileReader(
+            selectedReader,
+            ConnectionConfiguration.LocalMobileConnectionConfiguration(locationId),
+            object : ReaderCallback {
+                override fun onSuccess(reader: Reader) {
+                    promise.resolve(nativeMapOf {
+                        putMap("reader", mapFromReader(reader))
+                    })
+                }
+
+                override fun onFailure(e: TerminalException) {
+                    promise.resolve(createError(e))
+                }
+            }
+        )
+    }
+
+    @ReactMethod
+    fun connectEmbeddedReader(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val readerId = requireParam(params.getString("readerId")) {
+                "You must provide readerId"
+            }
+
+            val selectedReader = requireParam(discoveredReadersList.find {
+                it.serialNumber == readerId
+            }) {
+                "Could not find reader with id $readerId"
+            }
+
+            val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+
+            Terminal.getInstance().connectEmbeddedReader(
+                selectedReader,
+                ConnectionConfiguration.EmbeddedConnectionConfiguration(locationId),
+                object : ReaderCallback {
+                    override fun onSuccess(reader: Reader) {
+                        promise.resolve(nativeMapOf {
+                            putMap("reader", mapFromReader(reader))
+                        })
+                    }
+
+                    override fun onFailure(e: TerminalException) {
+                        promise.resolve(e)
+                    }
+                }
+            )
+        }
+
+    @ReactMethod
+    fun connectHandoffReader(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val readerId = requireParam(params.getString("readerId")) {
+                "You must provide readerId"
+            }
+
+            val selectedReader = requireParam(discoveredReadersList.find {
+                it.serialNumber == readerId
+            }) {
+                "Could not find reader with id $readerId"
+            }
+
+            val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+
+            val listener: HandoffReaderListener = object : HandoffReaderListener {
+                override fun onReportReaderEvent(event: ReaderEvent) {
+                    sendEvent("didRequestReaderInput", nativeMapOf {
+                        putString("event", mapFromReaderEvent(event))
+                    })
+                }
+            }
+
+            Terminal.getInstance().connectHandoffReader(
+                selectedReader,
+                ConnectionConfiguration.HandoffConnectionConfiguration(locationId),
+                listener,
+                object : ReaderCallback {
+                    override fun onSuccess(reader: Reader) {
+                        promise.resolve(nativeMapOf {
+                            putMap("reader", mapFromReader(reader))
+                        })
+                    }
+
+                    override fun onFailure(e: TerminalException) {
+                        promise.resolve(createError(e))
+                    }
+                }
+            )
+        }
+
+    @ReactMethod
     @Suppress("unused")
     fun connectBluetoothReader(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
@@ -282,10 +388,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 requireParam(params.getString("locationId") ?: selectedReader.location?.id) {
                     "You must provide a locationId"
                 }
-
-            val connectionConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
-                locationId
-            )
 
             val listener: BluetoothReaderListener = object : BluetoothReaderListener {
                 override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
@@ -340,7 +442,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             terminal.connectBluetoothReader(
                 selectedReader,
-                connectionConfig,
+                ConnectionConfiguration.BluetoothConnectionConfiguration(locationId),
                 listener,
                 object : ReaderCallback {
                     override fun onSuccess(reader: Reader) {
@@ -458,9 +560,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
-                    putString("result", mapFromReaderDisplayMessage(message))
-                }
                 sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
                     putString("result", mapFromReaderDisplayMessage(message))
                 }

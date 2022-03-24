@@ -199,6 +199,13 @@ internal fun mapFromReaderInputOptions(options: ReaderInputOptions): WritableArr
     return mappedOptions
 }
 
+internal fun mapFromReaderEvent(event: ReaderEvent): String {
+    return when (event) {
+        ReaderEvent.CARD_INSERTED -> "cardInserted"
+        ReaderEvent.CARD_REMOVED -> "cardRemoved"
+    }
+}
+
 internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String {
     return when (message) {
         ReaderDisplayMessage.CHECK_MOBILE_DEVICE -> "checkMobileDevice"
