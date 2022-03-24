@@ -10,6 +10,8 @@ Get started with our [📚 integration guides](https://stripe.com/docs/terminal/
 
 ## Requirements
 
+### JS
+
 - The SDK uses TypeScript features available in Babel version `7.9.0` and above.
   Alternatively use the `plugin-transform-typescript` plugin in your project.
 
@@ -39,7 +41,7 @@ or
 npm install https://github.com/stripe/stripe-terminal-react-native
 ```
 
-## React Native CLI
+## Usage With React Native CLI
 
 ### iOS
 
@@ -89,14 +91,11 @@ For your app to pass validation when submitting to the App Store, add the follow
 
 #### Permissions
 
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
+In order for the Stripe Terminal SDK to function properly we'll need to enable the following permissions:
 
----
-
-**IMPORTANT**
-In case of supportig **Android 12** you need also to ask the user for additional permissions:
-
-`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+- `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT`
+- `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+- `PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION`
 
 To do this, add the following check before you initialize the Terminal SDK:
 
@@ -145,13 +144,13 @@ Add `android:exported="true"` to the `AndroidManifest.xml`:
 
 Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish the exact value that you need to set.
 
-## Expo
+## Usage With Expo
 
 _Note: Currently Expo is only supported for usage with iOS, we will resume support for android when expo update its `compileSdkVersion` to 31_
 
 _Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/)._
 
-After installing stripe-terminal-react-native, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+After [installing stripe-terminal-react-native](#installation), add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
 
 ```json
 {
@@ -240,7 +239,7 @@ function App() {
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
 
-Alternatively, you can import all of the functions directly from the module but keep in mind that you will loose the access to the SDK state.
+Alternatively, you can import all of the functions directly from the module but keep in mind that you will lose the access to SDK state.
 
 ```tsx
 // Screen.ts
@@ -310,7 +309,7 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-## Run the example app
+## Running the example app
 
 - Install the dependencies
   - `yarn bootstrap`
