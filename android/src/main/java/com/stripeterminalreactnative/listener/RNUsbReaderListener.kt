@@ -9,7 +9,12 @@ import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
-import com.stripeterminalreactnative.ReactNativeConstants
+import com.stripeterminalreactnative.ReactNativeConstants.FINISH_INSTALLING_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_AVAILABLE_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
+import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
+import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
+import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
@@ -20,7 +25,7 @@ class RNUsbReaderListener(
     private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit,
 ): UsbReaderListener {
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
-        context.sendEvent(ReactNativeConstants.REPORT_AVAILABLE_UPDATE.listenerName) {
+        context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
             putMap("result", mapFromReaderSoftwareUpdate(update))
         }
     }
@@ -30,13 +35,13 @@ class RNUsbReaderListener(
         cancelable: Cancelable?
     ) {
         onStartInstallingUpdate(cancelable)
-        context.sendEvent(ReactNativeConstants.START_INSTALLING_UPDATE.listenerName) {
+        context.sendEvent(START_INSTALLING_UPDATE.listenerName) {
             putMap("result", mapFromReaderSoftwareUpdate(update))
         }
     }
 
     override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
-        context.sendEvent(ReactNativeConstants.REPORT_UPDATE_PROGRESS.listenerName) {
+        context.sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
             putMap("result", nativeMapOf {
                 putString("progress", progress.toString())
             })
@@ -47,7 +52,7 @@ class RNUsbReaderListener(
         update: ReaderSoftwareUpdate?,
         e: TerminalException?
     ) {
-        context.sendEvent(ReactNativeConstants.FINISH_INSTALLING_UPDATE.listenerName) {
+        context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
             update?.let {
                 putMap("result", mapFromReaderSoftwareUpdate(update))
             } ?: run {
@@ -57,13 +62,13 @@ class RNUsbReaderListener(
     }
 
     override fun onRequestReaderInput(options: ReaderInputOptions) {
-        context.sendEvent(ReactNativeConstants.REQUEST_READER_INPUT.listenerName) {
+        context.sendEvent(REQUEST_READER_INPUT.listenerName) {
             putArray("result", mapFromReaderInputOptions(options))
         }
     }
 
     override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-        context.sendEvent(ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
+        context.sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
             putString("result", mapFromReaderDisplayMessage(message))
         }
     }

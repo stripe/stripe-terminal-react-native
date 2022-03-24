@@ -13,11 +13,11 @@ import com.stripeterminalreactnative.mapFromReaders
 
 class RNDiscoveryListener(
     private val context: ReactApplicationContext,
-    private val onUpdateDiscoveredReaders: (readers: List<Reader>) -> Unit,
+    private val onDiscoveredReaders: (readers: List<Reader>) -> Unit,
 ) : DiscoveryListener, Callback {
 
     override fun onUpdateDiscoveredReaders(readers: List<Reader>) {
-        onUpdateDiscoveredReaders(readers)
+        onDiscoveredReaders(readers)
         context.sendEvent(ReactNativeConstants.UPDATE_DISCOVERED_READERS.listenerName) {
             putArray("readers", mapFromReaders(readers))
         }
