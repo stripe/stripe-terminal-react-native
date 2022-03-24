@@ -19,20 +19,61 @@ or
 npm install @stripe/stripe-terminal-react-native
 ```
 
-For iOS, run `pod install` in the `ios` directory to ensure that you also install the required native dependencies. Android doesn’t require any additional steps.
+## Usage With React Native CLI
 
-## Configure your app
+### iOS
+
+You'll need to run `pod install` in your `ios` directory to install the native dependencies.
+
+#### Permissions
+
+Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
+
+- Privacy - Location When In Use Usage Description
+
+Update:
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string></string>
+```
+
+to
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Location access is required in order to accept payments.</string>
+```
+
+> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
+
+For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>bluetooth-central</string>
+</array>
+```
+
+For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
+
+```xml
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app uses Bluetooth to connect to supported card readers.</string>
+```
 
 ### Android
 
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
+#### Permissions
 
----
+In order for the Stripe Terminal SDK to function properly we'll need to enable the following permissions:
 
-**IMPORTANT**
-In case of supportig **Android 12** you need also to ask the user for additional permissions:
-
-## `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+- `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT`
+- `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+- `PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION`
 
 To do this, add the following check before you initialize the Terminal SDK:
 
@@ -45,13 +86,13 @@ useEffect(() => {
         {
           title: 'Location Permission Permission',
           message: 'App needs access to your Location ',
-          buttonPositive: 'Agree',
+          buttonPositive: 'Accept',
         }
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('You can use the Location');
       } else {
-        throw Error(
+        console.error(
           'Location services are required in order to connect to a reader.'
         );
       }
@@ -61,31 +102,63 @@ useEffect(() => {
 }, []);
 ```
 
-### iOS
+#### Manifest
 
-Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
+To enable compatibility the library with the latest Android 12 please make sure that you ad following requirements:
 
-- Privacy - Location When In Use Usage Description
-  - Key: `NSLocationWhenInUseUsageDescription`
-  - Value: "Location access is required in order to accept payments."
+Add `android:exported="true"` to the `AndroidManifest.xml`:
 
-> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
+```xml
+<manifest ...>
+    <application android:name=".MainApplication">
+      <activity
+        android:name=".MainActivity"
+        android:exported="true">
+          <!-- content -->
+      </activity>
+    </application>
+</manifest>
+```
 
-For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
+Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish the exact value that you need to set.
 
-- Required background modes
-  - Key: `UIBackgroundModes`
-  - Value: `bluetooth-central` (Uses Bluetooth LE accessories)
-  - Note the value is actually an array that you will need to add `bluetooth-central` to.
+## Usage With Expo
 
-For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
+_Note: Currently Expo is only supported for usage with iOS, we will resume support for android when expo update its `compileSdkVersion` to 31_
 
-- Privacy - Bluetooth Peripheral Usage Description
-  - Key: `NSBluetoothPeripheralUsageDescription`
-  - Value: “Bluetooth access is required in order to connect to supported bluetooth card readers.”
-- Privacy - Bluetooth Always Usage Description
-  - Key: `NSBluetoothAlwaysUsageDescription`
-  - Value: "This app uses Bluetooth to connect to supported card readers."
+_Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/)._
+
+After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+
+```json
+{
+  expo: {
+    // ...
+    "plugins": [
+      [
+        "stripe-terminal-react-native",
+        {
+          "bluetoothBackgroundMode": true,
+          "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+          "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+          "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+        }
+      ],
+      …
+    ]
+  }
+}
+```
+
+That's it, that will take care of all android and iOS permissioning required for the SDK to function!
+
+Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
+
+```
+expo run:ios
+or
+expo run:android
+```
 
 ## Set up the connection token endpoint
 

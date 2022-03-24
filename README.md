@@ -150,12 +150,11 @@ _Note: Currently Expo is only supported for usage with iOS, we will resume suppo
 
 _Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/)._
 
-After [installing stripe-terminal-react-native](#installation), add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
 
 ```json
 {
-  expo: {
-    // ...
+  "expo": {
     "plugins": [
       [
         "stripe-terminal-react-native",
@@ -165,12 +164,13 @@ After [installing stripe-terminal-react-native](#installation), add the [config 
           "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
           "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
         }
-      ],
-      …
+      ]
     ]
   }
 }
 ```
+
+That's it, that will take care of all android and iOS permissioning required for the SDK to function!
 
 Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
 
@@ -309,79 +309,26 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-## Running the example app
+### Usage Examples
 
-- Install the dependencies
-  - `yarn bootstrap`
-- Set your api key in your environment
-  - `cp example/.env.example example/.env`
-  - edit `.env`
+You can find further examples of common SDK actions here:
 
-To start and monitor each process:
+- [Collect a Payment](/docs/collect-payments.md)
+- [Connect to a Reader](/docs/connect-to-a-reader.md)
+- [Set the Reader Display](/docs/display.md)
+- [Incremental Authorization](/docs/incremental-authorizations.md)
+- [Refunds](/docs/refund-transactions.md)
+- [Saving Cards](/docs/saving-cards.md)
 
-- Start the backend
-  - `yarn example start:server`
-- Start the example
-  - Terminal 1: `yarn example start`
-  - Terminal 2: depending on what platform you want to build for run either
-    - `yarn example ios`
-    - or
-    - `yarn example android`
+### Additional Docs
 
-To launch the watcher, server, and perform an initial build you can run:
+- [Setting up the SDK](/docs/set-up-your-sdk.md)
+- [Running the Example Application](/docs/example-applications.md)
+- [Running e2e tests locally](/docs/e2e-tests.md)
 
-- `yarn example ios:all`
-  or
-- `yarn example android:all`
+### Internal Docs
 
-## Runing e2e tests
-
-### Android
-
-1. Create an Android emulator with a name that matches the name found in `.detoxrc.json`
-1. Run `yarn detox build --configuration android`
-1. Run `yarn e2e:test:android`
-
-### iOS
-
-prereqs: Ensure AppleSimulatorUtils are installed
-
-```
-brew tap wix/brew
-brew install applesimutils
-```
-
-1. Create an iOS simulator with a name that matches the name found in `.detoxrc.json`
-1. Run `yarn detox build --configuration ios`
-1. launch the simulator
-1. Run `yarn e2e:test:ios`
-
-## Deploying Example App
-
-// TODO - find a better location for this Stripe-specifc section prior to launch
-
-### Android
-
-The Android example app is deployed to [Firebase App Distribution](https://firebase.google.com/docs/app-distribution) via a CI job that executes after a successful merge to main:
-
-https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L265
-
-A unique APK is generated for each supported region (EU and US). See the [App Distribution Console](https://console.firebase.google.com/project/internal-terminal/appdistribution/app/android:com.example.stripeterminalreactnative/releases) to view releases, enable build access for users, and generate invite links.
-
-### iOS
-
-// TODO
-
-### Backend
-
-The Example backend is deployed to Heroku via a CI job that executes after a successful merge to main:
-
-https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L296
-
-A separate backend instance is generated for each supported region (EU and US):
-
-- https://stripe-terminal-rn-example-eu.herokuapp.com/
-- https://stripe-terminal-rn-example-us.herokuapp.com/
+- [Deploying the example apps](/docs/deploying-example-app.md)
 
 ## Contributing
 
