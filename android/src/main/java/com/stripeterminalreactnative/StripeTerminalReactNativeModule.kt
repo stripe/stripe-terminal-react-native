@@ -61,19 +61,22 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private val terminal: Terminal
         get() = Terminal.getInstance()
 
+    private val context: ReactApplicationContext
+        get() = reactApplicationContext
+
     init {
         TokenProvider.tokenProviderCallback = object : TokenProviderCallback {
             override fun invoke() {
-                reactApplicationContext
+                context
                     .getJSModule(RCTDeviceEventEmitter::class.java)
                     .emit(FETCH_TOKEN_PROVIDER.listenerName, null)
             }
         }
 
-        reactApplicationContext.registerComponentCallbacks(
+        context.registerComponentCallbacks(
             object : ComponentCallbacks2 {
                 override fun onTrimMemory(level: Int) {
-                    onTrimMemory(reactApplicationContext.applicationContext as Application, level)
+                    onTrimMemory(context.applicationContext as Application, level)
                 }
 
                 override fun onLowMemory() {}
@@ -91,46 +94,36 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun initialize(params: ReadableMap, promise: Promise) {
-        UiThreadUtil.runOnUiThread {
-            onCreate(reactApplicationContext.applicationContext as Application)
-        }
+        UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
-        val result = WritableNativeMap()
-
-        if (!Terminal.isInitialized()) {
-            val logLevel = mapToLogLevel(params.getString("logLevel"))
-
+        val result = if (!Terminal.isInitialized()) {
             Terminal.initTerminal(
-                this.reactApplicationContext.applicationContext,
-                logLevel,
+                this.context.applicationContext,
+                mapToLogLevel(params.getString("logLevel")),
                 TokenProvider.Companion,
-                RNTerminalListener(reactApplicationContext)
+                RNTerminalListener(context)
             )
+            WritableNativeMap()
         } else {
-            terminal.connectedReader?.let {
-                result.putMap("reader", mapFromReader(it))
+            nativeMapOf {
+                terminal.connectedReader?.let {
+                    putMap("reader", mapFromReader(it))
+                }
             }
         }
-
         promise.resolve(result)
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelCollectPaymentMethod(promise: Promise) = withExceptionResolver(promise) {
-        val cancelable = requireCancelable(collectPaymentMethodCancelable) {
-            "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."
-        }
-        cancelable.cancel(NoOpCallback(promise))
+    fun cancelCollectPaymentMethod(promise: Promise) {
+        cancelOperation(promise, collectPaymentMethodCancelable, "collectPaymentMethod")
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelCollectSetupIntent(promise: Promise) = withExceptionResolver(promise) {
-        val cancelable = requireCancelable(collectSetupIntentCancelable) {
-            "collectSetupIntent could not be canceled because the command has already been canceled or has completed."
-        }
-        cancelable.cancel(NoOpCallback(promise))
+    fun cancelCollectSetupIntent(promise: Promise) {
+        cancelOperation(promise, collectSetupIntentCancelable, "collectSetupIntent")
     }
 
     @ReactMethod
@@ -144,9 +137,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
-        val token = params.getString("token")
-        val error = params.getString("error")
-        TokenProvider.setConnectionToken(token, error)
+        TokenProvider.setConnectionToken(
+            token = params.getString("token"),
+            error = params.getString("error"),
+        )
         promise.resolve(null)
     }
 
@@ -160,21 +154,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
 
-        val simulated = getBoolean(params, "simulated")
-        val config = DiscoveryConfiguration(0, discoveryMethod, simulated)
+        val listener = RNDiscoveryListener(context) { discoveredReadersList = it }
 
-        val listener = RNDiscoveryListener(reactApplicationContext) { discoveredReadersList = it }
-
-        discoverCancelable = terminal.discoverReaders(config, listener, listener)
+        discoverCancelable = terminal.discoverReaders(
+            DiscoveryConfiguration(0, discoveryMethod, getBoolean(params, "simulated")),
+            listener,
+            listener
+        )
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelDiscovering(promise: Promise) = withExceptionResolver(promise) {
-        val cancelable = requireCancelable(discoverCancelable) {
-            "discoverReaders could not be canceled because the command has already been canceled or has completed."
-        }
-        cancelable.cancel(NoOpCallback(promise))
+    fun cancelDiscovering(promise: Promise) {
+        cancelOperation(promise, discoverCancelable, "discoverReaders")
     }
 
     private fun connectReader(
@@ -206,7 +198,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
-        val listener = RNBluetoothReaderListener(reactApplicationContext) {
+        val listener = RNBluetoothReaderListener(context) {
             installUpdateCancelable = it
         }
         connectReader(params, promise, DiscoveryMethod.BLUETOOTH_SCAN, listener)
@@ -221,7 +213,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun connectHandoffReader(params: ReadableMap, promise: Promise) {
-        val listener = RNHandoffReaderListener(reactApplicationContext)
+        val listener = RNHandoffReaderListener(context)
         connectReader(params, promise, DiscoveryMethod.HANDOFF, listener)
     }
 
@@ -240,7 +232,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun connectUsbReader(params: ReadableMap, promise: Promise) {
-        val listener = RNUsbReaderListener(reactApplicationContext) {
+        val listener = RNUsbReaderListener(context) {
             installUpdateCancelable = it
         }
         connectReader(params, promise, DiscoveryMethod.USB, listener)
@@ -308,11 +300,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getLocations(params: ReadableMap, promise: Promise) {
-        val listParameters = ListLocationsParameters.Builder()
-        listParameters.endingBefore = params.getString("endingBefore")
-        listParameters.startingAfter = params.getString("startingAfter")
-        listParameters.limit = getInt(params, "endingBefore")
-
+        val listParameters = ListLocationsParameters.Builder().apply {
+            endingBefore = params.getString("endingBefore")
+            startingAfter = params.getString("startingAfter")
+            limit = getInt(params, "endingBefore")
+        }
         terminal.listLocations(listParameters.build(), RNLocationListCallback(promise))
     }
 
@@ -350,11 +342,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelReadReusableCard(promise: Promise) = withExceptionResolver(promise) {
-        val cancelable = requireCancelable(readReusableCardCancelable) {
-            "readReusableCard could not be canceled because the command has already been canceled or has completed."
-        }
-        cancelable.cancel(NoOpCallback(promise))
+    fun cancelReadReusableCard(promise: Promise) {
+        cancelOperation(promise, readReusableCardCancelable, "readReusableCard")
     }
 
     @ReactMethod
@@ -384,7 +373,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun cancelInstallingUpdate(promise: Promise) {
-        installUpdateCancelable?.cancel(NoOpCallback(promise))
+        cancelOperation(promise, installUpdateCancelable, "installUpdate")
     }
 
     @ReactMethod
@@ -487,5 +476,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         readReusableCardCancelable = terminal
             .readReusableCard(reusableCardParams, RNPaymentMethodCallback(promise))
+    }
+
+    private fun cancelOperation(
+        promise: Promise,
+        cancelable: Cancelable?,
+        operationName: String,
+    ) = withExceptionResolver(promise) {
+        val toCancel = requireCancelable(cancelable) {
+            "$operationName could not be canceled because it has already been canceled or has completed."
+        }
+        toCancel.cancel(NoOpCallback(promise))
     }
 }
