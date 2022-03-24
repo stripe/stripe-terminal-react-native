@@ -14,11 +14,11 @@ import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
-import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
 import com.stripeterminalreactnative.nativeMapOf
+import com.stripeterminalreactnative.putError
 
 class RNBluetoothReaderListener(
     private val context: ReactApplicationContext,
@@ -53,14 +53,11 @@ class RNBluetoothReaderListener(
         e: TerminalException?
     ) {
         context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
-            putMap("result", update?.let {
-                mapFromReaderSoftwareUpdate(update)
-            } ?: run {
-                nativeMapOf {  }
-            })
+            val result = update?.let { mapFromReaderSoftwareUpdate(update) } ?: nativeMapOf()
             e?.let {
-                createError(e)
+                result.putError(e)
             }
+            putMap("result", result)
         }
     }
 

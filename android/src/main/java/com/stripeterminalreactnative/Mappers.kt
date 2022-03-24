@@ -26,19 +26,19 @@ fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
     }
 }
 
-internal fun nativeMapOf(block: WritableMap.() -> Unit): ReadableMap {
+internal fun nativeMapOf(block: WritableMap.() -> Unit = {}): WritableMap {
     return WritableNativeMap().apply {
         block()
     }
 }
 
-internal fun nativeArrayOf(block: WritableArray.() -> Unit): ReadableArray {
+internal fun nativeArrayOf(block: WritableArray.() -> Unit = {}): WritableArray {
     return WritableNativeArray().apply {
         block()
     }
 }
 
-internal fun mapFromReaders(readers: List<Reader>): WritableArray =
+internal fun mapFromReaders(readers: List<Reader>): ReadableArray =
     readers.collectToWritableArray { mapFromReader(it) }
 
 internal fun mapFromReader(reader: Reader): ReadableMap = nativeMapOf {
@@ -327,7 +327,7 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
 
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
-internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): ReadableMap? =
+internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): WritableMap? =
     update?.let {
         nativeMapOf {
             putString("deviceSoftwareVersion", it.version)
@@ -397,7 +397,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): ReadableMap = n
     putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
 }
 
-private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?) =
-    fold(WritableNativeArray()) { writableArray, item ->
+private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?): ReadableArray =
+    fold(nativeArrayOf()) { writableArray, item ->
         writableArray.pushMap(transform(item)); writableArray
     }

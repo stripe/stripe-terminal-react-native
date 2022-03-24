@@ -8,22 +8,22 @@ import com.stripe.stripeterminal.external.models.TerminalException.TerminalError
 import kotlinx.coroutines.CancellationException
 import kotlin.jvm.Throws
 
-internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { createError(throwable) }
+internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
 
-internal fun WritableMap.createError(throwable: Throwable): ReadableMap = apply {
+internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
     putMap("error", nativeMapOf {
-        writeError(throwable)
+        putErrorContents(throwable)
     })
 }
 
-private fun WritableMap.writeError(throwable: Throwable?) {
+private fun WritableMap.putErrorContents(throwable: Throwable?) {
     when (throwable) {
         is TerminalException -> {
             putString("message", throwable.errorMessage)
             putString("code", throwable.errorCode.toString())
         }
         is CancellationException -> {
-            writeError(throwable.cause)
+            putErrorContents(throwable.cause)
         }
         else -> {
             putString("message", throwable?.message ?: "Unknown error")

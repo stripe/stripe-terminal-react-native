@@ -1,7 +1,6 @@
 package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.callable.DiscoveryListener
 import com.stripe.stripeterminal.external.models.Reader
@@ -10,6 +9,7 @@ import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromReaders
+import com.stripeterminalreactnative.nativeMapOf
 
 class RNDiscoveryListener(
     private val context: ReactApplicationContext,
@@ -25,7 +25,7 @@ class RNDiscoveryListener(
 
     override fun onSuccess() {
         context.sendEvent(ReactNativeConstants.FINISH_DISCOVERING_READERS.listenerName) {
-            putMap("result", WritableNativeMap())
+            putMap("result", nativeMapOf())
         }
     }
 

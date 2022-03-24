@@ -44,9 +44,7 @@ import kotlin.test.assertTrue
 class RNBluetoothReaderListenerTest {
 
     companion object {
-        const val TOKEN = "token"
-        const val ERROR = "error"
-        val EXCEPTION = TerminalException(TerminalErrorCode.UNEXPECTED_SDK_ERROR, "message")
+        private val EXCEPTION = TerminalException(TerminalErrorCode.UNEXPECTED_SDK_ERROR, "message")
 
         private val sendEventSlot = slot<WritableMap.() -> Unit>()
         private val nativeMapOfSlot = slot<WritableMap.() -> Unit>()

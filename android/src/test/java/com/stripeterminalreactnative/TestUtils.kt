@@ -18,11 +18,16 @@ fun (WritableMap.() -> Unit).hasResult(): Boolean {
     return hasValue("result")
 }
 
-fun (WritableMap.() -> Unit).hasError(): Boolean {
-    return hasValue("error")
+fun (WritableMap.() -> Unit).hasEmptyResult(): Boolean {
+    return hasEmptyValue("result")
 }
 
-private fun (WritableMap.() -> Unit).hasValue(value: String): Boolean {
+fun (WritableMap.() -> Unit).hasError(): Boolean {
+    val map = toJavaOnlyMap()
+    return !map.getMap("result")?.getMap("error")?.toHashMap().isNullOrEmpty()
+}
+
+fun (WritableMap.() -> Unit).hasValue(value: String): Boolean {
     val map = toJavaOnlyMap()
     return when (map.getType(value)) {
         ReadableType.Null -> false
@@ -31,5 +36,17 @@ private fun (WritableMap.() -> Unit).hasValue(value: String): Boolean {
         ReadableType.String -> true
         ReadableType.Map -> !map.getMap(value)?.toHashMap().isNullOrEmpty()
         ReadableType.Array -> !map.getArray(value)?.toArrayList().isNullOrEmpty()
+    }
+}
+
+private fun (WritableMap.() -> Unit).hasEmptyValue(value: String): Boolean {
+    val map = toJavaOnlyMap()
+    return when (map.getType(value)) {
+        ReadableType.Null -> false
+        ReadableType.Boolean -> false
+        ReadableType.Number -> false
+        ReadableType.String -> map.getString(value)?.isEmpty() == true
+        ReadableType.Map -> map.getMap(value)?.toHashMap()?.isEmpty() == true
+        ReadableType.Array -> map.getArray(value)?.toArrayList()?.isEmpty() == true
     }
 }
