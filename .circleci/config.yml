@@ -258,7 +258,7 @@ jobs:
           command: yarn unit-test:android
           name: unit tests
       - store_test_results:
-          path: ~/build/test-results/testDebugUnitTest/
+          path: ~/build/test-results/
       - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
