@@ -8,6 +8,21 @@ Get started with our [📚 integration guides](https://stripe.com/docs/terminal/
 
 > Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md).
 
+## Requirements
+
+- The SDK uses TypeScript features available in Babel version `7.9.0` and above.
+  Alternatively use the `plugin-transform-typescript` plugin in your project.
+
+### Android
+
+- Android 5.0 (API level 21) and above
+- compileSdkVersion = 31
+- targetSdkVersion = 31
+
+### iOS
+
+- Compatible with apps targeting iOS 10 or above.
+
 ## Installation
 
 ```sh
@@ -16,24 +31,103 @@ or
 npm install @stripe/stripe-terminal-react-native
 ```
 
+_note: early access beta users will need to install from git with_
+
+```
+yarn add https://github.com/stripe/stripe-terminal-react-native
+or
+npm install https://github.com/stripe/stripe-terminal-react-native
+```
+
+## React Native CLI
+
 ### iOS
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
-### Requirements
+#### Permissions
 
-- The SDK uses TypeScript features available in Babel version `7.9.0` and above.
-  Alternatively use the `plugin-transform-typescript` plugin in your project.
+Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
 
-#### Android
+- Privacy - Location When In Use Usage Description
 
-- Android 5.0 (API level 21) and above
-- compileSdkVersion = 31
-- targetSdkVersion = 31
+Update:
 
-**Android 12 (API Level >= 31)**
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string></string>
+```
 
-To enable compatibility the library with the latest Android 12 please make sure that you meet following requirements:
+to
+
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Location access is required in order to accept payments.</string>
+```
+
+> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
+
+For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>bluetooth-central</string>
+</array>
+```
+
+For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
+
+```xml
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>This app uses Bluetooth to connect to supported card readers.</string>
+```
+
+### Android
+
+#### Permissions
+
+Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
+
+---
+
+**IMPORTANT**
+In case of supportig **Android 12** you need also to ask the user for additional permissions:
+
+`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+
+To do this, add the following check before you initialize the Terminal SDK:
+
+```tsx
+useEffect(() => {
+  async function init() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'Location Permission Permission',
+          message: 'App needs access to your Location ',
+          buttonPositive: 'Accept',
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the Location');
+      } else {
+        console.error(
+          'Location services are required in order to connect to a reader.'
+        );
+      }
+    } catch {}
+  }
+  init();
+}, []);
+```
+
+#### Manifest
+
+To enable compatibility the library with the latest Android 12 please make sure that you ad following requirements:
 
 Add `android:exported="true"` to the `AndroidManifest.xml`:
 
@@ -51,41 +145,41 @@ Add `android:exported="true"` to the `AndroidManifest.xml`:
 
 Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish the exact value that you need to set.
 
-#### iOS
+## Expo
 
-- Compatible with apps targeting iOS 10 or above.
+_Note: Currently Expo is only supported for usage with iOS, we will resume support for android when expo update its `compileSdkVersion` to 31_
 
-### Expo initialization
+_Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/)._
 
-> This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
-
-> First install the package with yarn, npm, or [`expo install`](https://docs.expo.io/workflow/expo-cli/#expo-install).
-
-```sh
-expo install stripe-terminal-react-native
-```
-
-After installing this npm package, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+After installing stripe-terminal-react-native, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
 
 ```json
 {
-  // ...
-  "plugins": [
-    [
-      // ...
-      "stripe-terminal-react-native",
-      {
-        "bluetoothBackgroundMode": true,
-        "locationWhenInUsePermission": "Location access is required in order to accept payments.",
-        "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
-        "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
-      }
+  expo: {
+    // ...
+    "plugins": [
+      [
+        "stripe-terminal-react-native",
+        {
+          "bluetoothBackgroundMode": true,
+          "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+          "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+          "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+        }
+      ],
+      …
     ]
-  ]
+  }
 }
 ```
 
-Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide.
+Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
+
+```
+expo run:ios
+or
+expo run:android
+```
 
 ## Stripe Terminal SDK initialization
 
@@ -141,86 +235,6 @@ function App() {
 }
 ```
 
-## Configure your app
-
-### Android
-
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
-
----
-
-**IMPORTANT**
-In case of supportig **Android 12** you need also to ask the user for additional permissions:
-
-`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
-
-To do this, add the following check before you initialize the Terminal SDK:
-
-```tsx
-useEffect(() => {
-  async function init() {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission Permission',
-          message: 'App needs access to your Location ',
-          buttonPositive: 'Accept',
-        }
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the Location');
-      } else {
-        console.error(
-          'Location services are required in order to connect to a reader.'
-        );
-      }
-    } catch {}
-  }
-  init();
-}, []);
-```
-
-### iOS
-
-Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
-
-- Privacy - Location When In Use Usage Description
-
-Update:
-
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string></string>
-```
-
-to
-
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Location access is required in order to accept payments.</string>
-```
-
-> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
-
-For your app to run in the background and remain connected to the reader, add this key-value pair to your `Info.plist` file:
-
-```xml
-<key>UIBackgroundModes</key>
-<array>
-  <string>bluetooth-central</string>
-</array>
-```
-
-For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:
-
-```xml
-<key>NSBluetoothPeripheralUsageDescription</key>
-<string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
-<key>NSBluetoothAlwaysUsageDescription</key>
-<string>This app uses Bluetooth to connect to supported card readers.</string>
-```
-
 ## Usage example
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
@@ -262,7 +276,7 @@ export default function PaymentScreen() {
 ```
 
 In case your app uses `React Class Components` you can use dedicated `withStripeTerminal` Higher-Order-Component.
-Please note that comparing to the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.
+Please note that unlike the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.
 
 [Here](https://github.com/stripe/stripe-terminal-react-native/blob/main/src/hooks/useStripeTerminal.tsx#L51) you can find the list of available events to be used within the event emitter.
 
