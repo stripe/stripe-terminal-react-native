@@ -151,8 +151,6 @@ class RNBluetoothReaderListenerTest {
 
         verify(exactly = 1) { context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName, any()) }
 
-        val event = sendEventSlot.captured.toJavaOnlyMap()
-
         assertTrue(sendEventSlot.captured.hasError())
         assertTrue(sendEventSlot.captured.hasResult())
     }
