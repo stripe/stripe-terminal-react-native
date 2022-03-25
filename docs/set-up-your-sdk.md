@@ -126,28 +126,6 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 > Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
 
-After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
-
-```json
-{
-  expo: {
-    // ...
-    "plugins": [
-      [
-        "stripe-terminal-react-native",
-        {
-          "bluetoothBackgroundMode": true,
-          "locationWhenInUsePermission": "Location access is required in order to accept payments.",
-          "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
-          "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
-        }
-      ],
-      …
-    ]
-  }
-}
-```
-
 ### Android
 
 For android you'll need to massage your build files in order to properly compile. First in `android/build.gradle` by updating both `compileSdkVersion` and `targetSdkVersion` to at least `31`:
@@ -176,9 +154,27 @@ android.jetifier.blacklist=moshi-1.13.0.jar
 
 Depending on the version of jetifier in use.
 
-### iOS
+### Configuring the SDK
 
-No special steps required!
+After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "stripe-terminal-react-native",
+        {
+          "bluetoothBackgroundMode": true,
+          "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+          "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+          "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+        }
+      ]
+    ]
+  }
+}
+```
 
 ### Build
 
