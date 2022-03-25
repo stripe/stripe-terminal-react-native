@@ -1,3 +1,7 @@
+# Stripe Terminal React Native SDK
+
+Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe's payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.
+
 - [Getting started](#getting-started)
 - [Requirements](#requirements)
   - [JS](#js)
@@ -14,21 +18,19 @@
   - [Usage With Expo](#usage-with-expo)
 - [Example Code](#example-code)
   - [Initialization](#initialization)
-  - [Discovering Devices](#discovering-devices)
-  - [More Examples](#more-examples)
+  - [Hooks and Events](#hooks-and-events)
+  - [Common Operations](#common-operations)
 - [Additional Docs](#additional-docs)
   - [Internal Docs](#internal-docs)
 - [Contributing](#contributing)
 
-# Stripe Terminal React Native SDK
-
-Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe's payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.
-
 # Getting started
+
+> Note: The below docs are not yet available and will be released as we near open beta
 
 Get started with our [📚 integration guides](https://stripe.com/docs/terminal/payments/setup-sdk?terminal-sdk-platform=react-native) and [example project](#run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-terminal-react-native).
 
-> Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md).
+Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md).
 
 # Requirements
 
@@ -55,7 +57,7 @@ or
 npm install @stripe/stripe-terminal-react-native
 ```
 
-_note: early access beta users will need to install from git with_
+> Note: early access beta users will need to install from git with
 
 ```
 yarn add https://github.com/stripe/stripe-terminal-react-native
@@ -170,9 +172,9 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 ## Usage With Expo
 
-_Note: Currently Expo is only supported for usage with iOS, we will resume support for android when expo update its `compileSdkVersion` to 31_
+> Note: Currently Expo is only supported for usage with iOS, we will resume support for android when expo updates its `compileSdkVersion` to 31
 
-_Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/)._
+> Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
 
 After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
 
@@ -196,7 +198,7 @@ After [installing](#installation) the SDK, add the [config plugin](https://docs.
 
 That's it, that will take care of all android and iOS permissioning required for the SDK to function!
 
-Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
+Then, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
 
 ```
 expo run:ios
@@ -243,7 +245,7 @@ function Root() {
 ```
 
 As a last step, simply call `initialize` method from `useStripeTerminal` hook.
-Please note that `initialize` method must be called from the nested component of `StripeTerminalProvider`.
+Please note that `initialize` method must be called from a nested component of `StripeTerminalProvider`.
 
 ```tsx
 // App.tsx
@@ -260,7 +262,7 @@ function App() {
 }
 ```
 
-## Discovering Devices
+## Hooks and Events
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
@@ -335,7 +337,7 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-## More Examples
+## Common Operations
 
 You can find further examples of common SDK actions here:
 
