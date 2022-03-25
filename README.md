@@ -1,52 +1,53 @@
-- [Stripe Terminal React Native SDK](#stripe-terminal-react-native-sdk)
-  - [Getting started](#getting-started)
-  - [Requirements](#requirements)
-    - [JS](#js)
-    - [Android](#android)
-    - [iOS](#ios)
-  - [Installation](#installation)
-  - [Usage With React Native CLI](#usage-with-react-native-cli)
+- [Getting started](#getting-started)
+- [Requirements](#requirements)
+  - [JS](#js)
+  - [Android](#android)
+  - [iOS](#ios)
+- [Installation](#installation)
+- [Setup](#setup)
+  - [React Native CLI](#react-native-cli)
     - [iOS](#ios-1)
       - [Permissions](#permissions)
     - [Android](#android-1)
       - [Permissions](#permissions-1)
       - [Manifest](#manifest)
   - [Usage With Expo](#usage-with-expo)
-  - [Stripe Terminal SDK initialization](#stripe-terminal-sdk-initialization)
-  - [Basic Usage Example](#basic-usage-example)
-  - [Further Usage Examples](#further-usage-examples)
-  - [Additional Docs](#additional-docs)
+- [Example Code](#example-code)
+  - [Initialization](#initialization)
+  - [Discovering Devices](#discovering-devices)
+  - [More Examples](#more-examples)
+- [Additional Docs](#additional-docs)
   - [Internal Docs](#internal-docs)
-  - [Contributing](#contributing)
+- [Contributing](#contributing)
 
 # Stripe Terminal React Native SDK
 
 Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe's payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.
 
-## Getting started
+# Getting started
 
 Get started with our [📚 integration guides](https://stripe.com/docs/terminal/payments/setup-sdk?terminal-sdk-platform=react-native) and [example project](#run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-terminal-react-native).
 
 > Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md).
 
-## Requirements
+# Requirements
 
-### JS
+## JS
 
 - The SDK uses TypeScript features available in Babel version `7.9.0` and above.
   Alternatively use the `plugin-transform-typescript` plugin in your project.
 
-### Android
+## Android
 
 - Android 5.0 (API level 21) and above
 - compileSdkVersion = 31
 - targetSdkVersion = 31
 
-### iOS
+## iOS
 
 - Compatible with apps targeting iOS 10 or above.
 
-## Installation
+# Installation
 
 ```sh
 yarn add @stripe/stripe-terminal-react-native
@@ -62,7 +63,9 @@ or
 npm install https://github.com/stripe/stripe-terminal-react-native
 ```
 
-## Usage With React Native CLI
+# Setup
+
+## React Native CLI
 
 ### iOS
 
@@ -201,7 +204,9 @@ or
 expo run:android
 ```
 
-## Stripe Terminal SDK initialization
+# Example Code
+
+## Initialization
 
 To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
 
@@ -255,7 +260,7 @@ function App() {
 }
 ```
 
-## Basic Usage Example
+## Discovering Devices
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
@@ -330,7 +335,7 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-## Further Usage Examples
+## More Examples
 
 You can find further examples of common SDK actions here:
 
@@ -341,7 +346,7 @@ You can find further examples of common SDK actions here:
 - [Refunds](/docs/refund-transactions.md)
 - [Saving Cards](/docs/saving-cards.md)
 
-## Additional Docs
+# Additional Docs
 
 - [Setting up the SDK](/docs/set-up-your-sdk.md)
 - [Running the Example Application](/docs/example-applications.md)
@@ -351,7 +356,7 @@ You can find further examples of common SDK actions here:
 
 - [Deploying the example apps](/docs/deploying-example-app.md)
 
-## Contributing
+# Contributing
 
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
