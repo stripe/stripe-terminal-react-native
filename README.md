@@ -16,10 +16,13 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
       - [Permissions](#permissions-1)
       - [Manifest](#manifest)
   - [Usage With Expo](#usage-with-expo)
+    - [Android](#android-2)
+    - [Configuring the SDK](#configuring-the-sdk)
+    - [Build](#build)
 - [Example Code](#example-code)
   - [Initialization](#initialization)
-  - [Discovering Devices](#discovering-devices)
-  - [More Examples](#more-examples)
+  - [Hooks and Events](#hooks-and-events)
+  - [Common Operations](#common-operations)
 - [Additional Docs](#additional-docs)
   - [Internal Docs](#internal-docs)
 - [Contributing](#contributing)
@@ -226,7 +229,7 @@ After [installing](#installation) the SDK, add the [config plugin](https://docs.
 
 ### Build
 
-Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
+Rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
 
 ```
 expo run:ios
@@ -273,7 +276,7 @@ function Root() {
 ```
 
 As a last step, simply call `initialize` method from `useStripeTerminal` hook.
-Please note that `initialize` method must be called from the nested component of `StripeTerminalProvider`.
+Please note that `initialize` method must be called from a nested component of `StripeTerminalProvider`.
 
 ```tsx
 // App.tsx
@@ -290,7 +293,7 @@ function App() {
 }
 ```
 
-## Discovering Devices
+## Hooks and Events
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
@@ -365,7 +368,7 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-## More Examples
+## Common Operations
 
 You can find further examples of common SDK actions here:
 
