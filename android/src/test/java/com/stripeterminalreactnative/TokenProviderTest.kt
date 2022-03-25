@@ -4,13 +4,9 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.ConnectionTokenCallback
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import io.mockk.Called
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
 import io.mockk.verify
-import org.junit.AfterClass
-import org.junit.BeforeClass
+import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -22,25 +18,9 @@ class TokenProviderTest {
         const val TOKEN = "token"
         const val ERROR = "error"
 
-        @BeforeClass
-        @JvmStatic
-        fun setup() {
-            mockkObject(ReactExtensions)
-            with(ReactExtensions) {
-                every {
-                    any<ReactApplicationContext>().sendEvent(any())
-                } returns Unit
-                every {
-                    any<ReactApplicationContext>().sendEvent(any(), any())
-                } returns Unit
-            }
-        }
-
-        @AfterClass
-        @JvmStatic
-        fun teardown() {
-            unmockkAll()
-        }
+        @ClassRule
+        @JvmField
+        val typeReplacer = ReactNativeTypeReplacementRule()
     }
 
     private val context = mockk<ReactApplicationContext>()
