@@ -118,7 +118,7 @@ In order for the Stripe Terminal SDK to function properly we'll need to enable t
 - `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
 - `PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION`
 
-To do this, add the following check before you initialize the Terminal SDK:
+> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
 
 ```tsx
 useEffect(() => {
@@ -147,7 +147,7 @@ useEffect(() => {
 
 #### Manifest
 
-To enable compatibility the library with the latest Android 12 please make sure that you ad following requirements:
+To enable compatibility the library with the latest Android 12 please make sure that you add following requirements:
 
 Add `android:exported="true"` to the `AndroidManifest.xml`:
 
