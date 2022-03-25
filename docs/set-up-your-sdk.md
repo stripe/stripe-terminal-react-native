@@ -140,7 +140,7 @@ buildscript {
     }
 ```
 
-Next ensure that jetifier is ignoring the `mochi` lib by adding the following to `android/gradle.properties`:
+Next ensure that jetifier is ignoring the `moshi` lib by adding the following to `android/gradle.properties`:
 
 ```
 android.jetifier.ignorelist=moshi-1.13.0.jar
