@@ -124,9 +124,7 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 ## Usage With Expo
 
-_Note: Currently Expo is only supported for usage with iOS, we will resume support for android when expo update its `compileSdkVersion` to 31_
-
-_Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/)._
+> Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
 
 After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
 
@@ -150,7 +148,39 @@ After [installing](#installation) the SDK, add the [config plugin](https://docs.
 }
 ```
 
-That's it, that will take care of all android and iOS permissioning required for the SDK to function!
+### Android
+
+For android you'll need to massage your build files in order to properly compile. First in `android/build.gradle` by updating both `compileSdkVersion` and `targetSdkVersion` to at least `31`:
+
+```
+buildscript {
+    ext {
+        buildToolsVersion = "29.0.3"
+        minSdkVersion = 21
+        compileSdkVersion = 31
+        targetSdkVersion = 31
+    }
+```
+
+Next ensure that jetifier is ignoring the `mochi` lib by adding the following to `android/gradle.properties`:
+
+```
+android.jetifier.ignorelist=moshi-1.13.0.jar
+```
+
+or
+
+```
+android.jetifier.blacklist=moshi-1.13.0.jar
+```
+
+Depending on the version of jetifier in use.
+
+### iOS
+
+No special steps required!
+
+### Build
 
 Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
 
