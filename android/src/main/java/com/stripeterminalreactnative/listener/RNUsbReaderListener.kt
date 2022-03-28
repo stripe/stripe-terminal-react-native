@@ -19,6 +19,7 @@ import com.stripeterminalreactnative.mapFromReaderDisplayMessage
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
 import com.stripeterminalreactnative.nativeMapOf
+import com.stripeterminalreactnative.putError
 
 class RNUsbReaderListener(
     private val context: ReactApplicationContext,
@@ -53,11 +54,11 @@ class RNUsbReaderListener(
         e: TerminalException?
     ) {
         context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName) {
-            update?.let {
-                putMap("result", mapFromReaderSoftwareUpdate(update))
-            } ?: run {
-                putMap("result", WritableNativeMap())
+            val result = update?.let { mapFromReaderSoftwareUpdate(update) } ?: nativeMapOf()
+            e?.let {
+                result.putError(e)
             }
+            putMap("result", result)
         }
     }
 
