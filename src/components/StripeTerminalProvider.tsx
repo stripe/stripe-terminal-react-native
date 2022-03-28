@@ -6,7 +6,6 @@ import type {
   StripeError,
   PaymentStatus,
   UserCallbacks,
-  UpdateSoftwareResultType,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
