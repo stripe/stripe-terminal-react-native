@@ -41,6 +41,7 @@ export default function CollectCardPaymentScreen() {
     collectPaymentMethod,
     processPayment,
     retrievePaymentIntent,
+    cancelCollectPaymentMethod,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
@@ -49,6 +50,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: input.join(' / '),
             description: 'terminal.didRequestReaderInput',
+            onBack: cancelCollectPaymentMethod,
           },
         ],
       });
@@ -114,7 +116,7 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         paymentMethodTypes: paymentMethods,
-        setupFutureUsage: 'off_session',
+        setupFutureUsage: enableInterac ? undefined : 'off_session',
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -157,6 +159,7 @@ export default function CollectCardPaymentScreen() {
           name: 'Collect',
           description: 'terminal.collectPaymentMethod',
           metadata: { paymentIntentId },
+          onBack: cancelCollectPaymentMethod,
         },
       ],
     });
