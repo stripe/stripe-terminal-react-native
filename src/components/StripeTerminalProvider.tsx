@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   Reader,
   InitParams,
@@ -29,6 +29,9 @@ const {
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
+
+const TOKEN_PROVIDER_ERROR_MESSAGE =
+  "Couldn't fetch connection token. Please check your tokenProvider method";
 
 /**
  * @ignore
@@ -91,19 +94,30 @@ export function StripeTerminalProvider({
     [logLevel]
   );
 
+  useEffect(() => {
+    // test tokenProvider method since native SDK's doesn't fetch it on init
+    async function init() {
+      try {
+        await tokenProvider();
+      } catch (error) {
+        console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
+        console.error(error);
+      }
+    }
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const tokenProviderHandler = async () => {
     try {
       const connectionToken = await tokenProvider();
 
       setConnectionToken(connectionToken);
     } catch (error) {
-      const errorMessage =
-        "Couldn't fetch connection token. Please check your tokenProvider method";
-
-      setConnectionToken(undefined, errorMessage);
+      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
       console.error(error);
-      console.error(errorMessage);
+      console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
     }
   };
 
