@@ -54,7 +54,7 @@ const { FETCH_TOKEN_PROVIDER } =
   NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
-  'Before any action you must initalize SDK as first';
+  'First initialize the Stripe Terminal SDK before performing any action';
 
 /**
  *  useStripeTerminal hook Props
