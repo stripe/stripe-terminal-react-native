@@ -105,6 +105,17 @@ export default function App() {
   const { initialize: initStripe } = useStripeTerminal();
 
   useEffect(() => {
+    const handlePermissionsSuccess = async () => {
+      const { error } = await initStripe({
+        logLevel: 'verbose',
+      });
+      if (error) {
+        Alert.alert('StripeTerminal init failed', error.message);
+      } else {
+        console.log('StripeTerminal has been initialized properly');
+      }
+    };
+
     async function handlePermissions() {
       try {
         const granted = await PermissionsAndroid.request(
@@ -157,24 +168,12 @@ export default function App() {
     } else {
       handlePermissionsSuccess();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initStripe]);
 
   const handlePermissionsError = () => {
     console.error(
       'Location and BT services are required in order to connect to a reader.'
     );
-  };
-
-  const handlePermissionsSuccess = async () => {
-    const { error } = await initStripe({
-      logLevel: 'verbose',
-    });
-    if (error) {
-      Alert.alert('StripeTerminal init failed', error.message);
-    } else {
-      console.log('StripeTerminal has been initialized properly');
-    }
   };
 
   const hasGrantedPermission = (status: string) => {
