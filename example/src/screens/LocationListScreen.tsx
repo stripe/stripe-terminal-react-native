@@ -22,14 +22,14 @@ export default function LocationListScreen() {
 
   useEffect(() => {
     async function init() {
+      console.log('getting locations');
       const { locations } = await getLocations({ limit: 20 });
       if (locations) {
         setList(locations);
       }
     }
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getLocations]);
 
   const renderItem = (item: Location) => (
     <ListItem
