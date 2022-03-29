@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -101,7 +101,7 @@ const screenOptions = {
 
 export default function App() {
   const [logs, setlogs] = useState<Log[]>([]);
-  const clearLogs = () => setlogs([]);
+  const clearLogs = useCallback(() => setlogs([]), []);
   const { initialize: initStripe } = useStripeTerminal();
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export default function App() {
     return status === PermissionsAndroid.RESULTS.GRANTED;
   };
 
-  const addLogs = (newLog: Log) => {
+  const addLogs = useCallback((newLog: Log) => {
     const updateLog = (log: Log) =>
       log.name === newLog.name
         ? { name: log.name, events: [...log.events, ...newLog.events] }
@@ -190,16 +190,15 @@ export default function App() {
         ? prev.map(updateLog)
         : [...prev, newLog]
     );
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ logs, addLogs, clearLogs }),
+    [logs, addLogs, clearLogs]
+  );
 
   return (
-    <LogContext.Provider
-      value={{
-        logs,
-        addLogs,
-        clearLogs,
-      }}
-    >
+    <LogContext.Provider value={value}>
       <>
         <StatusBar
           backgroundColor={colors.blurple_dark}
