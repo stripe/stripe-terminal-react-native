@@ -150,6 +150,32 @@ useEffect(() => {
 }, []);
 ```
 
+For convenience, Stripe Terminal SDK also provides an util that handles all needed Android permissions.
+In order to use it follow below instrustions:
+
+```tsx
+import { requestNeededAndroidPermissions } from 'stripe-terminal-react-native';
+
+try {
+  const granted = await requestNeededAndroidPermissions({
+    accessFineLocation: {
+      title: 'Location Permission Permission',
+      message: 'App needs access to your Location',
+      buttonPositive: 'Accept',
+    },
+  });
+  if (granted) {
+    // init SDK
+  } else {
+    console.error(
+      'Location and BT services are required in order to connect to a reader.'
+    );
+  }
+} catch (e) {
+  console.error(e);
+}
+```
+
 #### Manifest
 
 To enable compatibility the library with the latest Android 12 please make sure that you add following requirements:
