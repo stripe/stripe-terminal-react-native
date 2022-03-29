@@ -27,7 +27,7 @@ export default function CollectCardPaymentScreen() {
     currency: string;
   }>({
     amount: '20000',
-    currency: 'USD',
+    currency: 'CAD',
   });
   const [enableInterac, setEnableInterac] = useState(false);
   const { params } =
@@ -69,13 +69,17 @@ export default function CollectCardPaymentScreen() {
     },
   });
 
-  const createServerPaymentIntent = async () => {
+  const createServerPaymentIntent = async (intentParams: {
+    payment_method_types: string[];
+    amount: number;
+    currency: string;
+  }) => {
     const response = await fetch(`${API_URL}/create_payment_intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify(intentParams),
     });
     const { client_secret, id } = await response.json();
     return { client_secret, id, error: null };
@@ -106,7 +110,11 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
-      const { client_secret } = await createServerPaymentIntent();
+      const { client_secret } = await createServerPaymentIntent({
+        amount: Number(inputValues.amount),
+        currency: inputValues.currency,
+        payment_method_types: paymentMethods,
+      });
 
       const response = await retrievePaymentIntent(client_secret);
       paymentIntent = response.paymentIntent;

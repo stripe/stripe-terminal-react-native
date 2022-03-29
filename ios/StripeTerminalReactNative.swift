@@ -588,7 +588,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         if let customerId = params["customer"] as? String {
             readReusableCardParams.customer = customerId
         }
-        Terminal.shared.readReusableCard(readReusableCardParams) { pm, error in
+        readReusableCardCancelable = Terminal.shared.readReusableCard(readReusableCardParams) { pm, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {

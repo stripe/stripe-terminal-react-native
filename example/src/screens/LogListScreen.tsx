@@ -26,6 +26,7 @@ const LogListScreen = () => {
 
     if (latestEvent.onBack) {
       latestEvent.onBack();
+      navigation.navigate('Terminal');
     } else {
       navigation.navigate('Terminal');
     }
