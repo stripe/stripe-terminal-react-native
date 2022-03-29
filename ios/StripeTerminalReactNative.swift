@@ -621,8 +621,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func reader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
-        let result = Mappers.mapFromReaderSoftwareUpdate(update)
-        sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result ?? [:]])
+        var result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
+        if let nsError = error as NSError? {
+            result["error"] = Errors.createError(nsError: nsError)
+        }
+        sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {

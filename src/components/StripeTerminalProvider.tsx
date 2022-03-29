@@ -176,9 +176,26 @@ export function StripeTerminalProvider({
   );
 
   const didFinishInstallingUpdate = useCallback(
-    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
-      log('didFinishInstallingUpdate', result);
-      userCallbacks.current?.onDidFinishInstallingUpdate?.(result);
+    ({
+      result,
+    }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
+      if ((result as { error: StripeError }).error) {
+        const { error } = result as { error: StripeError };
+        log(
+          'Install update failed with the following error:',
+          `code: ${error.code}, message: ${error.message}`
+        );
+        userCallbacks.current?.onDidFinishInstallingUpdate?.({
+          update: undefined,
+          error: error,
+        });
+      } else {
+        log('didFinishInstallingUpdate', result);
+        userCallbacks.current?.onDidFinishInstallingUpdate?.({
+          update: result as Reader.SoftwareUpdate,
+          error: undefined,
+        });
+      }
       emitter.emit(FINISH_INSTALLING_UPDATE);
     },
     [log]
