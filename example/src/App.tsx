@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -101,10 +101,21 @@ const screenOptions = {
 
 export default function App() {
   const [logs, setlogs] = useState<Log[]>([]);
-  const clearLogs = () => setlogs([]);
+  const clearLogs = useCallback(() => setlogs([]), []);
   const { initialize: initStripe } = useStripeTerminal();
 
   useEffect(() => {
+    const handlePermissionsSuccess = async () => {
+      const { error } = await initStripe({
+        logLevel: 'verbose',
+      });
+      if (error) {
+        Alert.alert('StripeTerminal init failed', error.message);
+      } else {
+        console.log('StripeTerminal has been initialized properly');
+      }
+    };
+
     async function handlePermissions() {
       try {
         const granted = await PermissionsAndroid.request(
@@ -157,8 +168,7 @@ export default function App() {
     } else {
       handlePermissionsSuccess();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initStripe]);
 
   const handlePermissionsError = () => {
     console.error(
@@ -166,22 +176,11 @@ export default function App() {
     );
   };
 
-  const handlePermissionsSuccess = async () => {
-    const { error } = await initStripe({
-      logLevel: 'verbose',
-    });
-    if (error) {
-      Alert.alert('StripeTerminal init failed', error.message);
-    } else {
-      console.log('StripeTerminal has been initialized properly');
-    }
-  };
-
   const hasGrantedPermission = (status: string) => {
     return status === PermissionsAndroid.RESULTS.GRANTED;
   };
 
-  const addLogs = (newLog: Log) => {
+  const addLogs = useCallback((newLog: Log) => {
     const updateLog = (log: Log) =>
       log.name === newLog.name
         ? { name: log.name, events: [...log.events, ...newLog.events] }
@@ -191,16 +190,15 @@ export default function App() {
         ? prev.map(updateLog)
         : [...prev, newLog]
     );
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ logs, addLogs, clearLogs }),
+    [logs, addLogs, clearLogs]
+  );
 
   return (
-    <LogContext.Provider
-      value={{
-        logs,
-        addLogs,
-        clearLogs,
-      }}
-    >
+    <LogContext.Provider value={value}>
       <>
         <StatusBar
           backgroundColor={colors.blurple_dark}
