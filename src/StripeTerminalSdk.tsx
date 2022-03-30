@@ -9,7 +9,6 @@ import type {
   DisconnectReaderResultType,
   Reader,
   ConnectInternetReaderParams,
-  ConnectUsbReaderResultType,
   ConnectUsbReaderParams,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
@@ -68,7 +67,7 @@ type StripeTerminalSdkType = {
   // Connect to reader via USB
   connectUsbReader(
     params: ConnectUsbReaderParams
-  ): Promise<ConnectUsbReaderResultType>;
+  ): Promise<ConnectReaderResultType>;
   // Disconnect reader
   disconnectReader(): Promise<DisconnectReaderResultType>;
   // Create a payment intent

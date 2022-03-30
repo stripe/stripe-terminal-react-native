@@ -19,10 +19,14 @@ export default function UpdateReaderScreen() {
     onDidReportReaderSoftwareUpdateProgress: (progress) => {
       setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
     },
-    onDidFinishInstallingUpdate: (_update) => {
-      params?.onDidUpdate();
-      if (navigation.canGoBack()) {
-        navigation.goBack();
+    onDidFinishInstallingUpdate: ({ error }) => {
+      if (error) {
+        console.log(error.message);
+      } else {
+        params?.onDidUpdate();
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
       }
     },
   });

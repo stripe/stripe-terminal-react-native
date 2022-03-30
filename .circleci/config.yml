@@ -255,6 +255,11 @@ jobs:
       - android/save-gradle-cache
       - android/save-build-cache
       - run:
+          command: yarn unit-test:android
+          name: unit tests
+      - store_test_results:
+          path: ~/android/build/test-results/testDebugUnitTest
+      - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
           name: test detox
