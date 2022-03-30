@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import type {
   Reader,
-  InitParams,
   LogLevel,
   StripeError,
   PaymentStatus,
@@ -258,29 +257,26 @@ export function StripeTerminalProvider({
     userCallbacks.current = callbacks;
   };
 
-  const _initialize = useCallback(
-    async (params: InitParams) => {
-      setLoading(true);
+  const _initialize = useCallback(async () => {
+    setLoading(true);
 
-      const response = await initialize(params);
+    const response = await initialize({ logLevel });
 
-      if (response.error) {
-        log(response.error.code, response.error.message);
-      } else if (response.reader) {
-        log('Connected to the reader: ', response.reader);
-        setConnectedReader(response.reader);
-      }
+    if (response.error) {
+      log(response.error.code, response.error.message);
+    } else if (response.reader) {
+      log('Connected to the reader: ', response.reader);
+      setConnectedReader(response.reader);
+    }
 
-      if (!response.error) {
-        setIsInitialized(true);
-      }
+    if (!response.error) {
+      setIsInitialized(true);
+    }
 
-      setLoading(false);
+    setLoading(false);
 
-      return response;
-    },
-    [setLoading, setConnectedReader, setIsInitialized, log]
-  );
+    return response;
+  }, [setLoading, setConnectedReader, setIsInitialized, log, logLevel]);
 
   return (
     <StripeTerminalContext.Provider

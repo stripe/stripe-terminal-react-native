@@ -167,9 +167,7 @@ export default function App() {
   };
 
   const handlePermissionsSuccess = async () => {
-    const { error } = await initStripe({
-      logLevel: 'verbose',
-    });
+    const { error } = await initStripe();
     if (error) {
       Alert.alert('StripeTerminal init failed', error.message);
     } else {
