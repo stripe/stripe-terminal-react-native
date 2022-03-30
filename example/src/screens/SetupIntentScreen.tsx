@@ -1,5 +1,5 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
-import React, { useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import {
   SetupIntent,
@@ -50,11 +50,6 @@ export default function SetupIntentScreen() {
     },
   });
 
-  useEffect(() => {
-    _createSetupIntent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const createServerSetupIntent = async () => {
     try {
       const response = await fetch(`${API_URL}/create_setup_intent`, {
@@ -71,7 +66,97 @@ export default function SetupIntentScreen() {
     }
   };
 
-  const _createSetupIntent = async () => {
+  const _processPayment = useCallback(
+    async (setupIntentId: string) => {
+      addLogs({
+        name: 'Process Payment',
+        events: [
+          {
+            name: 'Process',
+            description: 'terminal.confirmSetupIntent',
+            metadata: { setupIntentId },
+          },
+        ],
+      });
+      const { setupIntent, error } = await confirmSetupIntent(setupIntentId);
+      if (error) {
+        addLogs({
+          name: 'Process Payment',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.confirmSetupIntent',
+              metadata: {
+                errorCode: error.code,
+                errorMessage: error.message,
+              },
+            },
+          ],
+        });
+      } else if (setupIntent) {
+        addLogs({
+          name: 'Process Payment',
+          events: [
+            {
+              name: 'Finished',
+              description: 'terminal.confirmSetupIntent',
+              metadata: { setupIntentId: setupIntent.id },
+            },
+          ],
+        });
+      }
+    },
+    [addLogs, confirmSetupIntent]
+  );
+
+  const _collectPaymentMethod = useCallback(
+    async (setupIntentId: string) => {
+      addLogs({
+        name: 'Collect Setup Intent',
+        events: [
+          {
+            name: 'Collect',
+            description: 'terminal.collectSetupIntentPaymentMethod',
+            metadata: { setupIntentId },
+          },
+        ],
+      });
+      const { setupIntent, error } = await collectSetupIntentPaymentMethod({
+        setupIntentId: setupIntentId,
+        customerConsentCollected: true,
+      });
+      if (error) {
+        addLogs({
+          name: 'Collect Setup Intent',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.collectSetupIntentPaymentMethod',
+              metadata: {
+                errorCode: error.code,
+                errorMessage: error.message,
+              },
+            },
+          ],
+        });
+      } else if (setupIntent) {
+        addLogs({
+          name: 'Collect Setup Intent',
+          events: [
+            {
+              name: 'Created',
+              description: 'terminal.collectSetupIntentPaymentMethod',
+              metadata: { setupIntentId: setupIntent.id },
+            },
+          ],
+        });
+        await _processPayment(setupIntentId);
+      }
+    },
+    [_processPayment, addLogs, collectSetupIntentPaymentMethod]
+  );
+
+  const _createSetupIntent = useCallback(async () => {
     clearLogs();
     navigation.navigate('LogListScreen');
     addLogs({
@@ -129,91 +214,19 @@ export default function SetupIntentScreen() {
     } else if (setupIntent) {
       await _collectPaymentMethod(setupIntent.id);
     }
-  };
+  }, [
+    _collectPaymentMethod,
+    createSetupIntent,
+    addLogs,
+    clearLogs,
+    discoveryMethod,
+    navigation,
+    retrieveSetupIntent,
+  ]);
 
-  const _collectPaymentMethod = async (setupIntentId: string) => {
-    addLogs({
-      name: 'Collect Setup Intent',
-      events: [
-        {
-          name: 'Collect',
-          description: 'terminal.collectSetupIntentPaymentMethod',
-          metadata: { setupIntentId },
-        },
-      ],
-    });
-    const { setupIntent, error } = await collectSetupIntentPaymentMethod({
-      setupIntentId: setupIntentId,
-      customerConsentCollected: true,
-    });
-    if (error) {
-      addLogs({
-        name: 'Collect Setup Intent',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
-          },
-        ],
-      });
-    } else if (setupIntent) {
-      addLogs({
-        name: 'Collect Setup Intent',
-        events: [
-          {
-            name: 'Created',
-            description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: { setupIntentId: setupIntent.id },
-          },
-        ],
-      });
-      await _processPayment(setupIntentId);
-    }
-  };
-
-  const _processPayment = async (setupIntentId: string) => {
-    addLogs({
-      name: 'Process Payment',
-      events: [
-        {
-          name: 'Process',
-          description: 'terminal.confirmSetupIntent',
-          metadata: { setupIntentId },
-        },
-      ],
-    });
-    const { setupIntent, error } = await confirmSetupIntent(setupIntentId);
-    if (error) {
-      addLogs({
-        name: 'Process Payment',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.confirmSetupIntent',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
-          },
-        ],
-      });
-    } else if (setupIntent) {
-      addLogs({
-        name: 'Process Payment',
-        events: [
-          {
-            name: 'Finished',
-            description: 'terminal.confirmSetupIntent',
-            metadata: { setupIntentId: setupIntent.id },
-          },
-        ],
-      });
-    }
-  };
+  useEffect(() => {
+    _createSetupIntent();
+  }, [_createSetupIntent]);
 
   return <ScrollView contentContainerStyle={styles.container} />;
 }

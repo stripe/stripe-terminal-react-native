@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useMemo } from 'react';
 import type {
   Reader,
   LogLevel,
@@ -253,9 +253,9 @@ export function StripeTerminalProvider({
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
-  const setUserCallbacks = (callbacks: UserCallbacks) => {
+  const setUserCallbacks = useCallback((callbacks: UserCallbacks) => {
     userCallbacks.current = callbacks;
-  };
+  }, []);
 
   const _initialize = useCallback(async () => {
     setLoading(true);
@@ -278,29 +278,38 @@ export function StripeTerminalProvider({
     return response;
   }, [setLoading, setConnectedReader, setIsInitialized, log, logLevel]);
 
+  const value = useMemo(
+    () => ({
+      loading,
+      isInitialized,
+      connectedReader,
+      discoveredReaders,
+      setIsInitialized,
+      setLoading,
+      setConnectedReader,
+      setDiscoveredReaders,
+      log,
+      initialize: _initialize,
+      setUserCallbacks,
+      emitter,
+    }),
+    [
+      _initialize,
+      loading,
+      isInitialized,
+      connectedReader,
+      discoveredReaders,
+      setIsInitialized,
+      setLoading,
+      setConnectedReader,
+      setDiscoveredReaders,
+      log,
+      setUserCallbacks,
+    ]
+  );
+
   return (
-    <StripeTerminalContext.Provider
-      value={{
-        loading,
-        isInitialized,
-        connectedReader,
-        discoveredReaders,
-        setIsInitialized,
-        setLoading: (value) => {
-          setLoading(value);
-        },
-        setConnectedReader: (value) => {
-          setConnectedReader(value);
-        },
-        setDiscoveredReaders: (values) => {
-          setDiscoveredReaders(values);
-        },
-        log,
-        initialize: _initialize,
-        setUserCallbacks,
-        emitter,
-      }}
-    >
+    <StripeTerminalContext.Provider value={value}>
       {children}
     </StripeTerminalContext.Provider>
   );
