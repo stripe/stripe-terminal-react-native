@@ -171,6 +171,7 @@ export default function App() {
       logLevel: 'verbose',
     });
     if (error) {
+      console.log(error);
       Alert.alert('StripeTerminal init failed', error.message);
     } else {
       console.log('StripeTerminal has been initialized properly');

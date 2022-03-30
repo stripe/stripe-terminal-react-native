@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type {
+import React, { useCallback, useRef, useState } from 'react';
+import {
   Reader,
   InitParams,
   LogLevel,
   StripeError,
   PaymentStatus,
   UserCallbacks,
+  CommonError,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -93,20 +94,6 @@ export function StripeTerminalProvider({
     },
     [logLevel]
   );
-
-  useEffect(() => {
-    // test tokenProvider method since native SDK's doesn't fetch it on init
-    async function init() {
-      try {
-        await tokenProvider();
-      } catch (error) {
-        console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
-        console.error(error);
-      }
-    }
-    init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const tokenProviderHandler = async () => {
     try {
@@ -259,6 +246,21 @@ export function StripeTerminalProvider({
     async (params: InitParams) => {
       setLoading(true);
 
+      // test tokenProvider method since native SDK's doesn't fetch it on init
+      try {
+        await tokenProvider();
+      } catch (error) {
+        console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
+        console.error(error);
+
+        return {
+          error: {
+            code: CommonError.Failed,
+            message: TOKEN_PROVIDER_ERROR_MESSAGE,
+          },
+        };
+      }
+
       const response = await initialize(params);
 
       if (response.error) {
@@ -276,7 +278,7 @@ export function StripeTerminalProvider({
 
       return response;
     },
-    [setLoading, setConnectedReader, setIsInitialized, log]
+    [tokenProvider, setLoading, setConnectedReader, setIsInitialized, log]
   );
 
   return (
