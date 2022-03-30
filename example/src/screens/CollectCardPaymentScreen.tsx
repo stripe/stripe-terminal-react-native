@@ -27,7 +27,7 @@ export default function CollectCardPaymentScreen() {
     currency: string;
   }>({
     amount: '20000',
-    currency: 'CAD',
+    currency: 'USD',
   });
   const [enableInterac, setEnableInterac] = useState(false);
   const { params } =
