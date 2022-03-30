@@ -1,11 +1,12 @@
 import React, { useCallback, useRef, useState, useMemo } from 'react';
-import type {
+import {
   Reader,
   InitParams,
   LogLevel,
   StripeError,
   PaymentStatus,
   UserCallbacks,
+  CommonError,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -29,6 +30,9 @@ const {
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
+
+const TOKEN_PROVIDER_ERROR_MESSAGE =
+  "Couldn't fetch connection token. Please check your tokenProvider method";
 
 /**
  * @ignore
@@ -97,13 +101,10 @@ export function StripeTerminalProvider({
 
       setConnectionToken(connectionToken);
     } catch (error) {
-      const errorMessage =
-        "Couldn't fetch connection token. Please check your tokenProvider method";
-
-      setConnectionToken(undefined, errorMessage);
+      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
       console.error(error);
-      console.error(errorMessage);
+      console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
     }
   };
 
@@ -262,6 +263,21 @@ export function StripeTerminalProvider({
     async (params: InitParams) => {
       setLoading(true);
 
+      // test tokenProvider method since native SDK's doesn't fetch it on init
+      try {
+        await tokenProvider();
+      } catch (error) {
+        console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
+        console.error(error);
+
+        return {
+          error: {
+            code: CommonError.Failed,
+            message: TOKEN_PROVIDER_ERROR_MESSAGE,
+          },
+        };
+      }
+
       const response = await initialize(params);
 
       if (response.error) {
@@ -279,7 +295,7 @@ export function StripeTerminalProvider({
 
       return response;
     },
-    [setLoading, setConnectedReader, setIsInitialized, log]
+    [tokenProvider, setLoading, setConnectedReader, setIsInitialized, log]
   );
 
   const value = useMemo(
