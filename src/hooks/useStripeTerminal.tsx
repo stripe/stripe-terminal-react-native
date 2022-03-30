@@ -147,7 +147,7 @@ export function useStripeTerminal(props?: Props) {
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {
       const errorMessage =
-        'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized proerly';
+        'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized properly';
       log('Failed', errorMessage);
       return {
         error: {
