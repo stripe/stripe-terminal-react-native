@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -6,13 +6,7 @@ import {
   TransitionPresets,
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
-import {
-  Alert,
-  PermissionsAndroid,
-  Platform,
-  StatusBar,
-  StyleSheet,
-} from 'react-native';
+import { Alert, Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
 import { LogContext, Log, Event } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
@@ -27,11 +21,11 @@ import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
 import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
-import { isAndroid12orHigher } from './utils';
 import {
   Reader,
   Location,
   useStripeTerminal,
+  requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import { LogBox } from 'react-native';
 
@@ -101,88 +95,49 @@ const screenOptions = {
 
 export default function App() {
   const [logs, setlogs] = useState<Log[]>([]);
-  const clearLogs = () => setlogs([]);
+  const clearLogs = useCallback(() => setlogs([]), []);
   const { initialize: initStripe } = useStripeTerminal();
+
+  const handlePermissionsSuccess = useCallback(async () => {
+    const { error } = await initStripe({
+      logLevel: 'verbose',
+    });
+    if (error) {
+      Alert.alert('StripeTerminal init failed', error.message);
+    } else {
+      console.log('StripeTerminal has been initialized properly');
+    }
+  }, [initStripe]);
 
   useEffect(() => {
     async function handlePermissions() {
       try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
+        const granted = await requestNeededAndroidPermissions({
+          accessFineLocation: {
             title: 'Location Permission',
-            message: 'App needs access to your Location ',
+            message: 'Stripe Terminal needs access to your location',
             buttonPositive: 'Accept',
-          }
-        );
-
-        if (hasGrantedPermission(granted)) {
-          if (isAndroid12orHigher()) {
-            const grantedBT = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-              {
-                title: 'BT Permission',
-                message: 'App needs access to Bluetooth ',
-                buttonPositive: 'Accept',
-              }
-            );
-
-            const grantedBTScan = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-              {
-                title: 'BT Permission',
-                message: 'App needs access to Bluetooth ',
-                buttonPositive: 'Accept',
-              }
-            );
-            if (
-              hasGrantedPermission(grantedBT) &&
-              hasGrantedPermission(grantedBTScan)
-            ) {
-              handlePermissionsSuccess();
-              return;
-            } else {
-              handlePermissionsError();
-              return;
-            }
-          }
+          },
+        });
+        if (granted) {
           handlePermissionsSuccess();
         } else {
-          handlePermissionsError();
+          console.error(
+            'Location and BT services are required in order to connect to a reader.'
+          );
         }
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
     }
     if (Platform.OS === 'android') {
       handlePermissions();
     } else {
       handlePermissionsSuccess();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handlePermissionsSuccess]);
 
-  const handlePermissionsError = () => {
-    console.error(
-      'Location and BT services are required in order to connect to a reader.'
-    );
-  };
-
-  const handlePermissionsSuccess = async () => {
-    const { error } = await initStripe({
-      logLevel: 'verbose',
-    });
-    if (error) {
-      console.log(error);
-      Alert.alert('StripeTerminal init failed', error.message);
-    } else {
-      console.log('StripeTerminal has been initialized properly');
-    }
-  };
-
-  const hasGrantedPermission = (status: string) => {
-    return status === PermissionsAndroid.RESULTS.GRANTED;
-  };
-
-  const addLogs = (newLog: Log) => {
+  const addLogs = useCallback((newLog: Log) => {
     const updateLog = (log: Log) =>
       log.name === newLog.name
         ? { name: log.name, events: [...log.events, ...newLog.events] }
@@ -192,16 +147,15 @@ export default function App() {
         ? prev.map(updateLog)
         : [...prev, newLog]
     );
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ logs, addLogs, clearLogs }),
+    [logs, addLogs, clearLogs]
+  );
 
   return (
-    <LogContext.Provider
-      value={{
-        logs,
-        addLogs,
-        clearLogs,
-      }}
-    >
+    <LogContext.Provider value={value}>
       <>
         <StatusBar
           backgroundColor={colors.blurple_dark}

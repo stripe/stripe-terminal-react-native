@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/core';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useCallback } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -36,12 +36,7 @@ export default function ReadReusableCardScreen() {
     },
   });
 
-  useEffect(() => {
-    _readReusableCard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const _readReusableCard = async () => {
+  const _readReusableCard = useCallback(async () => {
     clearLogs();
     navigation.navigate('LogListScreen');
 
@@ -93,7 +88,11 @@ export default function ReadReusableCardScreen() {
         ],
       });
     }
-  };
+  }, [navigation, readReusableCard, addLogs, clearLogs]);
+
+  useEffect(() => {
+    _readReusableCard();
+  }, [_readReusableCard]);
 
   return <ScrollView contentContainerStyle={styles.container} />;
 }

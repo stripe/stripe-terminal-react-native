@@ -51,8 +51,8 @@ export default function App() {
         const granted = await PermissionsAndroid.request(
           'android.permission.ACCESS_FINE_LOCATION',
           {
-            title: 'Location Permission Permission',
-            message: 'App needs access to your Location ',
+            title: 'Location Permission',
+            message: 'Stripe Terminal needs access to your location',
             buttonPositive: 'Accept',
           }
         );

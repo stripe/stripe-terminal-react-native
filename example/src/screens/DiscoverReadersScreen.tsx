@@ -123,7 +123,7 @@ export default function DiscoverReadersScreen() {
     });
   }, [navigation, cancelDiscovering, discoveringLoading, handleGoBack]);
 
-  const handleDiscoverReaders = async () => {
+  const handleDiscoverReaders = useCallback(async () => {
     setDiscoveringLoading(true);
     // List of discovered readers will be available within useStripeTerminal hook
     const { error: discoverReadersError } = await discoverReaders({
@@ -138,13 +138,12 @@ export default function DiscoverReadersScreen() {
         navigation.goBack();
       }
     }
-  };
+  }, [navigation, discoverReaders, discoveryMethod, simulated]);
 
   useEffect(() => {
     simulateReaderUpdate('none');
     handleDiscoverReaders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleDiscoverReaders, simulateReaderUpdate]);
 
   const handleConnectReader = async (reader: Reader.Type) => {
     let error: StripeError | undefined;
