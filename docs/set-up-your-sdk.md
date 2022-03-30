@@ -154,6 +154,8 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 ### Android
 
+#### build.gradle
+
 For android you'll need to massage your build files in order to properly compile. First in `android/build.gradle` by updating both `compileSdkVersion` and `targetSdkVersion` to at least `31`:
 
 ```
@@ -179,6 +181,33 @@ android.jetifier.blacklist=moshi-1.13.0.jar
 ```
 
 Depending on the version of jetifier in use.
+
+#### Permissions
+
+Android will still require runtime permissions checks for location and BT access, we've provided an expo specific util to run these checks as follows:
+
+```
+import { requestNeededExpoAndroidPermissions } from 'stripe-terminal-react-native';
+
+try {
+  const granted = await requestNeededExpoAndroidPermissions({
+    accessFineLocation: {
+      title: 'Location Permission',
+      message: 'Stripe Terminal needs access to your location',
+      buttonPositive: 'Accept',
+    },
+  });
+  if (granted) {
+    // init SDK
+  } else {
+    console.error(
+      'Location and BT services are required in order to connect to a reader.'
+    );
+  }
+} catch (e) {
+  console.error(e);
+}
+```
 
 ### Configuring the SDK
 
