@@ -110,15 +110,13 @@ export type ConnectReaderResultType =
     }
   | { reader?: undefined; error: StripeError };
 
-export type ConnectUsbReaderResultType =
-  | {
-      reader: Reader.Type;
-      error?: undefined;
-    }
-  | { reader?: undefined; error: StripeError };
-
 export type DisconnectReaderResultType = {
   error: StripeError;
+};
+
+export type UpdateSoftwareResultType = {
+  update?: Reader.SoftwareUpdate;
+  error?: StripeError;
 };
 
 export interface Location {
@@ -265,7 +263,7 @@ export type UserCallbacks = {
   onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
   onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
   onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
-  onDidFinishInstallingUpdate?(update: Reader.SoftwareUpdate): void;
+  onDidFinishInstallingUpdate?(result: UpdateSoftwareResultType): void;
 
   onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
   onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;

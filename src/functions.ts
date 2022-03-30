@@ -9,7 +9,6 @@ import type {
   DisconnectReaderResultType,
   ConnectInternetReaderParams,
   ConnectUsbReaderParams,
-  ConnectUsbReaderResultType,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
@@ -223,7 +222,7 @@ export async function connectInternetReader(
 
 export async function connectUsbReader(
   params: ConnectUsbReaderParams
-): Promise<ConnectUsbReaderResultType> {
+): Promise<ConnectReaderResultType> {
   try {
     const { error, reader } = await StripeTerminalSdk.connectUsbReader(params);
 
