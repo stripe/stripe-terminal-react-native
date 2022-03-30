@@ -132,8 +132,8 @@ useEffect(() => {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
-          title: 'Location Permission Permission',
-          message: 'App needs access to your Location ',
+          title: 'Location Permission',
+          message: 'Stripe Terminal needs access to your location',
           buttonPositive: 'Accept',
         }
       );
@@ -159,8 +159,8 @@ import { requestNeededAndroidPermissions } from 'stripe-terminal-react-native';
 try {
   const granted = await requestNeededAndroidPermissions({
     accessFineLocation: {
-      title: 'Location Permission Permission',
-      message: 'App needs access to your Location',
+      title: 'Location Permission',
+      message: 'Stripe Terminal needs access to your location',
       buttonPositive: 'Accept',
     },
   });

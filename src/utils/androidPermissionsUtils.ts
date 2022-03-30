@@ -2,7 +2,7 @@ import { PermissionsAndroid, Platform } from 'react-native';
 
 const defaultFineLocationParams = {
   title: 'Location Permission',
-  message: 'App needs access to your Location',
+  message: 'Stripe Terminal needs access to your location',
   buttonPositive: 'Accept',
 };
 
