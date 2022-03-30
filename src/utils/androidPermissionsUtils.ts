@@ -1,4 +1,5 @@
 import { PermissionsAndroid, Platform } from 'react-native';
+import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 
 const defaultFineLocationParams = {
   title: 'Location Permission',
@@ -32,15 +33,9 @@ export async function requestNeededAndroidPermissions({
     hasGrantedLocationPermissions = true;
 
     if (isAndroid12orHigher()) {
-      const grantedBT = await PermissionsAndroid.request(
-        // BLUETOOTH_CONNECT doesn't support customization
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT
-      );
+      const grantedBT = await request(PERMISSIONS.ANDROID.BLUETOOTH_CONNECT);
+      const grantedBTScan = await request(PERMISSIONS.ANDROID.BLUETOOTH_SCAN);
 
-      const grantedBTScan = await PermissionsAndroid.request(
-        // BLUETOOTH_SCAN doesn't support customization
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN
-      );
       if (
         hasGrantedPermission(grantedBT) &&
         hasGrantedPermission(grantedBTScan)
@@ -55,5 +50,5 @@ export async function requestNeededAndroidPermissions({
 }
 
 const hasGrantedPermission = (status: string) => {
-  return status === PermissionsAndroid.RESULTS.GRANTED;
+  return status === RESULTS.GRANTED;
 };
