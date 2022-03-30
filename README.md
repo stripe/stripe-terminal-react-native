@@ -132,8 +132,8 @@ useEffect(() => {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
-          title: 'Location Permission Permission',
-          message: 'App needs access to your Location ',
+          title: 'Location Permission',
+          message: 'Stripe Terminal needs access to your location',
           buttonPositive: 'Accept',
         }
       );
@@ -148,6 +148,32 @@ useEffect(() => {
   }
   init();
 }, []);
+```
+
+For convenience, Stripe Terminal SDK also provides an util that handles all needed Android permissions.
+In order to use it follow below instrustions:
+
+```tsx
+import { requestNeededAndroidPermissions } from 'stripe-terminal-react-native';
+
+try {
+  const granted = await requestNeededAndroidPermissions({
+    accessFineLocation: {
+      title: 'Location Permission',
+      message: 'Stripe Terminal needs access to your location',
+      buttonPositive: 'Accept',
+    },
+  });
+  if (granted) {
+    // init SDK
+  } else {
+    console.error(
+      'Location and BT services are required in order to connect to a reader.'
+    );
+  }
+} catch (e) {
+  console.error(e);
+}
 ```
 
 #### Manifest

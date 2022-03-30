@@ -17,3 +17,6 @@ export {
   withStripeTerminal,
   WithStripeTerminalProps,
 } from './components/withStripeTerminal';
+
+// utils
+export { requestNeededAndroidPermissions } from './utils/androidPermissionsUtils';
