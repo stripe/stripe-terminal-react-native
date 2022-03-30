@@ -75,7 +75,9 @@ export default function HomeScreen() {
           </View>
 
           <Text style={styles.readerName}>{connectedReader.deviceType}</Text>
-          <Text>Connected{simulated && <Text>, simulated</Text>}</Text>
+          <Text style={styles.connectionStatus}>
+            Connected{simulated && <Text>, simulated</Text>}
+          </Text>
         </View>
       ) : (
         <View style={styles.imageContainer}>
@@ -207,5 +209,9 @@ const styles = StyleSheet.create({
     width: '60%',
     textAlign: 'center',
     fontWeight: '600',
+    color: colors.dark_gray,
+  },
+  connectionStatus: {
+    color: colors.dark_gray,
   },
 });
