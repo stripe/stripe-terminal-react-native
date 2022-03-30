@@ -58,9 +58,6 @@ import { NativeModules } from 'react-native';
 const { FETCH_TOKEN_PROVIDER } =
   NativeModules.StripeTerminalReactNative.getConstants();
 
-const NOT_INITIALIZED_ERROR_MESSAGE =
-  'First initialize the Stripe Terminal SDK before performing any action';
-
 /**
  *  useStripeTerminal hook Props
  */
@@ -97,8 +94,6 @@ export function useStripeTerminal(props?: Props) {
     setUserCallbacks,
   } = useContext(StripeTerminalContext);
 
-  const _isInitialized = useCallback(() => isInitialized, [isInitialized]);
-
   const {
     onUpdateDiscoveredReaders,
     onFinishDiscoveringReaders,
@@ -129,17 +124,13 @@ export function useStripeTerminal(props?: Props) {
 
   const _discoverReaders = useCallback(
     async (params: DiscoverReadersParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
       const response = await discoverReaders(params);
       setLoading(false);
 
       return response;
     },
-    [_isInitialized, setLoading]
+    [setLoading]
   );
 
   // TODO: check why NativeEventListeners are not registering properly if there is no below fix
@@ -149,7 +140,7 @@ export function useStripeTerminal(props?: Props) {
     async (params: InitParams) => {
       if (!initialize || typeof initialize !== 'function') {
         const errorMessage =
-          'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized proerly';
+          'StripeTerminalProvider component is not found or has not been mounted properly';
         log('Failed', errorMessage);
         return {
           error: {
@@ -166,10 +157,6 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _cancelDiscovering = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await cancelDiscovering();
@@ -179,14 +166,10 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, setDiscoveredReaders, _isInitialized]);
+  }, [setLoading, setDiscoveredReaders]);
 
   const _connectBluetoothReader = useCallback(
     async (params: ConnectBluetoothReaderParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await connectBluetoothReader(params);
@@ -198,15 +181,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setConnectedReader, setLoading, _isInitialized]
+    [setConnectedReader, setLoading]
   );
 
   const _connectInternetReader = useCallback(
     async (params: ConnectInternetReaderParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await connectInternetReader(params);
@@ -218,15 +197,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setConnectedReader, setLoading, _isInitialized]
+    [setConnectedReader, setLoading]
   );
 
   const _connectUsbReader = useCallback(
     async (params: ConnectUsbReaderParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await connectUsbReader(params);
@@ -238,7 +213,7 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [_isInitialized, setConnectedReader, setLoading]
+    [setConnectedReader, setLoading]
   );
 
   const _connectEmbeddedReader = useCallback(
@@ -290,10 +265,6 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _disconnectReader = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      return;
-    }
     setLoading(true);
 
     const response = await disconnectReader();
@@ -306,14 +277,10 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, setConnectedReader, setDiscoveredReaders, _isInitialized]);
+  }, [setLoading, setConnectedReader, setDiscoveredReaders]);
 
   const _createPaymentIntent = useCallback(
     async (params: CreatePaymentIntentParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await createPaymentIntent(params);
@@ -322,15 +289,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _collectPaymentMethod = useCallback(
     async (paymentIntentId: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await collectPaymentMethod(paymentIntentId);
@@ -339,15 +302,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _retrievePaymentIntent = useCallback(
     async (clientSecret: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await retrievePaymentIntent(clientSecret);
@@ -356,15 +315,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _getLocations = useCallback(
     async (params: GetLocationsParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await getLocations(params);
@@ -373,15 +328,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _processPayment = useCallback(
     async (paymentIntentId: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await processPayment(paymentIntentId);
@@ -390,15 +341,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _createSetupIntent = useCallback(
     async (params: CreateSetupIntentParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await createSetupIntent(params);
@@ -407,15 +354,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [_isInitialized, setLoading]
+    [setLoading]
   );
 
   const _cancelPaymentIntent = useCallback(
     async (paymentIntentId: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await cancelPaymentIntent(paymentIntentId);
@@ -424,14 +367,10 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _installAvailableUpdate = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await installAvailableUpdate();
@@ -439,27 +378,19 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, _isInitialized]);
+  }, [setLoading]);
 
   const _cancelInstallingUpdate = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await cancelInstallingUpdate();
     setLoading(false);
 
     return response;
-  }, [setLoading, _isInitialized]);
+  }, [setLoading]);
 
   const _setReaderDisplay = useCallback(
     async (cart: Cart) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await setReaderDisplay(cart);
@@ -467,15 +398,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _retrieveSetupIntent = useCallback(
     async (clientSecret: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await retrieveSetupIntent(clientSecret);
@@ -484,15 +411,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _collectSetupIntentPaymentMethod = useCallback(
     async (params: CollectSetupIntentPaymentMethodParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await collectSetupIntentPaymentMethod(params);
@@ -500,14 +423,10 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _clearReaderDisplay = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await clearReaderDisplay();
@@ -515,14 +434,10 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, _isInitialized]);
+  }, [setLoading]);
 
   const _cancelSetupIntent = useCallback(
     async (setupIntentId: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await cancelSetupIntent(setupIntentId);
@@ -531,15 +446,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _confirmSetupIntent = useCallback(
     async (setupIntentId: string) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await confirmSetupIntent(setupIntentId);
@@ -548,15 +459,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _simulateReaderUpdate = useCallback(
     async (update: Reader.SimulateUpdateType) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await simulateReaderUpdate(update);
@@ -564,15 +471,11 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _collectRefundPaymentMethod = useCallback(
     async (params: RefundParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await collectRefundPaymentMethod(params);
@@ -581,14 +484,10 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _processRefund = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await processRefund();
@@ -596,13 +495,9 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, _isInitialized]);
+  }, [setLoading]);
 
   const _clearCachedCredentials = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await clearCachedCredentials();
@@ -610,14 +505,10 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, _isInitialized]);
+  }, [setLoading]);
 
   const _readReusableCard = useCallback(
     async (params: ReadReusableCardParamsType) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
       setLoading(true);
 
       const response = await readReusableCard(params);
@@ -626,14 +517,10 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading, _isInitialized]
+    [setLoading]
   );
 
   const _cancelCollectPaymentMethod = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await cancelCollectPaymentMethod();
@@ -641,13 +528,9 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [setLoading, _isInitialized]);
+  }, [setLoading]);
 
   const _cancelCollectSetupIntent = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await cancelCollectSetupIntent();
@@ -655,13 +538,9 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [_isInitialized, setLoading]);
+  }, [setLoading]);
 
   const _cancelReadReusableCard = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await cancelReadReusableCard();
@@ -669,7 +548,7 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [_isInitialized, setLoading]);
+  }, [setLoading]);
 
   return {
     initialize: _initialize,
