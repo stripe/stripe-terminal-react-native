@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "android:all": "concurrently \"yarn start\" \"yarn start:server\" \"yarn ios\"",
+    "android:all": "concurrently \"yarn start\" \"yarn start:server\" \"yarn android\"",
     "bootstrap": "cd .. && yarn bootstrap",
     "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
     "ios": "react-native run-ios",
