@@ -146,15 +146,17 @@ export function useStripeTerminal(props?: Props) {
         const errorMessage =
           'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized proerly';
         log('Failed', errorMessage);
+
         return {
           error: {
             code: 'Failed',
             message: errorMessage,
           },
+          reader: undefined,
         };
       }
 
-      const res = initialize(params);
+      const res = await initialize(params);
       return res;
     },
     [initialize, log]
