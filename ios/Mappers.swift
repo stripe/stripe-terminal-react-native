@@ -249,14 +249,14 @@ class Mappers {
         return list
     }
 
-    class func mapFromReaderSoftwareUpdate(_ update: ReaderSoftwareUpdate?) -> NSDictionary? {
+    class func mapFromReaderSoftwareUpdate(_ update: ReaderSoftwareUpdate?) -> [AnyHashable:Any?]? {
         guard let unwrappedUpdate = update else {
             return nil
         }
-        let result: NSDictionary = [
+        let result: [AnyHashable: Any?] = [
             "deviceSoftwareVersion": unwrappedUpdate.deviceSoftwareVersion,
             "estimatedUpdateTime": mapFromUpdateTimeEstimate(unwrappedUpdate.estimatedUpdateTime),
-            "requiredAt": Mappers.convertDateToUnixTimestamp(date: unwrappedUpdate.requiredAt) ?? NSNull(),
+            "requiredAt": Mappers.convertDateToUnixTimestamp(date: unwrappedUpdate.requiredAt),
         ]
         return result
     }

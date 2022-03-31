@@ -50,11 +50,35 @@ describe('Payments', () => {
   });
 
   it('Change discovery method to bluetooth proximity', async () => {
+    if (device.getPlatform() !== 'ios') {
+      return;
+    }
     await changeDiscoveryMethod('Bluetooth Proximity');
   });
 
   it('Change discovery method to Internet', async () => {
     await changeDiscoveryMethod('Internet');
+  });
+
+  it('Change discovery method to Embedded', async () => {
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+    await changeDiscoveryMethod('Embedded');
+  });
+
+  it('Change discovery method to LocalMobile', async () => {
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+    await changeDiscoveryMethod('Local mobile');
+  });
+
+  it('Change discovery method to Handoff', async () => {
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+    await changeDiscoveryMethod('Handoff');
   });
 
   // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.

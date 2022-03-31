@@ -42,6 +42,21 @@ export type ConnectUsbReaderParams = {
   locationId?: string;
 };
 
+export type ConnectLocalMobileParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
+export type ConnectHandoffParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
+export type ConnectEmbeddedParams = {
+  reader: Reader.Type;
+  locationId?: string;
+};
+
 export type LineItem = {
   displayName: string;
   quantity: number;
@@ -88,21 +103,7 @@ export type CancelDiscoveringResultType = Promise<{
   error?: StripeError;
 }>;
 
-export type ConnectBluetoothReaderResultType =
-  | {
-      reader: Reader.Type;
-      error?: undefined;
-    }
-  | { reader?: undefined; error: StripeError };
-
-export type ConnectInternetResultType =
-  | {
-      reader: Reader.Type;
-      error?: undefined;
-    }
-  | { reader?: undefined; error: StripeError };
-
-export type ConnectUsbReaderResultType =
+export type ConnectReaderResultType =
   | {
       reader: Reader.Type;
       error?: undefined;
@@ -111,6 +112,11 @@ export type ConnectUsbReaderResultType =
 
 export type DisconnectReaderResultType = {
   error: StripeError;
+};
+
+export type UpdateSoftwareResultType = {
+  update?: Reader.SoftwareUpdate;
+  error?: StripeError;
 };
 
 export interface Location {
@@ -257,7 +263,7 @@ export type UserCallbacks = {
   onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
   onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
   onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
-  onDidFinishInstallingUpdate?(update: Reader.SoftwareUpdate): void;
+  onDidFinishInstallingUpdate?(result: UpdateSoftwareResultType): void;
 
   onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
   onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;

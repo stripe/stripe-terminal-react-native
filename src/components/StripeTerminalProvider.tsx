@@ -1,11 +1,12 @@
-import React, { useCallback, useRef, useState } from 'react';
-import type {
+import React, { useCallback, useRef, useState, useMemo } from 'react';
+import {
   Reader,
   InitParams,
   LogLevel,
   StripeError,
   PaymentStatus,
   UserCallbacks,
+  CommonError,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -29,6 +30,9 @@ const {
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
+
+const TOKEN_PROVIDER_ERROR_MESSAGE =
+  "Couldn't fetch connection token. Please check your tokenProvider method";
 
 /**
  * @ignore
@@ -97,13 +101,10 @@ export function StripeTerminalProvider({
 
       setConnectionToken(connectionToken);
     } catch (error) {
-      const errorMessage =
-        "Couldn't fetch connection token. Please check your tokenProvider method";
-
-      setConnectionToken(undefined, errorMessage);
+      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
       console.error(error);
-      console.error(errorMessage);
+      console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
     }
   };
 
@@ -176,9 +177,26 @@ export function StripeTerminalProvider({
   );
 
   const didFinishInstallingUpdate = useCallback(
-    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
-      log('didFinishInstallingUpdate', result);
-      userCallbacks.current?.onDidFinishInstallingUpdate?.(result);
+    ({
+      result,
+    }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
+      if ((result as { error: StripeError }).error) {
+        const { error } = result as { error: StripeError };
+        log(
+          'Install update failed with the following error:',
+          `code: ${error.code}, message: ${error.message}`
+        );
+        userCallbacks.current?.onDidFinishInstallingUpdate?.({
+          update: undefined,
+          error: error,
+        });
+      } else {
+        log('didFinishInstallingUpdate', result);
+        userCallbacks.current?.onDidFinishInstallingUpdate?.({
+          update: result as Reader.SoftwareUpdate,
+          error: undefined,
+        });
+      }
       emitter.emit(FINISH_INSTALLING_UPDATE);
     },
     [log]
@@ -237,13 +255,28 @@ export function StripeTerminalProvider({
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
-  const setUserCallbacks = (callbacks: UserCallbacks) => {
+  const setUserCallbacks = useCallback((callbacks: UserCallbacks) => {
     userCallbacks.current = callbacks;
-  };
+  }, []);
 
   const _initialize = useCallback(
     async (params: InitParams) => {
       setLoading(true);
+
+      // test tokenProvider method since native SDK's doesn't fetch it on init
+      try {
+        await tokenProvider();
+      } catch (error) {
+        console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
+        console.error(error);
+
+        return {
+          error: {
+            code: CommonError.Failed,
+            message: TOKEN_PROVIDER_ERROR_MESSAGE,
+          },
+        };
+      }
 
       const response = await initialize(params);
 
@@ -262,32 +295,41 @@ export function StripeTerminalProvider({
 
       return response;
     },
-    [setLoading, setConnectedReader, setIsInitialized, log]
+    [tokenProvider, setLoading, setConnectedReader, setIsInitialized, log]
+  );
+
+  const value = useMemo(
+    () => ({
+      loading,
+      isInitialized,
+      connectedReader,
+      discoveredReaders,
+      setIsInitialized,
+      setLoading,
+      setConnectedReader,
+      setDiscoveredReaders,
+      log,
+      initialize: _initialize,
+      setUserCallbacks,
+      emitter,
+    }),
+    [
+      _initialize,
+      loading,
+      isInitialized,
+      connectedReader,
+      discoveredReaders,
+      setIsInitialized,
+      setLoading,
+      setConnectedReader,
+      setDiscoveredReaders,
+      log,
+      setUserCallbacks,
+    ]
   );
 
   return (
-    <StripeTerminalContext.Provider
-      value={{
-        loading,
-        isInitialized,
-        connectedReader,
-        discoveredReaders,
-        setIsInitialized,
-        setLoading: (value) => {
-          setLoading(value);
-        },
-        setConnectedReader: (value) => {
-          setConnectedReader(value);
-        },
-        setDiscoveredReaders: (values) => {
-          setDiscoveredReaders(values);
-        },
-        log,
-        initialize: _initialize,
-        setUserCallbacks,
-        emitter,
-      }}
-    >
+    <StripeTerminalContext.Provider value={value}>
       {children}
     </StripeTerminalContext.Provider>
   );

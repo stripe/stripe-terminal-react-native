@@ -28,8 +28,7 @@ export default function LocationListScreen() {
       }
     }
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getLocations]);
 
   const renderItem = (item: Location) => (
     <ListItem

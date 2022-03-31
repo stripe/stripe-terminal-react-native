@@ -2,13 +2,57 @@
 
 Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe's payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.
 
-## Getting started
+- [Getting started](#getting-started)
+- [Requirements](#requirements)
+  - [JS](#js)
+  - [Android](#android)
+  - [iOS](#ios)
+- [Installation](#installation)
+- [Setup](#setup)
+  - [React Native CLI](#react-native-cli)
+    - [iOS](#ios-1)
+      - [Permissions](#permissions)
+    - [Android](#android-1)
+      - [Permissions](#permissions-1)
+      - [Manifest](#manifest)
+  - [Usage With Expo](#usage-with-expo)
+    - [Android](#android-2)
+    - [Configuring the SDK](#configuring-the-sdk)
+    - [Build](#build)
+- [Example Code](#example-code)
+  - [Initialization](#initialization)
+  - [Hooks and Events](#hooks-and-events)
+  - [Common Operations](#common-operations)
+- [Additional Docs](#additional-docs)
+  - [Internal Docs](#internal-docs)
+- [Contributing](#contributing)
+
+# Getting started
+
+> Note: The below docs are not yet available and will be released as we near open beta
 
 Get started with our [📚 integration guides](https://stripe.com/docs/terminal/payments/setup-sdk?terminal-sdk-platform=react-native) and [example project](#run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-terminal-react-native).
 
-> Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md).
+Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md).
 
-## Installation
+# Requirements
+
+## JS
+
+- The SDK uses TypeScript features available in Babel version `7.9.0` and above.
+  Alternatively use the `plugin-transform-typescript` plugin in your project.
+
+## Android
+
+- Android 5.0 (API level 21) and above
+- compileSdkVersion = 31
+- targetSdkVersion = 31
+
+## iOS
+
+- Compatible with apps targeting iOS 10 or above.
+
+# Installation
 
 ```sh
 yarn add @stripe/stripe-terminal-react-native
@@ -16,172 +60,23 @@ or
 npm install @stripe/stripe-terminal-react-native
 ```
 
+> Note: early access beta users will need to install from git with
+
+```
+yarn add https://github.com/stripe/stripe-terminal-react-native
+or
+npm install https://github.com/stripe/stripe-terminal-react-native
+```
+
+# Setup
+
+## React Native CLI
+
 ### iOS
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
-### Requirements
-
-- The SDK uses TypeScript features available in Babel version `7.9.0` and above.
-  Alternatively use the `plugin-transform-typescript` plugin in your project.
-
-#### Android
-
-- Android 5.0 (API level 21) and above
-- compileSdkVersion = 31
-- targetSdkVersion = 31
-
-**Android 12 (API Level >= 31)**
-
-To enable compatibility the library with the latest Android 12 please make sure that you meet following requirements:
-
-Add `android:exported="true"` to the `AndroidManifest.xml`:
-
-```xml
-<manifest ...>
-    <application android:name=".MainApplication">
-      <activity
-        android:name=".MainActivity"
-        android:exported="true">
-          <!-- content -->
-      </activity>
-    </application>
-</manifest>
-```
-
-Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish the exact value that you need to set.
-
-#### iOS
-
-- Compatible with apps targeting iOS 10 or above.
-
-### Expo initialization
-
-> This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
-
-> First install the package with yarn, npm, or [`expo install`](https://docs.expo.io/workflow/expo-cli/#expo-install).
-
-```sh
-expo install stripe-terminal-react-native
-```
-
-After installing this npm package, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
-
-```json
-{
-  // ...
-  "plugins": [
-    [
-      // ...
-      "stripe-terminal-react-native",
-      {
-        "bluetoothBackgroundMode": true,
-        "locationWhenInUsePermission": "Location access is required in order to accept payments.",
-        "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
-        "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
-      }
-    ]
-  ]
-}
-```
-
-Next, rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide.
-
-## Stripe Terminal SDK initialization
-
-To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
-
-First, create an endpoint on your backend server that creates a new connection token via the Stripe Terminal API.
-
-Next, create a token provider that will fetch connection token from your server and provide it to StripeTerminalProvider as a parameter.
-Stripe Terminal SDK will fetch it when it's needed.
-
-```tsx
-// Root.ts
-import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
-
-function Root() {
-  const fetchTokenProvider = async () => {
-    const response = await fetch(`${API_URL}/connection_token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    const { secret } = await response.json();
-    return secret;
-  };
-
-  return (
-    <StripeTerminalProvider
-      logLevel="verbose"
-      tokenProvider={fetchTokenProvider}
-    >
-      <App />
-    </StripeTerminalProvider>
-  );
-}
-```
-
-As a last step, simply call `initialize` method from `useStripeTerminal` hook.
-Please note that `initialize` method must be called from the nested component of `StripeTerminalProvider`.
-
-```tsx
-// App.tsx
-function App() {
-  const { initialize } = useStripeTerminal();
-
-  useEffect(() => {
-    initialize({
-      logLevel: 'verbose',
-    });
-  }, [initialize]);
-
-  return <View />;
-}
-```
-
-## Configure your app
-
-### Android
-
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app.
-
----
-
-**IMPORTANT**
-In case of supportig **Android 12** you need also to ask the user for additional permissions:
-
-`PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT` and `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
-
-To do this, add the following check before you initialize the Terminal SDK:
-
-```tsx
-useEffect(() => {
-  async function init() {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission Permission',
-          message: 'App needs access to your Location ',
-          buttonPositive: 'Accept',
-        }
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the Location');
-      } else {
-        console.error(
-          'Location services are required in order to connect to a reader.'
-        );
-      }
-    } catch {}
-  }
-  init();
-}, []);
-```
-
-### iOS
+#### Permissions
 
 Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app's `Info.plist` file:
 
@@ -221,12 +116,215 @@ For your app to pass validation when submitting to the App Store, add the follow
 <string>This app uses Bluetooth to connect to supported card readers.</string>
 ```
 
-## Usage example
+### Android
+
+#### Permissions
+
+In order for the Stripe Terminal SDK to function properly we'll need to enable the following permissions:
+
+- `PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT`
+- `PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN`
+- `PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION`
+
+> Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.
+
+```tsx
+useEffect(() => {
+  async function init() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'Location Permission',
+          message: 'Stripe Terminal needs access to your location',
+          buttonPositive: 'Accept',
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the Location');
+      } else {
+        console.error(
+          'Location services are required in order to connect to a reader.'
+        );
+      }
+    } catch {}
+  }
+  init();
+}, []);
+```
+
+For convenience, Stripe Terminal SDK also provides an util that handles all needed Android permissions.
+In order to use it follow below instrustions:
+
+```tsx
+import { requestNeededAndroidPermissions } from 'stripe-terminal-react-native';
+
+try {
+  const granted = await requestNeededAndroidPermissions({
+    accessFineLocation: {
+      title: 'Location Permission',
+      message: 'Stripe Terminal needs access to your location',
+      buttonPositive: 'Accept',
+    },
+  });
+  if (granted) {
+    // init SDK
+  } else {
+    console.error(
+      'Location and BT services are required in order to connect to a reader.'
+    );
+  }
+} catch (e) {
+  console.error(e);
+}
+```
+
+#### Manifest
+
+To enable compatibility the library with the latest Android 12 please make sure that you add following requirements:
+
+Add `android:exported="true"` to the `AndroidManifest.xml`:
+
+```xml
+<manifest ...>
+    <application android:name=".MainApplication">
+      <activity
+        android:name=".MainActivity"
+        android:exported="true">
+          <!-- content -->
+      </activity>
+    </application>
+</manifest>
+```
+
+Please read the [Android documentation](https://developer.android.com/about/versions/12/behavior-changes-12#exported) to establish the exact value that you need to set.
+
+## Usage With Expo
+
+> Note: This package cannot be used in the "Expo Go" app because [it requires custom native code](https://docs.expo.io/workflow/customizing/).
+
+### Android
+
+For android you'll need to massage your build files in order to properly compile. First in `android/build.gradle` by updating both `compileSdkVersion` and `targetSdkVersion` to at least `31`:
+
+```
+buildscript {
+    ext {
+        buildToolsVersion = "29.0.3"
+        minSdkVersion = 21
+        compileSdkVersion = 31
+        targetSdkVersion = 31
+    }
+```
+
+Next ensure that jetifier is ignoring the `moshi` lib by adding the following to `android/gradle.properties`:
+
+```
+android.jetifier.ignorelist=moshi-1.13.0.jar
+```
+
+or
+
+```
+android.jetifier.blacklist=moshi-1.13.0.jar
+```
+
+Depending on the version of jetifier in use.
+
+### Configuring the SDK
+
+After [installing](#installation) the SDK, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "stripe-terminal-react-native",
+        {
+          "bluetoothBackgroundMode": true,
+          "locationWhenInUsePermission": "Location access is required in order to accept payments.",
+          "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
+          "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers."
+        }
+      ]
+    ]
+  }
+}
+```
+
+### Build
+
+Rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
+
+```
+expo run:ios
+or
+expo run:android
+```
+
+# Example Code
+
+## Initialization
+
+To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
+
+First, create an endpoint on your backend server that creates a new connection token via the Stripe Terminal API.
+
+Next, create a token provider that will fetch connection token from your server and provide it to StripeTerminalProvider as a parameter.
+Stripe Terminal SDK will fetch it when it's needed.
+
+```tsx
+// Root.ts
+import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
+
+function Root() {
+  const fetchTokenProvider = async () => {
+    const response = await fetch(`${API_URL}/connection_token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    const { secret } = await response.json();
+    return secret;
+  };
+
+  return (
+    <StripeTerminalProvider
+      logLevel="verbose"
+      tokenProvider={fetchTokenProvider}
+    >
+      <App />
+    </StripeTerminalProvider>
+  );
+}
+```
+
+As a last step, simply call `initialize` method from `useStripeTerminal` hook.
+Please note that `initialize` method must be called from a nested component of `StripeTerminalProvider`.
+
+```tsx
+// App.tsx
+function App() {
+  const { initialize } = useStripeTerminal();
+
+  useEffect(() => {
+    initialize({
+      logLevel: 'verbose',
+    });
+  }, [initialize]);
+
+  return <View />;
+}
+```
+
+## Hooks and Events
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
 
-Alternatively, you can import all of the functions directly from the module but keep in mind that you will loose the access to the SDK state.
+Alternatively, you can import all of the functions directly from the module but keep in mind that you will lose the access to SDK state.
 
 ```tsx
 // Screen.ts
@@ -262,7 +360,7 @@ export default function PaymentScreen() {
 ```
 
 In case your app uses `React Class Components` you can use dedicated `withStripeTerminal` Higher-Order-Component.
-Please note that comparing to the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.
+Please note that unlike the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.
 
 [Here](https://github.com/stripe/stripe-terminal-react-native/blob/main/src/hooks/useStripeTerminal.tsx#L51) you can find the list of available events to be used within the event emitter.
 
@@ -296,81 +394,28 @@ import {
 export default withStripeTerminal(PaymentScreen);
 ```
 
-## Run the example app
+## Common Operations
 
-- Install the dependencies
-  - `yarn bootstrap`
-- Set your api key in your environment
-  - `cp example/.env.example example/.env`
-  - edit `.env`
+You can find further examples of common SDK actions here:
 
-To start and monitor each process:
+- [Collect a Payment](/docs/collect-payments.md)
+- [Connect to a Reader](/docs/connect-to-a-reader.md)
+- [Set the Reader Display](/docs/display.md)
+- [Incremental Authorization](/docs/incremental-authorizations.md)
+- [Refunds](/docs/refund-transactions.md)
+- [Saving Cards](/docs/saving-cards.md)
 
-- Start the backend
-  - `yarn example start:server`
-- Start the example
-  - Terminal 1: `yarn example start`
-  - Terminal 2: depending on what platform you want to build for run either
-    - `yarn example ios`
-    - or
-    - `yarn example android`
+# Additional Docs
 
-To launch the watcher, server, and perform an initial build you can run:
+- [Setting up the SDK](/docs/set-up-your-sdk.md)
+- [Running the Example Application](/docs/example-applications.md)
+- [Running e2e tests locally](/docs/e2e-tests.md)
 
-- `yarn example ios:all`
-  or
-- `yarn example android:all`
+## Internal Docs
 
-## Runing e2e tests
+- [Deploying the example apps](/docs/deploying-example-app.md)
 
-### Android
-
-1. Create an Android emulator with a name that matches the name found in `.detoxrc.json`
-1. Run `yarn detox build --configuration android`
-1. Run `yarn e2e:test:android`
-
-### iOS
-
-prereqs: Ensure AppleSimulatorUtils are installed
-
-```
-brew tap wix/brew
-brew install applesimutils
-```
-
-1. Create an iOS simulator with a name that matches the name found in `.detoxrc.json`
-1. Run `yarn detox build --configuration ios`
-1. launch the simulator
-1. Run `yarn e2e:test:ios`
-
-## Deploying Example App
-
-// TODO - find a better location for this Stripe-specifc section prior to launch
-
-### Android
-
-The Android example app is deployed to [Firebase App Distribution](https://firebase.google.com/docs/app-distribution) via a CI job that executes after a successful merge to main:
-
-https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L265
-
-A unique APK is generated for each supported region (EU and US). See the [App Distribution Console](https://console.firebase.google.com/project/internal-terminal/appdistribution/app/android:com.example.stripeterminalreactnative/releases) to view releases, enable build access for users, and generate invite links.
-
-### iOS
-
-// TODO
-
-### Backend
-
-The Example backend is deployed to Heroku via a CI job that executes after a successful merge to main:
-
-https://github.com/stripe/stripe-terminal-react-native/blob/e285cc9710cada5bc99434cb0d157354efbd621d/.circleci/config.yml#L296
-
-A separate backend instance is generated for each supported region (EU and US):
-
-- https://stripe-terminal-rn-example-eu.herokuapp.com/
-- https://stripe-terminal-rn-example-us.herokuapp.com/
-
-## Contributing
+# Contributing
 
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.

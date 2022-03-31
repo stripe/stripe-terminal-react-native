@@ -1,6 +1,8 @@
 import type { Location, LocationStatus } from './';
 
 export namespace Reader {
+  export type DiscoveryMethod = IOS.DiscoveryMethod | Android.DiscoveryMethod;
+
   export type Type = IOS.Type &
     Android.Type & {
       id: string;
@@ -23,6 +25,11 @@ export namespace Reader {
       batteryStatus: BatteryStatus;
       isCharging?: number;
     };
+
+    export type DiscoveryMethod =
+      | 'bluetoothProximity'
+      | 'bluetoothScan'
+      | 'internet';
   }
 
   export namespace Android {
@@ -39,6 +46,14 @@ export namespace Reader {
       settingsVersion?: string;
       pinKeysetId?: string;
     };
+
+    export type DiscoveryMethod =
+      | 'bluetoothScan'
+      | 'internet'
+      | 'embedded'
+      | 'localMobile'
+      | 'handoff'
+      | 'usb';
   }
 
   export type BatteryStatus = 'critical' | 'low' | 'nominal' | 'unknown';
@@ -56,15 +71,6 @@ export namespace Reader {
     | 'estimate2To5Minutes'
     | 'estimate5To15Minutes'
     | 'estimateLessThan1Minute';
-
-  export type DiscoveryMethod =
-    | 'bluetoothProximity'
-    | 'bluetoothScan'
-    | 'internet'
-    | 'embedded'
-    | 'localMobile'
-    | 'handoff'
-    | 'usb';
 
   export type SimulateUpdateType =
     | 'random'
