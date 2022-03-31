@@ -298,19 +298,17 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
-      {Platform.OS === 'ios' && (
-        <List bolded={false} topSpacing={false} title="PAYMENT METHOD">
-          <ListItem
-            title="Enable Interac Present"
-            rightElement={
-              <Switch
-                value={enableInterac}
-                onValueChange={(value) => setEnableInterac(value)}
-              />
-            }
-          />
-        </List>
-      )}
+      <List bolded={false} topSpacing={false} title="PAYMENT METHOD">
+        <ListItem
+          title="Enable Interac Present"
+          rightElement={
+            <Switch
+              value={enableInterac}
+              onValueChange={(value) => setEnableInterac(value)}
+            />
+          }
+        />
+      </List>
 
       <List
         bolded={false}

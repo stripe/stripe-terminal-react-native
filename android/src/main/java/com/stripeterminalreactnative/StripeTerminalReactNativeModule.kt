@@ -249,17 +249,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
         val amount = getInt(params, "amount") ?: 0
-        val currency = params.getString("currency")?.lowercase(Locale.ENGLISH) ?: ""
+        val currency = params.getString("currency") ?: ""
+        val paymentMethods = params.getArray("paymentMethodTypes")
         val setupFutureUsage = params.getString("setupFutureUsage")
 
-        val intentParams = if (currency == "cad") {
+        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
+            if (it is String) PaymentMethodType.valueOf(it)
+            else null
+        }
+
+        val intentParams = paymentMethodTypes?.let {
             PaymentIntentParameters.Builder(
-                listOf(
-                    PaymentMethodType.CARD_PRESENT,
-                    PaymentMethodType.INTERAC_PRESENT
-                )
+                paymentMethodTypes
             )
-        } else {
+        } ?: run {
             PaymentIntentParameters.Builder()
         }
 
