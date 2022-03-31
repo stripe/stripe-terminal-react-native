@@ -23,6 +23,7 @@ import com.stripe.stripeterminal.external.models.DiscoveryMethod
 import com.stripe.stripeterminal.external.models.ListLocationsParameters
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.RefundParameters
@@ -45,6 +46,8 @@ import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
+import kotlin.collections.HashMap
 
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
@@ -246,12 +249,22 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
         val amount = getInt(params, "amount") ?: 0
-        val currency = params.getString("currency") ?: ""
-        val setupFutureUsage = params.getString("currency")
+        val currency = params.getString("currency")?.lowercase(Locale.ENGLISH) ?: ""
+        val setupFutureUsage = params.getString("setupFutureUsage")
 
-        val intentParams = PaymentIntentParameters.Builder()
-            .setAmount(amount.toLong())
-            .setCurrency(currency)
+        val intentParams = if (currency == "cad") {
+            PaymentIntentParameters.Builder(
+                listOf(
+                    PaymentMethodType.CARD_PRESENT,
+                    PaymentMethodType.INTERAC_PRESENT
+                )
+            )
+        } else {
+            PaymentIntentParameters.Builder()
+        }
+
+        intentParams.setAmount(amount.toLong())
+        intentParams.setCurrency(currency)
 
         setupFutureUsage?.let {
             intentParams.setSetupFutureUsage(it)
