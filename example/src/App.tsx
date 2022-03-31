@@ -112,14 +112,14 @@ export default function App() {
   useEffect(() => {
     async function handlePermissions() {
       try {
-        const granted = await requestNeededAndroidPermissions({
+        const { error } = await requestNeededAndroidPermissions({
           accessFineLocation: {
             title: 'Location Permission',
             message: 'Stripe Terminal needs access to your location',
             buttonPositive: 'Accept',
           },
         });
-        if (granted) {
+        if (!error) {
           handlePermissionsSuccess();
         } else {
           console.error(

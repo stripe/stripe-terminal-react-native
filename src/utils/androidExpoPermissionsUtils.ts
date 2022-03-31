@@ -1,4 +1,5 @@
 import { PermissionsAndroid, Platform } from 'react-native';
+import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 
 const defaultFineLocationParams = {
   title: 'Location Permission',
@@ -14,12 +15,12 @@ type PermissionsProps = {
   };
 };
 
-type Error = { error: Record<string, string> | null };
-
 const isAndroid12orHigher = () =>
   Platform.OS === 'android' && Platform.Version >= 31;
 
-export async function requestNeededAndroidPermissions({
+type Error = { error: Record<string, string> | null };
+
+export async function requestNeededExpoAndroidPermissions({
   accessFineLocation = defaultFineLocationParams,
 }: PermissionsProps | undefined = {}): Promise<Error> {
   const grantedFineLocation = await PermissionsAndroid.request(
@@ -42,28 +43,22 @@ export async function requestNeededAndroidPermissions({
   }
 
   // otherwise within expo we have to make use of react-native-permissions
-  const grantedBT = await PermissionsAndroid.request(
-    // BLUETOOTH_CONNECT doesn't support customization
-    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT
-  );
+  const grantedBT = await request(PERMISSIONS.ANDROID.BLUETOOTH_CONNECT);
 
   if (!hasGrantedPermission(grantedBT)) {
     return {
       error: {
-        [PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT]: grantedBT,
+        [PERMISSIONS.ANDROID.BLUETOOTH_CONNECT]: grantedBT,
       },
     };
   }
 
-  const grantedBTScan = await PermissionsAndroid.request(
-    // BLUETOOTH_SCAN doesn't support customization
-    PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN
-  );
+  const grantedBTScan = await request(PERMISSIONS.ANDROID.BLUETOOTH_SCAN);
 
   if (!hasGrantedPermission(grantedBTScan)) {
     return {
       error: {
-        [PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN]: grantedBTScan,
+        [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: grantedBTScan,
       },
     };
   }
@@ -72,5 +67,5 @@ export async function requestNeededAndroidPermissions({
 }
 
 const hasGrantedPermission = (status: string) => {
-  return status === PermissionsAndroid.RESULTS.GRANTED;
+  return status === RESULTS.GRANTED;
 };
