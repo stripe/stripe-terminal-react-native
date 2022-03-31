@@ -187,15 +187,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val connectedReader =
-                    terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
-                promise.resolve(nativeMapOf {
-                    putMap("reader", mapFromReader(connectedReader))
-                })
-            } catch (e: Throwable) {
-                promise.resolve(createError(e))
-            }
+            val connectedReader =
+                terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
+            promise.resolve(nativeMapOf {
+                putMap("reader", mapFromReader(connectedReader))
+            })
         }
     }
 
