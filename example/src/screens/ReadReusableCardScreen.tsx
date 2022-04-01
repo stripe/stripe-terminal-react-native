@@ -90,7 +90,13 @@ export default function ReadReusableCardScreen() {
         ],
       });
     }
-  }, [navigation, readReusableCard, addLogs, clearLogs]);
+  }, [
+    clearLogs,
+    navigation,
+    addLogs,
+    cancelReadReusableCard,
+    readReusableCard,
+  ]);
 
   useEffect(() => {
     _readReusableCard();
