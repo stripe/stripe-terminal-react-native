@@ -17,6 +17,9 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
       - [Manifest](#manifest)
   - [Usage With Expo](#usage-with-expo)
     - [Android](#android-2)
+      - [build.gradle](#buildgradle)
+      - [Permissions](#permissions-2)
+    - [iOS](#ios-2)
     - [Configuring the SDK](#configuring-the-sdk)
     - [Build](#build)
 - [Example Code](#example-code)
@@ -205,6 +208,8 @@ Please read the [Android documentation](https://developer.android.com/about/vers
 
 ### Android
 
+#### build.gradle
+
 For android you'll need to massage your build files in order to properly compile. First in `android/build.gradle` by updating both `compileSdkVersion` and `targetSdkVersion` to at least `31`:
 
 ```
@@ -230,6 +235,37 @@ android.jetifier.blacklist=moshi-1.13.0.jar
 ```
 
 Depending on the version of jetifier in use.
+
+#### Permissions
+
+Android will still require runtime permissions checks for location and BT access, we've provided an expo specific util to run these checks as follows:
+
+```
+import { requestNeededExpoAndroidPermissions } from 'stripe-terminal-react-native';
+
+try {
+  const granted = await requestNeededExpoAndroidPermissions({
+    accessFineLocation: {
+      title: 'Location Permission',
+      message: 'Stripe Terminal needs access to your location',
+      buttonPositive: 'Accept',
+    },
+  });
+  if (granted) {
+    // init SDK
+  } else {
+    console.error(
+      'Location and BT services are required in order to connect to a reader.'
+    );
+  }
+} catch (e) {
+  console.error(e);
+}
+```
+
+### iOS
+
+No special steps are required for iOS!
 
 ### Configuring the SDK
 
@@ -258,9 +294,13 @@ After [installing](#installation) the SDK, add the [config plugin](https://docs.
 Rebuild your app as described in the ['Adding custom native code'](https://docs.expo.io/workflow/customizing/) guide with:
 
 ```
-expo run:ios
+> expo prebuild
+
+and then
+
+> expo run:ios
 or
-expo run:android
+> expo run:android
 ```
 
 # Example Code

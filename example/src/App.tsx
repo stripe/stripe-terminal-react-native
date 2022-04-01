@@ -99,9 +99,7 @@ export default function App() {
   const { initialize: initStripe } = useStripeTerminal();
 
   const handlePermissionsSuccess = useCallback(async () => {
-    const { error } = await initStripe({
-      logLevel: 'verbose',
-    });
+    const { error } = await initStripe();
     if (error) {
       Alert.alert('StripeTerminal init failed', error.message);
     } else {
@@ -112,14 +110,14 @@ export default function App() {
   useEffect(() => {
     async function handlePermissions() {
       try {
-        const granted = await requestNeededAndroidPermissions({
+        const { error } = await requestNeededAndroidPermissions({
           accessFineLocation: {
             title: 'Location Permission',
             message: 'Stripe Terminal needs access to your location',
             buttonPositive: 'Accept',
           },
         });
-        if (granted) {
+        if (!error) {
           handlePermissionsSuccess();
         } else {
           console.error(
