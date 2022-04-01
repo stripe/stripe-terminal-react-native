@@ -10,7 +10,7 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const createLocation = async () => {
+app.post('/create_location', async (req, res) => {
   // {{ INTEGRATION-BUILDER START: #2a }}
   const location = await stripe.terminal.locations.create({
     display_name: 'HQ',
@@ -22,9 +22,9 @@ const createLocation = async () => {
       postal_code: '94110',
     },
   });
-  return location;
+  res.json({ location });
   // {{ INTEGRATION-BUILDER END: #2a }}
-};
+});
 
 // The ConnectionToken's secret lets you connect to any Stripe Terminal reader
 // and take payments with your Stripe account.
