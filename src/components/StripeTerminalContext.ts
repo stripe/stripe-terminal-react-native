@@ -1,11 +1,6 @@
 import { createContext } from 'react';
 import type { EventEmitter } from 'react-native';
-import type {
-  Reader,
-  InitParams,
-  InitializeResultType,
-  UserCallbacks,
-} from '../types';
+import type { Reader, InitializeResultType, UserCallbacks } from '../types';
 
 type ContextType = {
   loading: boolean;
@@ -17,7 +12,7 @@ type ContextType = {
   setIsInitialized(value: boolean): void;
   setConnectedReader(value: Reader.Type | null): void;
   setDiscoveredReaders(value: Reader.Type[]): void;
-  initialize?(params: InitParams): Promise<InitializeResultType>;
+  initialize?(): Promise<InitializeResultType>;
   log(code: string, message?: any): void;
   setUserCallbacks(callbacks: UserCallbacks): void;
 };
