@@ -254,7 +254,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val setupFutureUsage = params.getString("setupFutureUsage")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
-            if (it is String) PaymentMethodType.valueOf(it)
+            if (it is String) PaymentMethodType.valueOf(it.uppercase())
             else null
         }
 
