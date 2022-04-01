@@ -99,9 +99,7 @@ export default function App() {
   const { initialize: initStripe } = useStripeTerminal();
 
   const handlePermissionsSuccess = useCallback(async () => {
-    const { error } = await initStripe({
-      logLevel: 'verbose',
-    });
+    const { error } = await initStripe();
     if (error) {
       Alert.alert('StripeTerminal init failed', error.message);
     } else {

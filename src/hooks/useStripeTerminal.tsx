@@ -12,7 +12,6 @@ import type {
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
   ReadReusableCardParamsType,
-  InitParams,
   ConnectEmbeddedParams,
   ConnectLocalMobileParams,
   UserCallbacks,
@@ -136,25 +135,22 @@ export function useStripeTerminal(props?: Props) {
   // TODO: check why NativeEventListeners are not registering properly if there is no below fix
   useListener(FETCH_TOKEN_PROVIDER, () => null);
 
-  const _initialize = useCallback(
-    async (params: InitParams) => {
-      if (!initialize || typeof initialize !== 'function') {
-        const errorMessage =
-          'StripeTerminalProvider component is not found or has not been mounted properly';
-        log('Failed', errorMessage);
-        return {
-          error: {
-            code: 'Failed',
-            message: errorMessage,
-          },
-        };
-      }
+  const _initialize = useCallback(async () => {
+    if (!initialize || typeof initialize !== 'function') {
+      const errorMessage =
+        'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized properly';
+      log('Failed', errorMessage);
+      return {
+        error: {
+          code: 'Failed',
+          message: errorMessage,
+        },
+      };
+    }
 
-      const res = initialize(params);
-      return res;
-    },
-    [initialize, log]
-  );
+    const res = initialize();
+    return res;
+  }, [initialize, log]);
 
   const _cancelDiscovering = useCallback(async () => {
     setLoading(true);

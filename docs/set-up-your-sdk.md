@@ -336,9 +336,7 @@ function App() {
   const { initialize } = useStripeTerminal();
 
   useEffect(() => {
-    initialize({
-      logLevel: 'verbose',
-    });
+    initialize();
   }, [initialize]);
 
   return <View />;
