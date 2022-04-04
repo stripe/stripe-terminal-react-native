@@ -364,17 +364,13 @@ function App() {
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
 
-Alternatively, you can import all of the functions directly from the module but keep in mind that you will lose the access to SDK state.
-
 ```tsx
 // Screen.ts
 
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 
-// Alternatively you can import the methods directly.
 import {
   useStripeTerminal,
-  discoverReaders,
 } from '@stripe/stripe-terminal-react-native';
 
 export default function PaymentScreen() {
