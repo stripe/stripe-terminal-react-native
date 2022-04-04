@@ -317,30 +317,11 @@ export default function DiscoverReadersScreen() {
 
       {simulated && discoveryMethod !== 'internet' && (
         <List title="SIMULATED UPDATE PLAN">
-          {Platform.OS !== 'ios' ? (
-            <Picker
-              selectedValue={selectedUpdatePlan}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-              testID="update-plan-picker"
-              onValueChange={(itemValue) => handleChangeUpdatePlan(itemValue)}
-            >
-              {SIMULATED_UPDATE_PLANS.map((plan) => (
-                <Picker.Item
-                  key={plan}
-                  label={mapToPlanDisplayName(plan)}
-                  testID={plan}
-                  value={plan}
-                />
-              ))}
-            </Picker>
-          ) : (
-            <ListItem
-              testID="update-plan-picker"
-              onPress={() => setShowPicker(true)}
-              title={mapToPlanDisplayName(selectedUpdatePlan)}
-            />
-          )}
+          <ListItem
+            testID="update-plan-picker"
+            onPress={() => setShowPicker(true)}
+            title={mapToPlanDisplayName(selectedUpdatePlan)}
+          />
         </List>
       )}
 
