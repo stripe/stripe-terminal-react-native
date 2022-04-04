@@ -99,9 +99,14 @@ export default function App() {
   const { initialize: initStripe } = useStripeTerminal();
 
   const handlePermissionsSuccess = useCallback(async () => {
-    const { error } = await initStripe();
+    const { error, reader } = await initStripe();
     if (error) {
       Alert.alert('StripeTerminal init failed', error.message);
+    } else if (reader) {
+      console.log(
+        'StripeTerminal has been initialized properly and connected to the reader',
+        reader
+      );
     } else {
       console.log('StripeTerminal has been initialized properly');
     }
