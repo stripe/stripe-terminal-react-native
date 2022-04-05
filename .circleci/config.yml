@@ -373,4 +373,8 @@ workflows:
           name: deploy-firebase-android-eu
           requires:
             - install-dependencies
+          filters:
+              branches:
+                  only:
+                    - main
 
