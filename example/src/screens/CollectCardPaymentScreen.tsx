@@ -1,13 +1,6 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useState, useContext } from 'react';
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-} from 'react-native';
+import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import {
   useStripeTerminal,
   PaymentIntent,
@@ -20,6 +13,7 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import { API_URL } from '../Config';
 import type { RouteParamList } from '../App';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function CollectCardPaymentScreen() {
   const [inputValues, setInputValues] = useState<{
@@ -295,7 +289,7 @@ export default function CollectCardPaymentScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       testID="collect-scroll-view"
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="always"
@@ -385,7 +379,7 @@ export default function CollectCardPaymentScreen() {
           </Text>
         )}
       </List>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
