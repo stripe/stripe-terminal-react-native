@@ -117,6 +117,8 @@ describe('Payments', () => {
     await amountInput.replaceText('20000');
     await currencyInput.replaceText('USD');
 
+    await element(by.id('collect-scroll-view')).scrollTo('bottom');
+
     const button = element(by.text('Collect payment'));
 
     await waitFor(button).toBeVisible();

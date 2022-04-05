@@ -296,6 +296,7 @@ export default function CollectCardPaymentScreen() {
 
   return (
     <ScrollView
+      testID="collect-scroll-view"
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="always"
     >
