@@ -392,7 +392,6 @@ export default function CollectCardPaymentScreen() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.light_gray,
-    flex: 1,
     paddingVertical: 22,
     height: '100%',
   },
