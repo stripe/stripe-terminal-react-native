@@ -398,7 +398,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val currency = requireParam(params.getString("currency")) {
             "You must provide a currency value"
         }
-        val tax = requireParam(getInt(params, "total")?.toLong()) {
+        val tax = requireParam(getInt(params, "tax")?.toLong()) {
             "You must provide a tax value"
         }
         val total = requireParam(getInt(params, "total")?.toLong()) {

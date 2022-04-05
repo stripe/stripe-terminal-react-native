@@ -99,7 +99,7 @@ type StripeTerminalSdkType = {
   // Cancel installing software update
   cancelInstallingUpdate(): Promise<void>;
   // Set text on a reader display
-  setReaderDisplay(card: Cart): Promise<{
+  setReaderDisplay(cart: Cart): Promise<{
     error?: StripeError;
   }>;
   // Clear reader display
