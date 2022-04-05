@@ -1,4 +1,5 @@
 import StripeTerminal
+import Foundation
 
 enum ReactNativeConstants: String, CaseIterable {
     case UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders"
@@ -66,6 +67,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         } else {
             Terminal.setTokenProvider(TokenProvider.shared)
             Terminal.shared.logLevel = logLevel
+        }
+
+        if Terminal.shared.responds(to: NSSelectorFromString("reportAsReactNativeSdk")) {
+            Terminal.shared.performSelector(inBackground: NSSelectorFromString("reportAsReactNativeSdk"), with: self)
         }
 
         resolve(["reader": connectedReader])
