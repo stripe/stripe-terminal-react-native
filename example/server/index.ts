@@ -53,7 +53,13 @@ app.post(
       amount: req.body.amount || 1000,
       currency: req.body.currency || 'usd',
       payment_method_types: req.body.payment_method_types || ['card_present'],
-      capture_method: 'manual',
+      setup_future_usage: req.body.setup_future_usage,
+      capture_method: req.body.capture_method || 'manual',
+      on_behalf_of: req.body.on_behalf_of,
+      transfer_data: {
+        destination: req.body.transfer_data_destination,
+      },
+      application_fee_amount: req.body.applicationFeeAmount,
     });
 
     res.json({ id: intent.id, client_secret: intent.client_secret });

@@ -25,6 +25,8 @@ export default function CollectCardPaymentScreen() {
   const [inputValues, setInputValues] = useState<{
     amount: string;
     currency: string;
+    connectedAccountId?: string;
+    applicationFeeAmount?: string;
   }>({
     amount: '20000',
     currency: 'USD',
@@ -69,17 +71,21 @@ export default function CollectCardPaymentScreen() {
     },
   });
 
-  const createServerPaymentIntent = async (intentParams: {
-    payment_method_types: string[];
+  const createServerPaymentIntent = async (paymentIntentParams: {
     amount: number;
     currency: string;
+    paymentMethodTypes: string[];
+    setupFutureUsage: 'off_session' | 'on_session';
+    on_behalf_of?: string;
+    transfer_data_destination?: string;
+    application_fee_amount?: number;
   }) => {
     const response = await fetch(`${API_URL}/create_payment_intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(intentParams),
+      body: JSON.stringify(paymentIntentParams),
     });
     const { client_secret, id } = await response.json();
     return { client_secret, id, error: null };
@@ -111,9 +117,12 @@ export default function CollectCardPaymentScreen() {
     let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
       const { client_secret } = await createServerPaymentIntent({
+        transfer_data_destination: inputValues.connectedAccountId,
+        on_behalf_of: inputValues.connectedAccountId,
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: paymentMethods,
+        paymentMethodTypes: paymentMethods,
+        setupFutureUsage: 'off_session',
       });
 
       const response = await retrievePaymentIntent(client_secret);
@@ -125,6 +134,11 @@ export default function CollectCardPaymentScreen() {
         currency: inputValues.currency,
         paymentMethodTypes: paymentMethods,
         setupFutureUsage: enableInterac ? undefined : 'off_session',
+        onBehalfOf: inputValues.connectedAccountId,
+        transferDataDestination: inputValues.connectedAccountId,
+        applicationFeeAmount: inputValues.applicationFeeAmount
+          ? Number(inputValues.applicationFeeAmount)
+          : undefined,
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -321,6 +335,33 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
+      <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
+        <TextInput
+          testID="destination-charge"
+          style={styles.input}
+          value={inputValues.connectedAccountId}
+          onChangeText={(value: string) =>
+            setInputValues((state) => ({ ...state, connectedAccountId: value }))
+          }
+          placeholder="Connected Stripe Account ID"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="APPLICATION FEE AMOUNT">
+        <TextInput
+          testID="application-fee-amount"
+          style={styles.input}
+          value={inputValues.applicationFeeAmount}
+          onChangeText={(value: string) =>
+            setInputValues((state) => ({
+              ...state,
+              applicationFeeAmount: value,
+            }))
+          }
+          placeholder="Application Fee Amount"
+        />
+      </List>
+
       <List
         bolded={false}
         topSpacing={false}
@@ -352,6 +393,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light_gray,
     flex: 1,
     paddingVertical: 22,
+    height: '100%',
   },
   json: {
     paddingHorizontal: 16,
