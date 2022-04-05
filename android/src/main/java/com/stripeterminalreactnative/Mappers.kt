@@ -360,7 +360,7 @@ internal fun mapToCartLineItem(cartLineItem: HashMap<*, *>): CartLineItem? {
     val quantity = cartLineItem["quantity"] as? Double ?: return null
     val amount = cartLineItem["amount"] as? Double ?: return null
 
-    return CartLineItem.Builder(displayName, amount.toInt(), quantity.toLong()).build()
+    return CartLineItem.Builder(displayName, quantity.toInt(), amount.toLong()).build()
 }
 
 internal fun mapFromRefund(refund: Refund): ReadableMap = nativeMapOf {

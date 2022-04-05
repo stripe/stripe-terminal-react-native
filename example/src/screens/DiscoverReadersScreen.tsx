@@ -249,7 +249,6 @@ export default function DiscoverReadersScreen() {
 
     const { reader: connectedReader, error } = await connectInternetReader({
       reader,
-      failIfInUse: true,
     });
 
     if (error) {

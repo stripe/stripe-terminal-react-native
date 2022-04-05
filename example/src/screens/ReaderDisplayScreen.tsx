@@ -1,40 +1,44 @@
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, Platform, StyleSheet, TextInput } from 'react-native';
+import List from '../components/List';
+import ListItem from '../components/ListItem';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
-import Button from '../components/Button';
 
 export default function ReaderDisplayScreen() {
   const { setReaderDisplay, clearReaderDisplay } = useStripeTerminal();
   const [cart, setCart] = useState<{
     currency?: string;
     tax?: string;
-    total?: string;
-  }>({ currency: 'usd', tax: '200', total: '5000' });
+    amount?: string;
+    itemDescription: string;
+  }>({
+    currency: 'usd',
+    tax: '200',
+    amount: '5000',
+    itemDescription: 'Red t-shirt',
+  });
 
   const _setCartDisplay = async () => {
     const { error } = await setReaderDisplay({
       currency: cart.currency!,
       tax: Number(cart.tax),
-      total: Number(cart.total),
+      total: Number(cart.amount) + Number(cart.tax),
       lineItems: [
         {
-          displayName: 'item 1',
-          quantity: 5,
-          amount: 500,
-        },
-        {
-          displayName: 'item 2',
-          quantity: 12,
-          amount: 1200,
+          displayName: cart.itemDescription,
+          quantity: 1,
+          amount: Number(cart.amount),
         },
       ],
     });
+
     if (error) {
       console.log('error', error);
-    } else {
-      console.log('setReaderDisplay success');
+      return;
     }
+
+    console.log('setReaderDisplay success');
   };
 
   const _clearReaderDisplay = async () => {
@@ -46,8 +50,22 @@ export default function ReaderDisplayScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="always"
+    >
+      <List bolded={false} topSpacing={false} title="Item Description">
+        <TextInput
+          autoCapitalize="none"
+          placeholder="Item Descritption"
+          onChangeText={(value) =>
+            setCart((c) => ({ ...c, itemDescription: value }))
+          }
+          value={cart.itemDescription}
+          style={styles.input}
+        />
+      </List>
+      <List bolded={false} topSpacing={false} title="Currency">
         <TextInput
           autoCapitalize="none"
           placeholder="Currency"
@@ -55,6 +73,8 @@ export default function ReaderDisplayScreen() {
           value={cart.currency}
           style={styles.input}
         />
+      </List>
+      <List bolded={false} topSpacing={false} title="Tax Amount">
         <TextInput
           autoCapitalize="none"
           placeholder="Tax"
@@ -63,38 +83,33 @@ export default function ReaderDisplayScreen() {
           value={String(cart.tax)}
           style={styles.input}
         />
+      </List>
+      <List bolded={false} topSpacing={false} title="Charge Amount">
         <TextInput
           autoCapitalize="none"
           placeholder="Total"
-          onChangeText={(value) => setCart((c) => ({ ...c, total: value }))}
-          value={String(cart.total)}
+          onChangeText={(value) => setCart((c) => ({ ...c, amount: value }))}
+          value={String(cart.amount)}
           style={styles.input}
         />
-        <View style={styles.buttonWrapper}>
-          <Button
-            variant="primary"
-            title="Set reader display"
-            disabled={!cart.currency || !cart.tax || !cart.total}
-            onPress={_setCartDisplay}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            variant="primary"
-            title="Clear reader display"
-            onPress={_clearReaderDisplay}
-          />
-        </View>
-      </View>
-    </View>
+      </List>
+      <List bolded={false} topSpacing={false} title="Display Actions">
+        <ListItem
+          title="Set reader display"
+          disabled={!cart.currency || !cart.tax || !cart.amount}
+          onPress={_setCartDisplay}
+        />
+        <ListItem title="Clear reader display" onPress={_clearReaderDisplay} />
+      </List>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.light_gray,
     flex: 1,
-    padding: 22,
+    paddingVertical: 22,
   },
   discoveredWrapper: {
     height: 50,
@@ -118,9 +133,20 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 44,
-    borderBottomColor: colors.slate,
-    borderBottomWidth: 1.5,
+    backgroundColor: colors.white,
     color: colors.dark_gray,
+    paddingLeft: 16,
     marginBottom: 12,
+    borderBottomColor: colors.gray,
+    ...Platform.select({
+      ios: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+      },
+      android: {
+        borderBottomWidth: 1,
+        borderBottomColor: `${colors.gray}66`,
+        color: colors.dark_gray,
+      },
+    }),
   },
 });
