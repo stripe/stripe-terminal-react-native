@@ -254,6 +254,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val currency = params.getString("currency") ?: ""
         val paymentMethods = params.getArray("paymentMethodTypes")
         val setupFutureUsage = params.getString("setupFutureUsage")
+        val onBehalfOf = params.getString("onBehalfOf")
+        val transferDataDestination = params.getString("transferDataDestination")
+        val applicationFeeAmount = getInt(params, "applicationFeeAmount")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -266,6 +269,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             )
         } ?: run {
             PaymentIntentParameters.Builder()
+        }
+
+        onBehalfOf?.let {
+            intentParams.setOnBehalfOf(it)
+        }
+        transferDataDestination?.let {
+            intentParams.setTransferDataDestination(it)
+        }
+        applicationFeeAmount?.let {
+            intentParams.setApplicationFeeAmount(it.toLong())
         }
 
         intentParams.setAmount(amount.toLong())

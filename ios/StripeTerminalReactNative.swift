@@ -260,9 +260,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let currency = params["currency"] as? String ?? ""
         let setupFutureUsage = params["setupFutureUsage"] as? String
         let paymentMethodTypes = params["paymentMethodTypes"] as? [String] ?? []
+        let onBehalfOf = params["onBehalfOf"] as? String
+        let transferDataDestination = params["transferDataDestination"] as? String
+        let applicationFeeAmount = params["applicationFeeAmount"] as? NSNumber
 
         let paymentIntentParams = PaymentIntentParameters(amount: UInt(truncating: amount), currency: currency, paymentMethodTypes: paymentMethodTypes)
+        
         paymentIntentParams.setupFutureUsage = setupFutureUsage
+        paymentIntentParams.onBehalfOf = onBehalfOf
+        paymentIntentParams.transferDataDestination = transferDataDestination
+        paymentIntentParams.applicationFeeAmount = applicationFeeAmount
 
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
             if let error = error as NSError? {

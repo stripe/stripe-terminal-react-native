@@ -155,6 +155,9 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   amount: number;
   currency: string;
   setupFutureUsage?: 'off_session' | 'on_session';
+  onBehalfOf?: string;
+  transferDataDestination?: string;
+  applicationFeeAmount?: number;
 };
 
 export type CreatePaymentIntentIOSParams = {
