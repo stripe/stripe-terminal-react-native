@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.light_gray,
     paddingVertical: 22,
-    height: '100%',
+    flexGrow: 1,
   },
   json: {
     paddingHorizontal: 16,
