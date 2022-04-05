@@ -375,5 +375,6 @@ workflows:
             - install-dependencies
           filters:
               branches:
-                only:
-                  - main
+                  only:
+                    - main
+

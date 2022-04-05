@@ -48,11 +48,11 @@ app.post(
 
 app.post(
   '/create_payment_intent',
-  async (_: express.Request, res: express.Response) => {
+  async (req: express.Request, res: express.Response) => {
     const intent = await stripe.paymentIntents.create({
-      amount: 1000,
-      currency: 'usd',
-      payment_method_types: ['card_present'],
+      amount: req.body.amount || 1000,
+      currency: req.body.currency || 'usd',
+      payment_method_types: req.body.payment_method_types || ['card_present'],
       capture_method: 'manual',
     });
 

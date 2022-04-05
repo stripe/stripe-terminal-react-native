@@ -4,6 +4,7 @@ export type Event = {
   name: string;
   description: string;
   metadata?: Record<string, string>;
+  onBack?(): void;
 };
 
 export type Log = {

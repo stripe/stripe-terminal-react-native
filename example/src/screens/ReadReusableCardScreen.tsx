@@ -10,7 +10,7 @@ export default function ReadReusableCardScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
 
-  const { readReusableCard } = useStripeTerminal({
+  const { readReusableCard, cancelReadReusableCard } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
         name: 'Read Reusable Card',
@@ -18,6 +18,7 @@ export default function ReadReusableCardScreen() {
           {
             name: input.join(' / '),
             description: 'terminal.didRequestReaderInput',
+            onBack: cancelReadReusableCard,
           },
         ],
       });
@@ -46,6 +47,7 @@ export default function ReadReusableCardScreen() {
         {
           name: 'Start',
           description: 'terminal.readReusableCard',
+          onBack: cancelReadReusableCard,
         },
       ],
     });
@@ -88,7 +90,13 @@ export default function ReadReusableCardScreen() {
         ],
       });
     }
-  }, [navigation, readReusableCard, addLogs, clearLogs]);
+  }, [
+    clearLogs,
+    navigation,
+    addLogs,
+    cancelReadReusableCard,
+    readReusableCard,
+  ]);
 
   useEffect(() => {
     _readReusableCard();

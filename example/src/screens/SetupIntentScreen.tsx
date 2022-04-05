@@ -25,6 +25,7 @@ export default function SetupIntentScreen() {
     collectSetupIntentPaymentMethod,
     confirmSetupIntent,
     retrieveSetupIntent,
+    cancelCollectSetupIntent,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
@@ -33,6 +34,7 @@ export default function SetupIntentScreen() {
           {
             name: input.join(' / '),
             description: 'terminal.didRequestReaderInput',
+            onBack: cancelCollectSetupIntent,
           },
         ],
       });
@@ -118,6 +120,7 @@ export default function SetupIntentScreen() {
             name: 'Collect',
             description: 'terminal.collectSetupIntentPaymentMethod',
             metadata: { setupIntentId },
+            onBack: cancelCollectSetupIntent,
           },
         ],
       });
@@ -153,7 +156,12 @@ export default function SetupIntentScreen() {
         await _processPayment(setupIntentId);
       }
     },
-    [_processPayment, addLogs, collectSetupIntentPaymentMethod]
+    [
+      _processPayment,
+      addLogs,
+      cancelCollectSetupIntent,
+      collectSetupIntentPaymentMethod,
+    ]
   );
 
   const _createSetupIntent = useCallback(async () => {

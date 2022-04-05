@@ -185,7 +185,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "Could not find a reader with serialNumber $serialNumber"
         }
 
-        val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+        val locationId = requireParam(params.getString("locationId") ?: selectedReader.location?.id) {
+            "You must provide a locationId"
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             val connectedReader =

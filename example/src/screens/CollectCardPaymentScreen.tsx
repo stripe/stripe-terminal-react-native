@@ -41,6 +41,7 @@ export default function CollectCardPaymentScreen() {
     collectPaymentMethod,
     processPayment,
     retrievePaymentIntent,
+    cancelCollectPaymentMethod,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
@@ -49,6 +50,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: input.join(' / '),
             description: 'terminal.didRequestReaderInput',
+            onBack: cancelCollectPaymentMethod,
           },
         ],
       });
@@ -67,13 +69,17 @@ export default function CollectCardPaymentScreen() {
     },
   });
 
-  const createServerPaymentIntent = async () => {
+  const createServerPaymentIntent = async (intentParams: {
+    payment_method_types: string[];
+    amount: number;
+    currency: string;
+  }) => {
     const response = await fetch(`${API_URL}/create_payment_intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify(intentParams),
     });
     const { client_secret, id } = await response.json();
     return { client_secret, id, error: null };
@@ -104,7 +110,11 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
-      const { client_secret } = await createServerPaymentIntent();
+      const { client_secret } = await createServerPaymentIntent({
+        amount: Number(inputValues.amount),
+        currency: inputValues.currency,
+        payment_method_types: paymentMethods,
+      });
 
       const response = await retrievePaymentIntent(client_secret);
       paymentIntent = response.paymentIntent;
@@ -114,7 +124,7 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         paymentMethodTypes: paymentMethods,
-        setupFutureUsage: 'off_session',
+        setupFutureUsage: enableInterac ? undefined : 'off_session',
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -157,6 +167,7 @@ export default function CollectCardPaymentScreen() {
           name: 'Collect',
           description: 'terminal.collectPaymentMethod',
           metadata: { paymentIntentId },
+          onBack: cancelCollectPaymentMethod,
         },
       ],
     });

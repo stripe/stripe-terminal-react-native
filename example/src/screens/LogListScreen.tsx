@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useContext } from 'react';
 import { BackHandler, ScrollView, Text, StyleSheet } from 'react-native';
 import { LogContext } from '../components/LogContext';
@@ -6,12 +6,27 @@ import { useNavigation } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import { HeaderBackButton } from '@react-navigation/stack';
 
 const LogListScreen = () => {
   const { logs } = useContext(LogContext);
   const navigation = useNavigation();
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <HeaderBackButton onPress={onBackPress} tintColor={colors.white} />
+      ),
+    });
+  });
+
   const onBackPress = () => {
+    const latestLog = logs[logs.length - 1];
+    const latestEvent = latestLog.events[latestLog.events.length - 1];
+
+    if (latestEvent.onBack) {
+      latestEvent.onBack();
+    }
     navigation.navigate('Terminal');
     return true;
   };
