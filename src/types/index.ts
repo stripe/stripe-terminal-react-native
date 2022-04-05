@@ -158,6 +158,12 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   onBehalfOf?: string;
   transferDataDestination?: string;
   applicationFeeAmount?: number;
+  stripeDescription?: string;
+  statementDescriptor?: string;
+  receiptEmail?: string;
+  customer?: string;
+  transferGroup?: string;
+  metadata?: Record<string, string>;
 };
 
 export type CreatePaymentIntentIOSParams = {
