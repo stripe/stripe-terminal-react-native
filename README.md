@@ -369,9 +369,7 @@ Additionally, you have access to the internal state of SDK that contains informa
 
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 
-import {
-  useStripeTerminal,
-} from '@stripe/stripe-terminal-react-native';
+import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 
 export default function PaymentScreen() {
   const { discoverReaders, connectedReader, discoveredReaders } =
@@ -447,11 +445,6 @@ You can find further examples of common SDK actions here:
 - [Running the Example Application](/docs/example-applications.md)
 - [Running e2e tests locally](/docs/e2e-tests.md)
 
-## Internal Docs
-
-- [Deploying the example apps](/docs/deploying-example-app.md)
-
 # Contributing
 
-See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
