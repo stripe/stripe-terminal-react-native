@@ -27,6 +27,7 @@ export default function CollectCardPaymentScreen() {
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
+  const [enableConnect, setEnableConnect] = useState(false);
   const [capturePI, setCapturePI] = useState(true);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -230,6 +231,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     const { paymentIntent, error } = await processPayment(paymentIntentId);
+
     if (error) {
       addLogs({
         name: 'Process Payment',
@@ -302,16 +304,18 @@ export default function CollectCardPaymentScreen() {
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="always"
     >
-      <List bolded={false} topSpacing={false} title="CARD NUMBER">
-        <TextInput
-          testID="card-number-text-field"
-          keyboardType="numeric"
-          style={styles.input}
-          value={testCardNumber}
-          onChangeText={(value) => setTestCardNumber(value)}
-          placeholder="card number"
-        />
-      </List>
+      {simulated && (
+        <List bolded={false} topSpacing={false} title="CARD NUMBER">
+          <TextInput
+            testID="card-number-text-field"
+            keyboardType="numeric"
+            style={styles.input}
+            value={testCardNumber}
+            onChangeText={(value) => setTestCardNumber(value)}
+            placeholder="card number"
+          />
+        </List>
+      )}
       <List bolded={false} topSpacing={false} title="AMOUNT">
         <TextInput
           testID="amount-text-field"
@@ -336,7 +340,7 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
-      <List bolded={false} topSpacing={false} title="PAYMENT METHOD">
+      <List bolded={false} topSpacing={false} title="INTERAC">
         <ListItem
           title="Enable Interac Present"
           rightElement={
@@ -349,32 +353,56 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
-      <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
-        <TextInput
-          testID="destination-charge"
-          style={styles.input}
-          value={inputValues.connectedAccountId}
-          onChangeText={(value: string) =>
-            setInputValues((state) => ({ ...state, connectedAccountId: value }))
+      <List bolded={false} topSpacing={false} title="CONNECT">
+        <ListItem
+          title="Enable Connect"
+          rightElement={
+            <Switch
+              testID="enable-connect"
+              value={enableConnect}
+              onValueChange={(value) => setEnableConnect(value)}
+            />
           }
-          placeholder="Connected Stripe Account ID"
         />
       </List>
+      {enableConnect && (
+        <>
+          <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
+            <TextInput
+              testID="destination-charge"
+              style={styles.input}
+              value={inputValues.connectedAccountId}
+              onChangeText={(value: string) =>
+                setInputValues((state) => ({
+                  ...state,
+                  connectedAccountId: value,
+                }))
+              }
+              placeholder="Connected Stripe Account ID"
+            />
+          </List>
 
-      <List bolded={false} topSpacing={false} title="APPLICATION FEE AMOUNT">
-        <TextInput
-          testID="application-fee-amount"
-          style={styles.input}
-          value={inputValues.applicationFeeAmount}
-          onChangeText={(value: string) =>
-            setInputValues((state) => ({
-              ...state,
-              applicationFeeAmount: value,
-            }))
-          }
-          placeholder="Application Fee Amount"
-        />
-      </List>
+          <List
+            bolded={false}
+            topSpacing={false}
+            title="APPLICATION FEE AMOUNT"
+          >
+            <TextInput
+              testID="application-fee-amount"
+              style={styles.input}
+              value={inputValues.applicationFeeAmount}
+              onChangeText={(value: string) =>
+                setInputValues((state) => ({
+                  ...state,
+                  applicationFeeAmount: value,
+                }))
+              }
+              placeholder="Application Fee Amount"
+            />
+          </List>
+        </>
+      )}
+
       <List bolded={false} topSpacing={false} title="CAPTURE PAYMENT INTENT">
         <ListItem
           title="Capture Payment Intent"
