@@ -265,9 +265,30 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let currency = params["currency"] as? String ?? ""
         let setupFutureUsage = params["setupFutureUsage"] as? String
         let paymentMethodTypes = params["paymentMethodTypes"] as? [String] ?? []
+        let onBehalfOf = params["onBehalfOf"] as? String
+        let transferDataDestination = params["transferDataDestination"] as? String
+        let applicationFeeAmount = params["applicationFeeAmount"] as? NSNumber
+        
+        let stripeDescription = params["stripeDescription"] as? String
+        let statementDescriptor = params["statementDescriptor"] as? String
+        let receiptEmail = params["receiptEmail"] as? String
+        let customer = params["customer"] as? String
+        let transferGroup = params["transferGroup"] as? String
+        let metadata = params["metadata"] as? [AnyHashable : Any]
 
         let paymentIntentParams = PaymentIntentParameters(amount: UInt(truncating: amount), currency: currency, paymentMethodTypes: paymentMethodTypes)
+        
         paymentIntentParams.setupFutureUsage = setupFutureUsage
+        paymentIntentParams.onBehalfOf = onBehalfOf
+        paymentIntentParams.transferDataDestination = transferDataDestination
+        paymentIntentParams.applicationFeeAmount = applicationFeeAmount
+        
+        paymentIntentParams.stripeDescription = stripeDescription
+        paymentIntentParams.statementDescriptor = statementDescriptor
+        paymentIntentParams.receiptEmail = receiptEmail
+        paymentIntentParams.customer = customer
+        paymentIntentParams.transferGroup = transferGroup
+        paymentIntentParams.metadata = metadata
 
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
             if let error = error as NSError? {

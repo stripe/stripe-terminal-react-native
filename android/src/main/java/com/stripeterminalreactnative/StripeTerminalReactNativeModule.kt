@@ -17,20 +17,7 @@ import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
-import com.stripe.stripeterminal.external.models.Cart
-import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
-import com.stripe.stripeterminal.external.models.DiscoveryMethod
-import com.stripe.stripeterminal.external.models.ListLocationsParameters
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.RefundParameters
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
-import com.stripe.stripeterminal.external.models.SetupIntentParameters
-import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.*
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
@@ -254,6 +241,15 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val currency = params.getString("currency") ?: ""
         val paymentMethods = params.getArray("paymentMethodTypes")
         val setupFutureUsage = params.getString("setupFutureUsage")
+        val onBehalfOf = params.getString("onBehalfOf")
+        val transferDataDestination = params.getString("transferDataDestination")
+        val applicationFeeAmount = getInt(params, "applicationFeeAmount")
+        val stripeDescription = params.getString("stripeDescription")
+        val statementDescriptor = params.getString("statementDescriptor")
+        val receiptEmail = params.getString("receiptEmail")
+        val customer = params.getString("customer")
+        val transferGroup = params.getString("transferGroup")
+        val metadata = params.getMap("metadata")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -266,6 +262,35 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             )
         } ?: run {
             PaymentIntentParameters.Builder()
+        }
+
+        stripeDescription?.let {
+            intentParams.setDescription(it)
+        }
+        statementDescriptor?.let {
+            intentParams.setStatementDescriptor(it)
+        }
+        receiptEmail?.let {
+            intentParams.setReceiptEmail(it)
+        }
+        customer?.let {
+            intentParams.setCurrency(it)
+        }
+        transferGroup?.let {
+            intentParams.setTransferGroup(it)
+        }
+        metadata?.let {
+            val map = it.toHashMap().toMap() as Map<String, String>
+            intentParams.setMetadata(map)
+        }
+        onBehalfOf?.let {
+            intentParams.setOnBehalfOf(it)
+        }
+        transferDataDestination?.let {
+            intentParams.setTransferDataDestination(it)
+        }
+        applicationFeeAmount?.let {
+            intentParams.setApplicationFeeAmount(it.toLong())
         }
 
         intentParams.setAmount(amount.toLong())

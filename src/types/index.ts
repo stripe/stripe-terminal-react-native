@@ -155,6 +155,15 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   amount: number;
   currency: string;
   setupFutureUsage?: 'off_session' | 'on_session';
+  onBehalfOf?: string;
+  transferDataDestination?: string;
+  applicationFeeAmount?: number;
+  stripeDescription?: string;
+  statementDescriptor?: string;
+  receiptEmail?: string;
+  customer?: string;
+  transferGroup?: string;
+  metadata?: Record<string, string>;
 };
 
 export type CreatePaymentIntentIOSParams = {
