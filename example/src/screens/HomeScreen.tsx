@@ -20,6 +20,12 @@ export default function HomeScreen() {
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal();
+  const batteryPercentage =
+    (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
+  const batteryStatus = batteryPercentage
+    ? '🔋' + batteryPercentage.toFixed(0) + '%'
+    : '';
+  const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
 
   const renderConnectedContent = (
     <>
@@ -83,6 +89,9 @@ export default function HomeScreen() {
           <Text style={styles.readerName}>{connectedReader.deviceType}</Text>
           <Text style={styles.connectionStatus}>
             Connected{simulated && <Text>, simulated</Text>}
+          </Text>
+          <Text style={styles.connectionStatus}>
+            {batteryStatus} {chargingStatus}
           </Text>
         </View>
       ) : (

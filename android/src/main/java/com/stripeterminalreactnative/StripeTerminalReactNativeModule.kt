@@ -11,7 +11,6 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
@@ -33,7 +32,6 @@ import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 import kotlin.collections.HashMap
 
 
