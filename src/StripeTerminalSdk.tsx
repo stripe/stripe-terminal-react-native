@@ -131,6 +131,9 @@ type StripeTerminalSdkType = {
   cancelReadReusableCard(): Promise<{
     error?: StripeError;
   }>;
+  setSimulatedCard(cardNumber: string): Promise<{
+    error?: StripeError;
+  }>;
 };
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

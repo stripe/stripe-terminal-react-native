@@ -15,6 +15,7 @@ type Props = AccessibilityProps & {
   disabled?: boolean;
   loading?: boolean;
   color?: string;
+  testID?: string;
   onPress(): void;
 };
 
@@ -23,6 +24,7 @@ export default function Button({
   variant = 'default',
   disabled,
   loading,
+  testID,
   color,
   onPress,
   ...props
@@ -44,6 +46,7 @@ export default function Button({
     <View style={[disabled && styles.disabled, styles.flex]}>
       <TouchableOpacity
         disabled={disabled}
+        testID={testID}
         style={[
           styles.container,
           variant === 'primary' && styles.primaryContainer,

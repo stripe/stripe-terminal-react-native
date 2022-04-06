@@ -25,7 +25,10 @@ export default function CollectCardPaymentScreen() {
     amount: '20000',
     currency: 'USD',
   });
+  const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
+  const [enableConnect, setEnableConnect] = useState(false);
+  const [capturePI, setCapturePI] = useState(true);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
@@ -38,6 +41,7 @@ export default function CollectCardPaymentScreen() {
     processPayment,
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
+    setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
@@ -97,6 +101,8 @@ export default function CollectCardPaymentScreen() {
   };
 
   const _createPaymentIntent = async () => {
+    await setSimulatedCard(testCardNumber);
+
     clearLogs();
     navigation.navigate('LogListScreen');
     addLogs({
@@ -225,6 +231,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     const { paymentIntent, error } = await processPayment(paymentIntentId);
+
     if (error) {
       addLogs({
         name: 'Process Payment',
@@ -250,7 +257,9 @@ export default function CollectCardPaymentScreen() {
           },
         ],
       });
-      _capturePayment(paymentIntentId);
+      if (capturePI) {
+        _capturePayment(paymentIntentId);
+      }
     }
   };
 
@@ -261,6 +270,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     const { intent, error } = await capturePaymentIntent(paymentIntentId);
+
     if (error) {
       addLogs({
         name: 'Capture Payment',
@@ -294,13 +304,25 @@ export default function CollectCardPaymentScreen() {
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="always"
     >
+      {simulated && (
+        <List bolded={false} topSpacing={false} title="CARD NUMBER">
+          <TextInput
+            testID="card-number-text-field"
+            keyboardType="numeric"
+            style={styles.input}
+            value={testCardNumber}
+            onChangeText={(value) => setTestCardNumber(value)}
+            placeholder="card number"
+          />
+        </List>
+      )}
       <List bolded={false} topSpacing={false} title="AMOUNT">
         <TextInput
           testID="amount-text-field"
           keyboardType="numeric"
           style={styles.input}
           value={inputValues.amount}
-          onChangeText={(value: string) =>
+          onChangeText={(value) =>
             setInputValues((state) => ({ ...state, amount: value }))
           }
           placeholder="amount"
@@ -311,18 +333,19 @@ export default function CollectCardPaymentScreen() {
           testID="currency-text-field"
           style={styles.input}
           value={inputValues.currency}
-          onChangeText={(value: string) =>
+          onChangeText={(value) =>
             setInputValues((state) => ({ ...state, currency: value }))
           }
           placeholder="currency"
         />
       </List>
 
-      <List bolded={false} topSpacing={false} title="PAYMENT METHOD">
+      <List bolded={false} topSpacing={false} title="INTERAC">
         <ListItem
           title="Enable Interac Present"
           rightElement={
             <Switch
+              testID="enable-interac"
               value={enableInterac}
               onValueChange={(value) => setEnableInterac(value)}
             />
@@ -330,30 +353,66 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
-      <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
-        <TextInput
-          testID="destination-charge"
-          style={styles.input}
-          value={inputValues.connectedAccountId}
-          onChangeText={(value: string) =>
-            setInputValues((state) => ({ ...state, connectedAccountId: value }))
+      <List bolded={false} topSpacing={false} title="CONNECT">
+        <ListItem
+          title="Enable Connect"
+          rightElement={
+            <Switch
+              testID="enable-connect"
+              value={enableConnect}
+              onValueChange={(value) => setEnableConnect(value)}
+            />
           }
-          placeholder="Connected Stripe Account ID"
         />
       </List>
+      {enableConnect && (
+        <>
+          <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
+            <TextInput
+              testID="destination-charge"
+              style={styles.input}
+              value={inputValues.connectedAccountId}
+              onChangeText={(value: string) =>
+                setInputValues((state) => ({
+                  ...state,
+                  connectedAccountId: value,
+                }))
+              }
+              placeholder="Connected Stripe Account ID"
+            />
+          </List>
 
-      <List bolded={false} topSpacing={false} title="APPLICATION FEE AMOUNT">
-        <TextInput
-          testID="application-fee-amount"
-          style={styles.input}
-          value={inputValues.applicationFeeAmount}
-          onChangeText={(value: string) =>
-            setInputValues((state) => ({
-              ...state,
-              applicationFeeAmount: value,
-            }))
+          <List
+            bolded={false}
+            topSpacing={false}
+            title="APPLICATION FEE AMOUNT"
+          >
+            <TextInput
+              testID="application-fee-amount"
+              style={styles.input}
+              value={inputValues.applicationFeeAmount}
+              onChangeText={(value: string) =>
+                setInputValues((state) => ({
+                  ...state,
+                  applicationFeeAmount: value,
+                }))
+              }
+              placeholder="Application Fee Amount"
+            />
+          </List>
+        </>
+      )}
+
+      <List bolded={false} topSpacing={false} title="CAPTURE PAYMENT INTENT">
+        <ListItem
+          title="Capture Payment Intent"
+          rightElement={
+            <Switch
+              testID="capture-payment-intent"
+              value={capturePI}
+              onValueChange={(value) => setCapturePI(value)}
+            />
           }
-          placeholder="Application Fee Amount"
         />
       </List>
 
