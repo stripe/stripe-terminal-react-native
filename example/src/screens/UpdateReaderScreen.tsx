@@ -54,7 +54,13 @@ export default function UpdateReaderScreen() {
       </View>
 
       <List title="CURRENT VERSION">
-        <ListItem title={updateInfo.deviceSoftwareVersion} />
+        <ListItem
+          title={
+            reader.deviceSoftwareVersion
+              ? reader.deviceSoftwareVersion
+              : 'unknown'
+          }
+        />
       </List>
 
       <List title="TARGET VERSION">
