@@ -14,6 +14,7 @@ import type {
   PaymentIntentResultType,
   GetLocationsParams,
   GetLocationsResultType,
+  GetSdkInfoResultType,
   StripeError,
   Cart,
   CreateSetupIntentParams,
@@ -376,6 +377,22 @@ export async function getLocations(
     };
   } catch (error) {
     return {
+      error: error as any,
+    };
+  }
+}
+
+export async function getSdkInfo(): Promise<GetSdkInfoResultType> {
+  try {
+    const { sdkInfo } = await StripeTerminalSdk.getSdkInfo();
+
+    return {
+      sdkInfo: sdkInfo!,
+      error: undefined,
+    };
+  } catch (error) {
+    return {
+      sdkInfo: undefined,
       error: error as any,
     };
   }

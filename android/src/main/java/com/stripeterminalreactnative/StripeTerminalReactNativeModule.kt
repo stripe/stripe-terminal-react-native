@@ -92,6 +92,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
+    fun getSdkInfo(promise: Promise) {
+        promise.resolve(mapSdkInfo())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
     fun cancelCollectPaymentMethod(promise: Promise) {
         cancelOperation(promise, collectPaymentMethodCancelable, "collectPaymentMethod")
     }
@@ -173,7 +179,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "Could not find a reader with serialNumber $serialNumber"
         }
 
-        val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+        val locationId =
+            params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
         CoroutineScope(Dispatchers.IO).launch {
             val connectedReader =
@@ -235,74 +242,56 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun createPaymentIntent(params: ReadableMap, promise: Promise) {
-        val amount = getInt(params, "amount") ?: 0
-        val currency = params.getString("currency") ?: ""
-        val paymentMethods = params.getArray("paymentMethodTypes")
-        val setupFutureUsage = params.getString("setupFutureUsage")
-        val onBehalfOf = params.getString("onBehalfOf")
-        val transferDataDestination = params.getString("transferDataDestination")
-        val applicationFeeAmount = getInt(params, "applicationFeeAmount")
-        val stripeDescription = params.getString("stripeDescription")
-        val statementDescriptor = params.getString("statementDescriptor")
-        val receiptEmail = params.getString("receiptEmail")
-        val customer = params.getString("customer")
-        val transferGroup = params.getString("transferGroup")
-        val metadata = params.getMap("metadata")
+    fun createPaymentIntent(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val amount = getInt(params, "amount") ?: 0
+            val currency = params.getString("currency") ?: ""
+            val paymentMethods = params.getArray("paymentMethodTypes")
+            val setupFutureUsage = params.getString("setupFutureUsage")
+            val onBehalfOf = params.getString("onBehalfOf")
+            val transferDataDestination = params.getString("transferDataDestination")
+            val applicationFeeAmount = getInt(params, "applicationFeeAmount")
+            val stripeDescription = params.getString("stripeDescription")
+            val statementDescriptor = params.getString("statementDescriptor")
+            val receiptEmail = params.getString("receiptEmail")
+            val customer = params.getString("customer")
+            val transferGroup = params.getString("transferGroup")
+            val metadata: Map<String, String>? = params.getMap("metadata")
+                ?.toHashMap()
+                ?.map {
+                    requireParam(it.value as? String) { "metadata values must be of type string" }
+                    it.key to it.value as String
+                }
+                ?.toMap()
 
-        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
-            if (it is String) PaymentMethodType.valueOf(it.uppercase())
-            else null
-        }
+            val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
+                if (it is String) PaymentMethodType.valueOf(it.uppercase())
+                else null
+            }
 
-        val intentParams = paymentMethodTypes?.let {
-            PaymentIntentParameters.Builder(
-                paymentMethodTypes
-            )
-        } ?: run {
-            PaymentIntentParameters.Builder()
-        }
+            val intentParams = paymentMethodTypes?.let {
+                PaymentIntentParameters.Builder(paymentMethodTypes)
+            } ?: run {
+                PaymentIntentParameters.Builder()
+            }.apply {
+                stripeDescription?.let { setDescription(it) }
+                statementDescriptor?.let { setStatementDescriptor(it) }
+                receiptEmail?.let { setReceiptEmail(it) }
+                customer?.let { setCurrency(it) }
+                transferGroup?.let { setTransferGroup(it) }
+                metadata?.let { setMetadata(it) }
+                onBehalfOf?.let { setOnBehalfOf(it) }
+                transferDataDestination?.let { setTransferDataDestination(it) }
+                applicationFeeAmount?.let { setApplicationFeeAmount(it.toLong()) }
+                setAmount(amount.toLong())
+                setCurrency(currency)
+                setupFutureUsage?.let { setSetupFutureUsage(it) }
+            }
 
-        stripeDescription?.let {
-            intentParams.setDescription(it)
+            terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) {
+                paymentIntents[it.id] = it
+            })
         }
-        statementDescriptor?.let {
-            intentParams.setStatementDescriptor(it)
-        }
-        receiptEmail?.let {
-            intentParams.setReceiptEmail(it)
-        }
-        customer?.let {
-            intentParams.setCurrency(it)
-        }
-        transferGroup?.let {
-            intentParams.setTransferGroup(it)
-        }
-        metadata?.let {
-            val map = it.toHashMap().toMap() as Map<String, String>
-            intentParams.setMetadata(map)
-        }
-        onBehalfOf?.let {
-            intentParams.setOnBehalfOf(it)
-        }
-        transferDataDestination?.let {
-            intentParams.setTransferDataDestination(it)
-        }
-        applicationFeeAmount?.let {
-            intentParams.setApplicationFeeAmount(it.toLong())
-        }
-
-        intentParams.setAmount(amount.toLong())
-        intentParams.setCurrency(currency)
-
-        setupFutureUsage?.let {
-            intentParams.setSetupFutureUsage(it)
-        }
-
-        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) {
-            paymentIntents[it.id] = it
-        })
-    }
 
     @ReactMethod
     @Suppress("unused")

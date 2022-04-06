@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
   HeaderBackButton,
+  StackHeaderProps,
   TransitionPresets,
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
@@ -28,6 +29,7 @@ import {
   requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import { LogBox } from 'react-native';
+import SdkInfoContent from './components/SdkInfoContent';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -168,7 +170,13 @@ export default function App() {
 
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions} mode="modal">
-            <Stack.Screen name="Terminal" component={HomeScreen} />
+            <Stack.Screen
+              name="Terminal"
+              component={HomeScreen}
+              options={() => ({
+                headerRight: () => <SdkInfoContent />,
+              })}
+            />
             <Stack.Screen
               name="DiscoverReadersScreen"
               options={{ headerTitle: 'Discovery' }}

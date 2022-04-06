@@ -50,6 +50,7 @@ import {
   connectHandoffReader,
   connectLocalMobileReader,
   setSimulatedCard,
+  getSdkInfo,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -375,6 +376,20 @@ export function useStripeTerminal(props?: Props) {
     [setLoading, _isInitialized]
   );
 
+  const _getSdkInfo = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await getSdkInfo();
+
+    setLoading(false);
+
+    return response;
+  }, [setLoading, _isInitialized]);
+
   const _processPayment = useCallback(
     async (paymentIntentId: string) => {
       if (!_isInitialized()) {
@@ -694,6 +709,7 @@ export function useStripeTerminal(props?: Props) {
     collectPaymentMethod: _collectPaymentMethod,
     retrievePaymentIntent: _retrievePaymentIntent,
     getLocations: _getLocations,
+    getSdkInfo: _getSdkInfo,
     processPayment: _processPayment,
     createSetupIntent: _createSetupIntent,
     cancelPaymentIntent: _cancelPaymentIntent,

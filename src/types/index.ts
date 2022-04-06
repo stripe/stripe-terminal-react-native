@@ -211,6 +211,16 @@ export type GetLocationsResultType =
       error: StripeError;
     };
 
+export type GetSdkInfoResultType =
+  | {
+      sdkInfo: SdkInfo;
+      error?: undefined;
+    }
+  | {
+      sdkInfo?: undefined;
+      error: StripeError;
+    };
+
 export type ClearReaderDisplayResultType = {
   error: StripeError;
 };
@@ -263,6 +273,12 @@ type CardDetails = {
   fingerprint: string;
   funding: string;
   last4: string;
+};
+
+export type SdkInfo = {
+  terminalAndroidVersion?: string;
+  terminalIosVersion?: string;
+  terminalReactNativeVersion: string;
 };
 
 export type UserCallbacks = {

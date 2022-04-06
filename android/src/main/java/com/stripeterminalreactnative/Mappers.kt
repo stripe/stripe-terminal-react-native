@@ -77,6 +77,14 @@ internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String {
     }
 }
 
+internal fun mapSdkInfo(): ReadableMap = nativeMapOf {
+    putMap("sdkInfo", nativeMapOf {
+        putString("terminalAndroidVersion", BuildConfig.TERMINAL_ANDROID_SDK_VERSION)
+        putNull("terminalIosVersion")
+        putString("terminalReactNativeVersion", BuildConfig.VERSION)
+    })
+}
+
 internal fun mapFromDeviceType(type: DeviceType): String {
     return when (type) {
         DeviceType.CHIPPER_2X -> "chipper2X"
