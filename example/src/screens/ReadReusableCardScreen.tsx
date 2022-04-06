@@ -108,7 +108,7 @@ export default function ReadReusableCardScreen() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.light_gray,
-    flex: 1,
+    height: '100%',
     paddingVertical: 22,
   },
   json: {

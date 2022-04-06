@@ -1,12 +1,12 @@
 /* eslint-env detox/detox, jest */
 
-export const navigateTo = async (buttonText: string) => {
+export const navigateTo = async (buttonText) => {
   const button = element(by.text(buttonText));
   await waitFor(button).toBeVisible().withTimeout(16000);
   await button.tap();
 };
 
-export const connectReader = async (name?: string = 'chipper2X') => {
+export const connectReader = async (name = 'chipper2X') => {
   await waitFor(element(by.text(`SimulatorID - ${name}`)))
     .toBeVisible()
     .withTimeout(16000);
@@ -14,10 +14,7 @@ export const connectReader = async (name?: string = 'chipper2X') => {
   await button.tap();
 };
 
-export const setSimulatedUpdatePlan = async (
-  plan: string = 'Update required'
-) => {
-  const defaultPlan = 'No Update';
+export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
   const picker = element(by.id('update-plan-picker'));
 
   await picker.tap();
@@ -52,14 +49,14 @@ export const disconnectReader = async () => {
     .withTimeout(16000);
 };
 
-export const checkIfLogExist = async (log: string) => {
+export const checkIfLogExist = async (log) => {
   await element(by.id('scroll-view')).scrollTo('bottom');
   await waitFor(element(by.text(log)))
     .toBeVisible()
     .withTimeout(16000);
 };
 
-export const changeDiscoveryMethod = async (method: string) => {
+export const changeDiscoveryMethod = async (method) => {
   const button = element(by.id('discovery-method-button'));
   await waitFor(button).toBeVisible().withTimeout(10000);
   await button.tap();
@@ -77,7 +74,7 @@ export const changeDiscoveryMethod = async (method: string) => {
     .withTimeout(10000);
 };
 
-export const goBack = async (label?: string) => {
+export const goBack = async (label) => {
   if (device.getPlatform() === 'android') {
     await device.pressBack();
   } else {

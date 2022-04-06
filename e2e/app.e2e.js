@@ -13,7 +13,7 @@ const { cleanPaymentMethods } = require('./clean');
 
 jest.retryTimes(3);
 
-describe('Payments', () => {
+describe('Basic funtionalities', () => {
   beforeAll(async () => {
     await cleanPaymentMethods();
   });
@@ -188,14 +188,16 @@ describe('Payments', () => {
 
     await navigateTo('In-Person Refund');
 
-    const chargeIdInout = element(by.id('charge-id-text-field'));
+    const chargeIdInput = element(by.id('charge-id-text-field'));
     const amountInput = element(by.id('amount-text-field'));
 
-    await waitFor(chargeIdInout).toBeVisible().withTimeout(16000);
+    await waitFor(chargeIdInput).toBeVisible().withTimeout(16000);
     await waitFor(amountInput).toBeVisible();
 
     await amountInput.replaceText('20000');
-    await chargeIdInout.replaceText('ch_3JxsjUBDuqlYGNW21EL8UyOm');
+    await chargeIdInput.replaceText('ch_3JxsjUBDuqlYGNW21EL8UyOm');
+
+    await element(by.id('refund-scroll-view')).scrollTo('bottom');
 
     const button = element(by.id('collect-refund-button'));
 
