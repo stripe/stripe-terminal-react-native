@@ -48,6 +48,9 @@ export type RouteParamList = {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
   };
+  MerchantSelect: {
+    onSelect: (key: string) => void;
+  };
   CollectCardPayment: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
@@ -100,6 +103,7 @@ export default function App() {
 
   const handlePermissionsSuccess = useCallback(async () => {
     const { error, reader } = await initStripe();
+
     if (error) {
       Alert.alert('StripeTerminal init failed', error.message);
     } else if (reader) {
@@ -169,6 +173,11 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions} mode="modal">
             <Stack.Screen name="Terminal" component={HomeScreen} />
+            <Stack.Screen
+              name="MerchantSelectScreen"
+              options={{ headerTitle: 'Merchant Select' }}
+              component={MerchantSelectScreen}
+            />
             <Stack.Screen
               name="DiscoverReadersScreen"
               options={{ headerTitle: 'Discovery' }}

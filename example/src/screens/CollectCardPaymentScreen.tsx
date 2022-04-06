@@ -101,7 +101,9 @@ export default function CollectCardPaymentScreen() {
   };
 
   const _createPaymentIntent = async () => {
-    await setSimulatedCard(testCardNumber);
+    if (simulated) {
+      await setSimulatedCard(testCardNumber);
+    }
 
     clearLogs();
     navigation.navigate('LogListScreen');
