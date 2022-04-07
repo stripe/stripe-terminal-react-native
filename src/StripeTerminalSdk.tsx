@@ -29,6 +29,7 @@ import type {
   ConnectEmbeddedParams,
   ConnectLocalMobileParams,
   ConnectReaderResultType,
+  GetSdkInfoResultType,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -134,6 +135,7 @@ type StripeTerminalSdkType = {
   setSimulatedCard(cardNumber: string): Promise<{
     error?: StripeError;
   }>;
+  getSdkInfo(): Promise<GetSdkInfoResultType>;
 };
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
