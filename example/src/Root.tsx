@@ -18,6 +18,7 @@ export default function Root() {
       if (!selectedAccountKey) {
         setAccount(null);
         setSelectedAccount('');
+        api.setSecretKey('');
         return;
       }
 

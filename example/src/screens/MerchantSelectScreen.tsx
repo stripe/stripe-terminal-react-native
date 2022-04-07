@@ -77,6 +77,7 @@ export default function MerchantSelectScreen() {
 
     if ('error' in addedAccount) {
       Alert.alert('Unable to add account', addedAccount.error.message);
+      setIsAddPending(false);
       return;
     }
 

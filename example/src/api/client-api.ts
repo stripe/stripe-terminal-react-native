@@ -9,7 +9,6 @@ export class ClientApi implements Api {
 
   constructor() {
     this.secretKey = '';
-
     this.headers = {};
   }
 
