@@ -160,27 +160,30 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise: Promise,
         discoveryMethod: DiscoveryMethod,
         listener: ReaderListenable? = null
-    ) = withExceptionResolver(promise) {
-        val reader = requireParam(params.getMap("reader")) {
-            "You must provide a reader"
-        }
-
-        val serialNumber = reader.getString("serialNumber")
-
-        val selectedReader = requireParam(discoveredReadersList.find {
-            it.serialNumber == serialNumber
-        }) {
-            "Could not find a reader with serialNumber $serialNumber"
-        }
-
-        val locationId = params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
-
+    ) {
         CoroutineScope(Dispatchers.IO).launch {
-            val connectedReader =
-                terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
-            promise.resolve(nativeMapOf {
-                putMap("reader", mapFromReader(connectedReader))
-            })
+            withSuspendExceptionResolver(promise) {
+                val reader = requireParam(params.getMap("reader")) {
+                    "You must provide a reader"
+                }
+
+                val serialNumber = reader.getString("serialNumber")
+
+                val selectedReader = requireParam(discoveredReadersList.find {
+                    it.serialNumber == serialNumber
+                }) {
+                    "Could not find a reader with serialNumber $serialNumber"
+                }
+
+                val locationId =
+                    params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+
+                val connectedReader =
+                    terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
+                promise.resolve(nativeMapOf {
+                    putMap("reader", mapFromReader(connectedReader))
+                })
+            }
         }
     }
 

@@ -55,3 +55,11 @@ internal fun withExceptionResolver(promise: Promise, block: () -> Unit) {
         promise.resolve(createError(e))
     }
 }
+
+internal suspend fun withSuspendExceptionResolver(promise: Promise, block: suspend () -> Unit) {
+    try {
+        block()
+    } catch (e: TerminalException) {
+        promise.resolve(createError(e))
+    }
+}
