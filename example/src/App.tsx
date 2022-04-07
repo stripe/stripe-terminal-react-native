@@ -34,7 +34,7 @@ import {
   useStripeTerminal,
   requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
-import { LogBox } from 'react-native';
+import { Alert, LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
 
@@ -119,29 +119,32 @@ export default function App() {
 
   useEffect(() => {
     const initAndClear = async () => {
-      await initStripe();
+      const { error, reader } = await initStripe();
+
+      if (error) {
+        Alert.alert('StripeTerminal init failed', error.message);
+        return;
+      }
+
       await clearCachedCredentials();
+
+      if (reader) {
+        console.log(
+          'StripeTerminal has been initialized properly and connected to the reader',
+          reader
+        );
+        return;
+      }
+
+      console.log('StripeTerminal has been initialized properly');
     };
-    if (account?.secretKey) {
-      console.log('acct check', account?.secretKey);
+    if (account?.secretKey && hasPerms) {
       initAndClear();
     }
-  }, [account, initStripe, clearCachedCredentials]);
+  }, [account, initStripe, clearCachedCredentials, hasPerms]);
 
   const handlePermissionsSuccess = useCallback(async () => {
     setHasPerms(true);
-    // const { error, reader } = await initStripe();
-
-    // if (error) {
-    //   Alert.alert('StripeTerminal init failed', error.message);
-    // } else if (reader) {
-    //   console.log(
-    //     'StripeTerminal has been initialized properly and connected to the reader',
-    //     reader
-    //   );
-    // } else {
-    //   console.log('StripeTerminal has been initialized properly');
-    // }
   }, []);
 
   useEffect(() => {

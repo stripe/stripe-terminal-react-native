@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
@@ -6,7 +6,7 @@ import App from './App';
 import { AppContext } from './AppContext';
 import type { IAccount } from './types';
 import { ClientApi } from './api/client-api';
-import { setSelectedAccount } from './util/merchantStorage';
+import { setSelectedAccount, getSelectedAccount } from './util/merchantStorage';
 
 const api = new ClientApi();
 
@@ -39,6 +39,15 @@ export default function Root() {
     },
     []
   );
+
+  useEffect(() => {
+    const initAccount = async () => {
+      const acct = await getSelectedAccount();
+      onSelectAccount({ selectedAccountKey: acct });
+    };
+
+    initAccount();
+  }, [onSelectAccount]);
 
   const fetchTokenProvider = async (): Promise<string> => {
     if (!api) {
