@@ -5,7 +5,7 @@ import { colors } from '../colors';
 
 export default function SdkInfoContent() {
   const [sdkInformation, setSdkInfo] = useState<SdkInfo>();
-  const { getSdkInfo } = useStripeTerminal();
+  const { getSdkInfo, isInitialized } = useStripeTerminal();
 
   useEffect(() => {
     async function init() {
@@ -14,8 +14,10 @@ export default function SdkInfoContent() {
         setSdkInfo(sdkInfo);
       }
     }
-    init();
-  }, [getSdkInfo]);
+    if (isInitialized === true) {
+      init();
+    }
+  }, [getSdkInfo, isInitialized]);
 
   return (
     <>
