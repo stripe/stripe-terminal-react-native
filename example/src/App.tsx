@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
   HeaderBackButton,
-  StackHeaderProps,
   TransitionPresets,
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
