@@ -6,7 +6,11 @@ export type IAccount = Stripe.Account & { secretKey: string };
 export type IAppContext = {
   api: IApi | null;
   account: IAccount | null;
-  setAccount: ({ selectedAccountKey }: { selectedAccountKey: string }) => void;
+  setAccount: ({
+    selectedAccountKey,
+  }: {
+    selectedAccountKey: string | null;
+  }) => void;
 };
 
 export type IShortAccount = {

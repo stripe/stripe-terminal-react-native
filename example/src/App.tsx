@@ -114,8 +114,15 @@ export default function App() {
   const clearLogs = useCallback(() => setlogs([]), []);
   // const { initialize: initStripe } = useStripeTerminal();
 
-  const onSelectMerchant = useCallback(
-    async ({ selectedAccountKey }: { selectedAccountKey: string }) => {
+  const onSelectAccount = useCallback(
+    async ({ selectedAccountKey }: { selectedAccountKey: string | null }) => {
+      if (!selectedAccountKey) {
+        setAccount(null);
+        setApi(null);
+        setSelectedAccount('');
+        return;
+      }
+
       const selectedAccount = await ClientApi.getAccount(selectedAccountKey);
 
       if ('error' in selectedAccount) {
@@ -123,7 +130,6 @@ export default function App() {
         return;
       }
 
-      console.log('home select!', selectedAccountKey);
       // update account state in context
       setAccount(selectedAccount);
 
@@ -202,7 +208,7 @@ export default function App() {
       value={{
         api,
         account,
-        setAccount: onSelectMerchant,
+        setAccount: onSelectAccount,
       }}
     >
       <LogContext.Provider value={value}>

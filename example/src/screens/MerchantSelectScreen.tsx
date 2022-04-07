@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useState, useContext } from 'react';
-import { StyleSheet, ScrollView, Platform, TextInput } from 'react-native';
+import {
+  Alert,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  TextInput,
+} from 'react-native';
 
 import { Picker } from '@react-native-picker/picker';
 
@@ -15,7 +21,7 @@ export default function MerchantSelectScreen() {
   const { account, setAccount } = useContext(AppContext);
   const [accounts, setAccounts] = useState<Array<IShortAccount>>([]);
   const [isAddPending, setIsAddPending] = useState<boolean>(false);
-  const [newMerchantKey, setNewMerchantKey] = useState<string>('');
+  const [newAccountKey, setNewAccountKey] = useState<string>('');
 
   // on init load all stored accounts
   useEffect(() => {
@@ -24,31 +30,53 @@ export default function MerchantSelectScreen() {
         const storedAccounts = await getStoredAccounts();
         setAccounts(storedAccounts);
       } catch (e) {
-        console.log(e);
         // error reading value
+        console.log(e);
       }
     };
 
     fetchAccounts();
   }, []);
 
-  const onSelectMerchant = useCallback(
-    async (secretKey: string) => {
-      setAccount({ selectedAccountKey: secretKey });
-    },
-    [setAccount]
-  );
-
   // write list of accounts to storage whenever it's changed
   useEffect(() => {
     setStoredAccounts(accounts);
   }, [accounts]);
 
-  const onAddMerchant = useCallback(async () => {
+  const onSelectAccount = useCallback(
+    async (secretKey: string | null) => {
+      setAccount({ selectedAccountKey: secretKey });
+    },
+    [setAccount]
+  );
+
+  const onRemoveAllMerchants = useCallback(() => {
+    setAccounts([]);
+    onSelectAccount(null);
+  }, [setAccounts, onSelectAccount]);
+
+  const onRemoveSelectedMerchant = useCallback(() => {
+    setAccounts((prev) => {
+      const idx = prev.findIndex((a) => a.secretKey === account?.secretKey);
+
+      return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
+    });
+    onSelectAccount(null);
+  }, [account?.secretKey, onSelectAccount]);
+
+  const onAddAccount = useCallback(async () => {
+    // check if already exists
+    if (accounts.find((a) => a.secretKey === newAccountKey)) {
+      Alert.alert('Merchant key already exists!');
+      setNewAccountKey('');
+      return;
+    }
+
     setIsAddPending(true);
-    const addedAccount = await ClientApi.getAccount(newMerchantKey);
+    const addedAccount = await ClientApi.getAccount(newAccountKey);
 
     if ('error' in addedAccount) {
+      Alert.alert('New update is available', addedAccount.error.message);
       return;
     }
 
@@ -62,10 +90,10 @@ export default function MerchantSelectScreen() {
     );
 
     // set as current account
-    onSelectMerchant(newMerchantKey);
+    onSelectAccount(newAccountKey);
     setIsAddPending(false);
-    setNewMerchantKey('');
-  }, [newMerchantKey, onSelectMerchant]);
+    setNewAccountKey('');
+  }, [newAccountKey, onSelectAccount, accounts]);
 
   return (
     <ScrollView
@@ -75,15 +103,15 @@ export default function MerchantSelectScreen() {
       <List bolded={false} topSpacing={false} title="Add New Merchant">
         <TextInput
           style={styles.input}
-          value={newMerchantKey}
-          onChangeText={(value: string) => setNewMerchantKey(value)}
+          value={newAccountKey}
+          onChangeText={(value: string) => setNewAccountKey(value)}
           placeholder="sk_test_xxx"
           editable={!isAddPending}
         />
         <ListItem
           color={colors.blue}
           title="Add Merchant"
-          onPress={onAddMerchant}
+          onPress={onAddAccount}
           disabled={isAddPending}
         />
       </List>
@@ -93,7 +121,7 @@ export default function MerchantSelectScreen() {
           style={styles.picker}
           itemStyle={styles.pickerItem}
           testID="update-plan-picker"
-          onValueChange={onSelectMerchant}
+          onValueChange={onSelectAccount}
         >
           {accounts.map((a) => (
             <Picker.Item
@@ -104,6 +132,18 @@ export default function MerchantSelectScreen() {
             />
           ))}
         </Picker>
+      </List>
+      <List bolded={false} topSpacing={false} title="Remove Merchant(s)">
+        <ListItem
+          color={colors.blue}
+          title="Remove Selected Merchant"
+          onPress={onRemoveSelectedMerchant}
+        />
+        <ListItem
+          color={colors.blue}
+          title="Remove All Merchants"
+          onPress={onRemoveAllMerchants}
+        />
       </List>
     </ScrollView>
   );
