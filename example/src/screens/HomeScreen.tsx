@@ -16,7 +16,7 @@ import { Reader, useStripeTerminal } from 'stripe-terminal-react-native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const [simulated, setSimulated] = useState(true);
+  const [simulated, setSimulated] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal();
@@ -104,7 +104,14 @@ export default function HomeScreen() {
         renderConnectedContent
       ) : (
         <>
-          <List title="READER CONNECTION">
+          <List title="MERCHANT SELECTION">
+            <ListItem
+              title="Set Merchant"
+              color={colors.blue}
+              onPress={() => {
+                navigation.navigate('MerchantSelectScreen');
+              }}
+            />
             <ListItem
               title="Discover Readers"
               color={colors.blue}

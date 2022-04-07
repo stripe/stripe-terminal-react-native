@@ -71,4 +71,38 @@ export class ClientApi implements Api {
       body: formData.toString(),
     }).then((resp) => resp.json());
   }
+  static async getAccounts(
+    keys: Array<string>
+  ): Promise<Array<Stripe.Account & { secretKey: string }>> {
+    const results = keys.map((key) => this.getAccount(key));
+
+    const accounts = await Promise.all(results);
+
+    // Silently drop any accounts we were unable to fetch
+    return accounts.filter((account) => !('error' in account)) as Array<
+      Stripe.Account & { secretKey: string }
+    >;
+  }
+
+  static async getAccount(
+    secretKey: string
+  ): Promise<
+    (Stripe.Account & { secretKey: string }) | { error: Stripe.StripeAPIError }
+  > {
+    const result = await fetch('https://api.stripe.com/v1/account', {
+      headers: {
+        Authorization: `Bearer ${secretKey}`,
+      },
+    });
+
+    const data = await result.json();
+
+    if ('error' in data) {
+      return data;
+    }
+
+    data.secretKey = secretKey;
+
+    return data;
+  }
 }
