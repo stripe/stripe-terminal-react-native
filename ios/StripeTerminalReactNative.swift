@@ -378,6 +378,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             }
         }
     }
+    
+    @objc(getSdkInfo:rejecter:)
+    func getSdkInfo(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolve(Mappers.mapSdkInfo())
+    }
 
     @objc(processPayment:resolver:rejecter:)
     func processPayment(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {

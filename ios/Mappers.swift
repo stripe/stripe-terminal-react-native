@@ -469,6 +469,20 @@ class Mappers {
         default: return LogLevel.none
         }
     }
+    
+    class func mapSdkInfo() -> [AnyHashable:Any?] {
+        let reactNativeSdkVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        
+        let sdkInfo: [AnyHashable: Any?] = [
+            "sdkInfo": [
+                "terminalAndroidVersion": nil,
+                "terminalIosVersion": StripeTerminal.SCPSDKVersion,
+                "terminalReactNativeVersion": reactNativeSdkVersion
+            ]
+        ]
+        return sdkInfo
+    }
+
 }
 
 extension UInt {

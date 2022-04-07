@@ -68,6 +68,11 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  getSdkInfo: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   processPayment:(NSString *)paymentIntentId
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject

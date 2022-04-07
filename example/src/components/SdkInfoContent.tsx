@@ -34,7 +34,7 @@ export default function SdkInfoContent() {
           )}
           <Text
             style={styles.text}
-          >{`React Native SDK: v${sdkInformation?.terminalReactNativeVersion}`}</Text>
+          >{`RN SDK: v${sdkInformation?.terminalReactNativeVersion}`}</Text>
         </View>
       ) : (
         <>
