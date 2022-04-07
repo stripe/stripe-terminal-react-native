@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useEffect,
+  useState,
+  useContext,
+} from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -25,15 +31,12 @@ import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen
 import {
   Reader,
   Location,
-  // useStripeTerminal,
+  useStripeTerminal,
   requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import { LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
-import type { IAccount, Api } from './types';
-import { ClientApi } from './api/client-api';
-import { setSelectedAccount } from './util/merchantStorage';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -107,40 +110,23 @@ const screenOptions = {
 };
 
 export default function App() {
-  const [account, setAccount] = useState<IAccount | null>(null);
-  const [api, setApi] = useState<Api | null>(null);
   const [logs, setlogs] = useState<Log[]>([]);
   const [hasPerms, setHasPerms] = useState<boolean>(false);
   const clearLogs = useCallback(() => setlogs([]), []);
-  // const { initialize: initStripe } = useStripeTerminal();
+  const { initialize: initStripe, clearCachedCredentials } =
+    useStripeTerminal();
+  const { account } = useContext(AppContext);
 
-  const onSelectAccount = useCallback(
-    async ({ selectedAccountKey }: { selectedAccountKey: string | null }) => {
-      if (!selectedAccountKey) {
-        setAccount(null);
-        setApi(null);
-        setSelectedAccount('');
-        return;
-      }
-
-      const selectedAccount = await ClientApi.getAccount(selectedAccountKey);
-
-      if ('error' in selectedAccount) {
-        console.log(selectedAccount.error);
-        return;
-      }
-
-      // update account state in context
-      setAccount(selectedAccount);
-
-      // init api
-      setApi(new ClientApi({ secretKey: selectedAccount.secretKey }));
-
-      // persist to storage
-      setSelectedAccount(selectedAccount.secretKey);
-    },
-    []
-  );
+  useEffect(() => {
+    const initAndClear = async () => {
+      await initStripe();
+      await clearCachedCredentials();
+    };
+    if (account?.secretKey) {
+      console.log('acct check', account?.secretKey);
+      initAndClear();
+    }
+  }, [account, initStripe, clearCachedCredentials]);
 
   const handlePermissionsSuccess = useCallback(async () => {
     setHasPerms(true);
@@ -204,116 +190,108 @@ export default function App() {
   );
 
   return (
-    <AppContext.Provider
-      value={{
-        api,
-        account,
-        setAccount: onSelectAccount,
-      }}
-    >
-      <LogContext.Provider value={value}>
-        <>
-          <StatusBar
-            backgroundColor={colors.blurple_dark}
-            barStyle="light-content"
-            translucent
-          />
+    <LogContext.Provider value={value}>
+      <>
+        <StatusBar
+          backgroundColor={colors.blurple_dark}
+          barStyle="light-content"
+          translucent
+        />
 
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={screenOptions} mode="modal">
-              <Stack.Screen name="Terminal" component={HomeScreen} />
-              <Stack.Screen
-                name="MerchantSelectScreen"
-                options={{ headerTitle: 'Merchant Select' }}
-                component={MerchantSelectScreen}
-              />
-              <Stack.Screen
-                name="DiscoverReadersScreen"
-                options={{ headerTitle: 'Discovery' }}
-                component={DiscoverReadersScreen}
-              />
-              <Stack.Screen
-                name="RegisterInternetReader"
-                options={{
-                  headerTitle: 'Register Reader',
-                }}
-                component={RegisterInternetReaderScreen}
-              />
-              <Stack.Screen
-                name="ReaderDisplayScreen"
-                component={ReaderDisplayScreen}
-              />
-              <Stack.Screen
-                name="LocationListScreen"
-                options={{ headerTitle: 'Locations' }}
-                component={LocationListScreen}
-              />
-              <Stack.Screen
-                name="UpdateReaderScreen"
-                options={{ headerTitle: 'Update Reader' }}
-                component={UpdateReaderScreen}
-              />
-              <Stack.Screen
-                name="RefundPaymentScreen"
-                options={{
-                  headerTitle: 'Collect refund',
-                  headerBackAccessibilityLabel: 'payment-back',
-                }}
-                component={RefundPaymentScreen}
-              />
-              <Stack.Screen
-                name="DiscoveryMethodScreen"
-                component={DiscoveryMethodScreen}
-              />
-              <Stack.Screen
-                name="CollectCardPaymentScreen"
-                options={{
-                  headerTitle: 'Collect card payment',
-                  headerBackAccessibilityLabel: 'payment-back',
-                }}
-                component={CollectCardPaymentScreen}
-              />
-              <Stack.Screen
-                name="SetupIntentScreen"
-                options={{
-                  headerTitle: 'SetupIntent',
-                  headerBackAccessibilityLabel: 'payment-back',
-                }}
-                component={SetupIntentScreen}
-              />
-              <Stack.Screen
-                name="ReadReusableCardScreen"
-                options={{
-                  headerTitle: 'Read reusable card',
-                  headerBackAccessibilityLabel: 'payment-back',
-                }}
-                component={ReadReusableCardScreen}
-              />
-              <Stack.Screen
-                name="LogListScreen"
-                options={({ navigation }) => ({
-                  headerTitle: 'Logs',
-                  headerBackAccessibilityLabel: 'logs-back',
-                  headerLeft: () => (
-                    <HeaderBackButton
-                      onPress={() => navigation.navigate('Terminal')}
-                    />
-                  ),
-                })}
-                component={LogListScreen}
-              />
-              <Stack.Screen
-                name="LogScreen"
-                options={{
-                  headerTitle: 'Event',
-                  headerBackAccessibilityLabel: 'log-back',
-                }}
-                component={LogScreen}
-              />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </>
-      </LogContext.Provider>
-    </AppContext.Provider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={screenOptions} mode="modal">
+            <Stack.Screen name="Terminal" component={HomeScreen} />
+            <Stack.Screen
+              name="MerchantSelectScreen"
+              options={{ headerTitle: 'Merchant Select' }}
+              component={MerchantSelectScreen}
+            />
+            <Stack.Screen
+              name="DiscoverReadersScreen"
+              options={{ headerTitle: 'Discovery' }}
+              component={DiscoverReadersScreen}
+            />
+            <Stack.Screen
+              name="RegisterInternetReader"
+              options={{
+                headerTitle: 'Register Reader',
+              }}
+              component={RegisterInternetReaderScreen}
+            />
+            <Stack.Screen
+              name="ReaderDisplayScreen"
+              component={ReaderDisplayScreen}
+            />
+            <Stack.Screen
+              name="LocationListScreen"
+              options={{ headerTitle: 'Locations' }}
+              component={LocationListScreen}
+            />
+            <Stack.Screen
+              name="UpdateReaderScreen"
+              options={{ headerTitle: 'Update Reader' }}
+              component={UpdateReaderScreen}
+            />
+            <Stack.Screen
+              name="RefundPaymentScreen"
+              options={{
+                headerTitle: 'Collect refund',
+                headerBackAccessibilityLabel: 'payment-back',
+              }}
+              component={RefundPaymentScreen}
+            />
+            <Stack.Screen
+              name="DiscoveryMethodScreen"
+              component={DiscoveryMethodScreen}
+            />
+            <Stack.Screen
+              name="CollectCardPaymentScreen"
+              options={{
+                headerTitle: 'Collect card payment',
+                headerBackAccessibilityLabel: 'payment-back',
+              }}
+              component={CollectCardPaymentScreen}
+            />
+            <Stack.Screen
+              name="SetupIntentScreen"
+              options={{
+                headerTitle: 'SetupIntent',
+                headerBackAccessibilityLabel: 'payment-back',
+              }}
+              component={SetupIntentScreen}
+            />
+            <Stack.Screen
+              name="ReadReusableCardScreen"
+              options={{
+                headerTitle: 'Read reusable card',
+                headerBackAccessibilityLabel: 'payment-back',
+              }}
+              component={ReadReusableCardScreen}
+            />
+            <Stack.Screen
+              name="LogListScreen"
+              options={({ navigation }) => ({
+                headerTitle: 'Logs',
+                headerBackAccessibilityLabel: 'logs-back',
+                headerLeft: () => (
+                  <HeaderBackButton
+                    onPress={() => navigation.navigate('Terminal')}
+                  />
+                ),
+              })}
+              component={LogListScreen}
+            />
+            <Stack.Screen
+              name="LogScreen"
+              options={{
+                headerTitle: 'Event',
+                headerBackAccessibilityLabel: 'log-back',
+              }}
+              component={LogScreen}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </>
+    </LogContext.Provider>
   );
 }

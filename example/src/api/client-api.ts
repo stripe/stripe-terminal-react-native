@@ -7,7 +7,13 @@ export class ClientApi implements Api {
 
   headers: Record<string, string>;
 
-  constructor({ secretKey }: { secretKey: string }) {
+  constructor() {
+    this.secretKey = '';
+
+    this.headers = {};
+  }
+
+  setSecretKey(secretKey: string) {
     this.secretKey = secretKey;
 
     this.headers = {
@@ -104,5 +110,17 @@ export class ClientApi implements Api {
     data.secretKey = secretKey;
 
     return data;
+  }
+
+  async createConnectionToken(): Promise<
+    Stripe.Terminal.ConnectionToken | { error: Stripe.StripeAPIError }
+  > {
+    console.log(this.secretKey);
+    const formData = new URLSearchParams();
+    return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
+      headers: this.headers,
+      method: 'POST',
+      body: formData.toString(),
+    }).then((resp) => resp.json());
   }
 }

@@ -76,7 +76,7 @@ export default function MerchantSelectScreen() {
     const addedAccount = await ClientApi.getAccount(newAccountKey);
 
     if ('error' in addedAccount) {
-      Alert.alert('New update is available', addedAccount.error.message);
+      Alert.alert('Unable to add account', addedAccount.error.message);
       return;
     }
 
