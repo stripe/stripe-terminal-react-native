@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
-// import { API_URL } from './Config';
 import { AppContext, api } from './AppContext';
 import type { IAccount } from './types';
 import { Api } from './api/api';
@@ -58,8 +57,6 @@ export default function Root() {
       console.log('could not fetch connection token');
       return '';
     }
-
-    console.log(resp);
 
     return resp?.secret || '';
   };

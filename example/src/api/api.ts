@@ -1,5 +1,8 @@
 import type { Stripe } from 'stripe';
 
+// Disclaimer: we're using the client layer in lieu of a merchant backend in order
+// to allow dynamic switching of merchant accounts within the app. This eases dev and qa
+// validation within stripe and SHOULD NOT be used as prior art for your own POS implementation
 export class Api {
   secretKey: string;
 
@@ -114,6 +117,7 @@ export class Api {
       });
     }
 
+    // TODO: implement connect functionality to set these values
     // if (
     //   this.connectedAccount &&
     //   this.connectedAccount.type === ConnectChargeType.Destination
@@ -168,7 +172,6 @@ export class Api {
   async createConnectionToken(): Promise<
     Stripe.Terminal.ConnectionToken | { error: Stripe.StripeAPIError }
   > {
-    console.log(this.secretKey);
     const formData = new URLSearchParams();
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
       headers: this.headers,
