@@ -5,10 +5,10 @@ import App from './App';
 // import { API_URL } from './Config';
 import { AppContext } from './AppContext';
 import type { IAccount } from './types';
-import { ClientApi } from './api/client-api';
+import { Api } from './api/api';
 import { setSelectedAccount, getSelectedAccount } from './util/merchantStorage';
 
-const api = new ClientApi();
+const api = new Api();
 
 export default function Root() {
   const [account, setAccount] = useState<IAccount | null>(null);
@@ -22,7 +22,7 @@ export default function Root() {
         return;
       }
 
-      const selectedAccount = await ClientApi.getAccount(selectedAccountKey);
+      const selectedAccount = await Api.getAccount(selectedAccountKey);
 
       if ('error' in selectedAccount) {
         console.log(selectedAccount.error);

@@ -13,7 +13,7 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { AppContext } from '../AppContext';
-import { ClientApi } from '../api/client-api';
+import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
 import { getStoredAccounts, setStoredAccounts } from '../util/merchantStorage';
 
@@ -73,7 +73,7 @@ export default function MerchantSelectScreen() {
     }
 
     setIsAddPending(true);
-    const addedAccount = await ClientApi.getAccount(newAccountKey);
+    const addedAccount = await Api.getAccount(newAccountKey);
 
     if ('error' in addedAccount) {
       Alert.alert('Unable to add account', addedAccount.error.message);
