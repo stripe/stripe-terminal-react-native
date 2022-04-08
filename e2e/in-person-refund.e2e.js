@@ -25,7 +25,7 @@ describe('In-Person Refund', () => {
 
   it('Collect CA card payment', async () => {
     await navigateTo('Set Merchant');
-    await setSelectedMerchant('acct_5555');
+    await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
     await navigateTo('Discover Readers');
     await connectReader('wisePad3');
@@ -81,6 +81,8 @@ describe('In-Person Refund', () => {
     if (device.getPlatform() === 'android') {
       return;
     }
+    await navigateTo('Set Merchant');
+    await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
     await navigateTo('Set Merchant');
     await setSelectedMerchant('acct_5555');
@@ -120,6 +122,8 @@ describe('In-Person Refund', () => {
     if (device.getPlatform() === 'android') {
       return;
     }
+    await navigateTo('Set Merchant');
+    await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
     await navigateTo('Set Merchant');
     await setSelectedMerchant('acct_5555');

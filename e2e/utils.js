@@ -14,7 +14,9 @@ export const connectReader = async (name = 'chipper2X') => {
   await button.tap();
 };
 
-export const setSelectedMerchant = async (acctId = 'acct_1234') => {
+export const setSelectedMerchant = async (
+  acctId = 'CI US TEST ACCT (acct_1234)'
+) => {
   const picker = element(by.id('select-merchant-picker'));
 
   await picker.tap();
@@ -25,6 +27,7 @@ export const setSelectedMerchant = async (acctId = 'acct_1234') => {
   } else {
     await element(by.text(acctId)).tap();
   }
+  await element(by.id('header-back')).tap();
 };
 
 export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
