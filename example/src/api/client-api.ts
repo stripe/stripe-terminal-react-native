@@ -24,7 +24,7 @@ export class ClientApi implements Api {
   async capturePaymentIntent(
     id: string,
     { amount_to_capture }: Stripe.PaymentIntentCaptureParams
-  ): Promise<Stripe.PaymentIntent | Stripe.StripeAPIError> {
+  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeAPIError }> {
     const formData = new URLSearchParams();
 
     if (amount_to_capture) {
@@ -44,7 +44,7 @@ export class ClientApi implements Api {
     description = 'Example PaymentIntent',
     payment_method_types,
   }: Stripe.PaymentIntentCreateParams): Promise<
-    Stripe.PaymentIntent | Stripe.StripeError
+    Stripe.PaymentIntent | { error: Stripe.StripeError }
   > {
     const formData = new URLSearchParams();
     formData.append('amount', amount.toString());

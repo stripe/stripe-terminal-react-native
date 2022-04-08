@@ -122,6 +122,7 @@ export default function HomeScreen() {
             <ListItem
               title="Discover Readers"
               color={colors.blue}
+              disabled={!account}
               onPress={() => {
                 navigation.navigate('DiscoverReadersScreen', {
                   simulated,
@@ -132,6 +133,7 @@ export default function HomeScreen() {
 
             <ListItem
               title="Register Internet Reader"
+              disabled={!account}
               color={colors.blue}
               onPress={() => {
                 navigation.navigate('RegisterInternetReader');

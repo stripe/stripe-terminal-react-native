@@ -7,10 +7,10 @@ export interface Api {
 
   createPaymentIntent(
     intentParams: Stripe.PaymentIntentCreateParams
-  ): Promise<Stripe.PaymentIntent | Stripe.StripeError>;
+  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeError }>;
 
   capturePaymentIntent(
     id: string,
     params: Stripe.PaymentIntentCaptureParams
-  ): Promise<Stripe.PaymentIntent | Stripe.StripeError>;
+  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeError }>;
 }
