@@ -75,7 +75,7 @@ describe('In-Person Refund', () => {
     await checkIfLogExist('Processed');
   });
 
-  it('via bluetooth reader', async () => {
+  it.skip('via bluetooth reader', async () => {
     // Temporary skipped on Android due to some issues with refunding payments
     if (device.getPlatform() === 'android') {
       return;
@@ -110,7 +110,7 @@ describe('In-Person Refund', () => {
     await checkIfLogExist('Succeeded');
   });
 
-  it('via internet reader', async () => {
+  it.skip('via internet reader', async () => {
     // Temporary skipped on Android due to some issues with refunding payments
     if (device.getPlatform() === 'android') {
       return;
