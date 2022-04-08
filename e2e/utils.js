@@ -14,6 +14,19 @@ export const connectReader = async (name = 'chipper2X') => {
   await button.tap();
 };
 
+export const setSelectedMerchant = async (acctId = 'acct_1234') => {
+  const picker = element(by.id('select-merchant-picker'));
+
+  await picker.tap();
+
+  if (device.getPlatform() === 'ios') {
+    await element(by.type('UIPickerView')).setColumnToValue(0, acctId);
+    await picker.tap();
+  } else {
+    await element(by.text(acctId)).tap();
+  }
+};
+
 export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
   const picker = element(by.id('update-plan-picker'));
 

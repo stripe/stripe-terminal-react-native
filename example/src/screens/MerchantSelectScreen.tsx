@@ -121,7 +121,7 @@ export default function MerchantSelectScreen() {
           selectedValue={account?.secretKey}
           style={styles.picker}
           itemStyle={styles.pickerItem}
-          testID="update-plan-picker"
+          testID="select-merchant-picker"
           onValueChange={onSelectAccount}
         >
           {accounts.map((a) => (

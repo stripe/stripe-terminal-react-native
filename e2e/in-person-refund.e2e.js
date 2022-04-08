@@ -6,6 +6,7 @@ const {
   checkIfLogExist,
   checkIfConnected,
   changeDiscoveryMethod,
+  setSelectedMerchant,
 } = require('./utils');
 
 jest.retryTimes(3);
@@ -14,9 +15,6 @@ describe('In-Person Refund', () => {
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
-      launchArgs: {
-        canada: true,
-      },
       newInstance: true,
     });
   });
@@ -25,7 +23,10 @@ describe('In-Person Refund', () => {
     await device.sendToHome();
   });
 
-  it.skip('Collect CA card payment', async () => {
+  it('Collect CA card payment', async () => {
+    await navigateTo('Set Merchant');
+    await setSelectedMerchant('acct_5555');
+
     await navigateTo('Discover Readers');
     await connectReader('wisePad3');
 
@@ -75,11 +76,15 @@ describe('In-Person Refund', () => {
     await checkIfLogExist('Processed');
   });
 
-  it.skip('via bluetooth reader', async () => {
+  it('via bluetooth reader', async () => {
     // Temporary skipped on Android due to some issues with refunding payments
     if (device.getPlatform() === 'android') {
       return;
     }
+
+    await navigateTo('Set Merchant');
+    await setSelectedMerchant('acct_5555');
+
     await navigateTo('Discover Readers');
     await connectReader('wisePad3');
 
@@ -110,11 +115,14 @@ describe('In-Person Refund', () => {
     await checkIfLogExist('Succeeded');
   });
 
-  it.skip('via internet reader', async () => {
+  it('via internet reader', async () => {
     // Temporary skipped on Android due to some issues with refunding payments
     if (device.getPlatform() === 'android') {
       return;
     }
+
+    await navigateTo('Set Merchant');
+    await setSelectedMerchant('acct_5555');
 
     await changeDiscoveryMethod('Internet');
     await navigateTo('Discover Readers');
