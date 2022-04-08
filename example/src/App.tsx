@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useEffect,
+  useState,
+  useContext,
+} from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -6,7 +12,7 @@ import {
   TransitionPresets,
 } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
-import { Alert, Platform, StatusBar, StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
 import { LogContext, Log, Event } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
@@ -17,6 +23,7 @@ import RefundPaymentScreen from './screens/RefundPaymentScreen';
 import DiscoveryMethodScreen from './screens/DiscoveryMethodScreen';
 import CollectCardPaymentScreen from './screens/CollectCardPaymentScreen';
 import SetupIntentScreen from './screens/SetupIntentScreen';
+import MerchantSelectScreen from './screens/MerchantSelectScreen';
 import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
 import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
@@ -27,7 +34,9 @@ import {
   useStripeTerminal,
   requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
-import { LogBox } from 'react-native';
+import { Alert, LogBox } from 'react-native';
+
+import { AppContext } from './AppContext';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -47,6 +56,13 @@ export type RouteParamList = {
   DiscoverReaders: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
+  };
+  MerchantSelect: {
+    onSelectMerchant: ({
+      selectedAccountKey,
+    }: {
+      selectedAccountKey: string;
+    }) => void;
   };
   CollectCardPayment: {
     simulated: boolean;
@@ -95,22 +111,41 @@ const screenOptions = {
 
 export default function App() {
   const [logs, setlogs] = useState<Log[]>([]);
+  const [hasPerms, setHasPerms] = useState<boolean>(false);
   const clearLogs = useCallback(() => setlogs([]), []);
-  const { initialize: initStripe } = useStripeTerminal();
+  const { initialize: initStripe, clearCachedCredentials } =
+    useStripeTerminal();
+  const { account } = useContext(AppContext);
+
+  useEffect(() => {
+    const initAndClear = async () => {
+      const { error, reader } = await initStripe();
+
+      if (error) {
+        Alert.alert('StripeTerminal init failed', error.message);
+        return;
+      }
+
+      await clearCachedCredentials();
+
+      if (reader) {
+        console.log(
+          'StripeTerminal has been initialized properly and connected to the reader',
+          reader
+        );
+        return;
+      }
+
+      console.log('StripeTerminal has been initialized properly');
+    };
+    if (account?.secretKey && hasPerms) {
+      initAndClear();
+    }
+  }, [account, initStripe, clearCachedCredentials, hasPerms]);
 
   const handlePermissionsSuccess = useCallback(async () => {
-    const { error, reader } = await initStripe();
-    if (error) {
-      Alert.alert('StripeTerminal init failed', error.message);
-    } else if (reader) {
-      console.log(
-        'StripeTerminal has been initialized properly and connected to the reader',
-        reader
-      );
-    } else {
-      console.log('StripeTerminal has been initialized properly');
-    }
-  }, [initStripe]);
+    setHasPerms(true);
+  }, []);
 
   useEffect(() => {
     async function handlePermissions() {
@@ -169,6 +204,11 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions} mode="modal">
             <Stack.Screen name="Terminal" component={HomeScreen} />
+            <Stack.Screen
+              name="MerchantSelectScreen"
+              options={{ headerTitle: 'Merchant Select' }}
+              component={MerchantSelectScreen}
+            />
             <Stack.Screen
               name="DiscoverReadersScreen"
               options={{ headerTitle: 'Discovery' }}

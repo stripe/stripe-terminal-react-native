@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import type { Location } from 'stripe-terminal-react-native';
 
 import { useNavigation } from '@react-navigation/core';
@@ -10,8 +10,8 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { API_URL } from '../Config';
 import { colors } from '../colors';
+import { AppContext } from '../AppContext';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 
@@ -21,6 +21,7 @@ type InputValuesType = {
 };
 
 export default function RegisterInternetReaderScreen() {
+  const { api } = useContext(AppContext);
   const navigation = useNavigation();
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [status, setStatus] = useState<string>('');
@@ -32,25 +33,20 @@ export default function RegisterInternetReaderScreen() {
   const registerReader = async () => {
     setStatus('Registering...');
     try {
-      const response = await fetch(`${API_URL}/register_reader`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          registration_code: inputValues.registration_code,
-          label: inputValues.label || undefined,
-          location: selectedLocation?.id,
-        }),
+      const resp = await api.registerDevice({
+        registrationCode: inputValues.registration_code,
+        label: inputValues.label || 'rn example app reader',
+        location: selectedLocation?.id,
       });
-      const { reader, error } = await response.json();
-      if (error) {
-        console.log(error);
+
+      if ('error' in resp) {
+        console.log(resp.error);
         setStatus('Could not register reader.');
-      } else {
-        console.log(reader);
-        setStatus('Registered');
+        return;
       }
+
+      console.log(resp);
+      setStatus('Registered');
     } catch (error) {
       console.error(error);
       setStatus('Could not register reader.');

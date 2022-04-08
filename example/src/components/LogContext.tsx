@@ -3,7 +3,7 @@ import { createContext } from 'react';
 export type Event = {
   name: string;
   description: string;
-  metadata?: Record<string, string>;
+  metadata?: Record<string, string | null | undefined>;
   onBack?(): void;
 };
 

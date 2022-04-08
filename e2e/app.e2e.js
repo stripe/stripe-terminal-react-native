@@ -11,7 +11,7 @@ const {
 
 const { cleanPaymentMethods } = require('./clean');
 
-jest.retryTimes(3);
+jest.retryTimes(5);
 
 describe('Basic funtionalities', () => {
   beforeAll(async () => {
@@ -58,27 +58,6 @@ describe('Basic funtionalities', () => {
 
   it('Change discovery method to Internet', async () => {
     await changeDiscoveryMethod('Internet');
-  });
-
-  it('Change discovery method to Embedded', async () => {
-    if (device.getPlatform() !== 'android') {
-      return;
-    }
-    await changeDiscoveryMethod('Embedded');
-  });
-
-  it('Change discovery method to LocalMobile', async () => {
-    if (device.getPlatform() !== 'android') {
-      return;
-    }
-    await changeDiscoveryMethod('Local mobile');
-  });
-
-  it('Change discovery method to Handoff', async () => {
-    if (device.getPlatform() !== 'android') {
-      return;
-    }
-    await changeDiscoveryMethod('Handoff');
   });
 
   // temporary skipped due to bug in stripe-termina-ios that connects the device despite an error.
@@ -179,7 +158,7 @@ describe('Basic funtionalities', () => {
     await checkIfLogExist('Finished');
   });
 
-  it('In-Person Refund failed due to unsupported country', async () => {
+  it.skip('In-Person Refund failed due to unsupported country', async () => {
     await navigateTo('Discover Readers');
     await connectReader('chipper2X');
 

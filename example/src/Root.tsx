@@ -1,28 +1,80 @@
-import React from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
-import { API_URL } from './Config';
+import { AppContext, api } from './AppContext';
+import type { IAccount } from './types';
+import { Api } from './api/api';
+import { setSelectedAccount, getSelectedAccount } from './util/merchantStorage';
 
 export default function Root() {
-  const fetchTokenProvider = async () => {
-    const response = await fetch(`${API_URL}/connection_token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    });
-    const { secret } = await response.json();
-    return secret;
+  const [account, setAccount] = useState<IAccount | null>(null);
+
+  const onSelectAccount = useCallback(
+    async ({ selectedAccountKey }: { selectedAccountKey: string | null }) => {
+      if (!selectedAccountKey) {
+        setAccount(null);
+        setSelectedAccount('');
+        api.setSecretKey('');
+        return;
+      }
+
+      const selectedAccount = await Api.getAccount(selectedAccountKey);
+
+      if ('error' in selectedAccount) {
+        console.log(selectedAccount.error);
+        return;
+      }
+
+      // update account state in context
+      setAccount(selectedAccount);
+
+      // init api
+      api.setSecretKey(selectedAccountKey);
+
+      // persist to storage
+      setSelectedAccount(selectedAccount.secretKey);
+    },
+    []
+  );
+
+  useEffect(() => {
+    const initAccount = async () => {
+      const acct = await getSelectedAccount();
+      onSelectAccount({ selectedAccountKey: acct });
+    };
+
+    initAccount();
+  }, [onSelectAccount]);
+
+  const fetchTokenProvider = async (): Promise<string> => {
+    if (!api) {
+      return '';
+    }
+    const resp = await api.createConnectionToken();
+
+    if ('error' in resp) {
+      console.log('could not fetch connection token');
+      return '';
+    }
+
+    return resp?.secret || '';
   };
 
   return (
-    <StripeTerminalProvider
-      logLevel="verbose"
-      tokenProvider={fetchTokenProvider}
+    <AppContext.Provider
+      value={{
+        api,
+        account,
+        setAccount: onSelectAccount,
+      }}
     >
-      <App />
-    </StripeTerminalProvider>
+      <StripeTerminalProvider
+        logLevel="verbose"
+        tokenProvider={fetchTokenProvider}
+      >
+        <App />
+      </StripeTerminalProvider>
+    </AppContext.Provider>
   );
 }

@@ -9,12 +9,12 @@ import {
 } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { API_URL } from '../Config';
-import { fetchCustomerId } from '../utils';
+import { AppContext } from '../AppContext';
 
 import type { RouteParamList } from '../App';
 
 export default function SetupIntentScreen() {
+  const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
@@ -51,22 +51,6 @@ export default function SetupIntentScreen() {
       });
     },
   });
-
-  const createServerSetupIntent = async () => {
-    try {
-      const response = await fetch(`${API_URL}/create_setup_intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-      const { client_secret } = await response.json();
-      return { client_secret };
-    } catch (error) {
-      return { error };
-    }
-  };
 
   const _processPayment = useCallback(
     async (setupIntentId: string) => {
@@ -167,6 +151,7 @@ export default function SetupIntentScreen() {
   const _createSetupIntent = useCallback(async () => {
     clearLogs();
     navigation.navigate('LogListScreen');
+
     addLogs({
       name: 'Create Setup Intent',
       events: [
@@ -176,30 +161,76 @@ export default function SetupIntentScreen() {
         },
       ],
     });
+
     let setupIntent: SetupIntent.Type | undefined;
     let setupIntentError: StripeError<CommonError> | undefined;
 
     if (discoveryMethod === 'internet') {
-      const { client_secret, error } = await createServerSetupIntent();
+      const resp = await api.createSetupIntent({});
 
-      if (error) {
-        console.error(error);
+      if ('error' in resp) {
+        console.error(resp.error);
+        addLogs({
+          name: 'Create Setup Intent',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.createSetupIntent',
+              metadata: {
+                errorCode: resp.error.code,
+                errorMessage: resp.error.message,
+              },
+            },
+          ],
+        });
         return;
       }
 
-      const response = await retrieveSetupIntent(client_secret);
+      if (!resp?.client_secret) {
+        console.error('no client secret returned!');
+        addLogs({
+          name: 'Create Setup Intent',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.createSetupIntent',
+              metadata: {
+                errorCode: 'no_code',
+                errorMessage: 'no client secret returned!',
+              },
+            },
+          ],
+        });
+        return;
+      }
+
+      const response = await retrieveSetupIntent(resp.client_secret);
 
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     } else {
-      const { error: customerError, id: customerId } = await fetchCustomerId();
+      const resp = await api.lookupOrCreateExampleCustomer();
 
-      if (customerError) {
-        console.log(customerError);
+      if ('error' in resp) {
+        console.log(resp.error);
+        addLogs({
+          name: 'Lookup / Create Customer',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.lookupOrCreateExampleCustomer',
+              metadata: {
+                errorCode: resp.error.code,
+                errorMessage: resp.error.message,
+              },
+            },
+          ],
+        });
+        return;
       }
 
       const response = await createSetupIntent({
-        customerId,
+        customerId: resp.id,
       });
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
@@ -223,6 +254,7 @@ export default function SetupIntentScreen() {
       await _collectPaymentMethod(setupIntent.id);
     }
   }, [
+    api,
     _collectPaymentMethod,
     createSetupIntent,
     addLogs,

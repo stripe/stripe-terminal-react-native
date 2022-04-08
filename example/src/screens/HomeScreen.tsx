@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   StyleSheet,
@@ -9,6 +9,7 @@ import {
   Switch,
 } from 'react-native';
 import { colors } from '../colors';
+import { AppContext } from '../AppContext';
 import icon from '../assets/icon.png';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
@@ -16,7 +17,8 @@ import { Reader, useStripeTerminal } from 'stripe-terminal-react-native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const [simulated, setSimulated] = useState(true);
+  const { account } = useContext(AppContext);
+  const [simulated, setSimulated] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal();
@@ -80,6 +82,11 @@ export default function HomeScreen() {
 
   return (
     <ScrollView testID="home-screen" style={styles.container}>
+      <View style={styles.accountContainer}>
+        <Text style={styles.readerName}>
+          {account?.settings?.dashboard?.display_name} ({account?.id})
+        </Text>
+      </View>
       {connectedReader ? (
         <View style={styles.connectedReaderContainer}>
           <View style={styles.imageContainer}>
@@ -104,10 +111,18 @@ export default function HomeScreen() {
         renderConnectedContent
       ) : (
         <>
-          <List title="READER CONNECTION">
+          <List title="MERCHANT SELECTION">
+            <ListItem
+              title="Set Merchant"
+              color={colors.blue}
+              onPress={() => {
+                navigation.navigate('MerchantSelectScreen');
+              }}
+            />
             <ListItem
               title="Discover Readers"
               color={colors.blue}
+              disabled={!account}
               onPress={() => {
                 navigation.navigate('DiscoverReadersScreen', {
                   simulated,
@@ -118,6 +133,7 @@ export default function HomeScreen() {
 
             <ListItem
               title="Register Internet Reader"
+              disabled={!account}
               color={colors.blue}
               onPress={() => {
                 navigation.navigate('RegisterInternetReader');
@@ -218,6 +234,10 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   connectedReaderContainer: {
+    alignItems: 'center',
+  },
+  accountContainer: {
+    marginTop: 20,
     alignItems: 'center',
   },
   readerName: {

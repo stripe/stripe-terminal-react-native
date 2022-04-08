@@ -11,8 +11,8 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
-import { API_URL } from '../Config';
 import type { RouteParamList } from '../App';
+import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function CollectCardPaymentScreen() {
@@ -33,6 +33,7 @@ export default function CollectCardPaymentScreen() {
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
+  const { api } = useContext(AppContext);
   const navigation = useNavigation();
 
   const {
@@ -69,39 +70,10 @@ export default function CollectCardPaymentScreen() {
     },
   });
 
-  const createServerPaymentIntent = async (paymentIntentParams: {
-    amount: number;
-    currency: string;
-    paymentMethodTypes: string[];
-    setupFutureUsage: 'off_session' | 'on_session';
-    on_behalf_of?: string;
-    transfer_data_destination?: string;
-    application_fee_amount?: number;
-  }) => {
-    const response = await fetch(`${API_URL}/create_payment_intent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(paymentIntentParams),
-    });
-    const { client_secret, id } = await response.json();
-    return { client_secret, id, error: null };
-  };
-
-  const capturePaymentIntent = async (id: string) => {
-    const response = await fetch(`${API_URL}/capture_payment_intent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id }),
-    });
-    return await response.json();
-  };
-
   const _createPaymentIntent = async () => {
-    await setSimulatedCard(testCardNumber);
+    if (simulated) {
+      await setSimulatedCard(testCardNumber);
+    }
 
     clearLogs();
     navigation.navigate('LogListScreen');
@@ -116,16 +88,24 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
-      const { client_secret } = await createServerPaymentIntent({
-        transfer_data_destination: inputValues.connectedAccountId,
-        on_behalf_of: inputValues.connectedAccountId,
+      const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: paymentMethods,
-        setupFutureUsage: 'off_session',
+        payment_method_types: paymentMethods,
+        setup_future_usage: 'off_session',
       });
 
-      const response = await retrievePaymentIntent(client_secret);
+      if ('error' in resp) {
+        return Promise.resolve(resp.error);
+      }
+
+      if (!resp.client_secret) {
+        return Promise.resolve({
+          error: { message: 'no client_secret returned!' },
+        });
+      }
+
+      const response = await retrievePaymentIntent(resp.client_secret);
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
     } else {
@@ -152,25 +132,44 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
             metadata: {
-              errorCode: paymentIntentError.code,
-              errorMessage: paymentIntentError.message,
+              errorCode: paymentIntentError?.code,
+              errorMessage: paymentIntentError?.message,
             },
           },
         ],
       });
-    } else if (paymentIntent) {
+      return;
+    }
+
+    if (!paymentIntent?.id) {
       addLogs({
         name: 'Create Payment Intent',
         events: [
           {
-            name: 'Created',
+            name: 'Failed',
             description: 'terminal.createPaymentIntent',
-            metadata: { paymentIntentId: paymentIntent.id },
+            metadata: {
+              errorCode: 'no_code',
+              errorMessage: 'No payment id returned!',
+            },
           },
         ],
       });
-      await _collectPaymentMethod(paymentIntent.id);
+      return;
     }
+
+    addLogs({
+      name: 'Create Payment Intent',
+      events: [
+        {
+          name: 'Created',
+          description: 'terminal.createPaymentIntent',
+          metadata: { paymentIntentId: paymentIntent.id },
+        },
+      ],
+    });
+
+    return await _collectPaymentMethod(paymentIntent.id);
   };
 
   const _collectPaymentMethod = async (paymentIntentId: string) => {
@@ -269,9 +268,9 @@ export default function CollectCardPaymentScreen() {
       events: [{ name: 'Capture', description: 'terminal.capturePayment' }],
     });
 
-    const { intent, error } = await capturePaymentIntent(paymentIntentId);
+    const resp = await api.capturePaymentIntent(paymentIntentId, {});
 
-    if (error) {
+    if ('error' in resp) {
       addLogs({
         name: 'Capture Payment',
         events: [
@@ -279,23 +278,24 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.capturePayment',
             metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
+              errorCode: resp.error.code,
+              errorMessage: resp.error.message,
             },
           },
         ],
       });
-    } else if (intent) {
-      addLogs({
-        name: 'Capture Payment',
-        events: [
-          {
-            name: 'Captured',
-            description: 'terminal.paymentIntentId: ' + intent.id,
-          },
-        ],
-      });
+      return;
     }
+
+    addLogs({
+      name: 'Capture Payment',
+      events: [
+        {
+          name: 'Captured',
+          description: 'terminal.paymentIntentId: ' + resp.id,
+        },
+      ],
+    });
   };
 
   return (

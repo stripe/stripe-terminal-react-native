@@ -10,7 +10,7 @@ const {
 
 const { cleanPaymentMethods } = require('./clean');
 
-jest.retryTimes(3);
+jest.retryTimes(5);
 
 describe('Internet reader', () => {
   beforeAll(async () => {
