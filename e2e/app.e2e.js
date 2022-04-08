@@ -179,7 +179,7 @@ describe('Basic funtionalities', () => {
     await checkIfLogExist('Finished');
   });
 
-  it('In-Person Refund failed due to unsupported country', async () => {
+  it.skip('In-Person Refund failed due to unsupported country', async () => {
     await navigateTo('Discover Readers');
     await connectReader('chipper2X');
 

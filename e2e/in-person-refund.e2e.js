@@ -25,7 +25,7 @@ describe('In-Person Refund', () => {
     await device.sendToHome();
   });
 
-  it('Collect CA card payment', async () => {
+  it.skip('Collect CA card payment', async () => {
     await navigateTo('Discover Readers');
     await connectReader('wisePad3');
 
