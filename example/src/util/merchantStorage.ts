@@ -1,6 +1,6 @@
 import {
-  API_KEY,
-  CA_API_KEY,
+  STRIPE_PRIVATE_KEY,
+  STRIPE_PRIVATE_CA_KEY,
   // @ts-ignore
 } from '@env';
 
@@ -14,19 +14,25 @@ export const getStoredAccounts = async (): Promise<Array<IShortAccount>> => {
   const jsonValue = await AsyncStorage.getItem(ACCOUNTS_KEY);
   const accts = jsonValue ? JSON.parse(jsonValue) : [];
 
-  if (API_KEY) {
+  if (
+    STRIPE_PRIVATE_KEY &&
+    !accts.find((a: IShortAccount) => a.secretKey === STRIPE_PRIVATE_KEY)
+  ) {
     accts.push({
       id: 'acct_1234',
       name: 'CI US TEST ACCT',
-      secretKey: API_KEY,
+      secretKey: STRIPE_PRIVATE_KEY,
     });
   }
 
-  if (CA_API_KEY) {
+  if (
+    STRIPE_PRIVATE_CA_KEY &&
+    !accts.find((a: IShortAccount) => a.secretKey === STRIPE_PRIVATE_CA_KEY)
+  ) {
     accts.push({
       id: 'acct_5555',
       name: 'CI CA TEST ACCT',
-      secretKey: CA_API_KEY,
+      secretKey: STRIPE_PRIVATE_CA_KEY,
     });
   }
 
@@ -37,7 +43,7 @@ export const setStoredAccounts = async (accounts: Array<IShortAccount>) =>
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 
 export const getSelectedAccount = async (): Promise<string | null> =>
-  (await AsyncStorage.getItem(SELECTED_ACCOUNT_KEY)) || API_KEY;
+  (await AsyncStorage.getItem(SELECTED_ACCOUNT_KEY)) || STRIPE_PRIVATE_KEY;
 
 export const setSelectedAccount = async (accountKey: string) =>
   await AsyncStorage.setItem(SELECTED_ACCOUNT_KEY, accountKey);

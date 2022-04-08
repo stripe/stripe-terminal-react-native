@@ -25,7 +25,7 @@ const LogScreen = () => {
             <ListItem
               key={key + index}
               title={key}
-              description={metadata[key]}
+              description={metadata[key] || 'no description'}
             />
           ))}
         </List>

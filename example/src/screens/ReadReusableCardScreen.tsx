@@ -4,9 +4,10 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { fetchCustomerId } from '../utils';
+import { AppContext } from '../AppContext';
 
 export default function ReadReusableCardScreen() {
+  const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation();
 
@@ -52,15 +53,30 @@ export default function ReadReusableCardScreen() {
       ],
     });
 
-    const { error: customerError, id: customerId } = await fetchCustomerId();
+    const resp = await api.lookupOrCreateExampleCustomer();
 
-    if (customerError) {
-      console.log(customerError);
+    if ('error' in resp) {
+      console.log(resp.error);
+      addLogs({
+        name: 'Read Reusable Card',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.readReusableCard',
+            metadata: {
+              errorCode: resp.error.code,
+              errorMessage: resp.error.message,
+            },
+          },
+        ],
+      });
+      return;
     }
 
     const { paymentMethod, error } = await readReusableCard({
-      customer: customerId,
+      customer: resp.id,
     });
+
     if (error) {
       addLogs({
         name: 'Read Reusable Card',
@@ -75,22 +91,24 @@ export default function ReadReusableCardScreen() {
           },
         ],
       });
-    } else if (paymentMethod) {
-      addLogs({
-        name: 'Read Reusable Card',
-        events: [
-          {
-            name: 'Finished',
-            description: 'terminal.readReusableCard',
-            metadata: {
-              customerId: customerId || 'no customer',
-              paymentMethodId: paymentMethod.id,
-            },
-          },
-        ],
-      });
+      return;
     }
+
+    addLogs({
+      name: 'Read Reusable Card',
+      events: [
+        {
+          name: 'Finished',
+          description: 'terminal.readReusableCard',
+          metadata: {
+            customerId: resp.id || 'no customer',
+            paymentMethodId: paymentMethod?.id,
+          },
+        },
+      ],
+    });
   }, [
+    api,
     clearLogs,
     navigation,
     addLogs,
