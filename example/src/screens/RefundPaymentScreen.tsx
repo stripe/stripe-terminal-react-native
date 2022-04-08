@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/core';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
@@ -7,7 +7,6 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
-import { API_URL } from '../Config';
 
 export default function RefundPaymentScreen() {
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
@@ -25,28 +24,6 @@ export default function RefundPaymentScreen() {
 
   const { collectRefundPaymentMethod, processRefund, setSimulatedCard } =
     useStripeTerminal();
-
-  const fetchLatestChargeId = async (): Promise<string | undefined> => {
-    const response = await fetch(`${API_URL}/fetch_latest_interac_charge`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    const { id } = await response.json();
-    return id;
-  };
-
-  useEffect(() => {
-    async function getLatestRefundId() {
-      const id = await fetchLatestChargeId();
-
-      if (id) {
-        setInputValues((state) => ({ ...state, chargeId: id }));
-      }
-    }
-    getLatestRefundId();
-  }, []);
 
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
