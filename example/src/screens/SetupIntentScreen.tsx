@@ -204,17 +204,6 @@ export default function SetupIntentScreen() {
         return;
       }
 
-      addLogs({
-        name: 'Create Setup Intent',
-        events: [
-          {
-            name: 'Created',
-            description: 'terminal.createSetupIntent',
-            metadata: { setupIntentId: resp.id },
-          },
-        ],
-      });
-
       const response = await retrieveSetupIntent(resp.client_secret);
 
       setupIntent = response.setupIntent;
