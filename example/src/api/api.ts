@@ -19,6 +19,29 @@ export class Api {
     };
   }
 
+  async registerDevice({
+    label,
+    registrationCode,
+    location,
+  }: {
+    label: string;
+    registrationCode: string;
+    location: string | null | undefined;
+  }): Promise<Stripe.Terminal.Reader | { error: Stripe.StripeAPIError }> {
+    const formData = new URLSearchParams();
+    formData.append('label', label);
+    formData.append('registration_code', registrationCode);
+    if (location) {
+      formData.append('location', location);
+    }
+
+    return fetch('https://api.stripe.com/v1/terminal/readers', {
+      headers: this.headers,
+      method: 'POST',
+      body: formData.toString(),
+    }).then((resp) => resp.json());
+  }
+
   async capturePaymentIntent(
     id: string,
     { amount_to_capture }: Stripe.PaymentIntentCaptureParams
@@ -41,6 +64,7 @@ export class Api {
     currency = 'usd',
     description = 'Example PaymentIntent',
     payment_method_types,
+    setup_future_usage,
   }: Stripe.PaymentIntentCreateParams): Promise<
     Stripe.PaymentIntent | { error: Stripe.StripeError }
   > {
@@ -49,6 +73,9 @@ export class Api {
     formData.append('currency', currency);
     formData.append('description', description);
     formData.append('capture_method', 'manual');
+    if (setup_future_usage) {
+      formData.append('setup_future_usage', setup_future_usage);
+    }
 
     if (typeof payment_method_types === 'string') {
       formData.append('payment_method_types[]', payment_method_types);

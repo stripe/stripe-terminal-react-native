@@ -3,12 +3,10 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
 // import { API_URL } from './Config';
-import { AppContext } from './AppContext';
+import { AppContext, api } from './AppContext';
 import type { IAccount } from './types';
 import { Api } from './api/api';
 import { setSelectedAccount, getSelectedAccount } from './util/merchantStorage';
-
-const api = new Api();
 
 export default function Root() {
   const [account, setAccount] = useState<IAccount | null>(null);
