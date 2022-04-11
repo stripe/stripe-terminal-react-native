@@ -1,0 +1,279 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>stripe-terminal-react-native</title><meta name="description" content="Documentation for stripe-terminal-react-native"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">stripe-terminal-react-native</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>stripe-terminal-react-native </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#stripe-terminal-react-native-sdk-beta" id="stripe-terminal-react-native-sdk-beta" style="color: inherit; text-decoration: none;">
+  <h1>Stripe Terminal React Native SDK (Beta)</h1>
+</a>
+<p>Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe&#39;s payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.</p>
+<ul>
+<li><a href="#getting-started">Getting started</a></li>
+<li><a href="#requirements">Requirements</a><ul>
+<li><a href="#js">JS</a></li>
+<li><a href="#android">Android</a></li>
+<li><a href="#ios">iOS</a></li>
+</ul>
+</li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#setup">Setup</a><ul>
+<li><a href="#react-native-cli">React Native CLI</a><ul>
+<li><a href="#ios-1">iOS</a><ul>
+<li><a href="#permissions">Permissions</a></li>
+</ul>
+</li>
+<li><a href="#android-1">Android</a><ul>
+<li><a href="#permissions-1">Permissions</a></li>
+<li><a href="#manifest">Manifest</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#usage-with-expo">Usage With Expo</a><ul>
+<li><a href="#android-2">Android</a><ul>
+<li><a href="#buildgradle">build.gradle</a></li>
+<li><a href="#permissions-2">Permissions</a></li>
+</ul>
+</li>
+<li><a href="#ios-2">iOS</a></li>
+<li><a href="#configuring-the-sdk">Configuring the SDK</a></li>
+<li><a href="#build">Build</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#example-code">Example Code</a><ul>
+<li><a href="#initialization">Initialization</a></li>
+<li><a href="#hooks-and-events">Hooks and Events</a></li>
+<li><a href="#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li><a href="#additional-docs">Additional Docs</a><ul>
+<li><a href="#internal-docs">Internal Docs</a></li>
+</ul>
+</li>
+<li><a href="#contributing">Contributing</a></li>
+</ul>
+
+<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+  <h1>Getting started</h1>
+</a>
+<blockquote>
+<p>Note: The below docs are not yet available and will be released as we near open beta</p>
+</blockquote>
+<p>Get started with our <a href="https://stripe.com/docs/terminal/payments/setup-sdk?terminal-sdk-platform=react-native">📚 integration guides</a> and <a href="#run-the-example-app">example project</a>, or <a href="https://stripe.dev/stripe-terminal-react-native">📘 browse the SDK reference</a>.</p>
+<p>Updating to a newer version of the SDK? See our <a href="https://github.com/stripe/stripe-terminal-react-native/blob/master/CHANGELOG.md">changelog</a>.</p>
+
+<a href="#requirements" id="requirements" style="color: inherit; text-decoration: none;">
+  <h1>Requirements</h1>
+</a>
+
+<a href="#js" id="js" style="color: inherit; text-decoration: none;">
+  <h2>JS</h2>
+</a>
+<ul>
+<li>The SDK uses TypeScript features available in Babel version <code>7.9.0</code> and above.
+Alternatively use the <code>plugin-transform-typescript</code> plugin in your project.</li>
+</ul>
+
+<a href="#android" id="android" style="color: inherit; text-decoration: none;">
+  <h2>Android</h2>
+</a>
+<ul>
+<li>Android 5.0 (API level 21) and above</li>
+<li>compileSdkVersion = 31</li>
+<li>targetSdkVersion = 31</li>
+</ul>
+
+<a href="#ios" id="ios" style="color: inherit; text-decoration: none;">
+  <h2>iOS</h2>
+</a>
+<ul>
+<li>Compatible with apps targeting iOS 10 or above.</li>
+</ul>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h1>Installation</h1>
+</a>
+<pre><code class="language-sh"><span class="hl-1">yarn add @stripe/stripe-terminal-react-native</span><br/><span class="hl-1">or</span><br/><span class="hl-1">npm install @stripe/stripe-terminal-react-native</span>
+</code></pre>
+<blockquote>
+<p>Note: early access beta users will need to install from git with</p>
+</blockquote>
+<pre><code><span class="hl-4">yarn</span><span class="hl-1"> </span><span class="hl-4">add</span><span class="hl-1"> </span><span class="hl-7">https</span><span class="hl-1">:</span><span class="hl-8">//github.com/stripe/stripe-terminal-react-native</span><br/><span class="hl-4">or</span><br/><span class="hl-4">npm</span><span class="hl-1"> </span><span class="hl-4">install</span><span class="hl-1"> </span><span class="hl-7">https</span><span class="hl-1">:</span><span class="hl-8">//github.com/stripe/stripe-terminal-react-native</span>
+</code></pre>
+
+<a href="#setup" id="setup" style="color: inherit; text-decoration: none;">
+  <h1>Setup</h1>
+</a>
+
+<a href="#react-native-cli" id="react-native-cli" style="color: inherit; text-decoration: none;">
+  <h2>React Native CLI</h2>
+</a>
+
+<a href="#ios-1" id="ios-1" style="color: inherit; text-decoration: none;">
+  <h3>iOS</h3>
+</a>
+<p>You&#39;ll need to run <code>pod install</code> in your <code>ios</code> directory to install the native dependencies.</p>
+
+<a href="#permissions" id="permissions" style="color: inherit; text-decoration: none;">
+  <h4>Permissions</h4>
+</a>
+<p>Location services must be enabled in order to use the SDK on iOS. Add the following key-value pair to your app&#39;s <code>Info.plist</code> file:</p>
+<ul>
+<li>Privacy - Location When In Use Usage Description</li>
+</ul>
+<p>Update:</p>
+<pre><code class="language-xml"><span class="hl-9">&lt;</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><span class="hl-1">NSLocationWhenInUseUsageDescription</span><span class="hl-9">&lt;/</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;</span><span class="hl-10">string</span><span class="hl-9">&gt;&lt;/</span><span class="hl-10">string</span><span class="hl-9">&gt;</span>
+</code></pre>
+<p>to</p>
+<pre><code class="language-xml"><span class="hl-9">&lt;</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><span class="hl-1">NSLocationWhenInUseUsageDescription</span><span class="hl-9">&lt;/</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;</span><span class="hl-10">string</span><span class="hl-9">&gt;</span><span class="hl-1">Location access is required in order to accept payments.</span><span class="hl-9">&lt;/</span><span class="hl-10">string</span><span class="hl-9">&gt;</span>
+</code></pre>
+<blockquote>
+<p>Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.</p>
+</blockquote>
+<p>For your app to run in the background and remain connected to the reader, add this key-value pair to your <code>Info.plist</code> file:</p>
+<pre><code class="language-xml"><span class="hl-9">&lt;</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><span class="hl-1">UIBackgroundModes</span><span class="hl-9">&lt;/</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;</span><span class="hl-10">array</span><span class="hl-9">&gt;</span><br/><span class="hl-1">  </span><span class="hl-9">&lt;</span><span class="hl-10">string</span><span class="hl-9">&gt;</span><span class="hl-1">bluetooth-central</span><span class="hl-9">&lt;/</span><span class="hl-10">string</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;/</span><span class="hl-10">array</span><span class="hl-9">&gt;</span>
+</code></pre>
+<p>For your app to pass validation when submitting to the App Store, add the following key-value pairs as well:</p>
+<pre><code class="language-xml"><span class="hl-9">&lt;</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><span class="hl-1">NSBluetoothPeripheralUsageDescription</span><span class="hl-9">&lt;/</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;</span><span class="hl-10">string</span><span class="hl-9">&gt;</span><span class="hl-1">Bluetooth access is required in order to connect to supported bluetooth card readers.</span><span class="hl-9">&lt;/</span><span class="hl-10">string</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><span class="hl-1">NSBluetoothAlwaysUsageDescription</span><span class="hl-9">&lt;/</span><span class="hl-10">key</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;</span><span class="hl-10">string</span><span class="hl-9">&gt;</span><span class="hl-1">This app uses Bluetooth to connect to supported card readers.</span><span class="hl-9">&lt;/</span><span class="hl-10">string</span><span class="hl-9">&gt;</span>
+</code></pre>
+
+<a href="#android-1" id="android-1" style="color: inherit; text-decoration: none;">
+  <h3>Android</h3>
+</a>
+
+<a href="#permissions-1" id="permissions-1" style="color: inherit; text-decoration: none;">
+  <h4>Permissions</h4>
+</a>
+<p>In order for the Stripe Terminal SDK to function properly we&#39;ll need to enable the following permissions:</p>
+<ul>
+<li><code>PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT</code></li>
+<li><code>PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN</code></li>
+<li><code>PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION</code></li>
+</ul>
+<blockquote>
+<p>Note: Stripe needs to know where payments occur to reduce risks associated with those charges and to minimize disputes. If the SDK can’t determine the iOS device’s location, payments are disabled until location access is restored.</p>
+</blockquote>
+<pre><code class="language-tsx"><span class="hl-3">useEffect</span><span class="hl-1">(() </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-0">async</span><span class="hl-1"> </span><span class="hl-0">function</span><span class="hl-1"> </span><span class="hl-3">init</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-6">try</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">granted</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-4">PermissionsAndroid</span><span class="hl-1">.</span><span class="hl-3">request</span><span class="hl-1">(</span><br/><span class="hl-1">        </span><span class="hl-4">PermissionsAndroid</span><span class="hl-1">.</span><span class="hl-2">PERMISSIONS</span><span class="hl-1">.</span><span class="hl-2">ACCESS_FINE_LOCATION</span><span class="hl-1">,</span><br/><span class="hl-1">        {</span><br/><span class="hl-1">          </span><span class="hl-4">title:</span><span class="hl-1"> </span><span class="hl-11">&#39;Location Permission&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">          </span><span class="hl-4">message:</span><span class="hl-1"> </span><span class="hl-11">&#39;Stripe Terminal needs access to your location&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">          </span><span class="hl-4">buttonPositive:</span><span class="hl-1"> </span><span class="hl-11">&#39;Accept&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">      );</span><br/><span class="hl-1">      </span><span class="hl-6">if</span><span class="hl-1"> (</span><span class="hl-4">granted</span><span class="hl-1"> === </span><span class="hl-4">PermissionsAndroid</span><span class="hl-1">.</span><span class="hl-2">RESULTS</span><span class="hl-1">.</span><span class="hl-2">GRANTED</span><span class="hl-1">) {</span><br/><span class="hl-1">        </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-3">log</span><span class="hl-1">(</span><span class="hl-11">&#39;You can use the Location&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">      } </span><span class="hl-6">else</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-3">error</span><span class="hl-1">(</span><br/><span class="hl-1">          </span><span class="hl-11">&#39;Location services are required in order to connect to a reader.&#39;</span><br/><span class="hl-1">        );</span><br/><span class="hl-1">      }</span><br/><span class="hl-1">    } </span><span class="hl-6">catch</span><span class="hl-1"> {}</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">  </span><span class="hl-3">init</span><span class="hl-1">();</span><br/><span class="hl-1">}, []);</span>
+</code></pre>
+<p>For convenience, Stripe Terminal SDK also provides an util that handles all needed Android permissions.
+In order to use it follow below instrustions:</p>
+<pre><code class="language-tsx"><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-4">requestNeededAndroidPermissions</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-11">&#39;stripe-terminal-react-native&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">try</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">granted</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-3">requestNeededAndroidPermissions</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-4">accessFineLocation:</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-4">title:</span><span class="hl-1"> </span><span class="hl-11">&#39;Location Permission&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">message:</span><span class="hl-1"> </span><span class="hl-11">&#39;Stripe Terminal needs access to your location&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">buttonPositive:</span><span class="hl-1"> </span><span class="hl-11">&#39;Accept&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">  });</span><br/><span class="hl-1">  </span><span class="hl-6">if</span><span class="hl-1"> (</span><span class="hl-4">granted</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-8">// init SDK</span><br/><span class="hl-1">  } </span><span class="hl-6">else</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-3">error</span><span class="hl-1">(</span><br/><span class="hl-1">      </span><span class="hl-11">&#39;Location and BT services are required in order to connect to a reader.&#39;</span><br/><span class="hl-1">    );</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">} </span><span class="hl-6">catch</span><span class="hl-1"> (</span><span class="hl-4">e</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-3">error</span><span class="hl-1">(</span><span class="hl-4">e</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#manifest" id="manifest" style="color: inherit; text-decoration: none;">
+  <h4>Manifest</h4>
+</a>
+<p>To enable compatibility the library with the latest Android 12 please make sure that you add following requirements:</p>
+<p>Add <code>android:exported=&quot;true&quot;</code> to the <code>AndroidManifest.xml</code>:</p>
+<pre><code class="language-xml"><span class="hl-9">&lt;</span><span class="hl-10">manifest</span><span class="hl-1"> ...</span><span class="hl-9">&gt;</span><br/><span class="hl-1">    </span><span class="hl-9">&lt;</span><span class="hl-10">application</span><span class="hl-1"> </span><span class="hl-12">android:name</span><span class="hl-1">=</span><span class="hl-13">&quot;.MainApplication&quot;</span><span class="hl-9">&gt;</span><br/><span class="hl-1">      </span><span class="hl-9">&lt;</span><span class="hl-10">activity</span><br/><span class="hl-1">        </span><span class="hl-12">android:name</span><span class="hl-1">=</span><span class="hl-13">&quot;.MainActivity&quot;</span><br/><span class="hl-1">        </span><span class="hl-12">android:exported</span><span class="hl-1">=</span><span class="hl-13">&quot;true&quot;</span><span class="hl-9">&gt;</span><br/><span class="hl-1">          </span><span class="hl-8">&lt;!-- content --&gt;</span><br/><span class="hl-1">      </span><span class="hl-9">&lt;/</span><span class="hl-10">activity</span><span class="hl-9">&gt;</span><br/><span class="hl-1">    </span><span class="hl-9">&lt;/</span><span class="hl-10">application</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;/</span><span class="hl-10">manifest</span><span class="hl-9">&gt;</span>
+</code></pre>
+<p>Please read the <a href="https://developer.android.com/about/versions/12/behavior-changes-12#exported">Android documentation</a> to establish the exact value that you need to set.</p>
+
+<a href="#usage-with-expo" id="usage-with-expo" style="color: inherit; text-decoration: none;">
+  <h2>Usage With Expo</h2>
+</a>
+<blockquote>
+<p>Note: This package cannot be used in the &quot;Expo Go&quot; app because <a href="https://docs.expo.io/workflow/customizing/">it requires custom native code</a>.</p>
+</blockquote>
+
+<a href="#android-2" id="android-2" style="color: inherit; text-decoration: none;">
+  <h3>Android</h3>
+</a>
+
+<a href="#buildgradle" id="buildgradle" style="color: inherit; text-decoration: none;">
+  <h4>build.gradle</h4>
+</a>
+<p>For android you&#39;ll need to massage your build files in order to properly compile. First in <code>android/build.gradle</code> by updating both <code>compileSdkVersion</code> and <code>targetSdkVersion</code> to at least <code>31</code>:</p>
+<pre><code><span class="hl-4">buildscript</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-4">ext</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-4">buildToolsVersion</span><span class="hl-1"> = </span><span class="hl-11">&quot;29.0.3&quot;</span><br/><span class="hl-1">        </span><span class="hl-4">minSdkVersion</span><span class="hl-1"> = </span><span class="hl-14">21</span><br/><span class="hl-1">        </span><span class="hl-4">compileSdkVersion</span><span class="hl-1"> = </span><span class="hl-14">31</span><br/><span class="hl-1">        </span><span class="hl-4">targetSdkVersion</span><span class="hl-1"> = </span><span class="hl-14">31</span><br/><span class="hl-1">    }</span>
+</code></pre>
+<p>Next ensure that jetifier is ignoring the <code>moshi</code> lib by adding the following to <code>android/gradle.properties</code>:</p>
+<pre><code><span class="hl-4">android</span><span class="hl-1">.</span><span class="hl-4">jetifier</span><span class="hl-1">.</span><span class="hl-4">ignorelist</span><span class="hl-1">=</span><span class="hl-4">moshi</span><span class="hl-1">-</span><span class="hl-14">1.13</span><span class="hl-1">.0.</span><span class="hl-4">jar</span>
+</code></pre>
+<p>or</p>
+<pre><code><span class="hl-4">android</span><span class="hl-1">.</span><span class="hl-4">jetifier</span><span class="hl-1">.</span><span class="hl-4">blacklist</span><span class="hl-1">=</span><span class="hl-4">moshi</span><span class="hl-1">-</span><span class="hl-14">1.13</span><span class="hl-1">.0.</span><span class="hl-4">jar</span>
+</code></pre>
+<p>Depending on the version of jetifier in use.</p>
+
+<a href="#permissions-2" id="permissions-2" style="color: inherit; text-decoration: none;">
+  <h4>Permissions</h4>
+</a>
+<p>Android will still require runtime permissions checks for location and BT access, we&#39;ve provided an expo specific util to run these checks as follows:</p>
+<pre><code><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-4">requestNeededExpoAndroidPermissions</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-11">&#39;stripe-terminal-react-native&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">try</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">granted</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-3">requestNeededExpoAndroidPermissions</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-4">accessFineLocation:</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-4">title:</span><span class="hl-1"> </span><span class="hl-11">&#39;Location Permission&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">message:</span><span class="hl-1"> </span><span class="hl-11">&#39;Stripe Terminal needs access to your location&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">buttonPositive:</span><span class="hl-1"> </span><span class="hl-11">&#39;Accept&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">  });</span><br/><span class="hl-1">  </span><span class="hl-6">if</span><span class="hl-1"> (</span><span class="hl-4">granted</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-8">// init SDK</span><br/><span class="hl-1">  } </span><span class="hl-6">else</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-3">error</span><span class="hl-1">(</span><br/><span class="hl-1">      </span><span class="hl-11">&#39;Location and BT services are required in order to connect to a reader.&#39;</span><br/><span class="hl-1">    );</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">} </span><span class="hl-6">catch</span><span class="hl-1"> (</span><span class="hl-4">e</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-3">error</span><span class="hl-1">(</span><span class="hl-4">e</span><span class="hl-1">);</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#ios-2" id="ios-2" style="color: inherit; text-decoration: none;">
+  <h3>iOS</h3>
+</a>
+<p>No special steps are required for iOS!</p>
+
+<a href="#configuring-the-sdk" id="configuring-the-sdk" style="color: inherit; text-decoration: none;">
+  <h3>Configuring the SDK</h3>
+</a>
+<p>After <a href="#installation">installing</a> the SDK, add the <a href="https://docs.expo.io/guides/config-plugins/">config plugin</a> to the <a href="https://docs.expo.io/versions/latest/config/app/#plugins"><code>plugins</code></a> array of your <code>app.json</code> or <code>app.config.js</code>:</p>
+<pre><code class="language-json"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-15">&quot;expo&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">    </span><span class="hl-15">&quot;plugins&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">      [</span><br/><span class="hl-1">        </span><span class="hl-11">&quot;stripe-terminal-react-native&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">        {</span><br/><span class="hl-1">          </span><span class="hl-15">&quot;bluetoothBackgroundMode&quot;</span><span class="hl-1">: </span><span class="hl-0">true</span><span class="hl-1">,</span><br/><span class="hl-1">          </span><span class="hl-15">&quot;locationWhenInUsePermission&quot;</span><span class="hl-1">: </span><span class="hl-11">&quot;Location access is required in order to accept payments.&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">          </span><span class="hl-15">&quot;bluetoothPeripheralPermission&quot;</span><span class="hl-1">: </span><span class="hl-11">&quot;Bluetooth access is required in order to connect to supported bluetooth card readers.&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">          </span><span class="hl-15">&quot;bluetoothAlwaysUsagePermission&quot;</span><span class="hl-1">: </span><span class="hl-11">&quot;This app uses Bluetooth to connect to supported card readers.&quot;</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">      ]</span><br/><span class="hl-1">    ]</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#build" id="build" style="color: inherit; text-decoration: none;">
+  <h3>Build</h3>
+</a>
+<p>Rebuild your app as described in the <a href="https://docs.expo.io/workflow/customizing/">&#39;Adding custom native code&#39;</a> guide with:</p>
+<pre><code><span class="hl-1">&gt; </span><span class="hl-4">expo</span><span class="hl-1"> </span><span class="hl-4">prebuild</span><br/><br/><span class="hl-4">and</span><span class="hl-1"> </span><span class="hl-4">then</span><br/><br/><span class="hl-1">&gt; </span><span class="hl-4">expo</span><span class="hl-1"> </span><span class="hl-7">run</span><span class="hl-1">:</span><span class="hl-4">ios</span><br/><span class="hl-4">or</span><br/><span class="hl-1">&gt; </span><span class="hl-4">expo</span><span class="hl-1"> </span><span class="hl-7">run</span><span class="hl-1">:</span><span class="hl-4">android</span>
+</code></pre>
+
+<a href="#example-code" id="example-code" style="color: inherit; text-decoration: none;">
+  <h1>Example Code</h1>
+</a>
+
+<a href="#initialization" id="initialization" style="color: inherit; text-decoration: none;">
+  <h2>Initialization</h2>
+</a>
+<p>To initialize Stripe Terminal SDK in your React Native app, use the <code>StripeTerminalProvider</code> component in the root component of your application.</p>
+<p>First, create an endpoint on your backend server that creates a new connection token via the Stripe Terminal API.</p>
+<p>Next, create a token provider that will fetch connection token from your server and provide it to StripeTerminalProvider as a parameter.
+Stripe Terminal SDK will fetch it when it&#39;s needed.</p>
+<pre><code class="language-tsx"><span class="hl-8">// Root.ts</span><br/><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-4">StripeTerminalProvider</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-11">&#39;@stripe/stripe-terminal-react-native&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-0">function</span><span class="hl-1"> </span><span class="hl-3">Root</span><span class="hl-1">() {</span><br/><span class="hl-1">  </span><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-3">fetchTokenProvider</span><span class="hl-1"> = </span><span class="hl-0">async</span><span class="hl-1"> () </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">response</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-3">fetch</span><span class="hl-1">(</span><span class="hl-11">`</span><span class="hl-0">${</span><span class="hl-2">API_URL</span><span class="hl-0">}</span><span class="hl-11">/connection_token`</span><span class="hl-1">, {</span><br/><span class="hl-1">      </span><span class="hl-4">method:</span><span class="hl-1"> </span><span class="hl-11">&#39;POST&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">headers:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-11">&#39;Content-Type&#39;</span><span class="hl-4">:</span><span class="hl-1"> </span><span class="hl-11">&#39;application/json&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      },</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">    </span><span class="hl-0">const</span><span class="hl-1"> { </span><span class="hl-2">secret</span><span class="hl-1"> } = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-4">response</span><span class="hl-1">.</span><span class="hl-3">json</span><span class="hl-1">();</span><br/><span class="hl-1">    </span><span class="hl-6">return</span><span class="hl-1"> </span><span class="hl-4">secret</span><span class="hl-1">;</span><br/><span class="hl-1">  };</span><br/><br/><span class="hl-1">  </span><span class="hl-6">return</span><span class="hl-1"> (</span><br/><span class="hl-1">    </span><span class="hl-9">&lt;</span><span class="hl-5">StripeTerminalProvider</span><br/><span class="hl-1">      </span><span class="hl-12">logLevel</span><span class="hl-1">=</span><span class="hl-11">&quot;verbose&quot;</span><br/><span class="hl-1">      </span><span class="hl-12">tokenProvider</span><span class="hl-1">=</span><span class="hl-0">{</span><span class="hl-4">fetchTokenProvider</span><span class="hl-0">}</span><br/><span class="hl-1">    </span><span class="hl-9">&gt;</span><br/><span class="hl-1">      </span><span class="hl-9">&lt;</span><span class="hl-5">App</span><span class="hl-1"> </span><span class="hl-9">/&gt;</span><br/><span class="hl-1">    </span><span class="hl-9">&lt;/</span><span class="hl-5">StripeTerminalProvider</span><span class="hl-9">&gt;</span><br/><span class="hl-1">  );</span><br/><span class="hl-1">}</span>
+</code></pre>
+<p>As a last step, simply call <code>initialize</code> method from <code>useStripeTerminal</code> hook.
+Please note that <code>initialize</code> method must be called from a nested component of <code>StripeTerminalProvider</code>.</p>
+<pre><code class="language-tsx"><span class="hl-8">// App.tsx</span><br/><span class="hl-0">function</span><span class="hl-1"> </span><span class="hl-3">App</span><span class="hl-1">() {</span><br/><span class="hl-1">  </span><span class="hl-0">const</span><span class="hl-1"> { </span><span class="hl-2">initialize</span><span class="hl-1"> } = </span><span class="hl-3">useStripeTerminal</span><span class="hl-1">();</span><br/><br/><span class="hl-1">  </span><span class="hl-3">useEffect</span><span class="hl-1">(() </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-3">initialize</span><span class="hl-1">({</span><br/><span class="hl-1">      </span><span class="hl-4">logLevel:</span><span class="hl-1"> </span><span class="hl-11">&#39;verbose&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">  }, [</span><span class="hl-4">initialize</span><span class="hl-1">]);</span><br/><br/><span class="hl-1">  </span><span class="hl-6">return</span><span class="hl-1"> </span><span class="hl-9">&lt;</span><span class="hl-5">View</span><span class="hl-1"> </span><span class="hl-9">/&gt;</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
+</code></pre>
+
+<a href="#hooks-and-events" id="hooks-and-events" style="color: inherit; text-decoration: none;">
+  <h2>Hooks and Events</h2>
+</a>
+<p>Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
+Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.</p>
+<pre><code class="language-tsx"><span class="hl-8">// Screen.ts</span><br/><br/><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-4">useStripeTerminal</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-11">&#39;@stripe/stripe-terminal-react-native&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-4">useStripeTerminal</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-11">&#39;@stripe/stripe-terminal-react-native&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">export</span><span class="hl-1"> </span><span class="hl-6">default</span><span class="hl-1"> </span><span class="hl-0">function</span><span class="hl-1"> </span><span class="hl-3">PaymentScreen</span><span class="hl-1">() {</span><br/><span class="hl-1">  </span><span class="hl-0">const</span><span class="hl-1"> { </span><span class="hl-2">discoverReaders</span><span class="hl-1">, </span><span class="hl-2">connectedReader</span><span class="hl-1">, </span><span class="hl-2">discoveredReaders</span><span class="hl-1"> } =</span><br/><span class="hl-1">    </span><span class="hl-3">useStripeTerminal</span><span class="hl-1">({</span><br/><span class="hl-1">      </span><span class="hl-3">onUpdateDiscoveredReaders</span><span class="hl-4">:</span><span class="hl-1"> (</span><span class="hl-4">readers</span><span class="hl-1">) </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-8">// access to discovered readers</span><br/><span class="hl-1">      },</span><br/><span class="hl-1">      </span><span class="hl-3">onDidChangeConnectionStatus</span><span class="hl-4">:</span><span class="hl-1"> (</span><span class="hl-4">status</span><span class="hl-1">) </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-8">// access to the current connection status</span><br/><span class="hl-1">      },</span><br/><span class="hl-1">    });</span><br/><br/><span class="hl-1">  </span><span class="hl-3">useEffect</span><span class="hl-1">(() </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-0">const</span><span class="hl-1"> { </span><span class="hl-2">error</span><span class="hl-1"> } = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-3">discoverReaders</span><span class="hl-1">({</span><br/><span class="hl-1">      </span><span class="hl-4">discoveryMethod:</span><span class="hl-1"> </span><span class="hl-11">&#39;bluetoothScan&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-4">simulated:</span><span class="hl-1"> </span><span class="hl-0">true</span><span class="hl-1">,</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">  }, [</span><span class="hl-4">discoverReaders</span><span class="hl-1">]);</span><br/><br/><span class="hl-1">  </span><span class="hl-6">return</span><span class="hl-1"> </span><span class="hl-9">&lt;</span><span class="hl-5">View</span><span class="hl-1"> </span><span class="hl-9">/&gt;</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
+</code></pre>
+<p>In case your app uses <code>React Class Components</code> you can use dedicated <code>withStripeTerminal</code> Higher-Order-Component.
+Please note that unlike the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.</p>
+<p><a href="https://github.com/stripe/stripe-terminal-react-native/blob/main/src/hooks/useStripeTerminal.tsx#L51">Here</a> you can find the list of available events to be used within the event emitter.</p>
+<p>Example:</p>
+<pre><code class="language-tsx"><span class="hl-6">import</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-4">withStripeTerminal</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">WithStripeTerminalProps</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">CHANGE_CONNECTION_STATUS</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">Reader</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-4">componentDidMount</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-4">this</span><span class="hl-1">.</span><span class="hl-4">discoverReaders</span><span class="hl-1">();</span><br/><br/><span class="hl-1">    </span><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-4">eventSubscription</span><span class="hl-1"> = </span><span class="hl-4">props</span><span class="hl-1">.</span><span class="hl-4">emitter</span><span class="hl-1">.</span><span class="hl-4">addListener</span><span class="hl-1">(</span><br/><span class="hl-1">      </span><span class="hl-4">CHANGE_CONNECTION_STATUS</span><span class="hl-1">, </span><span class="hl-8">// didChangeConnectionStatus</span><br/><span class="hl-1">      (</span><span class="hl-4">status</span><span class="hl-1">: </span><span class="hl-4">Reader</span><span class="hl-1">.</span><span class="hl-4">ConnectionStatus</span><span class="hl-1">) =&gt; {</span><br/><span class="hl-1">        </span><span class="hl-8">// access to the current connection status</span><br/><span class="hl-1">      }</span><br/><span class="hl-1">    );</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  </span><span class="hl-4">async</span><span class="hl-1"> </span><span class="hl-4">discoverReaders</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-4">this</span><span class="hl-1">.</span><span class="hl-4">props</span><span class="hl-1">.</span><span class="hl-4">discoverReaders</span><span class="hl-1">({</span><br/><span class="hl-1">      </span><span class="hl-4">discoveryMethod</span><span class="hl-1">: &#39;</span><span class="hl-4">bluetoothScan</span><span class="hl-1">&#39;,</span><br/><span class="hl-1">      </span><span class="hl-4">simulated</span><span class="hl-1">,</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-4">export</span><span class="hl-1"> </span><span class="hl-6">default</span><span class="hl-1"> </span><span class="hl-4">withStripeTerminal</span><span class="hl-1">(</span><span class="hl-4">PaymentScreen</span><span class="hl-1">);</span>
+</code></pre>
+
+<a href="#common-operations" id="common-operations" style="color: inherit; text-decoration: none;">
+  <h2>Common Operations</h2>
+</a>
+<p>You can find further examples of common SDK actions here:</p>
+<ul>
+<li><a href="/docs/collect-payments.md">Collect a Payment</a></li>
+<li><a href="/docs/connect-to-a-reader.md">Connect to a Reader</a></li>
+<li><a href="/docs/display.md">Set the Reader Display</a></li>
+<li><a href="/docs/incremental-authorizations.md">Incremental Authorization</a></li>
+<li><a href="/docs/refund-transactions.md">Refunds</a></li>
+<li><a href="/docs/saving-cards.md">Saving Cards</a></li>
+</ul>
+
+<a href="#additional-docs" id="additional-docs" style="color: inherit; text-decoration: none;">
+  <h1>Additional Docs</h1>
+</a>
+<ul>
+<li><a href="/docs/set-up-your-sdk.md">Setting up the SDK</a></li>
+<li><a href="/docs/example-applications.md">Running the Example Application</a></li>
+<li><a href="/docs/e2e-tests.md">Running e2e tests locally</a></li>
+</ul>
+
+<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
+  <h1>Contributing</h1>
+</a>
+<p>See the <a href="CONTRIBUTING.md">contributor guidelines</a> to learn how to contribute to the repository.</p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/PaymentIntent.html">Payment<wbr/>Intent</a></li><li class=" tsd-kind-namespace"><a href="modules/PaymentMethod.html">Payment<wbr/>Method</a></li><li class=" tsd-kind-namespace"><a href="modules/Reader.html">Reader</a></li><li class=" tsd-kind-namespace"><a href="modules/Refund.html">Refund</a></li><li class=" tsd-kind-namespace"><a href="modules/SetupIntent.html">Setup<wbr/>Intent</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-enum"><a href="enums/CommonError.html" class="tsd-kind-icon">Common<wbr/>Error</a></li><li class="tsd-kind-interface"><a href="interfaces/Address.html" class="tsd-kind-icon">Address</a></li><li class="tsd-kind-interface"><a href="interfaces/Charge.html" class="tsd-kind-icon">Charge</a></li><li class="tsd-kind-interface"><a href="interfaces/Location.html" class="tsd-kind-icon">Location</a></li><li class="tsd-kind-interface"><a href="interfaces/StripeTerminalProviderProps.html" class="tsd-kind-icon">Stripe<wbr/>Terminal<wbr/>Provider<wbr/>Props</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CancelDiscoveringResultType" class="tsd-kind-icon">Cancel<wbr/>Discovering<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CardPresent" class="tsd-kind-icon">Card<wbr/>Present</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Cart" class="tsd-kind-icon">Cart</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ClearReaderDisplayResultType" class="tsd-kind-icon">Clear<wbr/>Reader<wbr/>Display<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CollectRefundPaymentMethodType" class="tsd-kind-icon">Collect<wbr/>Refund<wbr/>Payment<wbr/>Method<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CollectSetupIntentPaymentMethodParams" class="tsd-kind-icon">Collect<wbr/>Setup<wbr/>Intent<wbr/>Payment<wbr/>Method<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectBluetoothReaderParams" class="tsd-kind-icon">Connect<wbr/>Bluetooth<wbr/>Reader<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectEmbeddedParams" class="tsd-kind-icon">Connect<wbr/>Embedded<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectHandoffParams" class="tsd-kind-icon">Connect<wbr/>Handoff<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectInternetReaderParams" class="tsd-kind-icon">Connect<wbr/>Internet<wbr/>Reader<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectLocalMobileParams" class="tsd-kind-icon">Connect<wbr/>Local<wbr/>Mobile<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectReaderResultType" class="tsd-kind-icon">Connect<wbr/>Reader<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ConnectUsbReaderParams" class="tsd-kind-icon">Connect<wbr/>Usb<wbr/>Reader<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CreatePaymentIntentIOSParams" class="tsd-kind-icon">Create<wbr/>Payment<wbr/>IntentIOSParams</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CreatePaymentIntentParams" class="tsd-kind-icon">Create<wbr/>Payment<wbr/>Intent<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#CreateSetupIntentParams" class="tsd-kind-icon">Create<wbr/>Setup<wbr/>Intent<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DisconnectReaderResultType" class="tsd-kind-icon">Disconnect<wbr/>Reader<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DiscoverReadersParams" class="tsd-kind-icon">Discover<wbr/>Readers<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DiscoverReadersResultType" class="tsd-kind-icon">Discover<wbr/>Readers<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#GetLocationsParams" class="tsd-kind-icon">Get<wbr/>Locations<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#GetLocationsResultType" class="tsd-kind-icon">Get<wbr/>Locations<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#InitParams" class="tsd-kind-icon">Init<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#InitializeResultType" class="tsd-kind-icon">Initialize<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#LineItem" class="tsd-kind-icon">Line<wbr/>Item</a></li><li class="tsd-kind-type-alias"><a href="modules.html#LocationStatus" class="tsd-kind-icon">Location<wbr/>Status</a></li><li class="tsd-kind-type-alias"><a href="modules.html#LogLevel" class="tsd-kind-icon">Log<wbr/>Level</a></li><li class="tsd-kind-type-alias"><a href="modules.html#LogLevelAndroid" class="tsd-kind-icon">Log<wbr/>Level<wbr/>Android</a></li><li class="tsd-kind-type-alias"><a href="modules.html#LogLevelIOS" class="tsd-kind-icon">Log<wbr/>LevelIOS</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PaymentIntentResultType" class="tsd-kind-icon">Payment<wbr/>Intent<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PaymentMethodDetails" class="tsd-kind-icon">Payment<wbr/>Method<wbr/>Details</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PaymentMethodResultType" class="tsd-kind-icon">Payment<wbr/>Method<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PaymentMethodType" class="tsd-kind-icon">Payment<wbr/>Method<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PaymentStatus" class="tsd-kind-icon">Payment<wbr/>Status</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ProcessRefundResultType" class="tsd-kind-icon">Process<wbr/>Refund<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ReadReusableCardParamsType" class="tsd-kind-icon">Read<wbr/>Reusable<wbr/>Card<wbr/>Params<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#RefundParams" class="tsd-kind-icon">Refund<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SetConnectionTokenParams" class="tsd-kind-icon">Set<wbr/>Connection<wbr/>Token<wbr/>Params</a></li><li class="tsd-kind-type-alias"><a href="modules.html#SetupIntentResultType" class="tsd-kind-icon">Setup<wbr/>Intent<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#StripeError" class="tsd-kind-icon">Stripe<wbr/>Error</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UpdateSoftwareResultType" class="tsd-kind-icon">Update<wbr/>Software<wbr/>Result<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UseStripeTerminalProps" class="tsd-kind-icon">Use<wbr/>Stripe<wbr/>Terminal<wbr/>Props</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UserCallbacks" class="tsd-kind-icon">User<wbr/>Callbacks</a></li><li class="tsd-kind-type-alias"><a href="modules.html#WithStripeTerminalProps" class="tsd-kind-icon">With<wbr/>Stripe<wbr/>Terminal<wbr/>Props</a></li><li class="tsd-kind-function"><a href="modules.html#StripeTerminalProvider" class="tsd-kind-icon">Stripe<wbr/>Terminal<wbr/>Provider</a></li><li class="tsd-kind-function"><a href="modules.html#requestNeededAndroidPermissions" class="tsd-kind-icon">request<wbr/>Needed<wbr/>Android<wbr/>Permissions</a></li><li class="tsd-kind-function"><a href="modules.html#requestNeededExpoAndroidPermissions" class="tsd-kind-icon">request<wbr/>Needed<wbr/>Expo<wbr/>Android<wbr/>Permissions</a></li><li class="tsd-kind-function"><a href="modules.html#useStripeTerminal" class="tsd-kind-icon">use<wbr/>Stripe<wbr/>Terminal</a></li><li class="tsd-kind-function tsd-has-type-parameter"><a href="modules.html#withStripeTerminal" class="tsd-kind-icon">with<wbr/>Stripe<wbr/>Terminal</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
