@@ -18,6 +18,7 @@ export const setSelectedMerchant = async (
   acctId = 'CI US TEST ACCT (acct_1234)'
 ) => {
   const picker = element(by.id('select-merchant-picker'));
+  await waitFor(picker).toBeVisible().withTimeout(16000);
 
   await picker.tap();
 
@@ -28,6 +29,20 @@ export const setSelectedMerchant = async (
     await element(by.text(acctId)).tap();
   }
   await element(by.id('header-back')).tap();
+};
+
+export const setSelectedCurrency = async (currency = 'USD') => {
+  const picker = element(by.id('select-currency-picker'));
+  await waitFor(picker).toBeVisible().withTimeout(16000);
+
+  await picker.tap();
+
+  if (device.getPlatform() === 'ios') {
+    await element(by.type('UIPickerView')).setColumnToValue(0, currency);
+    await picker.tap();
+  } else {
+    await element(by.text(currency)).tap();
+  }
 };
 
 export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
