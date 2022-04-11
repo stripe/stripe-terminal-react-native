@@ -84,9 +84,6 @@ describe('In-Person Refund', () => {
     await navigateTo('Set Merchant');
     await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
-    await navigateTo('Set Merchant');
-    await setSelectedMerchant('acct_5555');
-
     await navigateTo('Discover Readers');
     await connectReader('wisePad3');
 
@@ -124,9 +121,6 @@ describe('In-Person Refund', () => {
     }
     await navigateTo('Set Merchant');
     await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
-
-    await navigateTo('Set Merchant');
-    await setSelectedMerchant('acct_5555');
 
     await changeDiscoveryMethod('Internet');
     await navigateTo('Discover Readers');
