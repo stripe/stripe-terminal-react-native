@@ -7,15 +7,17 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
+import { AppContext } from '../AppContext';
 import type { RouteParamList } from '../App';
 
 export default function RefundPaymentScreen() {
+  const { lastSuccessfulChargeId } = useContext(AppContext);
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
     amount: string;
     currency: string;
   }>({
-    chargeId: '',
+    chargeId: lastSuccessfulChargeId || '',
     amount: '100',
     currency: 'CAD',
   });

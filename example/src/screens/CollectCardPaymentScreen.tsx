@@ -1,14 +1,7 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useState, useContext } from 'react';
 import { Picker } from '@react-native-picker/picker';
-import {
-  Platform,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  Clipboard,
-} from 'react-native';
+import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import {
   useStripeTerminal,
   PaymentIntent,
@@ -52,7 +45,7 @@ export default function CollectCardPaymentScreen() {
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
-  const { api } = useContext(AppContext);
+  const { api, setLastSuccessfulChargeId } = useContext(AppContext);
   const navigation = useNavigation();
 
   const {
@@ -310,8 +303,8 @@ export default function CollectCardPaymentScreen() {
       ],
     });
 
-    // Copying charge ID to buffer in order to allow refunding later
-    Clipboard.setString(paymentIntent.charges[0].id);
+    // Set last successful charge Id in context for refunding later
+    setLastSuccessfulChargeId(paymentIntent.charges[0].id);
 
     if (paymentIntent?.status === 'succeeded') {
       return;
