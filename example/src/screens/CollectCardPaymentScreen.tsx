@@ -391,7 +391,7 @@ export default function CollectCardPaymentScreen() {
           selectedValue={inputValues?.currency}
           style={styles.picker}
           itemStyle={styles.pickerItem}
-          testID="select-merchant-picker"
+          testID="select-currency-picker"
           onValueChange={(value) =>
             setInputValues((state) => ({ ...state, currency: value }))
           }
