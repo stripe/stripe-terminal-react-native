@@ -68,6 +68,9 @@ export type RouteParamList = {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
   };
+  RefundPayment: {
+    simulated: boolean;
+  };
   Log: {
     event: Event;
     log: Log;

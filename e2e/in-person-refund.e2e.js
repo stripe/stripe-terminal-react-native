@@ -23,7 +23,7 @@ describe('In-Person Refund', () => {
     await device.sendToHome();
   });
 
-  it('Collect CA card payment', async () => {
+  it.skip('Collect CA card payment', async () => {
     await navigateTo('Set Merchant');
     await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
@@ -76,7 +76,7 @@ describe('In-Person Refund', () => {
     await checkIfLogExist('Processed');
   });
 
-  it('via bluetooth reader', async () => {
+  it.skip('via bluetooth reader', async () => {
     // Temporary skipped on Android due to some issues with refunding payments
     if (device.getPlatform() === 'android') {
       return;

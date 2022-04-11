@@ -73,7 +73,9 @@ export default function HomeScreen() {
         <ListItem
           title="In-Person Refund"
           onPress={() => {
-            navigation.navigate('RefundPaymentScreen');
+            navigation.navigate('RefundPaymentScreen', {
+              simulated,
+            });
           }}
         />
       </List>
