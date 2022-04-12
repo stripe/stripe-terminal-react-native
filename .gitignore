@@ -71,3 +71,7 @@ example/.env
 artifacts/
 docs/api-reference
 test-butler-app.apk
+
+# Fastlane
+/fastlane/README.md
+/fastlane/report.xml

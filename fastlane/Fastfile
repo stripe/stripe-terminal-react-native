@@ -33,3 +33,43 @@ lane :publish_to_firebase do |options|
     firebase_cli_token: options[:firebase_token].to_s
   )
 end
+
+lane :publish_ios_to_testflight do |options|
+
+  match(app_identifier: "com.stripe.terminal.reactnative.example")
+
+  target_build_number = latest_testflight_build_number(
+    app_identifier: "com.stripe.terminal.reactnative.example"
+  ) + 1
+
+  increment_build_number(
+    build_number: target_build_number,
+    xcodeproj: "example/ios/StripeTerminalReactNativeExample.xcodeproj"
+  )
+
+  # gym builds, packages, and signs the iOS app
+  gym(
+    configuration: "Release",
+    scheme: "StripeTerminalReactNativeExample",
+    workspace: "example/ios/StripeTerminalReactNativeExample.xcworkspace"
+  )
+
+  # pilot submits the app to testflight
+  pilot(
+    app_identifier: "com.stripe.terminal.reactnative.example",
+    skip_submission: true,
+    distribute_external: false,
+    skip_waiting_for_build_processing: true
+  )
+
+  # Reset build number to 1
+  increment_build_number(
+    build_number: 1,
+    xcodeproj: "example/ios/StripeTerminalReactNativeExample.xcodeproj"
+  )
+
+  clean_build_artifacts
+end
+
+
+
