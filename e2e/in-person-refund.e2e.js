@@ -23,6 +23,11 @@ describe('In-Person Refund', () => {
     if (device.getPlatform() === 'android') {
       return;
     }
+
+    const backEl = element(by.text('Back'));
+    await waitFor(backEl).toBeVisible().withTimeout(10000);
+    await backEl.tap();
+
     await collectInteracRefund();
   });
 
@@ -33,6 +38,10 @@ describe('In-Person Refund', () => {
     if (device.getPlatform() === 'android') {
       return;
     }
+
+    const backEl = element(by.text('Back'));
+    await waitFor(backEl).toBeVisible().withTimeout(10000);
+    await backEl.tap();
 
     await collectInteracRefund();
   });

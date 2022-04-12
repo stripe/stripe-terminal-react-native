@@ -165,10 +165,6 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
   await checkIfLogExist('Collected');
   await checkIfLogExist('Process');
   await checkIfLogExist('Processed');
-
-  const backEl = element(by.text('Back'));
-  await waitFor(backEl).toBeVisible().withTimeout(10000);
-  await backEl.tap();
 };
 
 export const collectInteracRefund = async () => {
