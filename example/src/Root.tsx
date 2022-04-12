@@ -9,6 +9,9 @@ import { setSelectedAccount, getSelectedAccount } from './util/merchantStorage';
 
 export default function Root() {
   const [account, setAccount] = useState<IAccount | null>(null);
+  const [lastSuccessfulChargeId, setLastSuccessfulChargeId] = useState<
+    string | null
+  >(null);
 
   const onSelectAccount = useCallback(
     async ({ selectedAccountKey }: { selectedAccountKey: string | null }) => {
@@ -67,6 +70,8 @@ export default function Root() {
         api,
         account,
         setAccount: onSelectAccount,
+        setLastSuccessfulChargeId: (id) => setLastSuccessfulChargeId(id),
+        lastSuccessfulChargeId,
       }}
     >
       <StripeTerminalProvider

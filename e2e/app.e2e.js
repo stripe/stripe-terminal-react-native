@@ -6,6 +6,7 @@ const {
   checkIfLogExist,
   checkIfConnected,
   setSimulatedUpdatePlan,
+  setSelectedCurrency,
   changeDiscoveryMethod,
 } = require('./utils');
 
@@ -87,14 +88,12 @@ describe('Basic funtionalities', () => {
 
     await navigateTo('Collect card payment');
 
-    const currencyInput = element(by.id('currency-text-field'));
     const amountInput = element(by.id('amount-text-field'));
 
-    await waitFor(currencyInput).toBeVisible().withTimeout(16000);
     await waitFor(amountInput).toBeVisible();
 
     await amountInput.replaceText('20000');
-    await currencyInput.replaceText('USD');
+    await amountInput.tapReturnKey();
 
     await element(by.id('collect-scroll-view')).scrollTo('bottom');
 
@@ -158,7 +157,7 @@ describe('Basic funtionalities', () => {
     await checkIfLogExist('Finished');
   });
 
-  it.skip('In-Person Refund failed due to unsupported country', async () => {
+  it('In-Person Refund failed due to unsupported country', async () => {
     await navigateTo('Discover Readers');
     await connectReader('chipper2X');
 

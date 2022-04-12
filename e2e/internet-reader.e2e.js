@@ -6,6 +6,7 @@ const {
   checkIfLogExist,
   checkIfConnected,
   changeDiscoveryMethod,
+  setSelectedCurrency,
 } = require('./utils');
 
 const { cleanPaymentMethods } = require('./clean');
@@ -42,14 +43,12 @@ describe('Internet reader', () => {
 
     await navigateTo('Collect card payment');
 
-    const currencyInput = element(by.id('currency-text-field'));
     const amountInput = element(by.id('amount-text-field'));
 
-    await waitFor(currencyInput).toBeVisible().withTimeout(16000);
     await waitFor(amountInput).toBeVisible();
 
     await amountInput.replaceText('20000');
-    await currencyInput.replaceText('USD');
+    await amountInput.tapReturnKey();
 
     await element(by.id('collect-scroll-view')).scrollTo('bottom');
 

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useContext, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -7,19 +7,25 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
+import { AppContext } from '../AppContext';
+import type { RouteParamList } from '../App';
 
 export default function RefundPaymentScreen() {
-  const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
+  const { lastSuccessfulChargeId } = useContext(AppContext);
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
     amount: string;
     currency: string;
   }>({
-    chargeId: '',
+    chargeId: lastSuccessfulChargeId || '',
     amount: '100',
     currency: 'CAD',
   });
   const navigation = useNavigation();
+  const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
+  const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
+
+  const { simulated } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
 
   const { collectRefundPaymentMethod, processRefund, setSimulatedCard } =
@@ -28,7 +34,9 @@ export default function RefundPaymentScreen() {
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
 
-    await setSimulatedCard(testCardNumber);
+    if (simulated) {
+      await setSimulatedCard(testCardNumber);
+    }
 
     navigation.navigate('LogListScreen');
     addLogs({
@@ -138,16 +146,18 @@ export default function RefundPaymentScreen() {
       keyboardShouldPersistTaps="always"
       testID="refund-scroll-view"
     >
-      <List bolded={false} topSpacing={false} title="CARD NUMBER">
-        <TextInput
-          testID="card-number-text-field"
-          keyboardType="numeric"
-          style={styles.input}
-          value={testCardNumber}
-          onChangeText={(value) => setTestCardNumber(value)}
-          placeholder="card number"
-        />
-      </List>
+      {simulated && (
+        <List bolded={false} topSpacing={false} title="CARD NUMBER">
+          <TextInput
+            testID="card-number-text-field"
+            keyboardType="numeric"
+            style={styles.input}
+            value={testCardNumber}
+            onChangeText={(value) => setTestCardNumber(value)}
+            placeholder="card number"
+          />
+        </List>
+      )}
       <List bolded={false} topSpacing={false} title="CHARGE ID">
         <TextInput
           style={styles.input}

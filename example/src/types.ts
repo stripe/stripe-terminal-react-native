@@ -11,6 +11,8 @@ export type IAppContext = {
   }: {
     selectedAccountKey: string | null;
   }) => void;
+  lastSuccessfulChargeId: string | null;
+  setLastSuccessfulChargeId: (id: string) => void;
 };
 
 export type IShortAccount = {

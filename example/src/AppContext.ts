@@ -9,4 +9,6 @@ export const AppContext = React.createContext<IAppContext>({
   api,
   account: null,
   setAccount: (_k) => null,
+  lastSuccessfulChargeId: null,
+  setLastSuccessfulChargeId: (_id) => null,
 });

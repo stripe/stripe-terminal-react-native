@@ -1,5 +1,6 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useState, useContext } from 'react';
+import { Picker } from '@react-native-picker/picker';
 import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import {
   useStripeTerminal,
@@ -15,6 +16,18 @@ import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
+const CURRENCIES = [
+  { value: 'usd', label: 'USD' },
+  { value: 'gbp', label: 'GBP' },
+  { value: 'cad', label: 'CAD' },
+  { value: 'sgd', label: 'SGD' },
+  { value: 'eur', label: 'EUR' },
+  { value: 'aud', label: 'AUD' },
+  { value: 'nzd', label: 'NZD' },
+  { value: 'dkk', label: 'DKK' },
+  { value: 'sek', label: 'SEK' },
+];
+
 export default function CollectCardPaymentScreen() {
   const [inputValues, setInputValues] = useState<{
     amount: string;
@@ -28,12 +41,11 @@ export default function CollectCardPaymentScreen() {
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
-  const [capturePI, setCapturePI] = useState(true);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
-  const { api } = useContext(AppContext);
+  const { api, setLastSuccessfulChargeId } = useContext(AppContext);
   const navigation = useNavigation();
 
   const {
@@ -92,11 +104,23 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         payment_method_types: paymentMethods,
-        setup_future_usage: 'off_session',
       });
 
       if ('error' in resp) {
-        return Promise.resolve(resp.error);
+        addLogs({
+          name: 'Create Payment Intent',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.createPaymentIntent',
+              metadata: {
+                errorCode: resp.error?.code,
+                errorMessage: resp.error?.message,
+              },
+            },
+          ],
+        });
+        return;
       }
 
       if (!resp.client_secret) {
@@ -245,21 +269,48 @@ export default function CollectCardPaymentScreen() {
           },
         ],
       });
-    } else if (paymentIntent) {
+      return;
+    }
+
+    if (!paymentIntent) {
       addLogs({
         name: 'Process Payment',
         events: [
           {
-            name: 'Processed',
+            name: 'Failed',
             description: 'terminal.processPayment',
-            metadata: { paymentIntentId },
+            metadata: {
+              errorCode: 'no_code',
+              errorMessage: 'no payment intent id returned!',
+            },
           },
         ],
       });
-      if (capturePI) {
-        _capturePayment(paymentIntentId);
-      }
+      return;
     }
+
+    addLogs({
+      name: 'Process Payment',
+      events: [
+        {
+          name: 'Processed',
+          description: 'terminal.processPayment',
+          metadata: {
+            paymententIntentId: paymentIntentId,
+            chargeId: paymentIntent.charges[0].id,
+          },
+        },
+      ],
+    });
+
+    // Set last successful charge Id in context for refunding later
+    setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+
+    if (paymentIntent?.status === 'succeeded') {
+      return;
+    }
+
+    _capturePayment(paymentIntentId);
   };
 
   const _capturePayment = async (paymentIntentId: string) => {
@@ -329,15 +380,24 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
       <List bolded={false} topSpacing={false} title="CURRENCY">
-        <TextInput
-          testID="currency-text-field"
-          style={styles.input}
-          value={inputValues.currency}
-          onChangeText={(value) =>
+        <Picker
+          selectedValue={inputValues?.currency}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-currency-picker"
+          onValueChange={(value) =>
             setInputValues((state) => ({ ...state, currency: value }))
           }
-          placeholder="currency"
-        />
+        >
+          {CURRENCIES.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
       </List>
 
       <List bolded={false} topSpacing={false} title="INTERAC">
@@ -403,19 +463,6 @@ export default function CollectCardPaymentScreen() {
         </>
       )}
 
-      <List bolded={false} topSpacing={false} title="CAPTURE PAYMENT INTENT">
-        <ListItem
-          title="Capture Payment Intent"
-          rightElement={
-            <Switch
-              testID="capture-payment-intent"
-              value={capturePI}
-              onValueChange={(value) => setCapturePI(value)}
-            />
-          }
-        />
-      </List>
-
       <List
         bolded={false}
         topSpacing={false}
@@ -479,5 +526,20 @@ const styles = StyleSheet.create({
     color: colors.dark_gray,
     paddingHorizontal: 16,
     marginVertical: 16,
+  },
+  picker: {
+    width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+        fontSize: 13,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.white,
+      },
+    }),
+  },
+  pickerItem: {
+    fontSize: 16,
   },
 });
