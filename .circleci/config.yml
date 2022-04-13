@@ -45,6 +45,8 @@ commands:
           name: Install CocoaPods
           command: |
             cd <<parameters.pod_install_directory>> && pod install && cd -
+            echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date"
+            git diff --exit-code
       - save_cache:
           paths:
             - <<parameters.pod_install_directory>>/Pods
