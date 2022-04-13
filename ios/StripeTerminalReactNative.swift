@@ -322,8 +322,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(collectPaymentMethod:resolver:rejecter:)
-    func collectPaymentMethod(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let id = paymentIntentId else {
+    func collectPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+
+        guard let id = params["paymentIntentId"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
@@ -331,8 +332,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
-
-        self.collectPaymentMethodCancelable = Terminal.shared.collectPaymentMethod(paymentIntent) { pi, collectError  in
+        
+        let skipTipping = params["skipTipping"] as? Bool ?? false
+        
+        self.collectPaymentMethodCancelable = Terminal.shared.collectPaymentMethod(
+            paymentIntent,
+            collectConfig: CollectConfiguration(skipTipping: skipTipping)
+        ) { pi, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let paymentIntent = pi {
