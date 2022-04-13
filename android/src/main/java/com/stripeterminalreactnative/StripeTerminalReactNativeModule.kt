@@ -33,6 +33,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var discoveredReadersList: List<Reader> = listOf()
     private var discoverCancelable: Cancelable? = null
     private var collectPaymentMethodCancelable: Cancelable? = null
+    private var collectRefundPaymentMethodCancelable: Cancelable? = null
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
     private var readReusableCardCancelable: Cancelable? = null
@@ -100,6 +101,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelCollectSetupIntent(promise: Promise) {
         cancelOperation(promise, collectSetupIntentCancelable, "collectSetupIntent")
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun cancelCollectRefundPaymentMethod(promise: Promise) {
+        cancelOperation(promise, collectRefundPaymentMethodCancelable, "collectRefundPaymentMethod")
     }
 
     @ReactMethod
@@ -494,7 +501,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             val intentParams = RefundParameters.Builder(chargeId, amount, currency).build()
-            terminal.collectRefundPaymentMethod(intentParams, NoOpCallback(promise))
+            collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
+                intentParams, NoOpCallback(promise)
+            )
         }
 
     @ReactMethod

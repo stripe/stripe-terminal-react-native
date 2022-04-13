@@ -703,6 +703,19 @@ export async function cancelCollectPaymentMethod(): Promise<{
   }
 }
 
+export async function cancelCollectRefundPaymentMethod(): Promise<{
+  error?: StripeError;
+}> {
+  try {
+    await StripeTerminalSdk.cancelCollectRefundPaymentMethod();
+    return {};
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}
+
 export async function cancelCollectSetupIntent(): Promise<{
   error?: StripeError;
 }> {
