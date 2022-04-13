@@ -7,6 +7,7 @@ import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
+import com.stripe.stripeterminal.external.OnReaderTips
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
 import com.stripe.stripeterminal.external.models.*
@@ -307,16 +308,26 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         })
     }
 
+    @OptIn(OnReaderTips::class)
     @ReactMethod
     @Suppress("unused")
-    fun collectPaymentMethod(paymentIntentId: String, promise: Promise) =
+    fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
+            val paymentIntentId = requireParam(params.getString("paymentIntentId")) {
+                "You must provide a paymentIntentId"
+            }
             val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
                 "There is no associated paymentIntent with id $paymentIntentId"
             }
+
+            val config = if (params.hasKey("skipTipping")) {
+                CollectConfiguration(skipTipping = getBoolean(params, "skipTipping"))
+            } else null
+
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
-                RNPaymentIntentCallback(promise) { paymentIntents[it.id] = it }
+                RNPaymentIntentCallback(promise) { paymentIntents[it.id] = it },
+                config
             )
         }
 

@@ -15,6 +15,7 @@ import type {
   ConnectEmbeddedParams,
   ConnectLocalMobileParams,
   UserCallbacks,
+  CollectPaymentMethodParams,
 } from '../types';
 import {
   discoverReaders,
@@ -325,14 +326,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _collectPaymentMethod = useCallback(
-    async (paymentIntentId: string) => {
+    async (params: CollectPaymentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await collectPaymentMethod(paymentIntentId);
+      const response = await collectPaymentMethod(params);
 
       setLoading(false);
 

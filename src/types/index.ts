@@ -170,6 +170,11 @@ export type CreatePaymentIntentIOSParams = {
   paymentMethodTypes?: string[];
 };
 
+export type CollectPaymentMethodParams = {
+  paymentIntentId: string;
+  skipTipping?: boolean;
+};
+
 export type CollectSetupIntentPaymentMethodParams = {
   customerConsentCollected?: boolean;
   setupIntentId: string;
