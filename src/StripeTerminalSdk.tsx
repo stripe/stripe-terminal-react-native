@@ -115,6 +115,9 @@ type StripeTerminalSdkType = {
   collectRefundPaymentMethod(
     params: RefundParams
   ): Promise<CollectRefundPaymentMethodType>;
+  cancelCollectRefundPaymentMethod(): Promise<{
+    error?: StripeError;
+  }>;
   processRefund(): Promise<ProcessRefundResultType>;
   clearCachedCredentials(): Promise<{
     error?: StripeError;
