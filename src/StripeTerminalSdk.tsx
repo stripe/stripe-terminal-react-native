@@ -29,6 +29,7 @@ import type {
   ConnectEmbeddedParams,
   ConnectLocalMobileParams,
   ConnectReaderResultType,
+  CollectPaymentMethodParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -76,7 +77,7 @@ type StripeTerminalSdkType = {
   ): Promise<PaymentIntentResultType>;
   // Collect Payment Method
   collectPaymentMethod(
-    paymentIntentId: string
+    params: CollectPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
   // Retrieve Payment Intent
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntentResultType>;
