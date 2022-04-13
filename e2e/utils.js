@@ -118,3 +118,82 @@ export const goBack = async (label) => {
     }
   }
 };
+
+export const createInteracPayment = async (reader = 'wisePad3') => {
+  await navigateTo('Set Merchant');
+  await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
+
+  if (['verifoneP400', 'wisePosE'].includes(reader)) {
+    await changeDiscoveryMethod('Internet');
+  }
+
+  await navigateTo('Discover Readers');
+  await connectReader(reader);
+
+  await navigateTo('Collect card payment');
+
+  const amountInput = element(by.id('amount-text-field'));
+  const cardNumberInput = element(by.id('card-number-text-field'));
+
+  await waitFor(amountInput).toBeVisible().withTimeout(10000);
+  await waitFor(cardNumberInput).toBeVisible().withTimeout(10000);
+
+  const enableInteracSwitch = element(by.id('enable-interac'));
+  await waitFor(enableInteracSwitch).toBeVisible().withTimeout(10000);
+  await enableInteracSwitch.tap();
+
+  // set interac test card
+  await cardNumberInput.replaceText('4506445006931933');
+  await cardNumberInput.tapReturnKey();
+
+  await setSelectedCurrency('CAD');
+
+  await element(by.id('collect-scroll-view')).scrollTo('bottom');
+
+  const button = element(by.text('Collect payment'));
+
+  await waitFor(button).toBeVisible().withTimeout(10000);
+
+  await button.tap();
+
+  const eventLogTitle = element(by.text('EVENT LOG'));
+  await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
+
+  await checkIfLogExist('Create');
+  await checkIfLogExist('Created');
+  await checkIfLogExist('Collect');
+  await checkIfLogExist('Collected');
+  await checkIfLogExist('Process');
+  await checkIfLogExist('Processed');
+};
+
+export const collectInteracRefund = async () => {
+  await waitFor(element(by.text('In-Person Refund')))
+    .toBeVisible()
+    .withTimeout(10000);
+
+  // Interac Payment complete, now let's refund it
+  await navigateTo('In-Person Refund');
+
+  const refundAmountInput = element(by.id('amount-text-field'));
+  await waitFor(refundAmountInput).toBeVisible();
+
+  await refundAmountInput.replaceText('100');
+  await refundAmountInput.tapReturnKey();
+
+  await element(by.id('refund-scroll-view')).scrollTo('bottom');
+
+  const refundButton = element(by.id('collect-refund-button'));
+
+  await waitFor(refundButton).toBeVisible();
+
+  await refundButton.tap();
+
+  const refundEventLogTitle = element(by.text('EVENT LOG'));
+  await waitFor(refundEventLogTitle).toBeVisible().withTimeout(16000);
+
+  await checkIfLogExist('Collect');
+  await checkIfLogExist('Collected');
+  await checkIfLogExist('Processing');
+  await checkIfLogExist('Succeeded');
+};
