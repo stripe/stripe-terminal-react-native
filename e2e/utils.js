@@ -87,12 +87,19 @@ export const checkIfLogExist = async (log) => {
     .withTimeout(16000);
 };
 
+const discBtnMap = {
+  'Internet': 'internet-btn',
+  'Bluetooth Scan': 'bt-scn-btn',
+  'Bluetooth Proximity': 'bt-prox-btn',
+};
+
 export const changeDiscoveryMethod = async (method) => {
+  const btnId = discBtnMap[method];
   const button = element(by.id('discovery-method-button'));
   await waitFor(button).toBeVisible().withTimeout(10000);
   await button.tap();
 
-  const targetMethodButton = element(by.text(method));
+  const targetMethodButton = element(by.id(btnId));
   await waitFor(targetMethodButton).toBeVisible().withTimeout(10000);
   await targetMethodButton.tap();
 

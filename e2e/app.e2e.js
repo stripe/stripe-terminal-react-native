@@ -6,7 +6,6 @@ const {
   checkIfLogExist,
   checkIfConnected,
   setSimulatedUpdatePlan,
-  setSelectedCurrency,
   changeDiscoveryMethod,
 } = require('./utils');
 
@@ -31,12 +30,14 @@ describe('Basic funtionalities', () => {
   });
 
   it('Connect and disconnect', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await connectReader();
     await checkIfConnected();
   });
 
   it('Install required update and connect', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await setSimulatedUpdatePlan();
     await connectReader();
@@ -83,6 +84,7 @@ describe('Basic funtionalities', () => {
   });
 
   it('Collect card payment', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await connectReader();
 
@@ -119,6 +121,7 @@ describe('Basic funtionalities', () => {
   });
 
   it('Store card via readReusableCard', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await connectReader();
 
@@ -137,6 +140,7 @@ describe('Basic funtionalities', () => {
   });
 
   it('Store card via SetupIntent', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await connectReader();
 
@@ -158,6 +162,7 @@ describe('Basic funtionalities', () => {
   });
 
   it('In-Person Refund failed due to unsupported country', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await connectReader('chipper2X');
 
