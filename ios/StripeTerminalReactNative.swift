@@ -40,6 +40,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     var discoverCancelable: Cancelable? = nil
     var collectPaymentMethodCancelable: Cancelable? = nil
+    var collectRefundPaymentMethodCancelable: Cancelable? = nil
     var collectSetupIntentCancelable: Cancelable? = nil
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
@@ -90,6 +91,23 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve([:])
             }
             self.collectPaymentMethodCancelable = nil
+        }
+    }
+    
+    @objc(cancelCollectRefundPaymentMethod:rejecter:)
+    func cancelCollectRefundPaymentMethod(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = collectRefundPaymentMethodCancelable else {
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectRefundPaymentMethod could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            }
+            else {
+                resolve([:])
+            }
+            self.collectRefundPaymentMethodCancelable = nil
         }
     }
 
@@ -599,12 +617,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         let refundParams = RefundParameters(chargeId: chargeId!, amount: intAmount, currency: currency!)
 
-        Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
+        self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {
                 resolve([:])
             }
+            self.collectRefundPaymentMethodCancelable = nil
         }
     }
 

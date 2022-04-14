@@ -28,8 +28,37 @@ export default function RefundPaymentScreen() {
   const { simulated } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
 
-  const { collectRefundPaymentMethod, processRefund, setSimulatedCard } =
-    useStripeTerminal();
+  const {
+    collectRefundPaymentMethod,
+    cancelCollectRefundPaymentMethod,
+    processRefund,
+    setSimulatedCard,
+  } = useStripeTerminal({
+    onDidRequestReaderInput: (input) => {
+      addLogs({
+        name: 'Collect Refund Payment Method',
+        events: [
+          {
+            name: input.join(' / '),
+            description: 'terminal.didRequestReaderInput',
+            onBack: cancelCollectRefundPaymentMethod,
+          },
+        ],
+      });
+    },
+    onDidRequestReaderDisplayMessage: (message) => {
+      addLogs({
+        name: 'Collect Refund Payment Method',
+        events: [
+          {
+            name: message,
+            description: 'terminal.didRequestReaderDisplayMessage',
+          },
+        ],
+      });
+      console.log('message', message);
+    },
+  });
 
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
@@ -46,6 +75,7 @@ export default function RefundPaymentScreen() {
           name: 'Collect',
           description: 'terminal.collectRefundPaymentMethod',
           metadata: _refundMetadata,
+          onBack: cancelCollectRefundPaymentMethod,
         },
       ],
     });

@@ -51,6 +51,7 @@ import {
   connectHandoffReader,
   connectLocalMobileReader,
   setSimulatedCard,
+  cancelCollectRefundPaymentMethod,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -651,6 +652,20 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [setLoading, _isInitialized]);
 
+  const _cancelCollectRefundPaymentMethod = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelCollectRefundPaymentMethod();
+
+    setLoading(false);
+
+    return response;
+  }, [_isInitialized, setLoading]);
+
   const _cancelCollectSetupIntent = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -708,6 +723,7 @@ export function useStripeTerminal(props?: Props) {
     clearCachedCredentials: _clearCachedCredentials,
     readReusableCard: _readReusableCard,
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
+    cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
     cancelReadReusableCard: _cancelReadReusableCard,
     connectEmbeddedReader: _connectEmbeddedReader,
