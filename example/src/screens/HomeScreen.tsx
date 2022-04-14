@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   StyleSheet,
@@ -13,6 +13,10 @@ import { AppContext } from '../AppContext';
 import icon from '../assets/icon.png';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
+import {
+  getDiscoveryMethod,
+  setDiscoveryMethod as setStoredDiscoveryMethod,
+} from '../util/merchantStorage';
 import { Reader, useStripeTerminal } from 'stripe-terminal-react-native';
 
 export default function HomeScreen() {
@@ -28,6 +32,21 @@ export default function HomeScreen() {
     ? '🔋' + batteryPercentage.toFixed(0) + '%'
     : '';
   const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
+
+  useEffect(() => {
+    const loadDiscSettings = async () => {
+      const savedDisc = await getDiscoveryMethod();
+
+      if (!savedDisc) {
+        return;
+      }
+
+      setDiscoveryMethod(savedDisc.method);
+      setSimulated(savedDisc.isSimulated);
+    };
+
+    loadDiscSettings();
+  }, []);
 
   const renderConnectedContent = (
     <>
@@ -149,8 +168,13 @@ export default function HomeScreen() {
               testID="discovery-method-button"
               onPress={() =>
                 navigation.navigate('DiscoveryMethodScreen', {
-                  onChange: (value: Reader.DiscoveryMethod) =>
-                    setDiscoveryMethod(value),
+                  onChange: async (value: Reader.DiscoveryMethod) => {
+                    await setStoredDiscoveryMethod({
+                      method: value,
+                      isSimulated: simulated,
+                    });
+                    setDiscoveryMethod(value);
+                  },
                 })
               }
             />
@@ -162,7 +186,13 @@ export default function HomeScreen() {
               rightElement={
                 <Switch
                   value={simulated}
-                  onValueChange={(value) => setSimulated(value)}
+                  onValueChange={async (value) => {
+                    await setStoredDiscoveryMethod({
+                      method: discoveryMethod,
+                      isSimulated: value,
+                    });
+                    setSimulated(value);
+                  }}
                 />
               }
             />

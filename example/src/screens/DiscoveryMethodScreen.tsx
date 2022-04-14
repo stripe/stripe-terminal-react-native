@@ -24,6 +24,7 @@ export default function DiscoveryMethodScreen() {
       <ListItem
         onPress={() => onSelect('bluetoothScan')}
         title="Bluetooth Scan"
+        testID="bt-scn-btn"
       />
       <Text style={styles.info}>
         Discover a reader by scanning for Bluetooth or Bluetooth LE devices.
@@ -35,12 +36,16 @@ export default function DiscoveryMethodScreen() {
         }
       </Text>
 
-      <ListItem title="Internet" onPress={() => onSelect('internet')} />
+      <ListItem
+        title="Internet"
+        testID="internet-btn"
+        onPress={() => onSelect('internet')}
+      />
       <Text style={styles.info}>
         Discovers readers that have been registered to your account via the
         Stripe API or Dashboard.
       </Text>
-      <ListItem title="USB" onPress={() => onSelect('usb')} />
+      <ListItem testID="usb-btn" title="USB" onPress={() => onSelect('usb')} />
       <Text style={styles.info}>
         Discover a reader connected to this device via USB.
       </Text>
@@ -59,6 +64,7 @@ export default function DiscoveryMethodScreen() {
           <ListItem
             onPress={() => onSelect('bluetoothProximity')}
             title="Bluetooth Proximity"
+            testID="bt-prox-btn"
           />
           <Text style={styles.info}>
             Discover a reader by holding it next to the iOS device (only

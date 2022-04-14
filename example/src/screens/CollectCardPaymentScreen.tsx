@@ -29,6 +29,8 @@ const CURRENCIES = [
 ];
 
 export default function CollectCardPaymentScreen() {
+  const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
+
   const [inputValues, setInputValues] = useState<{
     amount: string;
     currency: string;
@@ -36,7 +38,7 @@ export default function CollectCardPaymentScreen() {
     applicationFeeAmount?: string;
   }>({
     amount: '20000',
-    currency: 'USD',
+    currency: account?.default_currency || 'usd',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
@@ -45,7 +47,6 @@ export default function CollectCardPaymentScreen() {
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
-  const { api, setLastSuccessfulChargeId } = useContext(AppContext);
   const navigation = useNavigation();
 
   const {
