@@ -34,7 +34,7 @@
     "emulator": {
       "type": "android.emulator",
       "device": {
-        "avdName": "Nexus_6_API_29_2",
+        "avdName": "Pixel_5_API_31",
         "utilBinaryPaths": ["./test-butler-app.apk"]
       }
     },
