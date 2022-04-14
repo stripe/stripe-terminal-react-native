@@ -155,7 +155,7 @@ commands:
       - android/start-emulator:
           avd-name: <<parameters.device_name>>
           no-window: true
-          restore-gradle-cache-prefix: v1a
+          restore-gradle-cache-prefix: v2a
           memory: 2048
           gpu: auto
           run-logcat: true
