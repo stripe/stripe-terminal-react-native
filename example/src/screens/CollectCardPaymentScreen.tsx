@@ -43,6 +43,7 @@ export default function CollectCardPaymentScreen() {
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
+  const [skipTipping, setSkipTipping] = useState(true);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
@@ -209,9 +210,10 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const { paymentIntent, error } = await collectPaymentMethod(
-      paymentIntentId
-    );
+    const { paymentIntent, error } = await collectPaymentMethod({
+      paymentIntentId: paymentIntentId,
+      skipTipping: skipTipping,
+    });
 
     if (error) {
       addLogs({
@@ -463,6 +465,19 @@ export default function CollectCardPaymentScreen() {
           </List>
         </>
       )}
+
+      <List bolded={false} topSpacing={false} title="SKIP TIPPING">
+        <ListItem
+          title="Skip Tipping"
+          rightElement={
+            <Switch
+              testID="skip-tipping"
+              value={skipTipping}
+              onValueChange={(value) => setSkipTipping(value)}
+            />
+          }
+        />
+      </List>
 
       <List
         bolded={false}

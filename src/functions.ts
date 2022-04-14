@@ -28,6 +28,7 @@ import type {
   ConnectReaderResultType,
   ConnectHandoffParams,
   ConnectEmbeddedParams,
+  CollectPaymentMethodParams,
 } from './types';
 
 export async function initialize(
@@ -307,11 +308,11 @@ export async function createSetupIntent(
 }
 
 export async function collectPaymentMethod(
-  paymentIntentId: string
+  params: CollectPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
   try {
     const { error, paymentIntent } =
-      await StripeTerminalSdk.collectPaymentMethod(paymentIntentId);
+      await StripeTerminalSdk.collectPaymentMethod(params);
 
     if (error) {
       return {
