@@ -62,17 +62,6 @@ export default function RefundPaymentScreen() {
 
   const _collectRefundPaymentMethod = async () => {
     clearLogs();
-    addLogs({
-      name: 'Collect Refund Payment Method',
-      events: [
-        {
-          name: 'Collect',
-          description: 'terminal.collectRefundPaymentMethod',
-          metadata: _refundMetadata,
-          onBack: cancelCollectRefundPaymentMethod,
-        },
-      ],
-    });
 
     if (simulated) {
       await setSimulatedCard(testCardNumber);
@@ -86,6 +75,7 @@ export default function RefundPaymentScreen() {
           name: 'Collect',
           description: 'terminal.collectRefundPaymentMethod',
           metadata: _refundMetadata,
+          onBack: cancelCollectRefundPaymentMethod,
         },
       ],
     });
