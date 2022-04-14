@@ -143,7 +143,7 @@ commands:
         default: 'TestingAVD'
       platform_version:
         type: string
-        default: 'android-31'
+        default: 'android-30'
       logcat_grep:
         type: string
         default: 'com.example.stripeterminalreactnative'
@@ -155,7 +155,7 @@ commands:
       - android/start-emulator:
           avd-name: <<parameters.device_name>>
           no-window: true
-          restore-gradle-cache-prefix: v2a
+          restore-gradle-cache-prefix: v1a
           memory: 2048
           gpu: auto
           run-logcat: true
