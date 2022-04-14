@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import icon from '../assets/icon.png';
@@ -22,11 +22,16 @@ export default function UpdateReaderScreen() {
     onDidFinishInstallingUpdate: ({ error }) => {
       if (error) {
         console.log(error.message);
-      } else {
-        params?.onDidUpdate();
+        Alert.alert(error.message);
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
+        return;
+      }
+
+      params?.onDidUpdate();
+      if (navigation.canGoBack()) {
+        navigation.goBack();
       }
     },
   });
@@ -37,9 +42,13 @@ export default function UpdateReaderScreen() {
     });
 
     navigation.addListener('beforeRemove', async (e) => {
-      e.preventDefault();
-      await cancelInstallingUpdate();
-      navigation.dispatch(e.data.action);
+      try {
+        e.preventDefault();
+        await cancelInstallingUpdate();
+      } catch (ex) {
+      } finally {
+        navigation.dispatch(e.data.action);
+      }
     });
   }, [navigation, cancelInstallingUpdate]);
 
