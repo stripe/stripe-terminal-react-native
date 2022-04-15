@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useStripeTerminal } from 'stripe-terminal-react-native';
 import { colors } from '../colors';
 import icon from '../assets/icon.png';
@@ -19,16 +19,7 @@ export default function UpdateReaderScreen() {
     onDidReportReaderSoftwareUpdateProgress: (progress) => {
       setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
     },
-    onDidFinishInstallingUpdate: ({ error }) => {
-      if (error) {
-        console.log(error.message);
-        Alert.alert(error.message);
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-        return;
-      }
-
+    onDidFinishInstallingUpdate: () => {
       params?.onDidUpdate();
       if (navigation.canGoBack()) {
         navigation.goBack();
@@ -41,14 +32,8 @@ export default function UpdateReaderScreen() {
       headerBackTitle: 'Cancel',
     });
 
-    navigation.addListener('beforeRemove', async (e) => {
-      try {
-        e.preventDefault();
-        await cancelInstallingUpdate();
-      } catch (ex) {
-      } finally {
-        navigation.dispatch(e.data.action);
-      }
+    navigation.addListener('beforeRemove', () => {
+      cancelInstallingUpdate();
     });
   }, [navigation, cancelInstallingUpdate]);
 
