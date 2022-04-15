@@ -13,6 +13,8 @@ const SELECTED_ACCOUNT_KEY = '@rn_selected_example_account';
 const ACCOUNTS_KEY = '@rn_example_accounts';
 const DISCOVERY_KEY = '@rn_example_discovery';
 
+export const clearMerchantStorage = async () => AsyncStorage.clear();
+
 export const getStoredAccounts = async (): Promise<Array<IShortAccount>> => {
   const jsonValue = await AsyncStorage.getItem(ACCOUNTS_KEY);
   const accts = jsonValue ? JSON.parse(jsonValue) : [];
