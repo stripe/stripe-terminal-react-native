@@ -1,17 +1,33 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
+import {
+  IS_CI,
+  // @ts-ignore
+} from '@env';
+
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
 import { AppContext, api } from './AppContext';
 import type { IAccount } from './types';
 import { Api } from './api/api';
-import { setSelectedAccount, getSelectedAccount } from './util/merchantStorage';
+import {
+  setSelectedAccount,
+  getSelectedAccount,
+  clearMerchantStorage,
+} from './util/merchantStorage';
 
 export default function Root() {
   const [account, setAccount] = useState<IAccount | null>(null);
   const [lastSuccessfulChargeId, setLastSuccessfulChargeId] = useState<
     string | null
   >(null);
+
+  useEffect(() => {
+    // var is a string in CircleCI
+    if (IS_CI === 'true') {
+      clearMerchantStorage();
+    }
+  }, []);
 
   const onSelectAccount = useCallback(
     async ({ selectedAccountKey }: { selectedAccountKey: string | null }) => {
