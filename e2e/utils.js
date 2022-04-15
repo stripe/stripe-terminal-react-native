@@ -132,6 +132,8 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
 
   if (['verifoneP400', 'wisePosE'].includes(reader)) {
     await changeDiscoveryMethod('Internet');
+  } else {
+    await changeDiscoveryMethod('Bluetooth Scan');
   }
 
   await navigateTo('Discover Readers');
