@@ -1,6 +1,6 @@
 {
-  "name": "stripe-terminal-react-native-example",
-  "description": "Example app for stripe-terminal-react-native",
+  "name": "stripe-terminal-react-native-dev-app",
+  "description": "dev / e2e app for stripe-terminal-react-native",
   "version": "0.0.1",
   "private": true,
   "scripts": {

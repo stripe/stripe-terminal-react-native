@@ -7,14 +7,14 @@ lane :increment_version do |options|
     app: options[:app_id].to_s
   )
   version_name = android_get_version_name(
-    gradle_file: 'example/android/app/build.gradle'
+    gradle_file: 'dev-app/android/app/build.gradle'
   )
   android_set_version_code(
-    gradle_file: 'example/android/app/build.gradle',
+    gradle_file: 'dev-app/android/app/build.gradle',
     version_code: latest_release[:buildVersion].to_i + 1
   )
   android_set_version_name(
-    gradle_file: 'example/android/app/build.gradle',
+    gradle_file: 'dev-app/android/app/build.gradle',
     version_name: "#{version_name}_#{options[:version_suffix]}"
   )
 end
@@ -29,7 +29,7 @@ lane :publish_to_firebase do |options|
     # uncomment groups to send an email on every deploy
     # groups: 'terminal-qa',
     release_notes: build_notes,
-    apk_path: 'example/android/app/build/outputs/apk/release/app-release.apk',
+    apk_path: 'dev-app/android/app/build/outputs/apk/release/app-release.apk',
     firebase_cli_token: options[:firebase_token].to_s
   )
 end
@@ -44,14 +44,14 @@ lane :publish_ios_to_testflight do |options|
 
   increment_build_number(
     build_number: target_build_number,
-    xcodeproj: "example/ios/StripeTerminalReactNativeExample.xcodeproj"
+    xcodeproj: "dev-app/ios/StripeTerminalReactNativeExample.xcodeproj"
   )
 
   # gym builds, packages, and signs the iOS app
   gym(
     configuration: "Release",
     scheme: "StripeTerminalReactNativeExample",
-    workspace: "example/ios/StripeTerminalReactNativeExample.xcworkspace"
+    workspace: "dev-app/ios/StripeTerminalReactNativeExample.xcworkspace"
   )
 
   # pilot submits the app to testflight
@@ -65,7 +65,7 @@ lane :publish_ios_to_testflight do |options|
   # Reset build number to 1
   increment_build_number(
     build_number: 1,
-    xcodeproj: "example/ios/StripeTerminalReactNativeExample.xcodeproj"
+    xcodeproj: "dev-app/ios/StripeTerminalReactNativeExample.xcodeproj"
   )
 
   clean_build_artifacts

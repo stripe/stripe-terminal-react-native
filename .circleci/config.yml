@@ -34,7 +34,7 @@ commands:
     parameters:
       pod_install_directory:
         type: string
-        default: 'example/ios'
+        default: 'dev-app/ios'
 
     steps:
       - restore_cache:
@@ -85,7 +85,7 @@ commands:
       - run:
           name: Configure Environment Variables
           command: |
-            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
             source $BASH_ENV
       - install_node
       - install_yarn
@@ -127,7 +127,7 @@ commands:
       - run:
           name: Configure Environment Variables
           command: |
-            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/example/node_modules/.bin"' >> $BASH_ENV
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
             source $BASH_ENV
       - install_node
       - install_yarn
@@ -173,13 +173,13 @@ jobs:
             - dependencies-
       - restore_cache:
           keys:
-            - dependencies-example-{{ checksum "example/package.json" }}
-            - dependencies-example-
+            - dependencies-dev-app-{{ checksum "dev-app/package.json" }}
+            - dependencies-dev-app-
       - run:
           name: Install dependencies
           command: |
             set -e
-            yarn install --cwd example
+            yarn install --cwd dev-app
             yarn install
             echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
             git diff --exit-code
@@ -187,8 +187,8 @@ jobs:
           key: dependencies-{{ checksum "package.json" }}
           paths: [node_modules]
       - save_cache:
-          key: dependencies-example-{{ checksum "example/package.json" }}
-          paths: [example/node_modules]
+          key: dependencies-dev-app-{{ checksum "dev-app/package.json" }}
+          paths: [dev-app/node_modules]
       - persist_to_workspace:
           root: .
           paths: [.]
@@ -284,18 +284,18 @@ jobs:
           command: yarn install --frozen-lockfile
           name: yarn install
       - run:
-          name: "Increment example app version"
+          name: "Increment dev app version"
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
       - android/restore-gradle-cache
       - android/restore-build-cache
       - run:
-          command: yarn example:build:android:release
+          command: yarn dev-app:build:android:release
           name: build
       - android/save-gradle-cache
       - android/save-build-cache
       - run:
-          name: "Deploy example app to Firebase"
+          name: "Deploy dev app to Firebase"
           command: |
               bundle exec fastlane publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
 
@@ -312,7 +312,7 @@ workflows:
             - install-dependencies
       - e2e-android:
           context:
-            - stripe-terminal-react-native-android-test # sets API_URL_ANDROID to allow the emulator to access the example app backend
+            - stripe-terminal-react-native-android-test
           requires:
             - install-dependencies
       - e2e-ios:
