@@ -14,7 +14,7 @@
     "ios",
     "cpp",
     "stripe-terminal-react-native.podspec",
-    "!lib/typescript/example",
+    "!lib/typescript/dev-app",
     "!android/build",
     "!ios/build",
     "!**/__tests__",
@@ -27,11 +27,11 @@
     "lint": "jest --config \"jest.eslint.config.js\"",
     "prepare": "bob build",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
-    "example": "yarn --cwd example",
-    "pods": "cd example && pod-install --quiet",
-    "clean": "rm -rf node_modules && rm -rf example/node_modules && rm -rf example/ios/Pods",
-    "bootstrap": "yarn clean && yarn example && yarn && yarn pods",
-    "example:build:android:release": "cd example/android && ./gradlew assembleRelease ; cd -",
+    "dev-app": "yarn --cwd dev-app",
+    "pods": "cd dev-app && pod-install --quiet",
+    "clean": "rm -rf node_modules && rm -rf dev-app/node_modules && rm -rf dev-app/ios/Pods",
+    "bootstrap": "yarn clean && yarn dev-app && yarn && yarn pods",
+    "dev-app:build:android:release": "cd dev-app/android && ./gradlew assembleRelease ; cd -",
     "e2e:build:android": "detox build --configuration android",
     "e2e:build:ios": "detox build --configuration ios",
     "e2e:test:android": "yarn get:testbutler && detox test --configuration android --take-screenshots failing --loglevel verbose",
@@ -42,7 +42,6 @@
     "e2e:test:ios:release": " detox test --configuration ios.sim.release --take-screenshots failing --loglevel verbose",
     "get:testbutler": "curl -f -o ./test-butler-app.apk https://repo1.maven.org/maven2/com/linkedin/testbutler/test-butler-app/2.2.1/test-butler-app-2.2.1.apk",
     "docs": "npx typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json",
-    "heroku-prebuild": "yarn install --cwd example --frozen-lockfile",
     "unit-test:android": "cd android && ./gradlew testDebugUnitTest"
   },
   "keywords": [
@@ -89,7 +88,7 @@
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
+      "<rootDir>/dev-app/node_modules",
       "<rootDir>/lib/"
     ]
   },
@@ -125,8 +124,8 @@
     "node_modules/",
     "lib/",
     "android/build",
-    "example/ios",
-    "example/android"
+    "dev-app/ios",
+    "dev-app/android"
   ],
   "prettier": {
     "quoteProps": "consistent",

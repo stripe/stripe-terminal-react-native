@@ -2,8 +2,8 @@ docs
 android
 ios
 lib
-example/ios
-example/android
+dev-app/ios
+dev-app/android
 package.json
 tsconfig.json
 config.json
