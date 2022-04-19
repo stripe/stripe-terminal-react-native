@@ -28,7 +28,7 @@
     [bridge moduleForClass:[RCTDevLoadingView class]];
   #endif
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
-                                                   moduleName:@"StripeTerminalReactNativeExample"
+                                                   moduleName:@"StripeTerminalReactNativeDevApp"
                                             initialProperties:nil];
 
   if (@available(iOS 13.0, *)) {
