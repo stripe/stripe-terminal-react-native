@@ -391,7 +391,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.stripeterminalreactnative;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dev.app.stripeterminalreactnative;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StripeTerminalReactNativeDevApp.app/StripeTerminalReactNativeDevApp";
 			};
@@ -412,7 +412,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.stripeterminalreactnative;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dev.app.stripeterminalreactnative;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/StripeTerminalReactNativeDevApp.app/StripeTerminalReactNativeDevApp";
 			};
@@ -435,7 +435,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.example;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app;
 				PRODUCT_NAME = StripeTerminalReactNativeDevApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "StripeTerminalReactNativeDevApp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -460,7 +460,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.example;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app;
 				PRODUCT_NAME = StripeTerminalReactNativeDevApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "StripeTerminalReactNativeDevApp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
