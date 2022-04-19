@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnative;
+package com.dev.app.stripeterminalreactnative;
 
 import com.wix.detox.Detox;
 import com.wix.detox.config.DetoxConfig;
@@ -29,3 +29,4 @@ public class DetoxTest {
         Detox.runTests(mActivityRule, detoxConfig);
     }
 }
+
