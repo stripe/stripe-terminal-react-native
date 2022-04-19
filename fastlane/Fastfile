@@ -36,27 +36,27 @@ end
 
 lane :publish_ios_to_testflight do |options|
 
-  match(app_identifier: "com.stripe.terminal.reactnative.example")
+  match(app_identifier: "com.stripe.terminal.reactnative.dev.app")
 
   target_build_number = latest_testflight_build_number(
-    app_identifier: "com.stripe.terminal.reactnative.example"
+    app_identifier: "com.stripe.terminal.reactnative.dev.app"
   ) + 1
 
   increment_build_number(
     build_number: target_build_number,
-    xcodeproj: "dev-app/ios/StripeTerminalReactNativeExample.xcodeproj"
+    xcodeproj: "dev-app/ios/StripeTerminalReactNativeDevApp.xcodeproj"
   )
 
   # gym builds, packages, and signs the iOS app
   gym(
     configuration: "Release",
-    scheme: "StripeTerminalReactNativeExample",
-    workspace: "dev-app/ios/StripeTerminalReactNativeExample.xcworkspace"
+    scheme: "StripeTerminalReactNativeDevApp",
+    workspace: "dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace"
   )
 
   # pilot submits the app to testflight
   pilot(
-    app_identifier: "com.stripe.terminal.reactnative.example",
+    app_identifier: "com.stripe.terminal.reactnative.dev.app",
     skip_submission: true,
     distribute_external: false,
     skip_waiting_for_build_processing: true
@@ -65,7 +65,7 @@ lane :publish_ios_to_testflight do |options|
   # Reset build number to 1
   increment_build_number(
     build_number: 1,
-    xcodeproj: "dev-app/ios/StripeTerminalReactNativeExample.xcodeproj"
+    xcodeproj: "dev-app/ios/StripeTerminalReactNativeDevApp.xcodeproj"
   )
 
   clean_build_artifacts

@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnative;
+package com.dev.app.stripeterminalreactnative;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -17,7 +17,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "StripeTerminalReactNativeExample";
+    return "StripeTerminalReactNativeDevApp";
   }
 
   @Override
