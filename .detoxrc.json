@@ -4,13 +4,13 @@
   "apps": {
     "ios.debug": {
       "type": "ios.app",
-      "binaryPath": "dev-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeExample.app",
-      "build": "xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeExample.xcworkspace -configuration Debug -scheme StripeTerminalReactNativeExample -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath dev-app/ios/build"
+      "binaryPath": "dev-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeDevApp.app",
+      "build": "xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -configuration Debug -scheme StripeTerminalReactNativeDevApp -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath dev-app/ios/build"
     },
     "ios.release": {
       "type": "ios.app",
-      "binaryPath": "dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeExample.app",
-      "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeExample.xcworkspace -configuration Release -scheme StripeTerminalReactNativeExample -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath dev-app/ios/build"
+      "binaryPath": "dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app",
+      "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -configuration Release -scheme StripeTerminalReactNativeDevApp -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath dev-app/ios/build"
     },
     "android.debug": {
       "type": "android.apk",
