@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnative;
+package com.dev.app.stripeterminalreactnative;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
