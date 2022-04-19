@@ -1,4 +1,5 @@
 {
+  "exclude": ["example-app"],
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
