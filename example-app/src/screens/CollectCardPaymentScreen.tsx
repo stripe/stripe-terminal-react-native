@@ -29,7 +29,7 @@ const CURRENCIES = [
 ];
 
 export default function CollectCardPaymentScreen() {
-  const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
+  const { api, setLastSuccessfulChargeId } = useContext(AppContext);
 
   const [inputValues, setInputValues] = useState<{
     amount: string;
@@ -38,11 +38,10 @@ export default function CollectCardPaymentScreen() {
     applicationFeeAmount?: string;
   }>({
     amount: '20000',
-    currency: account?.default_currency || 'usd',
+    currency: 'usd',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
-  const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(true);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -322,7 +321,7 @@ export default function CollectCardPaymentScreen() {
       events: [{ name: 'Capture', description: 'terminal.capturePayment' }],
     });
 
-    const resp = await api.capturePaymentIntent(paymentIntentId, {});
+    const resp = await api.capturePaymentIntent(paymentIntentId);
 
     if ('error' in resp) {
       addLogs({
@@ -415,56 +414,6 @@ export default function CollectCardPaymentScreen() {
           }
         />
       </List>
-
-      <List bolded={false} topSpacing={false} title="CONNECT">
-        <ListItem
-          title="Enable Connect"
-          rightElement={
-            <Switch
-              testID="enable-connect"
-              value={enableConnect}
-              onValueChange={(value) => setEnableConnect(value)}
-            />
-          }
-        />
-      </List>
-      {enableConnect && (
-        <>
-          <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
-            <TextInput
-              testID="destination-charge"
-              style={styles.input}
-              value={inputValues.connectedAccountId}
-              onChangeText={(value: string) =>
-                setInputValues((state) => ({
-                  ...state,
-                  connectedAccountId: value,
-                }))
-              }
-              placeholder="Connected Stripe Account ID"
-            />
-          </List>
-
-          <List
-            bolded={false}
-            topSpacing={false}
-            title="APPLICATION FEE AMOUNT"
-          >
-            <TextInput
-              testID="application-fee-amount"
-              style={styles.input}
-              value={inputValues.applicationFeeAmount}
-              onChangeText={(value: string) =>
-                setInputValues((state) => ({
-                  ...state,
-                  applicationFeeAmount: value,
-                }))
-              }
-              placeholder="Application Fee Amount"
-            />
-          </List>
-        </>
-      )}
 
       <List bolded={false} topSpacing={false} title="SKIP TIPPING">
         <ListItem

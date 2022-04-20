@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useEffect,
-  useState,
-  useContext,
-} from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -23,7 +17,6 @@ import RefundPaymentScreen from './screens/RefundPaymentScreen';
 import DiscoveryMethodScreen from './screens/DiscoveryMethodScreen';
 import CollectCardPaymentScreen from './screens/CollectCardPaymentScreen';
 import SetupIntentScreen from './screens/SetupIntentScreen';
-import MerchantSelectScreen from './screens/MerchantSelectScreen';
 import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
 import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
@@ -35,8 +28,6 @@ import {
   requestNeededExpoAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
-
-import { AppContext } from './AppContext';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -56,13 +47,6 @@ export type RouteParamList = {
   DiscoverReaders: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
-  };
-  MerchantSelect: {
-    onSelectMerchant: ({
-      selectedAccountKey,
-    }: {
-      selectedAccountKey: string;
-    }) => void;
   };
   CollectCardPayment: {
     simulated: boolean;
@@ -116,9 +100,7 @@ export default function App() {
   const [logs, setlogs] = useState<Log[]>([]);
   const [hasPerms, setHasPerms] = useState<boolean>(false);
   const clearLogs = useCallback(() => setlogs([]), []);
-  const { initialize: initStripe, clearCachedCredentials } =
-    useStripeTerminal();
-  const { account } = useContext(AppContext);
+  const { initialize: initStripe } = useStripeTerminal();
 
   useEffect(() => {
     const initAndClear = async () => {
@@ -128,8 +110,6 @@ export default function App() {
         Alert.alert('StripeTerminal init failed', error.message);
         return;
       }
-
-      await clearCachedCredentials();
 
       if (reader) {
         console.log(
@@ -141,10 +121,10 @@ export default function App() {
 
       console.log('StripeTerminal has been initialized properly');
     };
-    if (account?.secretKey && hasPerms) {
+    if (hasPerms) {
       initAndClear();
     }
-  }, [account, initStripe, clearCachedCredentials, hasPerms]);
+  }, [initStripe, hasPerms]);
 
   const handlePermissionsSuccess = useCallback(async () => {
     setHasPerms(true);
@@ -207,11 +187,6 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions} mode="modal">
             <Stack.Screen name="Terminal" component={HomeScreen} />
-            <Stack.Screen
-              name="MerchantSelectScreen"
-              options={{ headerTitle: 'Merchant Select' }}
-              component={MerchantSelectScreen}
-            />
             <Stack.Screen
               name="DiscoverReadersScreen"
               options={{ headerTitle: 'Discovery' }}
