@@ -75,6 +75,7 @@ commands:
           command: |
             set +e
             npm install --global yarn
+            npm install --global expo-cli
             source ~/.bashrc
             yarn -v
 
@@ -175,10 +176,15 @@ jobs:
           keys:
             - dependencies-dev-app-{{ checksum "dev-app/package.json" }}
             - dependencies-dev-app-
+      - restore_cache:
+          keys:
+            - dependencies-example-app-{{ checksum "example-app/package.json" }}
+            - dependencies-example-app-
       - run:
           name: Install dependencies
           command: |
             set -e
+            yarn install --cwd example-app
             yarn install --cwd dev-app
             yarn install
             echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
@@ -189,6 +195,9 @@ jobs:
       - save_cache:
           key: dependencies-dev-app-{{ checksum "dev-app/package.json" }}
           paths: [dev-app/node_modules]
+      - save_cache:
+          key: dependencies-example-app-{{ checksum "example-app/package.json" }}
+          paths: [example-app/node_modules]
       - persist_to_workspace:
           root: .
           paths: [.]
@@ -209,6 +218,16 @@ jobs:
           name: Typecheck files
           command: |
             yarn typescript
+            yarn --cwd example-app typescript
+  example-build:
+    executor: linux_js
+    steps:
+      - attach_project
+      - run:
+          name: Build Example App
+          command: |
+            yarn --cwd example-app build:android:ci
+            yarn --cwd example-app build:ios:ci
   test:
     executor: linux_js
     steps:
@@ -308,6 +327,9 @@ workflows:
           requires:
             - install-dependencies
       - typescript:
+          requires:
+            - install-dependencies
+      - example-build:
           requires:
             - install-dependencies
       - e2e-android:

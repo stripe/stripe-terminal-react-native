@@ -28,6 +28,7 @@
     "prepare": "bob build",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
     "dev-app": "yarn --cwd dev-app",
+    "example-app": "yarn --cwd example-app",
     "pods": "cd dev-app && pod-install --quiet",
     "clean": "rm -rf node_modules && rm -rf dev-app/node_modules && rm -rf dev-app/ios/Pods",
     "bootstrap": "yarn dev-app && yarn && yarn pods",

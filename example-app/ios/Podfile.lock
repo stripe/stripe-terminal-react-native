@@ -310,7 +310,7 @@ PODS:
     - React-Core
   - RNCMaskedView (0.1.11):
     - React
-  - RNCPicker (2.4.1):
+  - RNCPicker (2.2.1):
     - React-Core
   - RNGestureHandler (1.10.3):
     - React-Core
@@ -344,7 +344,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.13.1):
+  - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
   - stripe-terminal-react-native (0.1.0):
@@ -567,11 +567,11 @@ SPEC CHECKSUMS:
   ReactCommon: 9bac022ab71596f2b0fde1268272543184c63971
   RNCAsyncStorage: 005c0e2f09575360f142d0d1f1f15e4ec575b1af
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
-  RNCPicker: abc646b53a3d28ccfa3232c927a0ca52e0cf024d
+  RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNPermissions: 34d678157c800b25b22a488e4d8babb57456e796
   RNReanimated: ee33ab40fa252332a36aeed9d936801ed9700b24
-  RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
+  RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   stripe-terminal-react-native: 15e612259e8b3d12ffe0975ef186101e1117841c
   StripeTerminal: 237b759168a00c7f55b97c743cd8a4921866c46b
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa

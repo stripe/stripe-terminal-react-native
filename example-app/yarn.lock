@@ -2098,16 +2098,16 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*":
-  version "18.0.5"
-  resolved "https://registry.npmjs.org/@types/react/-/react-18.0.5.tgz#1a4d4b705ae6af5aed369dec22800b20f89f5301"
-  integrity sha512-UPxNGInDCIKlfqBrm8LDXYWNfLHwIdisWcsH5GpMyGjhEDLFgTtlRBaoWuCua9HcyuE0rMkmAeZ3FXV1pYLIYQ==
+"@types/react@*", "@types/react@17.0.41":
+  version "17.0.41"
+  resolved "https://registry.npmjs.org/@types/react/-/react-17.0.41.tgz#6e179590d276394de1e357b3f89d05d7d3da8b85"
+  integrity sha512-chYZ9ogWUodyC7VUTRBfblysKLjnohhFY9bGLwvnUFFy48+vB9DikmB3lW0qTFmBcKSzmdglcvkHK71IioOlDA==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
     csstype "^3.0.2"
 
-"@types/react@~17.0.21":
+"@types/react@~17.0.41":
   version "17.0.44"
   resolved "https://registry.npmjs.org/@types/react/-/react-17.0.44.tgz#c3714bd34dd551ab20b8015d9d0dbec812a51ec7"
   integrity sha512-Ye0nlw09GeMp2Suh8qoOv0odfgCoowfM/9MG6WeRD60Gq9wS90bdkdRtYbRkNhXOpG4H+YXGvj4wOWhAC0LJ1g==
@@ -7319,10 +7319,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@~4.3.5:
-  version "4.3.5"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
-  integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
+typescript@^4.6.2:
+  version "4.6.3"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-4.6.3.tgz#eefeafa6afdd31d725584c67a0eaba80f6fc6c6c"
+  integrity sha512-yNIatDa5iaofVozS/uQJEl3JRWLKKGJKh6Yaiv0GLGSuhpFJe7P3SbHZ8/yjAHRQwKRoA6YZqlfjXWmVzoVSMw==
 
 ua-parser-js@^0.7.30:
   version "0.7.31"
