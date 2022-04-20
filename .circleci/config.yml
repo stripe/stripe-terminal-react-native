@@ -343,9 +343,9 @@ workflows:
       - typescript:
           requires:
             - install-dependencies
-      - example-build-ios:
-          requires:
-            - install-dependencies
+      # - example-build-ios:
+      #     requires:
+      #       - install-dependencies
       - example-build-android:
           requires:
             - install-dependencies
