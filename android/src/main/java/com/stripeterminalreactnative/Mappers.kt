@@ -86,6 +86,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.VERIFONE_P400 -> "verifoneP400"
         DeviceType.WISEPAD_3 -> "wisePad3"
         DeviceType.WISEPOS_E -> "wisePosE"
+        DeviceType.ETNA -> "etna"
     }
 }
 
