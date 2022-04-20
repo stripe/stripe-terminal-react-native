@@ -75,6 +75,7 @@ commands:
           command: |
             set +e
             npm install --global yarn
+            npm install --global expo-cli
             source ~/.bashrc
             yarn -v
 
@@ -175,10 +176,10 @@ jobs:
           keys:
             - dependencies-dev-app-{{ checksum "dev-app/package.json" }}
             - dependencies-dev-app-
-      # - restore_cache:
-      #     keys:
-      #       - dependencies-example-app-{{ checksum "example-app/package.json" }}
-      #       - dependencies-example-app-
+      - restore_cache:
+          keys:
+            - dependencies-example-app-{{ checksum "example-app/package.json" }}
+            - dependencies-example-app-
       - run:
           name: Install dependencies
           command: |
@@ -218,14 +219,23 @@ jobs:
           command: |
             yarn typescript
             yarn --cwd example-app typescript
-  example-build:
-    executor: linux_js
+  example-build-android:
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
-      - attach_project
+      - setup_android_executor
       - run:
           name: Build Example App
           command: |
             yarn --cwd example-app build:android:ci
+  example-build-ios:
+    executor: macos_custom
+    steps:
+      - setup_macos_executor
+      - run:
+          name: Build iOS Example App
+          command: |
             yarn --cwd example-app build:ios:ci
   test:
     executor: linux_js
@@ -328,7 +338,10 @@ workflows:
       - typescript:
           requires:
             - install-dependencies
-      - example-build:
+      - example-build-ios:
+          requires:
+            - install-dependencies
+      - example-build-android:
           requires:
             - install-dependencies
       - e2e-android:
