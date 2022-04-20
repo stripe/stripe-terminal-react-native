@@ -225,6 +225,7 @@ jobs:
       tag: 2021.10.1
     steps:
       - setup_android_executor
+      - android_emulator_start
       - run:
           name: Build Example App
           command: |
@@ -232,6 +233,10 @@ jobs:
   example-build-ios:
     executor: macos_custom
     steps:
+      - macos/preboot-simulator:
+          version: "15.4"
+          platform: iOS
+          device: iPhone 13
       - setup_macos_executor
       - run:
           name: Build iOS Example App
