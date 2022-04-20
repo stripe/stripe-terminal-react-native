@@ -53,10 +53,9 @@ export default function ReadReusableCardScreen() {
       ],
     });
 
-    const resp = await api.lookupOrCreateExampleCustomer();
+    const { paymentMethod, error } = await readReusableCard({});
 
-    if ('error' in resp) {
-      console.log(resp.error);
+    if (error || !paymentMethod) {
       addLogs({
         name: 'Read Reusable Card',
         events: [
@@ -64,8 +63,8 @@ export default function ReadReusableCardScreen() {
             name: 'Failed',
             description: 'terminal.readReusableCard',
             metadata: {
-              errorCode: resp.error.code,
-              errorMessage: resp.error.message,
+              errorCode: error?.code,
+              errorMessage: error?.message,
             },
           },
         ],
@@ -73,26 +72,10 @@ export default function ReadReusableCardScreen() {
       return;
     }
 
-    const { paymentMethod, error } = await readReusableCard({
-      customer: resp.id,
+    // attach PM to customer
+    await api.savePaymentMethodToCustomer({
+      paymentMethodId: paymentMethod.id,
     });
-
-    if (error) {
-      addLogs({
-        name: 'Read Reusable Card',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.readReusableCard',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
-          },
-        ],
-      });
-      return;
-    }
 
     addLogs({
       name: 'Read Reusable Card',
@@ -101,7 +84,7 @@ export default function ReadReusableCardScreen() {
           name: 'Finished',
           description: 'terminal.readReusableCard',
           metadata: {
-            customerId: resp.id || 'no customer',
+            customerId: 'no customer',
             paymentMethodId: paymentMethod?.id,
           },
         },

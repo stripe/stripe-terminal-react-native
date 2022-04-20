@@ -50,7 +50,7 @@ export class Api {
     description?: string;
     paymentMethodTypes?: string;
     customer?: string;
-  }): Promise<Stripe.SetupIntent | { error: Stripe.StripeAPIError }> {
+  }): Promise<Partial<Stripe.SetupIntent> | { error: Stripe.StripeAPIError }> {
     const formData = new URLSearchParams();
     formData.append('description', description);
 
@@ -64,11 +64,16 @@ export class Api {
       formData.append('customer', customer);
     }
 
-    return fetch('https://api.stripe.com/v1/setup_intents', {
+    return fetch(`${this.api_url}/create_setup_intent`, {
       headers: this.headers,
       method: 'POST',
       body: formData.toString(),
-    }).then((resp) => resp.json());
+    })
+      .then((resp) => resp.json())
+      .then((j) => ({
+        client_secret: j.secret,
+        id: j.intent,
+      }));
   }
 
   async capturePaymentIntent(
@@ -136,61 +141,18 @@ export class Api {
     }).then((resp) => resp.json());
   }
 
-  async getCustomers(
-    email?: string
-  ): Promise<Array<Stripe.Customer> | { error: Stripe.StripeAPIError }> {
-    const params = new URLSearchParams();
-    if (email) {
-      params.append('email', email);
-    }
-    return fetch(`https://api.stripe.com/v1/customers?${params.toString()}`, {
-      headers: this.headers,
-    })
-      .then((resp) => resp.json())
-      .then((resp) => {
-        if ('data' in resp) {
-          return resp.data;
-        }
-
-        return resp;
-      });
-  }
-
-  async createCustomer(
-    email: string
-  ): Promise<Stripe.Customer | { error: Stripe.StripeAPIError }> {
+  async savePaymentMethodToCustomer({
+    paymentMethodId,
+  }: {
+    paymentMethodId: string;
+  }): Promise<void> {
     const formData = new URLSearchParams();
-    formData.append('email', email);
+    formData.append('payment_method_id', paymentMethodId);
 
-    return fetch('https://api.stripe.com/v1/customers', {
+    return fetch(`${this.api_url}/attach_payment_method_to_customer`, {
       headers: this.headers,
       method: 'POST',
       body: formData.toString(),
-    })
-      .then((resp) => resp.json())
-      .then((resp) => {
-        if ('data' in resp) {
-          return resp.data;
-        }
-
-        return resp;
-      });
-  }
-
-  async lookupOrCreateExampleCustomer(): Promise<
-    Stripe.Customer | { error: Stripe.StripeAPIError }
-  > {
-    const customerEmail = 'example@test.com';
-    const customerList = await this.getCustomers(customerEmail);
-
-    if ('error' in customerList) {
-      return customerList;
-    }
-
-    if (customerList.length > 0) {
-      return Promise.resolve(customerList[0]);
-    }
-
-    return this.createCustomer(customerEmail);
+    }).then((resp) => resp.json());
   }
 }

@@ -79,18 +79,36 @@ export default function SetupIntentScreen() {
             },
           ],
         });
-      } else if (setupIntent) {
+        return;
+      }
+
+      if (!setupIntent || !setupIntent.paymentMethodId) {
         addLogs({
           name: 'Process Payment',
           events: [
             {
-              name: 'Finished',
+              name: 'Failed',
               description: 'terminal.confirmSetupIntent',
-              metadata: { setupIntentId: setupIntent.id },
+              metadata: {
+                errorCode: 'no_code',
+                errorMessage: 'setup intent is null!',
+              },
             },
           ],
         });
+        return;
       }
+
+      addLogs({
+        name: 'Process Payment',
+        events: [
+          {
+            name: 'Finished',
+            description: 'terminal.confirmSetupIntent',
+            metadata: { setupIntentId: setupIntent?.id },
+          },
+        ],
+      });
     },
     [addLogs, confirmSetupIntent]
   );
@@ -209,29 +227,7 @@ export default function SetupIntentScreen() {
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     } else {
-      const resp = await api.lookupOrCreateExampleCustomer();
-
-      if ('error' in resp) {
-        console.log(resp.error);
-        addLogs({
-          name: 'Lookup / Create Customer',
-          events: [
-            {
-              name: 'Failed',
-              description: 'terminal.lookupOrCreateExampleCustomer',
-              metadata: {
-                errorCode: resp.error.code,
-                errorMessage: resp.error.message,
-              },
-            },
-          ],
-        });
-        return;
-      }
-
-      const response = await createSetupIntent({
-        customerId: resp.id,
-      });
+      const response = await createSetupIntent({});
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     }
