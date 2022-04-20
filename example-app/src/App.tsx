@@ -62,6 +62,7 @@ export type RouteParamList = {
 };
 
 LogBox.ignoreLogs([
+  'Overwriting fontFamily style attribute preprocessor',
   // https://reactnavigation.org/docs/5.x/troubleshooting#i-get-the-warning-non-serializable-values-were-found-in-the-navigation-state
   'Non-serializable values were found in the navigation state',
   // https://github.com/software-mansion/react-native-gesture-handler/issues/722
