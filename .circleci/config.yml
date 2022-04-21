@@ -237,7 +237,7 @@ jobs:
       - run:
           name: Build iOS Example App
           command: |
-            yarn --cwd example-app build:ios:cio
+            yarn e2e:build:example:ios
   test:
     executor: linux_js
     steps:

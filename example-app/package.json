@@ -4,7 +4,6 @@
   "scripts": {
     "android": "expo run:android",
     "build:android:ci": "expo run:android --no-bundler",
-    "build:ios:ci": "expo run:ios --no-bundler",
     "eject": "expo eject",
     "ios": "expo run:ios",
     "postinstall": "../dev-app/scripts/fixRN.sh",
