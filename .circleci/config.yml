@@ -233,18 +233,11 @@ jobs:
   example-build-ios:
     executor: macos_custom
     steps:
-      - macos/preboot-simulator:
-          version: "15.4"
-          platform: iOS
-          device: iPhone 13
       - setup_macos_executor
       - run:
           name: Build iOS Example App
           command: |
-            ESCAPED_VER=$(echo 15.4 | tr '.' '-')
-            SIMLIST=$(xcrun simctl list -j)
-            UDID=$(echo $SIMLIST | jq -r ".devices.\"com.apple.CoreSimulator.SimRuntime.iOS-$ESCAPED_VER\"[] | select(.name==\"iPhone 13\").udid")
-            cd example-app && expo run:ios -d $UDID
+            yarn --cwd example-app build:ios:cio
   test:
     executor: linux_js
     steps:
@@ -340,33 +333,33 @@ workflows:
   build-and-test:
     jobs:
       - install-dependencies
-      - lint:
-          requires:
-            - install-dependencies
-      - typescript:
-          requires:
-            - install-dependencies
+      # - lint:
+      #     requires:
+      #       - install-dependencies
+      # - typescript:
+      #     requires:
+      #       - install-dependencies
       - example-build-ios:
           requires:
             - install-dependencies
-      - example-build-android:
-          requires:
-            - install-dependencies
-      - e2e-android:
-          context:
-            - stripe-terminal-react-native-android-test
-          requires:
-            - install-dependencies
-      - e2e-ios:
-          requires:
-            - install-dependencies
-      - deploy-firebase-android:
-          context:
-            - stripe-terminal-react-native-US-example-app
-          name: deploy-firebase-android-us
-          requires:
-            - install-dependencies
-          filters:
-              branches:
-                only:
-                  - main
+      # - example-build-android:
+      #     requires:
+      #       - install-dependencies
+      # - e2e-android:
+      #     context:
+      #       - stripe-terminal-react-native-android-test
+      #     requires:
+      #       - install-dependencies
+      # - e2e-ios:
+      #     requires:
+      #       - install-dependencies
+      # - deploy-firebase-android:
+      #     context:
+      #       - stripe-terminal-react-native-US-example-app
+      #     name: deploy-firebase-android-us
+      #     requires:
+      #       - install-dependencies
+      #     filters:
+      #         branches:
+      #           only:
+      #             - main
