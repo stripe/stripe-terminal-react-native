@@ -241,7 +241,10 @@ jobs:
       - run:
           name: Build iOS Example App
           command: |
-            yarn --cwd example-app build:ios:ci
+            ESCAPED_VER=$(echo 15.4 | tr '.' '-')
+            SIMLIST=$(xcrun simctl list -j)
+            UDID=$(echo $SIMLIST | jq -r ".devices.\"com.apple.CoreSimulator.SimRuntime.iOS-$ESCAPED_VER\"[] | select(.name==\"iPhone 13\").udid")
+            cd example-app && expo run:ios -d $UDID
   test:
     executor: linux_js
     steps:
@@ -343,9 +346,9 @@ workflows:
       - typescript:
           requires:
             - install-dependencies
-      # - example-build-ios:
-      #     requires:
-      #       - install-dependencies
+      - example-build-ios:
+          requires:
+            - install-dependencies
       - example-build-android:
           requires:
             - install-dependencies
