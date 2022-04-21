@@ -75,6 +75,7 @@ commands:
           command: |
             set +e
             npm install --global yarn
+            npm install --global expo-cli
             source ~/.bashrc
             yarn -v
 
@@ -175,10 +176,15 @@ jobs:
           keys:
             - dependencies-dev-app-{{ checksum "dev-app/package.json" }}
             - dependencies-dev-app-
+      - restore_cache:
+          keys:
+            - dependencies-example-app-{{ checksum "example-app/package.json" }}
+            - dependencies-example-app-
       - run:
           name: Install dependencies
           command: |
             set -e
+            yarn install --cwd example-app
             yarn install --cwd dev-app
             yarn install
             echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
@@ -189,6 +195,9 @@ jobs:
       - save_cache:
           key: dependencies-dev-app-{{ checksum "dev-app/package.json" }}
           paths: [dev-app/node_modules]
+      - save_cache:
+          key: dependencies-example-app-{{ checksum "example-app/package.json" }}
+          paths: [example-app/node_modules]
       - persist_to_workspace:
           root: .
           paths: [.]
@@ -209,6 +218,30 @@ jobs:
           name: Typecheck files
           command: |
             yarn typescript
+            yarn --cwd example-app typescript
+  example-build-android:
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
+    steps:
+      - setup_android_executor
+      - android_emulator_start
+      - run:
+          name: Build Example App
+          command: |
+            yarn --cwd example-app build:android:ci
+  example-build-ios:
+    executor: macos_custom
+    steps:
+      - macos/preboot-simulator:
+          version: "15.4"
+          platform: iOS
+          device: iPhone 13
+      - setup_macos_executor
+      - run:
+          name: Build iOS Example App
+          command: |
+            yarn --cwd example-app build:ios:ci
   test:
     executor: linux_js
     steps:
@@ -308,6 +341,12 @@ workflows:
           requires:
             - install-dependencies
       - typescript:
+          requires:
+            - install-dependencies
+      # - example-build-ios:
+      #     requires:
+      #       - install-dependencies
+      - example-build-android:
           requires:
             - install-dependencies
       - e2e-android:

@@ -1,4 +1,4 @@
-import type { Refund } from 'src/types/Refund';
+import type { Refund } from './Refund';
 import type { PaymentIntent } from './PaymentIntent';
 import type { Reader } from './Reader';
 import type { SetupIntent } from './SetupIntent';
