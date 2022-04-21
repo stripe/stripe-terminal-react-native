@@ -52,6 +52,28 @@ commands:
             - <<parameters.pod_install_directory>>/Pods
           key: cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
 
+  pod_install_example:
+    parameters:
+      pod_install_directory:
+        type: string
+        default: 'example-app/ios'
+
+    steps:
+      - restore_cache:
+          keys:
+            - cache-pods-example-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+            - cache-pods-example-
+      - run:
+          name: Install CocoaPods
+          command: |
+            cd <<parameters.pod_install_directory>> && pod install && cd -
+            echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date"
+            git diff --exit-code
+      - save_cache:
+          paths:
+            - <<parameters.pod_install_directory>>/Pods
+          key: cache-pods--example{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+
   install_node:
     parameters:
         node_version:
@@ -233,15 +255,15 @@ jobs:
   example-build-ios:
     executor: macos_custom
     steps:
-      - macos/preboot-simulator:
-          version: "15.4"
-          platform: iOS
-          device: iPhone 13
       - setup_macos_executor
+      - pod_install_example
       - run:
+          # we go a different route here and just build using xcode over expo
+          # as expo cannot find a booted simulator and _only_ buiding requires
+          # setting up an entire pipelinie to expo's cloud services
           name: Build iOS Example App
           command: |
-            yarn --cwd example-app build:ios:ci
+            yarn e2e:build:example:ios
   test:
     executor: linux_js
     steps:
@@ -343,9 +365,9 @@ workflows:
       - typescript:
           requires:
             - install-dependencies
-      # - example-build-ios:
-      #     requires:
-      #       - install-dependencies
+      - example-build-ios:
+          requires:
+            - install-dependencies
       - example-build-android:
           requires:
             - install-dependencies

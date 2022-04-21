@@ -2,6 +2,11 @@
   "testRunner": "jest",
   "runnerConfig": "e2e/config.json",
   "apps": {
+    "ios.example.debug": {
+      "type": "ios.app",
+      "binaryPath": "example-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeExampleApp.app",
+      "build": "xcodebuild -workspace example-app/ios/exampleapp.xcworkspace -configuration Debug -scheme exampleapp -destination 'platform=iOS Simulator,name=iPhone 11' -derivedDataPath example-app/ios/build"
+    },
     "ios.debug": {
       "type": "ios.app",
       "binaryPath": "dev-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeDevApp.app",
@@ -47,6 +52,10 @@
     }
   },
   "configurations": {
+    "ios.example": {
+      "device": "simulator",
+      "app": "ios.example.debug"
+    },
     "ios": {
       "device": "simulator",
       "app": "ios.debug"
