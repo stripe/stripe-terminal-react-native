@@ -235,8 +235,12 @@ jobs:
     steps:
       - setup_macos_executor
       - run:
+          # we go a different route here and just build using xcode over expo
+          # as expo cannot find a booted simulator and _only_ buiding requires
+          # setting up an entire pipelinie to expo's cloud services
           name: Build iOS Example App
           command: |
+            cd example-app/ios && pod install && cd -
             yarn e2e:build:example:ios
   test:
     executor: linux_js
@@ -333,33 +337,33 @@ workflows:
   build-and-test:
     jobs:
       - install-dependencies
-      # - lint:
-      #     requires:
-      #       - install-dependencies
-      # - typescript:
-      #     requires:
-      #       - install-dependencies
+      - lint:
+          requires:
+            - install-dependencies
+      - typescript:
+          requires:
+            - install-dependencies
       - example-build-ios:
           requires:
             - install-dependencies
-      # - example-build-android:
-      #     requires:
-      #       - install-dependencies
-      # - e2e-android:
-      #     context:
-      #       - stripe-terminal-react-native-android-test
-      #     requires:
-      #       - install-dependencies
-      # - e2e-ios:
-      #     requires:
-      #       - install-dependencies
-      # - deploy-firebase-android:
-      #     context:
-      #       - stripe-terminal-react-native-US-example-app
-      #     name: deploy-firebase-android-us
-      #     requires:
-      #       - install-dependencies
-      #     filters:
-      #         branches:
-      #           only:
-      #             - main
+      - example-build-android:
+          requires:
+            - install-dependencies
+      - e2e-android:
+          context:
+            - stripe-terminal-react-native-android-test
+          requires:
+            - install-dependencies
+      - e2e-ios:
+          requires:
+            - install-dependencies
+      - deploy-firebase-android:
+          context:
+            - stripe-terminal-react-native-US-example-app
+          name: deploy-firebase-android-us
+          requires:
+            - install-dependencies
+          filters:
+              branches:
+                only:
+                  - main
