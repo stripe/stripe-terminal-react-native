@@ -13,6 +13,7 @@ import { useListener } from '../hooks/useListener';
 import { NativeModules } from 'react-native';
 // @ts-ignore
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+import Logger from '../logger';
 
 const {
   FETCH_TOKEN_PROVIDER,
@@ -98,8 +99,8 @@ export function StripeTerminalProvider({
   const tokenProviderHandler = async () => {
     try {
       const connectionToken = await tokenProvider();
-
       setConnectionToken(connectionToken);
+      Logger.acquireSessionToken(tokenProvider);
     } catch (error) {
       setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
