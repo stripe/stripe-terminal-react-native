@@ -126,10 +126,8 @@ export default class Logger {
     console.log(tokenProvider);
     // Call the user's token provider method to get a connection token
     const connectionToken = await tokenProvider();
-    console.log(connectionToken);
     // Exchange that connection token for a RPC session token
     const sessionToken = await generatePosRpcSession(connectionToken);
-    console.log(sessionToken);
     // Set _sessionToken to that
     Logger.getInstance()._sessionToken = sessionToken;
   }
