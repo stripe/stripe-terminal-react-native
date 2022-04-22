@@ -1,3 +1,4 @@
+import Logger from './logger';
 import StripeTerminalSdk from './StripeTerminalSdk';
 import type {
   InitParams,
@@ -69,17 +70,23 @@ export async function setConnectionToken(
 export async function discoverReaders(
   params: DiscoverReadersParams
 ): Promise<DiscoverReadersResultType> {
-  try {
-    const { error } = await StripeTerminalSdk.discoverReaders(params);
+  return Logger.traceFunction(
+    async (innerParams) => {
+      try {
+        const { error } = await StripeTerminalSdk.discoverReaders(innerParams);
 
-    return {
-      error: error,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+        return {
+          error: error,
+        };
+      } catch (error) {
+        return {
+          error: error as any,
+        };
+      }
+    },
+    '',
+    'discoverReaders'
+  )(params);
 }
 
 export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> {

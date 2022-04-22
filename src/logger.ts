@@ -69,6 +69,8 @@ const buildGatorRequest = (
 const sendGatorRequest = (request: object) => {
   const url = 'https://gator.stripe.com:443/protojsonservice/GatorService';
 
+  console.log(`!!! SENDING GATOR REQUEST !!! ${JSON.stringify(request)}`);
+
   fetch(url, {
     method: 'POST',
     headers: {
@@ -148,10 +150,54 @@ export default class Logger {
   static reportTrace(trace: object) {
     const req = buildGatorRequest(
       'reportTrace',
-      trace,
+      { proxy_traces: [trace] },
       Logger.getInstance()._sessionToken
     );
     sendGatorRequest(req);
+  }
+
+  static traceFunction(
+    fn: (...args: any[]) => any | Promise<any>,
+    service: string,
+    methodName: string
+  ) {
+    return function constructTrace(this: any, ...args: any[]) {
+      const method = methodName || fn.name;
+
+      const response = fn.apply(this, args);
+
+      const trace = {
+        origin_role: 'pos-js',
+        origin_id: 'pos-b0u0t9vbvob',
+        trace: {
+          action_id: '78793673',
+          request_info: {
+            user_agent: '',
+          },
+          start_time_ms: Date.now(),
+          total_time_ms: 0,
+          service,
+          method,
+          request: JSON.stringify({ args }),
+          response: JSON.stringify(response),
+          exception: 'Action canceled.',
+          version_info: {
+            client_type: 'JS_SDK',
+            client_version: '1.3.2',
+          },
+          traces: [],
+          additional_context: {
+            action_id: '78793673',
+            session_id: '59501352',
+            serial_number: 'WSC513101000010',
+          },
+        },
+      };
+
+      Logger.reportTrace(trace);
+
+      return response;
+    };
   }
 }
 
