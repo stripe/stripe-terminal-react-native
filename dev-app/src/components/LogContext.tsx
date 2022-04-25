@@ -12,14 +12,24 @@ export type Log = {
   events: Array<Event>;
 };
 
+export type CancelType = {
+  label: string;
+  isDisabled: boolean;
+  action: () => void;
+};
+
 type ContextType = {
   logs: Array<Log>;
   addLogs: (newLog: Log) => void;
   clearLogs: () => void;
+  cancel: CancelType | null;
+  setCancel: (c: CancelType | null) => void | CancelType;
 };
 
 export const LogContext = createContext<ContextType>({
   logs: [],
   addLogs: () => {},
   clearLogs: () => {},
+  cancel: null,
+  setCancel: () => {},
 });

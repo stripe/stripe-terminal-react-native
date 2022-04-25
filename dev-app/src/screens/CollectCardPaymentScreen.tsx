@@ -47,7 +47,7 @@ export default function CollectCardPaymentScreen() {
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
-  const { addLogs, clearLogs } = useContext(LogContext);
+  const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
   const {
@@ -59,6 +59,8 @@ export default function CollectCardPaymentScreen() {
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
+      // @ts-ignore
+      setCancel((prev) => ({ ...prev, isDisabled: false }));
       addLogs({
         name: 'Collect Payment Method',
         events: [
@@ -80,7 +82,6 @@ export default function CollectCardPaymentScreen() {
           },
         ],
       });
-      console.log('message', message);
     },
   });
 
@@ -90,10 +91,21 @@ export default function CollectCardPaymentScreen() {
     }
 
     clearLogs();
+    setCancel({
+      label: 'Cancel Payment',
+      isDisabled: false,
+      action: cancelCollectPaymentMethod,
+    });
     navigation.navigate('LogListScreen');
     addLogs({
       name: 'Create Payment Intent',
-      events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
+      events: [
+        {
+          name: 'Create',
+          description: 'terminal.createPaymentIntent',
+          onBack: cancelCollectPaymentMethod,
+        },
+      ],
     });
     const paymentMethods = ['card_present'];
     if (enableInterac) {
@@ -115,6 +127,7 @@ export default function CollectCardPaymentScreen() {
             {
               name: 'Failed',
               description: 'terminal.createPaymentIntent',
+              onBack: cancelCollectPaymentMethod,
               metadata: {
                 errorCode: resp.error?.code,
                 errorMessage: resp.error?.message,
@@ -157,6 +170,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
+            onBack: cancelCollectPaymentMethod,
             metadata: {
               errorCode: paymentIntentError?.code,
               errorMessage: paymentIntentError?.message,
@@ -174,6 +188,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
+            onBack: cancelCollectPaymentMethod,
             metadata: {
               errorCode: 'no_code',
               errorMessage: 'No payment id returned!',
@@ -190,6 +205,7 @@ export default function CollectCardPaymentScreen() {
         {
           name: 'Created',
           description: 'terminal.createPaymentIntent',
+          onBack: cancelCollectPaymentMethod,
           metadata: { paymentIntentId: paymentIntent.id },
         },
       ],
@@ -199,6 +215,8 @@ export default function CollectCardPaymentScreen() {
   };
 
   const _collectPaymentMethod = async (paymentIntentId: string) => {
+    // @ts-ignore
+    setCancel((prev) => ({ ...prev, isDisabled: false }));
     addLogs({
       name: 'Collect Payment Method',
       events: [
@@ -222,6 +240,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.collectPaymentMethod',
+            onBack: cancelCollectPaymentMethod,
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
@@ -235,6 +254,7 @@ export default function CollectCardPaymentScreen() {
         events: [
           {
             name: 'Collected',
+            onBack: cancelCollectPaymentMethod,
             description: 'terminal.collectPaymentMethod',
             metadata: {
               paymentIntentId: paymentIntent.id,
@@ -250,6 +270,8 @@ export default function CollectCardPaymentScreen() {
   const _processPayment = async (
     collectedPaymentIntent: PaymentIntent.Type
   ) => {
+    // @ts-ignore
+    setCancel((prev) => ({ ...prev, isDisabled: true }));
     addLogs({
       name: 'Process Payment',
       events: [
@@ -328,7 +350,13 @@ export default function CollectCardPaymentScreen() {
   const _capturePayment = async (paymentIntentId: string) => {
     addLogs({
       name: 'Capture Payment',
-      events: [{ name: 'Capture', description: 'terminal.capturePayment' }],
+      events: [
+        {
+          name: 'Capture',
+          description: 'terminal.capturePayment',
+          onBack: cancelCollectPaymentMethod,
+        },
+      ],
     });
 
     const resp = await api.capturePaymentIntent(paymentIntentId, {});
@@ -340,6 +368,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.capturePayment',
+            onBack: cancelCollectPaymentMethod,
             metadata: {
               errorCode: resp.error.code,
               errorMessage: resp.error.message,
@@ -355,6 +384,7 @@ export default function CollectCardPaymentScreen() {
       events: [
         {
           name: 'Captured',
+          onBack: cancelCollectPaymentMethod,
           description: 'terminal.paymentIntentId: ' + resp.id,
         },
       ],

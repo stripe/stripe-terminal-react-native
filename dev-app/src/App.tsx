@@ -14,7 +14,7 @@ import {
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
-import { LogContext, Log, Event } from './components/LogContext';
+import { LogContext, Log, Event, CancelType } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
 import LocationListScreen from './screens/LocationListScreen';
@@ -114,6 +114,7 @@ const screenOptions = {
 
 export default function App() {
   const [logs, setlogs] = useState<Log[]>([]);
+  const [cancel, setCancel] = useState<CancelType | null>(null);
   const [hasPerms, setHasPerms] = useState<boolean>(false);
   const clearLogs = useCallback(() => setlogs([]), []);
   const { initialize: initStripe, clearCachedCredentials } =
@@ -184,15 +185,15 @@ export default function App() {
         ? { name: log.name, events: [...log.events, ...newLog.events] }
         : log;
     setlogs((prev) =>
-      prev.map((e) => e.name).includes(newLog.name)
+      prev.length > 0 && prev[prev.length - 1].name === newLog.name
         ? prev.map(updateLog)
         : [...prev, newLog]
     );
   }, []);
 
   const value = useMemo(
-    () => ({ logs, addLogs, clearLogs }),
-    [logs, addLogs, clearLogs]
+    () => ({ logs, addLogs, clearLogs, cancel, setCancel }),
+    [logs, addLogs, clearLogs, cancel, setCancel]
   );
 
   return (
