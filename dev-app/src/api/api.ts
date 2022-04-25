@@ -221,6 +221,26 @@ export class Api {
       });
   }
 
+  async getPaymentIntent(
+    id: string
+  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeAPIError }> {
+    const formData = new URLSearchParams();
+
+    return fetch(`https://api.stripe.com/v1/payment_intents/${id}`, {
+      headers: this.headers,
+      method: 'POST',
+      body: formData.toString(),
+    })
+      .then((resp) => resp.json())
+      .then((resp) => {
+        if ('data' in resp) {
+          return resp.data;
+        }
+
+        return resp;
+      });
+  }
+
   async lookupOrCreateExampleCustomer(): Promise<
     Stripe.Customer | { error: Stripe.StripeAPIError }
   > {
