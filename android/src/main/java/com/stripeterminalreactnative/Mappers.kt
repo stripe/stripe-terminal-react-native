@@ -5,12 +5,12 @@ import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.log.LogLevel
 
-fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
+internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
 
-fun getBoolean(map: ReadableMap, key: String): Boolean =
+internal fun getBoolean(map: ReadableMap, key: String): Boolean =
     if (map.hasKey(key)) map.getBoolean(key) else false
 
-fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
+internal fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
         mapTarget.putDouble(key, it)
     } ?: run {
@@ -18,7 +18,7 @@ fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     }
 }
 
-fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
+internal fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
     value?.let {
         mapTarget.putInt(key, it)
     } ?: run {
@@ -368,16 +368,23 @@ internal fun mapFromRefund(refund: Refund): ReadableMap = nativeMapOf {
     putIntOrNull(this, "amount", refund.amount?.toInt())
     putString("balanceTransaction", refund.balanceTransaction)
     putString("chargeId", refund.chargeId)
+    putIntOrNull(this, "created", refund.created?.toInt())
     putString("currency", refund.currency)
-    putString("paymentIntentId", refund.paymentIntentId)
     putString("description", refund.description)
     putString("failureBalanceTransaction", refund.failureBalanceTransaction)
     putString("failureReason", refund.failureReason)
     putString("id", refund.id)
+    putMap("metadata", nativeMapOf {
+        refund.metadata?.map {
+            putString(it.key, it.value)
+        }
+    })
+    putString("paymentIntentId", refund.paymentIntentId)
+    putMap("paymentMethodDetails", mapFromPaymentMethodDetails(refund.paymentMethodDetails))
     putString("reason", refund.reason)
     putString("receiptNumber", refund.receiptNumber)
-    putString("status", refund.status)
     putString("sourceTransferReversal", refund.sourceTransferReversal)
+    putString("status", refund.status)
     putString("transferReversal", refund.transferReversal)
 }
 
@@ -401,4 +408,45 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): ReadableMap = n
 private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?): ReadableArray =
     fold(nativeArrayOf()) { writableArray, item ->
         writableArray.pushMap(transform(item)); writableArray
+    }
+
+private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetails?): ReadableMap =
+    nativeMapOf {
+        putMap(
+            "cardPresentDetails",
+            mapFromCardPresentDetails(paymentMethodDetails?.cardPresentDetails)
+        )
+        putMap(
+            "interacPresentDetails",
+            mapFromCardPresentDetails(paymentMethodDetails?.interacPresentDetails)
+        )
+    }
+
+private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap =
+    nativeMapOf {
+        putString("brand", cardPresentDetails?.brand)
+        putString("cardholderName", cardPresentDetails?.cardholderName)
+        putString("country", cardPresentDetails?.country)
+        putString("emvAuthData", cardPresentDetails?.emvAuthData)
+        putIntOrNull(this, "expMonth", cardPresentDetails?.expMonth)
+        putIntOrNull(this, "expYear", cardPresentDetails?.expYear)
+        putString("fingerprint", cardPresentDetails?.fingerprint)
+        putString("funding", cardPresentDetails?.funding)
+        putString("generatedCard", cardPresentDetails?.generatedCard)
+        putString("last4", cardPresentDetails?.last4)
+        putString("readMethod", cardPresentDetails?.readMethod)
+        putMap("receiptDetails", mapFromReceiptDetails(cardPresentDetails?.receiptDetails))
+    }
+
+fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
+    nativeMapOf {
+        putString("accountType", receiptDetails?.accountType)
+        putString("applicationCryptogram", receiptDetails?.applicationCryptogram)
+        putString("applicationPreferredName", receiptDetails?.applicationPreferredName)
+        putString("authorizationCode", receiptDetails?.authorizationCode)
+        putString("authorizationResponseCode", receiptDetails?.authorizationResponseCode)
+        putString("cvm", receiptDetails?.cvm)
+        putString("dedicatedFileName", receiptDetails?.dedicatedFileName)
+        putString("tsi", receiptDetails?.tsi)
+        putString("tvr", receiptDetails?.tvr)
     }
