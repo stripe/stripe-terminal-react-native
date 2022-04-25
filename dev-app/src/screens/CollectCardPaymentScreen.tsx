@@ -308,7 +308,7 @@ export default function CollectCardPaymentScreen() {
           name: 'Processed',
           description: 'terminal.processPayment',
           metadata: {
-            paymententIntentId: paymentIntentId,
+            paymententIntentId: paymentIntent.id,
             chargeId: paymentIntent.charges[0].id,
           },
         },
@@ -322,7 +322,7 @@ export default function CollectCardPaymentScreen() {
       return;
     }
 
-    _capturePayment(paymentIntentId);
+    _capturePayment(paymentIntent.id);
   };
 
   const _capturePayment = async (paymentIntentId: string) => {
