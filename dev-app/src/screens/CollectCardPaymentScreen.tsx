@@ -236,29 +236,37 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Collected',
             description: 'terminal.collectPaymentMethod',
-            metadata: { paymentIntentId: paymentIntent.id },
+            metadata: {
+              paymentIntentId: paymentIntent.id,
+              pi: JSON.stringify(paymentIntent, undefined, 2),
+            },
           },
         ],
       });
-      await _processPayment(paymentIntentId);
+      await _processPayment(paymentIntent);
     }
   };
 
-  const _processPayment = async (paymentIntentId: string) => {
+  const _processPayment = async (
+    collectedPaymentIntent: PaymentIntent.Type
+  ) => {
     addLogs({
       name: 'Process Payment',
       events: [
         {
           name: 'Process',
           description: 'terminal.processPayment',
-          metadata: { paymentIntentId },
+          metadata: { paymentIntentId: collectedPaymentIntent.id },
         },
       ],
     });
 
-    const { paymentIntent, error } = await processPayment(paymentIntentId);
+    const { paymentIntent, error } = await processPayment(
+      collectedPaymentIntent.id
+    );
 
     if (error) {
+      const failedPI = await api.getPaymentIntent(collectedPaymentIntent.id);
       addLogs({
         name: 'Process Payment',
         events: [
@@ -268,6 +276,7 @@ export default function CollectCardPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              pi: JSON.stringify(failedPI, undefined, 2),
             },
           },
         ],
