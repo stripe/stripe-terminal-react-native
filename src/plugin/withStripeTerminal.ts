@@ -42,10 +42,46 @@ const withStripeTerminal: ConfigPlugin<StripeTerminalPluginProps> = (
 const withStripeTerminalAndroid: ConfigPlugin = (expoConfig) => {
   return withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBTPermissionToManifest(config.modResults);
+    config.modResults = addLocationPermissionToManifest(config.modResults);
 
     return config;
   });
 };
+
+export function addLocationPermissionToManifest(
+  androidManifest: AndroidManifest
+) {
+  if (!Array.isArray(androidManifest.manifest['uses-permission'])) {
+    androidManifest.manifest['uses-permission'] = [];
+  }
+
+  if (
+    !androidManifest.manifest['uses-permission'].find(
+      (item) =>
+        item.$['android:name'] === 'android.permission.ACCESS_FINE_LOCATION'
+    )
+  ) {
+    androidManifest.manifest['uses-permission']?.push({
+      $: {
+        'android:name': 'android.permission.ACCESS_FINE_LOCATION',
+      },
+    });
+  }
+
+  if (
+    !androidManifest.manifest['uses-permission'].find(
+      (item) =>
+        item.$['android:name'] === 'android.permission.ACCESS_COARSE_LOCATION'
+    )
+  ) {
+    androidManifest.manifest['uses-permission']?.push({
+      $: {
+        'android:name': 'android.permission.ACCESS_COARSE_LOCATION',
+      },
+    });
+  }
+  return androidManifest;
+}
 
 export function addBTPermissionToManifest(androidManifest: AndroidManifest) {
   // Add `<uses-permission android:name="android.permission.BLUETOOTH_CONNECT/SCAN"/>` to the AndroidManifest.xml
