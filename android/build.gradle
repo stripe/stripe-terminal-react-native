@@ -25,7 +25,7 @@ def getExtOrIntegerDefault(name) {
     return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['StripeTerminalReactNative_' + name]).toInteger()
 }
 
-def terminalAndroidSdkVersion = '2.8.1'
+def terminalAndroidSdkVersion = '2.9.0'
 
 android {
     compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
