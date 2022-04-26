@@ -79,14 +79,16 @@ internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String {
 
 internal fun mapFromDeviceType(type: DeviceType): String {
     return when (type) {
+        DeviceType.CHIPPER_1X -> "chipper1X"
         DeviceType.CHIPPER_2X -> "chipper2X"
         DeviceType.COTS_DEVICE -> "cotsDevice"
+        DeviceType.ETNA -> "etna"
         DeviceType.STRIPE_M2 -> "stripeM2"
         DeviceType.UNKNOWN -> "unknown"
         DeviceType.VERIFONE_P400 -> "verifoneP400"
         DeviceType.WISEPAD_3 -> "wisePad3"
         DeviceType.WISEPOS_E -> "wisePosE"
-        DeviceType.ETNA -> "etna"
+        DeviceType.WISECUBE -> "wisecube"
     }
 }
 
