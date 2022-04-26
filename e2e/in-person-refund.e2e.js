@@ -17,12 +17,11 @@ describe('In-Person Refund', () => {
   });
 
   it('Collect and Refund CA card payment via bt reader', async () => {
-    await createInteracPayment();
-
     // android cannot currently refund via the simulator
     if (device.getPlatform() === 'android') {
       return;
     }
+    await createInteracPayment();
 
     const backEl = element(by.text('Back'));
     await waitFor(backEl).toBeVisible().withTimeout(10000);
@@ -32,12 +31,11 @@ describe('In-Person Refund', () => {
   });
 
   it('Collect and Refund CA card payment via smart reader', async () => {
-    await createInteracPayment('verifoneP400');
-
     // android cannot currently refund via the simulator
     if (device.getPlatform() === 'android') {
       return;
     }
+    await createInteracPayment('verifoneP400');
 
     const backEl = element(by.text('Back'));
     await waitFor(backEl).toBeVisible().withTimeout(10000);

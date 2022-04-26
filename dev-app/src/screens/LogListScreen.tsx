@@ -9,7 +9,7 @@ import ListItem from '../components/ListItem';
 import { HeaderBackButton } from '@react-navigation/stack';
 
 const LogListScreen = () => {
-  const { logs } = useContext(LogContext);
+  const { logs, cancel, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -27,6 +27,7 @@ const LogListScreen = () => {
     if (latestEvent.onBack) {
       latestEvent.onBack();
     }
+    setCancel(null);
     navigation.navigate('Terminal');
     return true;
   };
@@ -36,11 +37,19 @@ const LogListScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
       <Text style={styles.title}>EVENT LOG</Text>
-      {logs.map((log) => (
-        <List key={log.name} title={log.name}>
-          {log.events.map((event) => (
+      {cancel && (
+        <ListItem
+          color={colors.blue}
+          title={cancel?.label || 'no label'}
+          onPress={cancel?.action}
+          disabled={cancel?.isDisabled}
+        />
+      )}
+      {logs.map((log, lidx) => (
+        <List key={`${log.name}-${lidx}`} title={log.name}>
+          {log.events.map((event, idx) => (
             <ListItem
-              key={event.name}
+              key={`${event.name}-${idx}`}
               title={event.name}
               description={event.description}
               onPress={() => {
