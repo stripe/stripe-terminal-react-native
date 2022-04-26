@@ -476,7 +476,7 @@ export async function installAvailableUpdate(): Promise<{
         error: error as any,
       };
     }
-  }, 'installAvailableUpdate')(paymentIntentId);
+  }, 'installAvailableUpdate')();
 }
 
 export async function setReaderDisplay(
@@ -512,7 +512,7 @@ export async function cancelInstallingUpdate(): Promise<{
         error: error as any,
       };
     }
-  }, 'cancelInstallingUpdate')(paymentIntentId);
+  }, 'cancelInstallingUpdate')();
 }
 
 export async function retrieveSetupIntent(
