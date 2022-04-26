@@ -25,9 +25,10 @@ import {
   Reader,
   Location,
   useStripeTerminal,
-  requestNeededExpoAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
+
+import { requestNeededExpoAndroidPermissions } from './util/requestNeededExpoAndroidPermissions';
 
 export type RouteParamList = {
   UpdateReader: {
