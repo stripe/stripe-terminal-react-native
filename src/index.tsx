@@ -19,4 +19,3 @@ export {
 
 // utils
 export { requestNeededAndroidPermissions } from './utils/androidPermissionsUtils';
-export { requestNeededExpoAndroidPermissions } from './utils/androidExpoPermissionsUtils';
