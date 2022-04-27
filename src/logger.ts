@@ -2,7 +2,29 @@ import * as packageJson from '../package.json';
 import { b64EncodeUnicode } from './utils/b64EncodeDecode';
 
 interface ObjectWithError {
-  error: string;
+  error: any;
+}
+
+interface Trace {
+  origin_role: string;
+  origin_id: string;
+  trace: {
+    action_id: string;
+    request_info: {
+      user_agent: string;
+    };
+    start_time_ms: number;
+    total_time_ms: number;
+    service: string;
+    method: string;
+    request: string;
+    version_info: {
+      client_type: string;
+      client_version: string;
+    };
+    traces: string[];
+    additional_context: {};
+  };
 }
 
 const getDeviceInfo = () => {
@@ -21,33 +43,6 @@ const getDeviceInfo = () => {
       app_version: '424.2.4',
     },
   };
-};
-
-type DeviceInfo = object;
-
-const buildUrlSearchParams = (obj: DeviceInfo) => {
-  const getKeyValues = (source: DeviceInfo, keys: any[]) =>
-    Object.entries(source).reduce((acc: any[], [key, value]) => {
-      if (typeof value === 'object') {
-        acc.push(...getKeyValues(value, [...keys, key]));
-      } else {
-        acc.push([[...keys, key], value]);
-      }
-
-      return acc;
-    }, []);
-
-  let keys: string[] = [];
-
-  return getKeyValues(obj, keys)
-    .map(([[key0, ...keysRest], value]) => {
-      const keysRestInBrackets = keysRest
-        .map((a: string) => `[${a}]`.replace('[', '%5B').replace(']', '%5D'))
-        .join('');
-
-      return `${key0}${keysRestInBrackets}=${value}`;
-    })
-    .join('&');
 };
 
 const buildGatorRequest = (
@@ -71,11 +66,10 @@ const buildGatorRequest = (
   };
 };
 
-const sendGatorRequest = (request: object) => {
+const sendGatorRequest = async (request: object) => {
   const url = 'https://gator.stripe.com:443/protojsonservice/GatorService';
 
-
-  fetch(url, {
+  return fetch(url, {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -85,40 +79,10 @@ const sendGatorRequest = (request: object) => {
   });
 };
 
-const generatePosRpcSession = (connection_token: string) => {
-  const url =
-    'https://api.stripe.com/v1/terminal/connection_tokens/generate_pos_rpc_session';
-
-  const body = buildUrlSearchParams({ pos_device_info: getDeviceInfo() });
-
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${b64EncodeUnicode(connection_token)}`,
-      'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-      'stripe-version': '2019-02-19',
-    },
-    body,
-  })
-    .then((response) => response.json())
-    .then((json) => {
-      console.log(json);
-      if (json.sdk_rpc_session_token) {
-        return json.sdk_rpc_session_token;
-      } else {
-        // swallow error
-        return null;
-      }
-    })
-    .catch((_error) => {
-      // swallow error
-      return null;
-    });
-};
-
 export default class Logger {
   static instance: Logger | null = null;
   _sessionToken: string | null = null;
+  _traces: object[] = [];
 
   static getInstance() {
     if (Logger.instance === null) {
@@ -128,27 +92,25 @@ export default class Logger {
     return Logger.instance;
   }
 
-  static async acquireSessionToken(tokenProvider: () => Promise<string>) {
-    console.log(tokenProvider);
-    // Call the user's token provider method to get a connection token
-    const connectionToken = await tokenProvider();
-    // Exchange that connection token for a RPC session token
-    const sessionToken = await generatePosRpcSession(connectionToken);
-    // Set _sessionToken to that
-    Logger.getInstance()._sessionToken = sessionToken;
+  constructor() {
+    setInterval(Logger.flushTraces, 10 * 1000);
   }
 
-  static forgetSessionToken() {
-    Logger.getInstance()._sessionToken = null;
-  }
+  private static flushTraces() {
+    if (Logger.getInstance()._traces.length === 0) {
+      return;
+    }
 
-  private static reportTrace(trace: object) {
+    const session_token = 'tmars_abcd'; // get session token, if it exists, from the underlying SDK
+
     const req = buildGatorRequest(
       'reportTrace',
-      { proxy_traces: [trace] },
-      Logger.getInstance()._sessionToken
+      { proxy_traces: [...Logger.getInstance()._traces] },
+      session_token
     );
-    sendGatorRequest(req);
+    sendGatorRequest(req).then((_resp) => {
+      Logger.getInstance()._traces = [];
+    });
   }
 
   /**
@@ -170,7 +132,7 @@ export default class Logger {
 
       const action_id = `${Math.floor(Math.random() * 100000000)}`;
 
-      const baseTraceObject = {
+      const baseTraceObject: Trace = {
         origin_role: 'pos-js',
         origin_id: 'pos-b0u0t9vbvob',
         trace: {
@@ -198,10 +160,6 @@ export default class Logger {
 
       const response = fn.apply(this, args);
 
-      if (response instanceof Promise) {
-        Logger.tracePromise(baseTraceObject, response);
-      }
-
       if ('error' in response) {
         Logger.traceError(baseTraceObject, response);
       } else {
@@ -213,7 +171,7 @@ export default class Logger {
   }
 
   private static tracePromise(
-    baseTraceObject: object,
+    baseTraceObject: Trace,
     response: Promise<any>
   ): void {
     const clonedTraceBase = { ...baseTraceObject };
@@ -227,18 +185,22 @@ export default class Logger {
       });
   }
 
-  private static traceSuccess(baseTraceObject: object, response: any): void {
+  private static traceSuccess(baseTraceObject: Trace, response: any): void {
+    if (response instanceof Promise) {
+      Logger.tracePromise(baseTraceObject, response);
+      return;
+    }
+
     const trace = {
       type: 'success',
       response: JSON.stringify(response),
       ...baseTraceObject,
     };
-    console.log(235, trace);
-    Logger.reportTrace(trace);
+    Logger.getInstance()._traces.push(trace);
   }
 
   private static traceError(
-    baseTraceObject: object,
+    baseTraceObject: Trace,
     response: ObjectWithError
   ): void {
     const trace = {
@@ -247,11 +209,11 @@ export default class Logger {
       errorCode: 'error',
       ...baseTraceObject,
     };
-    Logger.reportTrace(trace);
+    Logger.getInstance()._traces.push(trace);
   }
 
   private static traceException(
-    baseTraceObject: object,
+    baseTraceObject: Trace,
     exception: Error
   ): void {
     const trace = {
@@ -260,6 +222,6 @@ export default class Logger {
       errorCode: exception.cause,
       ...baseTraceObject,
     };
-    Logger.reportTrace(trace);
+    Logger.getInstance()._traces.push(trace);
   }
 }

@@ -100,7 +100,6 @@ export function StripeTerminalProvider({
     try {
       const connectionToken = await tokenProvider();
       setConnectionToken(connectionToken);
-      Logger.acquireSessionToken(tokenProvider);
     } catch (error) {
       setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
