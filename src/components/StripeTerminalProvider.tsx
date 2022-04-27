@@ -13,7 +13,6 @@ import { useListener } from '../hooks/useListener';
 import { NativeModules } from 'react-native';
 // @ts-ignore
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
-import Logger from '../logger';
 
 const {
   FETCH_TOKEN_PROVIDER,
