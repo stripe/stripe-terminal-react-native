@@ -1,28 +1,24 @@
-import {
-  getBundleId,
-  getBuildNumber,
-  getSystemVersion,
-  getSystemName,
-  getUniqueId,
-  getDeviceId,
-} from 'react-native-device-info';
 import * as packageJson from '../package.json';
 import { b64EncodeUnicode } from './utils/b64EncodeDecode';
+
+interface ObjectWithError {
+  error: string;
+}
 
 const getDeviceInfo = () => {
   return {
     device_class: 'POS',
-    device_uuid: getUniqueId(),
-    host_os_version: getSystemName(),
-    host_hw_version: getSystemVersion(),
+    device_uuid: 'fc21c6a4-76b4-48a9-a23b-9fce7dc38b58',
+    host_os_version: '12.2.1',
+    host_hw_version: 'iPhone7,1',
     hardware_model: {
       pos_info: {
-        description: getDeviceId(),
+        description: 'iOS',
       },
     },
     app_model: {
-      app_id: getBundleId(),
-      app_version: getBuildNumber(),
+      app_id: 'com.stripe.jil.test',
+      app_version: '424.2.4',
     },
   };
 };
@@ -67,7 +63,7 @@ const buildGatorRequest = (
     session_token: sessionToken || '',
     version_info: {
       client_type: 'RN_SDK',
-      client_version: '',
+      client_version: packageJson.version,
     },
 
     parent_trace_id: '',
@@ -78,7 +74,6 @@ const buildGatorRequest = (
 const sendGatorRequest = (request: object) => {
   const url = 'https://gator.stripe.com:443/protojsonservice/GatorService';
 
-  console.log(`!!! SENDING GATOR REQUEST !!! ${JSON.stringify(request)}`);
 
   fetch(url, {
     method: 'POST',
@@ -96,8 +91,6 @@ const generatePosRpcSession = (connection_token: string) => {
 
   const body = buildUrlSearchParams({ pos_device_info: getDeviceInfo() });
 
-  console.log(85, body);
-
   return fetch(url, {
     method: 'POST',
     headers: {
@@ -109,10 +102,12 @@ const generatePosRpcSession = (connection_token: string) => {
   })
     .then((response) => response.json())
     .then((json) => {
+      console.log(json);
       if (json.sdk_rpc_session_token) {
         return json.sdk_rpc_session_token;
       } else {
-        console.error(json);
+        // swallow error
+        return null;
       }
     })
     .catch((_error) => {
@@ -147,15 +142,6 @@ export default class Logger {
     Logger.getInstance()._sessionToken = null;
   }
 
-  // private static reportEvent(event: object) {
-  //   const req = buildGatorRequest(
-  //     'reportEvent',
-  //     event,
-  //     Logger.getInstance()._sessionToken
-  //   );
-  //   sendGatorRequest(req);
-  // }
-
   private static reportTrace(trace: object) {
     const req = buildGatorRequest(
       'reportTrace',
@@ -182,11 +168,13 @@ export default class Logger {
     return function constructTrace(this: any, ...args: any[]) {
       const method = methodName || fn.name;
 
+      const action_id = `${Math.floor(Math.random() * 100000000)}`;
+
       const baseTraceObject = {
         origin_role: 'pos-js',
         origin_id: 'pos-b0u0t9vbvob',
         trace: {
-          action_id: '',
+          action_id,
           request_info: {
             user_agent: '',
           },
@@ -201,9 +189,9 @@ export default class Logger {
           },
           traces: [],
           additional_context: {
-            action_id: '78793673',
-            session_id: '59501352',
-            serial_number: 'WSC513101000010',
+            action_id,
+            session_id: '',
+            serial_number: '',
           },
         },
       };
@@ -214,9 +202,11 @@ export default class Logger {
         Logger.tracePromise(baseTraceObject, response);
       }
 
-      // Is there a case where we have an error that isn't thrown on a promise?
-
-      Logger.traceSuccess(baseTraceObject, response);
+      if ('error' in response) {
+        Logger.traceError(baseTraceObject, response);
+      } else {
+        Logger.traceSuccess(baseTraceObject, response);
+      }
 
       return response;
     };
@@ -241,6 +231,20 @@ export default class Logger {
     const trace = {
       type: 'success',
       response: JSON.stringify(response),
+      ...baseTraceObject,
+    };
+    console.log(235, trace);
+    Logger.reportTrace(trace);
+  }
+
+  private static traceError(
+    baseTraceObject: object,
+    response: ObjectWithError
+  ): void {
+    const trace = {
+      type: 'exception',
+      exception: response.error,
+      errorCode: 'error',
       ...baseTraceObject,
     };
     Logger.reportTrace(trace);
