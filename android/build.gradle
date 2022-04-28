@@ -26,14 +26,16 @@ def getExtOrIntegerDefault(name) {
 }
 
 def terminalAndroidSdkVersion = '2.9.0'
+def terminalReactNativeSdkVersion = '1.0.0'
 
 android {
     compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
     defaultConfig {
+        manifestPlaceholders = [REACT_NATIVE_SDK_VERSION: terminalAndroidSdkVersion]
         minSdkVersion 21
         targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
         versionCode 1
-        versionName "1.0"
+        versionName terminalReactNativeSdkVersion
     }
 
     buildTypes {

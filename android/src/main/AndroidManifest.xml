@@ -4,5 +4,8 @@
         <meta-data
             android:name="com.stripe.stripeterminal.is_react_native"
             android:value="true" />
+        <meta-data
+            android:name="com.stripe.stripeterminal.react_native_sdk_version"
+            android:value="${REACT_NATIVE_SDK_VERSION}" />
     </application>
 </manifest>
