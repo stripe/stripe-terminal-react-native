@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 buildscript {
     // Buildscript is evaluated before everything else so we can't use getExtOrDefault
     def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['StripeTerminalReactNative_kotlinVersion']
@@ -11,6 +13,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:7.0.4'
         // noinspection DifferentKotlinGradleVersion
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'org.codehaus.groovy:groovy-json:3.0.10'
     }
 }
 
@@ -26,14 +29,16 @@ def getExtOrIntegerDefault(name) {
 }
 
 def terminalAndroidSdkVersion = '2.9.0'
+def reactNativeSdkVersion = getVersionFromNpm()
 
 android {
     compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
     defaultConfig {
+        manifestPlaceholders = [REACT_NATIVE_SDK_VERSION: reactNativeSdkVersion]
         minSdkVersion 21
         targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
         versionCode 1
-        versionName "1.0"
+        versionName reactNativeSdkVersion
     }
 
     buildTypes {
@@ -135,4 +140,13 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testImplementation 'io.mockk:mockk:1.12.3'
+}
+
+// Read package.json and return `version` field
+def getVersionFromNpm() {
+    def inputFile = new File("$rootDir/../package.json")
+    def packageJson = new JsonSlurper().parseText(inputFile.text)
+
+    println ("RN SDK package.json version: " +  packageJson["version"])
+    return packageJson["version"]
 }
