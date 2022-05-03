@@ -36,6 +36,8 @@ export default function CollectCardPaymentScreen() {
     currency: string;
     connectedAccountId?: string;
     applicationFeeAmount?: string;
+    requestExtendedAuthorization?: boolean;
+    requestIncrementalAuthorizationSupport?: boolean;
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
@@ -158,6 +160,12 @@ export default function CollectCardPaymentScreen() {
         applicationFeeAmount: inputValues.applicationFeeAmount
           ? Number(inputValues.applicationFeeAmount)
           : undefined,
+        paymentMethodOptions: {
+          requestExtendedAuthorization:
+            inputValues.requestExtendedAuthorization,
+          requestIncrementalAuthorizationSupport:
+            inputValues.requestIncrementalAuthorizationSupport,
+        },
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -513,6 +521,42 @@ export default function CollectCardPaymentScreen() {
               testID="skip-tipping"
               value={skipTipping}
               onValueChange={(value) => setSkipTipping(value)}
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="EXTENDED AUTH">
+        <ListItem
+          title="Request Extended Authorization"
+          rightElement={
+            <Switch
+              testID="extended-auth"
+              value={inputValues.requestExtendedAuthorization}
+              onValueChange={(value) =>
+                setInputValues((state) => ({
+                  ...state,
+                  requestExtendedAuthorization: value,
+                }))
+              }
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="INCREMENTAL AUTH">
+        <ListItem
+          title="Request Incremental Authorization Support"
+          rightElement={
+            <Switch
+              testID="incremental-auth"
+              value={inputValues.requestIncrementalAuthorizationSupport}
+              onValueChange={(value) =>
+                setInputValues((state) => ({
+                  ...state,
+                  requestIncrementalAuthorizationSupport: value,
+                }))
+              }
             />
           }
         />

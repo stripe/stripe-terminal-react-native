@@ -260,6 +260,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val customer = params.getString("customer")
         val transferGroup = params.getString("transferGroup")
         val metadata = params.getMap("metadata")
+        val paymentMethodOptions = params.getMap("paymentMethodOptions")
+        val extendedAuth = getBoolean(paymentMethodOptions, "requestExtendedAuthorization")
+        val incrementalAuth =
+            getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -309,6 +313,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         setupFutureUsage?.let {
             intentParams.setSetupFutureUsage(it)
         }
+
+        val cardPresentParams = CardPresentParameters.Builder()
+            .setRequestExtendedAuthorization(extendedAuth)
+            .setRequestIncrementalAuthorizationSupport(incrementalAuth)
+
+        intentParams.setPaymentMethodOptionsParameters(
+            PaymentMethodOptionsParameters.Builder()
+                .setCardPresentParameters(cardPresentParams.build())
+                .build()
+        )
 
         terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) {
             paymentIntents[it.id] = it

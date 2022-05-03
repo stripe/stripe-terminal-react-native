@@ -299,6 +299,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let customer = params["customer"] as? String
         let transferGroup = params["transferGroup"] as? String
         let metadata = params["metadata"] as? [AnyHashable : Any]
+        let paymentMethodOptions = params["paymentMethodOptions"] as? [AnyHashable : Any] ?? [:]
+        let extendedAuth = paymentMethodOptions["requestExtendedAuthorization"] as? Bool ?? false
+        let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
+
 
         let paymentIntentParams = PaymentIntentParameters(amount: UInt(truncating: amount), currency: currency, paymentMethodTypes: paymentMethodTypes)
         
@@ -313,6 +317,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         paymentIntentParams.customer = customer
         paymentIntentParams.transferGroup = transferGroup
         paymentIntentParams.metadata = metadata
+        
+        let cardPresentParams = CardPresentParameters(requestExtendedAuthorization: extendedAuth, requestIncrementalAuthorizationSupport: incrementalAuth)
+        paymentIntentParams.paymentMethodOptionsParameters = PaymentMethodOptionsParameters(cardPresentParameters: cardPresentParams)
+
 
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
             if let error = error as NSError? {
