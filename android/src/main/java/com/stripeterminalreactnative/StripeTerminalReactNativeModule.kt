@@ -260,8 +260,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val customer = params.getString("customer")
         val transferGroup = params.getString("transferGroup")
         val metadata = params.getMap("metadata")
-        val extendedAuth = getBoolean(params, "requestExtendedAuthorization")
-        val incrementalAuth = getBoolean(params, "requestIncrementalAuthorizationSupport")
+        val paymentMethodOptions = params.getMap("paymentMethodOptions")
+        val extendedAuth = getBoolean(paymentMethodOptions, "requestExtendedAuthorization")
+        val incrementalAuth =
+            getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())

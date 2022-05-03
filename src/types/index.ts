@@ -164,12 +164,16 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   customer?: string;
   transferGroup?: string;
   metadata?: Record<string, string>;
-  requestExtendedAuthorization?: boolean;
-  requestIncrementalAuthorizationSupport?: boolean;
+  paymentMethodOptions?: PaymentMethodOptions;
 };
 
 export type CreatePaymentIntentIOSParams = {
   paymentMethodTypes?: string[];
+};
+
+export type PaymentMethodOptions = {
+  requestExtendedAuthorization?: boolean;
+  requestIncrementalAuthorizationSupport?: boolean;
 };
 
 export type CollectPaymentMethodParams = {

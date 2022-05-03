@@ -160,9 +160,12 @@ export default function CollectCardPaymentScreen() {
         applicationFeeAmount: inputValues.applicationFeeAmount
           ? Number(inputValues.applicationFeeAmount)
           : undefined,
-        requestExtendedAuthorization: inputValues.requestExtendedAuthorization,
-        requestIncrementalAuthorizationSupport:
-          inputValues.requestIncrementalAuthorizationSupport,
+        paymentMethodOptions: {
+          requestExtendedAuthorization:
+            inputValues.requestExtendedAuthorization,
+          requestIncrementalAuthorizationSupport:
+            inputValues.requestIncrementalAuthorizationSupport,
+        },
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;

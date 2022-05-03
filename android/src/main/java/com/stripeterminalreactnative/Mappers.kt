@@ -7,8 +7,8 @@ import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
 
-internal fun getBoolean(map: ReadableMap, key: String): Boolean =
-    if (map.hasKey(key)) map.getBoolean(key) else false
+internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
+    if (map?.hasKey(key) == true) map.getBoolean(key) else false
 
 internal fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
