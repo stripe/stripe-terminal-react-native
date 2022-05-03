@@ -1,4 +1,5 @@
 import StripeTerminalSdk from './StripeTerminalSdk';
+import * as PackageJson from '../package.json';
 import type {
   InitParams,
   InitializeResultType,
@@ -35,7 +36,10 @@ export async function initialize(
   params: InitParams
 ): Promise<InitializeResultType> {
   try {
-    const { error, reader } = await StripeTerminalSdk.initialize(params);
+    const { error, reader } = await StripeTerminalSdk.initialize({
+      reactNativeVersion: PackageJson.version,
+      ...params,
+    });
 
     if (error) {
       return {

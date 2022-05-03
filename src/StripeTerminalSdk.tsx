@@ -39,9 +39,13 @@ type InitializeResultNativeType = Promise<{
   reader?: Reader.Type;
 }>;
 
+interface InternalInitParams extends InitParams {
+  reactNativeVersion: string;
+}
+
 type StripeTerminalSdkType = {
   // Initialize StripeTerminalSdk native module
-  initialize(params: InitParams): InitializeResultNativeType;
+  initialize(params: InternalInitParams): InitializeResultNativeType;
   // Set connection token
   setConnectionToken(params: SetConnectionTokenParams): Promise<void>;
   // Discover readers by connection type
