@@ -241,6 +241,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun disconnectReader(promise: Promise) {
+        paymentIntents.clear()
         terminal.disconnectReader(NoOpCallback(promise))
     }
 
@@ -368,7 +369,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         terminal.processPayment(paymentIntent, RNPaymentIntentCallback(promise) {
-            paymentIntents[it.id] = it
+            paymentIntents.clear()
         })
     }
 
@@ -535,6 +536,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun clearCachedCredentials(promise: Promise) {
         terminal.clearCachedCredentials()
+        paymentIntents.clear()
         promise.resolve(WritableNativeMap())
     }
 

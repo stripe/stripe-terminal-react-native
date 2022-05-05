@@ -273,6 +273,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {
+                self.paymentIntents = [:]
                 resolve([:])
             }
         }
@@ -427,6 +428,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
+                self.paymentIntents = [:]
                 resolve(["paymentIntent": paymentIntent])
             }
         }
@@ -666,6 +668,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(clearCachedCredentials:rejecter:)
     func clearCachedCredentials(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.clearCachedCredentials()
+        self.paymentIntents = [:]
         resolve([:])
     }
 
