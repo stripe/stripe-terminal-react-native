@@ -53,7 +53,7 @@ EOF
 create_github_release_fallback() {
   cat << EOF
 Remember to create a release on GitHub with a changelog notes:
-    https://github.com/stripe/stripe-js/releases/new
+    https://github.com/stripe/stripe-react-native/releases/new
 EOF
 }
 
@@ -94,13 +94,13 @@ git fetch
 
 GIT_STATUS=$(git status)
 
-if ! grep -q 'On branch master' <<< "$GIT_STATUS"; then
-  echo "Error! Must be on master branch to publish"
+if ! grep -q 'On branch main' <<< "$GIT_STATUS"; then
+  echo "Error! Must be on main branch to publish"
   exit 1
 fi
 
-if ! grep -q "Your branch is up to date with 'origin/master'." <<< "$GIT_STATUS"; then
-  echo "Error! Must be up to date with origin/master to publish"
+if ! grep -q "Your branch is up to date with 'origin/main'." <<< "$GIT_STATUS"; then
+  echo "Error! Must be up to date with origin/main to publish"
   exit 1
 fi
 
@@ -113,7 +113,10 @@ echo "Installing dependencies according to lockfile"
 yarn -s install --frozen-lockfile
 
 echo "Running tests"
-yarn -s run test
+yarn -s run unit-test:android
+
+echo "Linting"
+yarn -s run lint
 
 echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
 yarn -s version --$RELEASE_TYPE
