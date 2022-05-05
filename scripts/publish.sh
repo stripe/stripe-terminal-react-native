@@ -113,7 +113,10 @@ echo "Installing dependencies according to lockfile"
 yarn -s install --frozen-lockfile
 
 echo "Running tests"
-yarn -s run test
+yarn -s run unit-test:android
+
+echo "Linting"
+yarn -s run lint
 
 echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
 yarn -s version --$RELEASE_TYPE

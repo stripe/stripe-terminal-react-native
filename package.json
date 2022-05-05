@@ -27,6 +27,7 @@
     "lint": "jest --config \"jest.eslint.config.js\"",
     "prepare": "bob build",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
+    "release": "./scripts/publish",
     "dev-app": "yarn --cwd dev-app",
     "example-app": "yarn --cwd example-app",
     "pods": "cd dev-app && pod-install --quiet",
