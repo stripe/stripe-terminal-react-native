@@ -14,6 +14,7 @@ enum ReactNativeConstants: String, CaseIterable {
     case REQUEST_READER_DISPLAY_MESSAGE = "didRequestReaderDisplayMessage"
     case CHANGE_PAYMENT_STATUS = "didChangePaymentStatus"
     case CHANGE_CONNECTION_STATUS = "didChangeConnectionStatus"
+    case LOG_INFO = "logInfo"
 }
 
 @objc(StripeTerminalReactNative)
@@ -48,8 +49,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
         guard terminal.connectionStatus == .notConnected else { return }
+        
+        let mappedReaders = Mappers.mapFromReaders(readers)
+        
+        logJavascriptInfo(message: "Discovered readers", data: mappedReaders)
 
-        sendEvent(withName: ReactNativeConstants.UPDATE_DISCOVERED_READERS.rawValue, body: ["readers": Mappers.mapFromReaders(readers)])
+        sendEvent(withName: ReactNativeConstants.UPDATE_DISCOVERED_READERS.rawValue, body: ["readers": mappedReaders])
     }
 
     @objc(initialize:resolver:rejecter:)
@@ -179,10 +184,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
             if let error = error as NSError? {
                 let _error = Errors.createError(nsError: error)
+                
+                self.logJavascriptInfo(message: "Discovering readers has been finished with the following error: code: \(_error["code"] as? String), message: \(_error["message"] as? String)", data: [:])
 
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": _error])
                 self.discoverCancelable = nil
             } else {
+                self.logJavascriptInfo(message: "Discovering readers finished", data: [:])
+                
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": ["error": nil]])
                 self.discoverCancelable = nil
             }
@@ -280,6 +289,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
         let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
+        logJavascriptInfo(message: "code: \(error["code"]), message: \(error["message"])", data: [:])
+        
         sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
     }
 
@@ -434,11 +445,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didChangePaymentStatus status: PaymentStatus) {
         let result = Mappers.mapFromPaymentStatus(status)
+        
+        logJavascriptInfo(message: "didChangePaymentStatus: \(result)", data: [:])
+        
         sendEvent(withName: ReactNativeConstants.CHANGE_PAYMENT_STATUS.rawValue, body: ["result": result])
     }
 
     func terminal(_ terminal: Terminal, didChangeConnectionStatus status: ConnectionStatus) {
         let result = Mappers.mapFromConnectionStatus(status)
+        
+        logJavascriptInfo(message: "didChangeConnectionStatus: \(result)", data: [:])
+        
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
 
@@ -670,18 +687,27 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
-        sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
+        let result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
+        logJavascriptInfo(message: "didReportAvailableUpdate", data: result)
+        sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
         self.installUpdateCancelable = cancelable
-        sendEvent(withName: ReactNativeConstants.START_INSTALLING_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
+        
+        let result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
+        
+        logJavascriptInfo(message: "didStartInstallingUpdate", data: result)
+        
+        sendEvent(withName: ReactNativeConstants.START_INSTALLING_UPDATE.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
         let result: [AnyHashable : Any?] = [
             "progress": String(progress),
         ]
+        logJavascriptInfo(message: "didReportReaderSoftwareUpdateProgress", data: result)
+        
         sendEvent(withName: ReactNativeConstants.REPORT_UPDATE_PROGRESS.rawValue, body: ["result": result])
     }
 
@@ -689,17 +715,43 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         var result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
         if let nsError = error as NSError? {
             result["error"] = Errors.createError(nsError: nsError)
+            let _error = result["error"] as? NSDictionary
+            let code = _error?["code"] as? String
+            let message = _error?["message"] as? String
+
+            logJavascriptInfo(message: "Install update failed with the following error: code: \(code), message: \(message)", data: [:])
         }
+        
+        logJavascriptInfo(message: "didFinishInstallingUpdate", data: result)
+        
         sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
         let result = Mappers.mapFromReaderInputOptions(inputOptions)
+        
+        logJavascriptInfo(message: "didRequestReaderInput", data: result)
+        
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_INPUT.rawValue, body: ["result": result])
     }
 
     func reader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
+        
+        logJavascriptInfo(message: "didRequestReaderDisplayMessage: \(result)", data: [:])
+        
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
+    }
+    
+    private func logJavascriptInfo(message: String, data: [NSDictionary]?) {
+        sendEvent(withName: ReactNativeConstants.LOG_INFO.rawValue, body: ["data": data ?? [:], "message": message])
+    }
+    
+    private func logJavascriptInfo(message: String, data: [AnyHashable: Any?]?) {
+        sendEvent(withName: ReactNativeConstants.LOG_INFO.rawValue, body: ["data": data ?? [:], "message": message])
+    }
+    
+    private func logJavascriptInfo(message: String, data: NSMutableArray?) {
+        sendEvent(withName: ReactNativeConstants.LOG_INFO.rawValue, body: ["data": data ?? [:], "message": message])
     }
 }
