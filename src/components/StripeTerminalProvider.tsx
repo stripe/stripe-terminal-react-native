@@ -1,5 +1,12 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { Reader, LogLevel, CommonError } from '../types';
+import {
+  Reader,
+  LogLevel,
+  CommonError,
+  StripeError,
+  EventResult,
+  PaymentStatus,
+} from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
 import { useListener } from '../hooks/useListener';
@@ -7,8 +14,20 @@ import { NativeModules } from 'react-native';
 // @ts-ignore
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
 
-const { FETCH_TOKEN_PROVIDER, LOG_INFO } =
-  NativeModules.StripeTerminalReactNative.getConstants();
+const {
+  FETCH_TOKEN_PROVIDER,
+  CHANGE_CONNECTION_STATUS,
+  CHANGE_PAYMENT_STATUS,
+  FINISH_DISCOVERING_READERS,
+  FINISH_INSTALLING_UPDATE,
+  REQUEST_READER_DISPLAY_MESSAGE,
+  REQUEST_READER_INPUT,
+  REPORT_AVAILABLE_UPDATE,
+  REPORT_UNEXPECTED_READER_DISCONNECT,
+  REPORT_UPDATE_PROGRESS,
+  START_INSTALLING_UPDATE,
+  UPDATE_DISCOVERED_READERS,
+} = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
 
@@ -59,13 +78,6 @@ export function StripeTerminalProvider({
   const [connectedReader, setConnectedReader] = useState<Reader.Type | null>();
   const [discoveredReaders, setDiscoveredReaders] = useState<Reader.Type[]>([]);
 
-  useListener(
-    LOG_INFO,
-    ({ data, message }: { data?: Record<string, any>; message: string }) => {
-      log(message, data);
-    }
-  );
-
   const log = useCallback(
     (code: string, message?: any) => {
       if (logLevel === 'verbose') {
@@ -74,6 +86,101 @@ export function StripeTerminalProvider({
     },
     [logLevel]
   );
+
+  const didUpdateDiscoveredReaders = useCallback(
+    ({ readers }: { readers: Reader.Type[] }) => {
+      log('didUpdateDiscoveredReaders', readers);
+    },
+    [log]
+  );
+
+  const didFinishDiscoveringReaders = useCallback(
+    ({ result }: EventResult<{ error?: StripeError }>) => {
+      log('didFinishDiscoveringReaders', result);
+    },
+    [log]
+  );
+
+  const didReportUnexpectedReaderDisconnect = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      log('didReportUnexpectedReaderDisconnect', error);
+    },
+    [log]
+  );
+
+  const didReportAvailableUpdate = useCallback(
+    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
+      log('didReportAvailableUpdate', result);
+    },
+    [log]
+  );
+
+  const didStartInstallingUpdate = useCallback(
+    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
+      log('didStartInstallingUpdate', result);
+    },
+    [log]
+  );
+
+  const didReportReaderSoftwareUpdateProgress = useCallback(
+    ({ result }: EventResult<{ progress: string }>) => {
+      log('didReportReaderSoftwareUpdateProgress', result);
+    },
+    [log]
+  );
+
+  const didFinishInstallingUpdate = useCallback(
+    ({
+      result,
+    }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
+      log('didFinishInstallingUpdate', result);
+    },
+    [log]
+  );
+
+  const didRequestReaderInput = useCallback(
+    ({ result }: EventResult<Reader.InputOptions[]>) => {
+      log('didRequestReaderInput', result);
+    },
+    [log]
+  );
+
+  const didRequestReaderDisplayMessage = useCallback(
+    ({ result }: EventResult<Reader.DisplayMessage>) => {
+      log('didRequestReaderDisplayMessage', result);
+    },
+    [log]
+  );
+
+  const didChangePaymentStatus = useCallback(
+    ({ result }: EventResult<PaymentStatus>) => {
+      log('didChangePaymentStatus', result);
+    },
+    [log]
+  );
+
+  const didChangeConnectionStatus = useCallback(
+    ({ result }: EventResult<Reader.ConnectionStatus>) => {
+      log('didChangeConnectionStatus', result);
+    },
+    [log]
+  );
+
+  useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
+  useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
+  useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
+  useListener(FINISH_INSTALLING_UPDATE, didFinishInstallingUpdate);
+
+  useListener(UPDATE_DISCOVERED_READERS, didUpdateDiscoveredReaders);
+  useListener(FINISH_DISCOVERING_READERS, didFinishDiscoveringReaders);
+  useListener(
+    REPORT_UNEXPECTED_READER_DISCONNECT,
+    didReportUnexpectedReaderDisconnect
+  );
+  useListener(REQUEST_READER_INPUT, didRequestReaderInput);
+  useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
+  useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
+  useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
   const tokenProviderHandler = async () => {
     try {

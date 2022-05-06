@@ -18,6 +18,7 @@ import type {
   StripeError,
   PaymentStatus,
   UserCallbacks,
+  EventResult,
 } from '../types';
 import {
   discoverReaders,
@@ -76,13 +77,6 @@ const {
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
   'First initialize the Stripe Terminal SDK before performing any action';
-
-/**
- * @ignore
- */
-type EventResult<T> = {
-  result: T;
-};
 
 /**
  *  useStripeTerminal hook Props
@@ -294,8 +288,7 @@ export function useStripeTerminal(props?: Props) {
       };
     }
 
-    const res = await initialize();
-    return res;
+    return await initialize();
   }, [initialize, log]);
 
   const _cancelDiscovering = useCallback(async () => {
