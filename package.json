@@ -154,7 +154,6 @@
   },
   "dependencies": {
     "base-64": "^1.0.0",
-    "react-native-device-info": "^8.7.0",
     "react-native-permissions": "^3.3.1"
   }
 }
