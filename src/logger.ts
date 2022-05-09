@@ -172,7 +172,7 @@ export default class Logger {
     const req = buildGatorRequest(
       'reportTrace',
       { proxy_traces: [...Logger.getInstance()._traces] },
-      Logger.getInstance()._sessionToken
+      '' // TODO: Fetch the logging token from the native module
     );
     sendGatorRequest(req).then((_resp) => {
       Logger.getInstance()._traces = [];
