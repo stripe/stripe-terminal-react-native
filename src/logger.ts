@@ -33,10 +33,7 @@ const getDeviceInfo = () => {
     device_class: 'POS',
     // device_uuid: '',
     host_os_version: Platform.Version.toString(),
-    host_hw_version: Platform.select({
-      ios: Platform.constants.osVersion,
-      android: Platform.constants.version,
-    }),
+    // host_hw_version: '', // ex: 'iPad4,1' or 'SM-N960U'
     hardware_model: {
       pos_info: {
         description: Platform.select({ ios: 'iOS', android: 'Android' }),
