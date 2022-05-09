@@ -83,9 +83,16 @@ const sendGatorRequest = async (request: object) => {
   });
 };
 
+/**
+ * A singleton class whose instance exists for the lifetime of the RN SDK.
+ * This class batches traces and sends them to Client-Logger, a Stripe-internal
+ * analytics service.
+ *
+ * The instance holds onto traces, and holds a timer that flushes the collected
+ * traces (currently every 10 seconds).
+ */
 export default class Logger {
   static instance: Logger | null = null;
-  _sessionToken: string | null = null;
   _traces: object[] = [];
 
   static getInstance() {
@@ -98,23 +105,6 @@ export default class Logger {
 
   constructor() {
     setInterval(Logger.flushTraces, 10 * 1000);
-  }
-
-  private static flushTraces() {
-    if (Logger.getInstance()._traces.length === 0) {
-      return;
-    }
-
-    const session_token = 'tmars_abcd'; // get session token, if it exists, from the underlying SDK
-
-    const req = buildGatorRequest(
-      'reportTrace',
-      { proxy_traces: [...Logger.getInstance()._traces] },
-      session_token
-    );
-    sendGatorRequest(req).then((_resp) => {
-      Logger.getInstance()._traces = [];
-    });
   }
 
   /**
@@ -172,6 +162,21 @@ export default class Logger {
 
       return response;
     };
+  }
+
+  private static flushTraces() {
+    if (Logger.getInstance()._traces.length === 0) {
+      return;
+    }
+
+    const req = buildGatorRequest(
+      'reportTrace',
+      { proxy_traces: [...Logger.getInstance()._traces] },
+      Logger.getInstance()._sessionToken
+    );
+    sendGatorRequest(req).then((_resp) => {
+      Logger.getInstance()._traces = [];
+    });
   }
 
   private static tracePromise(
