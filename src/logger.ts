@@ -1,4 +1,5 @@
 import * as packageJson from '../package.json';
+import { Platform } from 'react-native';
 import { b64EncodeUnicode } from './utils/b64EncodeDecode';
 
 interface ObjectWithError {
@@ -30,18 +31,21 @@ interface Trace {
 const getDeviceInfo = () => {
   return {
     device_class: 'POS',
-    device_uuid: 'fc21c6a4-76b4-48a9-a23b-9fce7dc38b58',
-    host_os_version: '12.2.1',
-    host_hw_version: 'iPhone7,1',
+    // device_uuid: '',
+    host_os_version: Platform.Version.toString(),
+    host_hw_version: Platform.select({
+      ios: Platform.constants.osVersion,
+      android: Platform.constants.version,
+    }),
     hardware_model: {
       pos_info: {
-        description: 'iOS',
+        description: Platform.select({ ios: 'iOS', android: 'Android' }),
       },
     },
-    app_model: {
-      app_id: 'com.stripe.jil.test',
-      app_version: '424.2.4',
-    },
+    // app_model: {
+    //   app_id: '',
+    //   app_version: '',
+    // },
   };
 };
 
