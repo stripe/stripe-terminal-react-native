@@ -133,7 +133,7 @@ export default class Logger {
           },
           start_time_ms: Date.now(),
           total_time_ms: 0,
-          service: 'asdf',
+          service: 'StripeTerminalReactNative',
           method,
           request: JSON.stringify({ args }),
           version_info: {
