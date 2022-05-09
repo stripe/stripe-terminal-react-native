@@ -673,7 +673,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         resolve([:])
     }
 
-    @objc @objc(getLoggingToken:rejecter:)
+    @objc(getLoggingToken:rejecter:)
     func getLoggingToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolve(["token": self.loggingToken])
     }
