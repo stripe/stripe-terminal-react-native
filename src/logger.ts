@@ -1,19 +1,28 @@
+import {
+  getBundleId,
+  getBuildNumber,
+  getSystemVersion,
+  getSystemName,
+  getUniqueId,
+  getDeviceId,
+} from 'react-native-device-info';
+import * as packageJson from '../package.json';
 import { b64EncodeUnicode } from './utils/b64EncodeDecode';
 
 const getDeviceInfo = () => {
   return {
     device_class: 'POS',
-    device_uuid: '8779b5ea-c25d-11ec-9d64-0242ac120002', // https://www.npmjs.com/package/react-native-device-info
-    host_os_version: 'jil-test-host-os',
-    host_hw_version: 'my-computer',
+    device_uuid: getUniqueId(),
+    host_os_version: getSystemName(),
+    host_hw_version: getSystemVersion(),
     hardware_model: {
       pos_info: {
-        description: 'jil-test',
+        description: getDeviceId(),
       },
     },
     app_model: {
-      app_id: 'com.stripe.jil.is.testing.gator',
-      app_version: '42.4.2',
+      app_id: getBundleId(),
+      app_version: getBuildNumber(),
     },
   };
 };
@@ -138,16 +147,16 @@ export default class Logger {
     Logger.getInstance()._sessionToken = null;
   }
 
-  static reportEvent(event: object) {
-    const req = buildGatorRequest(
-      'reportEvent',
-      event,
-      Logger.getInstance()._sessionToken
-    );
-    sendGatorRequest(req);
-  }
+  // private static reportEvent(event: object) {
+  //   const req = buildGatorRequest(
+  //     'reportEvent',
+  //     event,
+  //     Logger.getInstance()._sessionToken
+  //   );
+  //   sendGatorRequest(req);
+  // }
 
-  static reportTrace(trace: object) {
+  private static reportTrace(trace: object) {
     const req = buildGatorRequest(
       'reportTrace',
       { proxy_traces: [trace] },
@@ -156,34 +165,39 @@ export default class Logger {
     sendGatorRequest(req);
   }
 
-  static traceFunction(
+  /**
+   * A method that traces that an inner function (`fn`) was called. This should
+   * wrap the entire method body of a public facing Terminal SDK method.
+   * This method logs the function parameters with which the function was called,
+   * and the response that gets sent back to the user.
+   *
+   * @param fn The inner function that should be called and traced.
+   * @param methodName The name of the SDK method that's getting traced.
+   * @returns A function that should be called with `fn`'s args.
+   */
+  static traceSdkMethod(
     fn: (...args: any[]) => any | Promise<any>,
-    service: string,
     methodName: string
   ) {
     return function constructTrace(this: any, ...args: any[]) {
       const method = methodName || fn.name;
 
-      const response = fn.apply(this, args);
-
-      const trace = {
+      const baseTraceObject = {
         origin_role: 'pos-js',
         origin_id: 'pos-b0u0t9vbvob',
         trace: {
-          action_id: '78793673',
+          action_id: '',
           request_info: {
             user_agent: '',
           },
           start_time_ms: Date.now(),
           total_time_ms: 0,
-          service,
+          service: 'asdf',
           method,
           request: JSON.stringify({ args }),
-          response: JSON.stringify(response),
-          exception: 'Action canceled.',
           version_info: {
-            client_type: 'JS_SDK',
-            client_version: '1.3.2',
+            client_type: 'RN_SDK',
+            client_version: packageJson.version,
           },
           traces: [],
           additional_context: {
@@ -194,38 +208,54 @@ export default class Logger {
         },
       };
 
-      Logger.reportTrace(trace);
+      const response = fn.apply(this, args);
+
+      if (response instanceof Promise) {
+        Logger.tracePromise(baseTraceObject, response);
+      }
+
+      // Is there a case where we have an error that isn't thrown on a promise?
+
+      Logger.traceSuccess(baseTraceObject, response);
 
       return response;
     };
   }
-}
 
-/**
- * When initializing:
- *
- * ```
- * Logger.acquireSessionToken(tokenProvider);
- * ```
- *
- * When connecting:
- *
- * ```
- * if(Logger.sessionToken !== null) {
- *    Logger.acquireSessionToken()
- * }
- * ```
- *
- * When disconnecting:
- *
- * ```
- * Logger.forgetSessionToken()
- * ```
- *
- * When logging:
- *
- * ```
- * Logger.reportEvent(...)
- * ```
- *
- */
+  private static tracePromise(
+    baseTraceObject: object,
+    response: Promise<any>
+  ): void {
+    const clonedTraceBase = { ...baseTraceObject };
+    response
+      .then((resp) => {
+        const responseString = JSON.stringify(resp);
+        Logger.traceSuccess(clonedTraceBase, responseString);
+      })
+      .catch((e) => {
+        Logger.traceException(clonedTraceBase, e);
+      });
+  }
+
+  private static traceSuccess(baseTraceObject: object, response: any): void {
+    const trace = {
+      type: 'success',
+      response: JSON.stringify(response),
+      ...baseTraceObject,
+    };
+    Logger.reportTrace(trace);
+  }
+
+  private static traceException(
+    baseTraceObject: object,
+    exception: Error
+  ): void {
+    const trace = {
+      type: 'exception',
+      exception: exception.message,
+      errorCode: exception.cause,
+      ...baseTraceObject,
+    };
+    Logger.reportTrace(trace);
+  }
+}
