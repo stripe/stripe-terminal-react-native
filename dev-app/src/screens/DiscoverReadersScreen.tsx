@@ -358,7 +358,7 @@ export default function DiscoverReadersScreen() {
             title={getReaderDisplayName(reader)}
             disabled={
               (!isBTReader(reader) && reader.status === 'offline') ||
-              (isBTReader(reader) && !selectedLocation)
+              (isBTReader(reader) && !selectedLocation && !simulated)
             }
           />
         ))}
