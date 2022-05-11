@@ -356,7 +356,10 @@ export default function DiscoverReadersScreen() {
             key={reader.serialNumber}
             onPress={() => handleConnectReader(reader)}
             title={getReaderDisplayName(reader)}
-            disabled={!isBTReader(reader) && reader.status === 'offline'}
+            disabled={
+              (!isBTReader(reader) && reader.status === 'offline') ||
+              (isBTReader(reader) && !selectedLocation)
+            }
           />
         ))}
       </List>
