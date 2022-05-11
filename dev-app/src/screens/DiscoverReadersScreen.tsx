@@ -368,7 +368,9 @@ export default function DiscoverReadersScreen() {
             itemStyle={styles.pickerItem}
             onValueChange={(itemValue) => {
               handleChangeUpdatePlan(itemValue);
-              setShowPicker(false);
+              if (Platform.OS === 'android') {
+                setShowPicker(false);
+              }
             }}
           >
             {SIMULATED_UPDATE_PLANS.map((plan) => (
