@@ -32,6 +32,7 @@ export default function ListItem({
       testID={testID}
       activeOpacity={onPress ? 0.5 : 1}
       onPress={onPress}
+      disabled={disabled}
       style={styles.container}
     >
       <View style={styles.flex}>
