@@ -24,7 +24,11 @@ interface Trace {
       client_version: string;
     };
     traces: string[];
-    additional_context: {};
+    additional_context: {
+      action_id: string;
+      session_id: string;
+      serial_number: string;
+    };
   };
 }
 
