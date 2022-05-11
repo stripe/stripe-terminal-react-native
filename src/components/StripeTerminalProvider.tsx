@@ -98,7 +98,6 @@ export function StripeTerminalProvider({
   const tokenProviderHandler = async () => {
     try {
       const connectionToken = await tokenProvider();
-
       setConnectionToken(connectionToken);
     } catch (error) {
       setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);

@@ -1,3 +1,4 @@
+import Logger from './logger';
 import StripeTerminalSdk from './StripeTerminalSdk';
 import * as PackageJson from '../package.json';
 import type {
@@ -73,522 +74,569 @@ export async function setConnectionToken(
 export async function discoverReaders(
   params: DiscoverReadersParams
 ): Promise<DiscoverReadersResultType> {
-  try {
-    const { error } = await StripeTerminalSdk.discoverReaders(params);
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error } = await StripeTerminalSdk.discoverReaders(innerParams);
 
-    return {
-      error: error,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+      return {
+        error: error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'discoverReaders')(params);
 }
 
 export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> {
-  try {
-    const { error } = await StripeTerminalSdk.cancelDiscovering();
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error } = await StripeTerminalSdk.cancelDiscovering();
 
-    return {
-      error: error,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+      return {
+        error: error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelDiscoverReaders')();
 }
 
 export async function connectBluetoothReader(
   params: ConnectBluetoothReaderParams
 ): Promise<ConnectReaderResultType> {
-  try {
-    const { error, reader } = await StripeTerminalSdk.connectBluetoothReader(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } = await StripeTerminalSdk.connectBluetoothReader(
+        innerParams
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          reader: undefined,
+        };
+      }
       return {
-        error,
-        reader: undefined,
+        reader: reader!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      reader: reader!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'connectBluetoothReader')(params);
 }
 
 export async function connectHandoffReader(
   params: ConnectHandoffParams
 ): Promise<ConnectReaderResultType> {
-  try {
-    const { error, reader } = await StripeTerminalSdk.connectHandoffReader(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } = await StripeTerminalSdk.connectHandoffReader(
+        innerParams
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          reader: undefined,
+        };
+      }
       return {
-        error,
-        reader: undefined,
+        reader: reader!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      reader: reader!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'connectHandoffReader')(params);
 }
 
 export async function connectEmbeddedReader(
   params: ConnectEmbeddedParams
 ): Promise<ConnectReaderResultType> {
-  try {
-    const { error, reader } = await StripeTerminalSdk.connectEmbeddedReader(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } = await StripeTerminalSdk.connectEmbeddedReader(
+        innerParams
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          reader: undefined,
+        };
+      }
       return {
-        error,
-        reader: undefined,
+        reader: reader!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      reader: reader!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'connectEmbeddedReader')(params);
 }
 
 export async function connectLocalMobileReader(
   params: ConnectLocalMobileParams
 ): Promise<ConnectReaderResultType> {
-  try {
-    const { error, reader } = await StripeTerminalSdk.connectLocalMobileReader(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } =
+        await StripeTerminalSdk.connectLocalMobileReader(innerParams);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          reader: undefined,
+        };
+      }
       return {
-        error,
-        reader: undefined,
+        reader: reader!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      reader: reader!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'connectLocalMobileReader')(params);
 }
 
 export async function connectInternetReader(
   params: ConnectInternetReaderParams
 ): Promise<ConnectReaderResultType> {
-  try {
-    const { error, reader } = await StripeTerminalSdk.connectInternetReader(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } = await StripeTerminalSdk.connectInternetReader(
+        innerParams
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          reader: undefined,
+        };
+      }
       return {
-        error,
-        reader: undefined,
+        reader: reader!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      reader: reader!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'connectInternetReader')(params);
 }
 
 export async function connectUsbReader(
   params: ConnectUsbReaderParams
 ): Promise<ConnectReaderResultType> {
-  try {
-    const { error, reader } = await StripeTerminalSdk.connectUsbReader(params);
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } = await StripeTerminalSdk.connectUsbReader(
+        innerParams
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          reader: undefined,
+        };
+      }
       return {
-        error,
-        reader: undefined,
+        reader: reader!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      reader: reader!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'connectUsbReader')(params);
 }
 
 export async function disconnectReader(): Promise<DisconnectReaderResultType> {
-  try {
-    const { error } = await StripeTerminalSdk.disconnectReader();
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error } = await StripeTerminalSdk.disconnectReader();
 
-    return {
-      error: error,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+      return {
+        error: error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'disconnectReader')();
 }
 
 export async function createPaymentIntent(
   params: CreatePaymentIntentParams
 ): Promise<PaymentIntentResultType> {
-  try {
-    const { error, paymentIntent } =
-      await StripeTerminalSdk.createPaymentIntent(params);
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, paymentIntent } =
+        await StripeTerminalSdk.createPaymentIntent(innerParams);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          paymentIntent: undefined,
+        };
+      }
       return {
-        error,
-        paymentIntent: undefined,
+        paymentIntent: paymentIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      paymentIntent: paymentIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'createPaymentIntent')(params);
 }
 
 export async function createSetupIntent(
   params: CreateSetupIntentParams
 ): Promise<SetupIntentResultType> {
-  try {
-    const { error, setupIntent } = await StripeTerminalSdk.createSetupIntent(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, setupIntent } = await StripeTerminalSdk.createSetupIntent(
+        innerParams
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          setupIntent: undefined,
+        };
+      }
       return {
-        error,
-        setupIntent: undefined,
+        setupIntent: setupIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      setupIntent: setupIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'createSetupIntent')(params);
 }
 
 export async function collectPaymentMethod(
   params: CollectPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
-  try {
-    const { error, paymentIntent } =
-      await StripeTerminalSdk.collectPaymentMethod(params);
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, paymentIntent } =
+        await StripeTerminalSdk.collectPaymentMethod(innerParams);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          paymentIntent: undefined,
+        };
+      }
       return {
-        error,
-        paymentIntent: undefined,
+        paymentIntent: paymentIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      paymentIntent: paymentIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'collectPaymentMethod')(params);
 }
 
 export async function retrievePaymentIntent(
   clientSecret: string
 ): Promise<PaymentIntentResultType> {
-  try {
-    const { error, paymentIntent } =
-      await StripeTerminalSdk.retrievePaymentIntent(clientSecret);
+  return Logger.traceSdkMethod(async (innerClientSecret) => {
+    try {
+      const { error, paymentIntent } =
+        await StripeTerminalSdk.retrievePaymentIntent(innerClientSecret);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          paymentIntent: undefined,
+        };
+      }
       return {
-        error,
-        paymentIntent: undefined,
+        paymentIntent: paymentIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      paymentIntent: paymentIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'retrievePaymentIntent')(clientSecret);
 }
 
 export async function getLocations(
   params: GetLocationsParams
 ): Promise<GetLocationsResultType> {
-  try {
-    const { error, locations, hasMore } = await StripeTerminalSdk.getLocations(
-      params
-    );
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, locations, hasMore } =
+        await StripeTerminalSdk.getLocations(innerParams);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          locations: undefined,
+          hasMore: undefined,
+        };
+      }
       return {
-        error,
-        locations: undefined,
-        hasMore: undefined,
+        locations: locations!,
+        hasMore: hasMore!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      locations: locations!,
-      hasMore: hasMore!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'getLocations')(params);
 }
 
 export async function processPayment(
   paymentIntentId: string
 ): Promise<PaymentIntentResultType> {
-  try {
-    const { error, paymentIntent } = await StripeTerminalSdk.processPayment(
-      paymentIntentId
-    );
+  return Logger.traceSdkMethod(async (innerPaymentIntentId) => {
+    try {
+      const { error, paymentIntent } = await StripeTerminalSdk.processPayment(
+        innerPaymentIntentId
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          paymentIntent: undefined,
+        };
+      }
       return {
-        error,
-        paymentIntent: undefined,
+        paymentIntent: paymentIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      paymentIntent: paymentIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'processPayment')(paymentIntentId);
 }
 
 export async function cancelPaymentIntent(
   paymentIntentId: string
 ): Promise<PaymentIntentResultType> {
-  try {
-    const { paymentIntent, error } =
-      await StripeTerminalSdk.cancelPaymentIntent(paymentIntentId);
+  return Logger.traceSdkMethod(async (innerPaymentIntentId) => {
+    try {
+      const { paymentIntent, error } =
+        await StripeTerminalSdk.cancelPaymentIntent(innerPaymentIntentId);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          paymentIntent: undefined,
+        };
+      }
       return {
-        error,
-        paymentIntent: undefined,
+        paymentIntent: paymentIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      paymentIntent: paymentIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'cancelPaymentIntent')(paymentIntentId);
 }
 
 export async function installAvailableUpdate(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.installAvailableUpdate();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.installAvailableUpdate();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'installAvailableUpdate')();
 }
 
 export async function setReaderDisplay(
   cart: Cart
 ): Promise<{ error?: StripeError }> {
-  try {
-    const { error } = await StripeTerminalSdk.setReaderDisplay(cart);
+  return Logger.traceSdkMethod(async (innerCart) => {
+    try {
+      const { error } = await StripeTerminalSdk.setReaderDisplay(innerCart);
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+        };
+      }
+      return {};
+    } catch (error) {
       return {
-        error,
+        error: error as any,
       };
     }
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'setReaderDisplay')(cart);
 }
 
 export async function cancelInstallingUpdate(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.cancelInstallingUpdate();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelInstallingUpdate();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelInstallingUpdate')();
 }
 
 export async function retrieveSetupIntent(
   clientSecret: string
 ): Promise<SetupIntentResultType> {
-  try {
-    const { error, setupIntent } = await StripeTerminalSdk.retrieveSetupIntent(
-      clientSecret
-    );
-    if (error) {
+  return Logger.traceSdkMethod(async (innerClientSecret) => {
+    try {
+      const { error, setupIntent } =
+        await StripeTerminalSdk.retrieveSetupIntent(innerClientSecret);
+      if (error) {
+        return {
+          setupIntent: undefined,
+          error,
+        };
+      }
       return {
-        setupIntent: undefined,
-        error,
+        setupIntent: setupIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      setupIntent: setupIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'retrieveSetupIntent')(clientSecret);
 }
 
 export async function collectSetupIntentPaymentMethod(
   params: CollectSetupIntentPaymentMethodParams
 ): Promise<SetupIntentResultType> {
-  try {
-    const { error, setupIntent } =
-      await StripeTerminalSdk.collectSetupIntentPaymentMethod(params);
-    if (error) {
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, setupIntent } =
+        await StripeTerminalSdk.collectSetupIntentPaymentMethod(innerParams);
+      if (error) {
+        return {
+          setupIntent: undefined,
+          error,
+        };
+      }
       return {
-        setupIntent: undefined,
-        error,
+        setupIntent: setupIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      setupIntent: setupIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'collectSetupIntentPaymentMethod')(params);
 }
 
 export async function clearReaderDisplay(): Promise<ClearReaderDisplayResultType> {
-  try {
-    const { error } = await StripeTerminalSdk.clearReaderDisplay();
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error } = await StripeTerminalSdk.clearReaderDisplay();
 
-    return {
-      error: error,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+      return {
+        error: error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'clearReaderDisplay')();
 }
 
 export async function cancelSetupIntent(
   setupIntentId: string
 ): Promise<SetupIntentResultType> {
-  try {
-    const { setupIntent, error } = await StripeTerminalSdk.cancelSetupIntent(
-      setupIntentId
-    );
+  return Logger.traceSdkMethod(async (innerSetupIntentId) => {
+    try {
+      const { setupIntent, error } = await StripeTerminalSdk.cancelSetupIntent(
+        innerSetupIntentId
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          setupIntent: undefined,
+        };
+      }
       return {
-        error,
-        setupIntent: undefined,
+        setupIntent: setupIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      setupIntent: setupIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'cancelSetupIntent')(setupIntentId);
 }
 
 export async function confirmSetupIntent(
   setupIntentId: string
 ): Promise<SetupIntentResultType> {
-  try {
-    const { setupIntent, error } = await StripeTerminalSdk.confirmSetupIntent(
-      setupIntentId
-    );
+  return Logger.traceSdkMethod(async (innerSetupIntentId) => {
+    try {
+      const { setupIntent, error } = await StripeTerminalSdk.confirmSetupIntent(
+        innerSetupIntentId
+      );
 
-    if (error) {
+      if (error) {
+        return {
+          error,
+          setupIntent: undefined,
+        };
+      }
       return {
-        error,
-        setupIntent: undefined,
+        setupIntent: setupIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      setupIntent: setupIntent!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'confirmSetupIntent')(setupIntentId);
 }
 
 export async function simulateReaderUpdate(
@@ -608,15 +656,17 @@ export async function simulateReaderUpdate(
 export async function setSimulatedCard(
   cardNumber: string
 ): Promise<{ error?: StripeError }> {
-  try {
-    await StripeTerminalSdk.setSimulatedCard(cardNumber);
+  return Logger.traceSdkMethod(async (innerCardNumber) => {
+    try {
+      await StripeTerminalSdk.setSimulatedCard(innerCardNumber);
 
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'setSimulatedCard')(cardNumber);
 }
 
 export async function collectRefundPaymentMethod(
@@ -624,125 +674,141 @@ export async function collectRefundPaymentMethod(
 ): Promise<{
   error?: StripeError;
 }> {
-  try {
-    const { error } = await StripeTerminalSdk.collectRefundPaymentMethod(
-      params
-    );
-    return {
-      error,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error } = await StripeTerminalSdk.collectRefundPaymentMethod(
+        innerParams
+      );
+      return {
+        error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'collectRefundPaymentMethod')(params);
 }
 
 export async function processRefund(): Promise<ProcessRefundResultType> {
-  try {
-    const { error, refund } = await StripeTerminalSdk.processRefund();
-    if (error) {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error, refund } = await StripeTerminalSdk.processRefund();
+      if (error) {
+        return {
+          error,
+          refund: undefined,
+        };
+      }
       return {
-        error,
-        refund: undefined,
+        refund: refund,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      refund: refund,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'processRefund')();
 }
 
 export async function clearCachedCredentials(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.clearCachedCredentials();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.clearCachedCredentials();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'clearCachedCredentials')();
 }
 
 export async function readReusableCard(
   params: ReadReusableCardParamsType
 ): Promise<PaymentMethodResultType> {
-  try {
-    const { paymentMethod, error } = await StripeTerminalSdk.readReusableCard(
-      params
-    );
-    if (error) {
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { paymentMethod, error } = await StripeTerminalSdk.readReusableCard(
+        innerParams
+      );
+      if (error) {
+        return {
+          error,
+          paymentMethod: undefined,
+        };
+      }
       return {
-        error,
-        paymentMethod: undefined,
+        paymentMethod: paymentMethod!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
       };
     }
-    return {
-      paymentMethod: paymentMethod!,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  }, 'readReusableCard')(params);
 }
 
 export async function cancelCollectPaymentMethod(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.cancelCollectPaymentMethod();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelCollectPaymentMethod();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelCollectPaymentMethod')();
 }
 
 export async function cancelCollectRefundPaymentMethod(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.cancelCollectRefundPaymentMethod();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelCollectRefundPaymentMethod();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelCollectRefundPaymentMethod')();
 }
 
 export async function cancelCollectSetupIntent(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.cancelCollectSetupIntent();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelCollectSetupIntent();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelCollectSetupIntent')();
 }
 
 export async function cancelReadReusableCard(): Promise<{
   error?: StripeError;
 }> {
-  try {
-    await StripeTerminalSdk.cancelReadReusableCard();
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelReadReusableCard();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelReadReusableCard')();
 }

@@ -44,6 +44,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var collectSetupIntentCancelable: Cancelable? = nil
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
+    var loggingToken: String? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -673,6 +674,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         Terminal.shared.clearCachedCredentials()
         self.paymentIntents = [:]
         resolve([:])
+    }
+
+    @objc(getLoggingToken:rejecter:)
+    func getLoggingToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolve(["token": self.loggingToken])
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
