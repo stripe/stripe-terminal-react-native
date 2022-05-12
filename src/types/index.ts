@@ -276,6 +276,13 @@ type CardDetails = {
   last4: string;
 };
 
+/**
+ * @ignore
+ */
+export type EventResult<T> = {
+  result: T;
+};
+
 export type UserCallbacks = {
   onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
   onFinishDiscoveringReaders?(error?: StripeError): void;

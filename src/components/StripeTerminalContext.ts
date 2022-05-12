@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { EventEmitter } from 'react-native';
-import type { Reader, InitializeResultType, UserCallbacks } from '../types';
+import type { Reader, InitializeResultType } from '../types';
 
 type ContextType = {
   loading: boolean;
@@ -14,7 +14,6 @@ type ContextType = {
   setDiscoveredReaders(value: Reader.Type[]): void;
   initialize?(): Promise<InitializeResultType>;
   log(code: string, message?: any): void;
-  setUserCallbacks(callbacks: UserCallbacks): void;
 };
 
 export const StripeTerminalContext = createContext<ContextType>({
@@ -28,5 +27,4 @@ export const StripeTerminalContext = createContext<ContextType>({
   setConnectedReader: () => {},
   initialize: undefined,
   setDiscoveredReaders: () => {},
-  setUserCallbacks: () => {},
 });

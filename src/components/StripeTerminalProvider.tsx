@@ -1,11 +1,11 @@
-import React, { useCallback, useRef, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   Reader,
   LogLevel,
-  StripeError,
-  PaymentStatus,
-  UserCallbacks,
   CommonError,
+  StripeError,
+  EventResult,
+  PaymentStatus,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -33,13 +33,6 @@ const emitter = new EventEmitter();
 
 const TOKEN_PROVIDER_ERROR_MESSAGE =
   "Couldn't fetch connection token. Please check your tokenProvider method";
-
-/**
- * @ignore
- */
-type EventResult<T> = {
-  result: T;
-};
 
 /**
  *  StripeTerminalProvider Component Props
@@ -84,7 +77,6 @@ export function StripeTerminalProvider({
   const [loading, setLoading] = useState(true);
   const [connectedReader, setConnectedReader] = useState<Reader.Type | null>();
   const [discoveredReaders, setDiscoveredReaders] = useState<Reader.Type[]>([]);
-  const userCallbacks = useRef<UserCallbacks>();
 
   const log = useCallback(
     (code: string, message?: any) => {
@@ -95,62 +87,30 @@ export function StripeTerminalProvider({
     [logLevel]
   );
 
-  const tokenProviderHandler = async () => {
-    try {
-      const connectionToken = await tokenProvider();
-      setConnectionToken(connectionToken);
-    } catch (error) {
-      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
-
-      console.error(error);
-      console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
-    }
-  };
-
   const didUpdateDiscoveredReaders = useCallback(
     ({ readers }: { readers: Reader.Type[] }) => {
-      log('Discovered readers', readers);
-
-      setDiscoveredReaders(readers);
-      userCallbacks.current?.onUpdateDiscoveredReaders?.(readers);
-      emitter.emit(UPDATE_DISCOVERED_READERS);
+      log('didUpdateDiscoveredReaders', readers);
     },
-    [setDiscoveredReaders, log]
+    [log]
   );
 
   const didFinishDiscoveringReaders = useCallback(
     ({ result }: EventResult<{ error?: StripeError }>) => {
-      if (result.error) {
-        const { error } = result;
-        log(
-          'Discovering readers has been finished with the following error:',
-          `code: ${error.code}, message: ${error.message}`
-        );
-      }
-      userCallbacks.current?.onFinishDiscoveringReaders?.(result.error);
-      emitter.emit(FINISH_DISCOVERING_READERS);
+      log('didFinishDiscoveringReaders', result);
     },
     [log]
   );
 
   const didReportUnexpectedReaderDisconnect = useCallback(
     ({ error }: { error?: StripeError }) => {
-      if (error) {
-        log(`code: ${error.code}, message: ${error.message}`);
-      }
-      setConnectedReader(null);
-      setDiscoveredReaders([]);
-      userCallbacks.current?.onDidReportUnexpectedReaderDisconnect?.(error);
-      emitter.emit(REPORT_UNEXPECTED_READER_DISCONNECT);
+      log('didReportUnexpectedReaderDisconnect', error);
     },
-    [log, setConnectedReader, setDiscoveredReaders]
+    [log]
   );
 
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didReportAvailableUpdate', result);
-      userCallbacks.current?.onDidReportAvailableUpdate?.(result);
-      emitter.emit(REPORT_AVAILABLE_UPDATE);
     },
     [log]
   );
@@ -158,8 +118,6 @@ export function StripeTerminalProvider({
   const didStartInstallingUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didStartInstallingUpdate', result);
-      userCallbacks.current?.onDidStartInstallingUpdate?.(result);
-      emitter.emit(START_INSTALLING_UPDATE);
     },
     [log]
   );
@@ -167,10 +125,6 @@ export function StripeTerminalProvider({
   const didReportReaderSoftwareUpdateProgress = useCallback(
     ({ result }: EventResult<{ progress: string }>) => {
       log('didReportReaderSoftwareUpdateProgress', result);
-      userCallbacks.current?.onDidReportReaderSoftwareUpdateProgress?.(
-        result.progress
-      );
-      emitter.emit(REPORT_UPDATE_PROGRESS);
     },
     [log]
   );
@@ -179,24 +133,7 @@ export function StripeTerminalProvider({
     ({
       result,
     }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
-      if ((result as { error: StripeError }).error) {
-        const { error } = result as { error: StripeError };
-        log(
-          'Install update failed with the following error:',
-          `code: ${error.code}, message: ${error.message}`
-        );
-        userCallbacks.current?.onDidFinishInstallingUpdate?.({
-          update: undefined,
-          error: error,
-        });
-      } else {
-        log('didFinishInstallingUpdate', result);
-        userCallbacks.current?.onDidFinishInstallingUpdate?.({
-          update: result as Reader.SoftwareUpdate,
-          error: undefined,
-        });
-      }
-      emitter.emit(FINISH_INSTALLING_UPDATE);
+      log('didFinishInstallingUpdate', result);
     },
     [log]
   );
@@ -204,8 +141,6 @@ export function StripeTerminalProvider({
   const didRequestReaderInput = useCallback(
     ({ result }: EventResult<Reader.InputOptions[]>) => {
       log('didRequestReaderInput', result);
-      userCallbacks.current?.onDidRequestReaderInput?.(result);
-      emitter.emit(REQUEST_READER_INPUT);
     },
     [log]
   );
@@ -213,8 +148,6 @@ export function StripeTerminalProvider({
   const didRequestReaderDisplayMessage = useCallback(
     ({ result }: EventResult<Reader.DisplayMessage>) => {
       log('didRequestReaderDisplayMessage', result);
-      userCallbacks.current?.onDidRequestReaderDisplayMessage?.(result);
-      emitter.emit(REQUEST_READER_DISPLAY_MESSAGE);
     },
     [log]
   );
@@ -222,8 +155,6 @@ export function StripeTerminalProvider({
   const didChangePaymentStatus = useCallback(
     ({ result }: EventResult<PaymentStatus>) => {
       log('didChangePaymentStatus', result);
-      userCallbacks.current?.onDidChangePaymentStatus?.(result);
-      emitter.emit(CHANGE_PAYMENT_STATUS);
     },
     [log]
   );
@@ -231,13 +162,10 @@ export function StripeTerminalProvider({
   const didChangeConnectionStatus = useCallback(
     ({ result }: EventResult<Reader.ConnectionStatus>) => {
       log('didChangeConnectionStatus', result);
-      userCallbacks.current?.onDidChangeConnectionStatus?.(result);
-      emitter.emit(CHANGE_CONNECTION_STATUS);
     },
     [log]
   );
 
-  useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -254,9 +182,20 @@ export function StripeTerminalProvider({
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
-  const setUserCallbacks = useCallback((callbacks: UserCallbacks) => {
-    userCallbacks.current = callbacks;
-  }, []);
+  const tokenProviderHandler = async () => {
+    try {
+      const connectionToken = await tokenProvider();
+
+      setConnectionToken(connectionToken);
+    } catch (error) {
+      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
+
+      console.error(error);
+      console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
+    }
+  };
+
+  useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
   const _initialize = useCallback(async () => {
     setLoading(true);
@@ -306,7 +245,6 @@ export function StripeTerminalProvider({
       setDiscoveredReaders,
       log,
       initialize: _initialize,
-      setUserCallbacks,
       emitter,
     }),
     [
@@ -320,7 +258,6 @@ export function StripeTerminalProvider({
       setConnectedReader,
       setDiscoveredReaders,
       log,
-      setUserCallbacks,
     ]
   );
 

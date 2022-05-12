@@ -14,8 +14,11 @@ import type {
   ReadReusableCardParamsType,
   ConnectEmbeddedParams,
   ConnectLocalMobileParams,
-  UserCallbacks,
   CollectPaymentMethodParams,
+  StripeError,
+  PaymentStatus,
+  UserCallbacks,
+  EventResult,
 } from '../types';
 import {
   discoverReaders,
@@ -57,8 +60,20 @@ import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
 import { NativeModules } from 'react-native';
 
-const { FETCH_TOKEN_PROVIDER } =
-  NativeModules.StripeTerminalReactNative.getConstants();
+const {
+  FETCH_TOKEN_PROVIDER,
+  CHANGE_CONNECTION_STATUS,
+  CHANGE_PAYMENT_STATUS,
+  FINISH_DISCOVERING_READERS,
+  FINISH_INSTALLING_UPDATE,
+  REQUEST_READER_DISPLAY_MESSAGE,
+  REQUEST_READER_INPUT,
+  REPORT_AVAILABLE_UPDATE,
+  REPORT_UNEXPECTED_READER_DISCONNECT,
+  REPORT_UPDATE_PROGRESS,
+  START_INSTALLING_UPDATE,
+  UPDATE_DISCOVERED_READERS,
+} = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
   'First initialize the Stripe Terminal SDK before performing any action';
@@ -96,7 +111,6 @@ export function useStripeTerminal(props?: Props) {
     loading,
     emitter,
     log,
-    setUserCallbacks,
   } = useContext(StripeTerminalContext);
 
   const _isInitialized = useCallback(() => isInitialized, [isInitialized]);
@@ -114,20 +128,6 @@ export function useStripeTerminal(props?: Props) {
     onDidChangePaymentStatus,
     onDidChangeConnectionStatus,
   } = props || {};
-
-  setUserCallbacks({
-    onUpdateDiscoveredReaders,
-    onFinishDiscoveringReaders,
-    onDidFinishInstallingUpdate,
-    onDidReportAvailableUpdate,
-    onDidReportReaderSoftwareUpdateProgress,
-    onDidReportUnexpectedReaderDisconnect,
-    onDidStartInstallingUpdate,
-    onDidRequestReaderInput,
-    onDidRequestReaderDisplayMessage,
-    onDidChangePaymentStatus,
-    onDidChangeConnectionStatus,
-  });
 
   const _discoverReaders = useCallback(
     async (params: DiscoverReadersParams) => {
@@ -147,6 +147,132 @@ export function useStripeTerminal(props?: Props) {
   // TODO: check why NativeEventListeners are not registering properly if there is no below fix
   useListener(FETCH_TOKEN_PROVIDER, () => null);
 
+  const didUpdateDiscoveredReaders = useCallback(
+    ({ readers }: { readers: Reader.Type[] }) => {
+      setDiscoveredReaders(readers);
+      onUpdateDiscoveredReaders?.(readers);
+      emitter?.emit(UPDATE_DISCOVERED_READERS);
+    },
+    [setDiscoveredReaders, onUpdateDiscoveredReaders, emitter]
+  );
+
+  const didFinishDiscoveringReaders = useCallback(
+    ({ result }: EventResult<{ error?: StripeError }>) => {
+      onFinishDiscoveringReaders?.(result.error);
+      emitter?.emit(FINISH_DISCOVERING_READERS);
+    },
+    [emitter, onFinishDiscoveringReaders]
+  );
+
+  const didReportUnexpectedReaderDisconnect = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      setConnectedReader(null);
+      setDiscoveredReaders([]);
+      onDidReportUnexpectedReaderDisconnect?.(error);
+      emitter?.emit(REPORT_UNEXPECTED_READER_DISCONNECT);
+    },
+    [
+      emitter,
+      onDidReportUnexpectedReaderDisconnect,
+      setConnectedReader,
+      setDiscoveredReaders,
+    ]
+  );
+
+  const didReportAvailableUpdate = useCallback(
+    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
+      onDidReportAvailableUpdate?.(result);
+      emitter?.emit(REPORT_AVAILABLE_UPDATE);
+    },
+    [emitter, onDidReportAvailableUpdate]
+  );
+
+  const didStartInstallingUpdate = useCallback(
+    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
+      onDidStartInstallingUpdate?.(result);
+      emitter?.emit(START_INSTALLING_UPDATE);
+    },
+    [emitter, onDidStartInstallingUpdate]
+  );
+
+  const didReportReaderSoftwareUpdateProgress = useCallback(
+    ({ result }: EventResult<{ progress: string }>) => {
+      onDidReportReaderSoftwareUpdateProgress?.(result.progress);
+      emitter?.emit(REPORT_UPDATE_PROGRESS);
+    },
+    [emitter, onDidReportReaderSoftwareUpdateProgress]
+  );
+
+  const didFinishInstallingUpdate = useCallback(
+    ({
+      result,
+    }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
+      if ((result as { error: StripeError }).error) {
+        const { error } = result as { error: StripeError };
+
+        onDidFinishInstallingUpdate?.({
+          update: undefined,
+          error: error,
+        });
+      } else {
+        onDidFinishInstallingUpdate?.({
+          update: result as Reader.SoftwareUpdate,
+          error: undefined,
+        });
+      }
+      emitter?.emit(FINISH_INSTALLING_UPDATE);
+    },
+    [emitter, onDidFinishInstallingUpdate]
+  );
+
+  const didRequestReaderInput = useCallback(
+    ({ result }: EventResult<Reader.InputOptions[]>) => {
+      onDidRequestReaderInput?.(result);
+      emitter?.emit(REQUEST_READER_INPUT);
+    },
+    [emitter, onDidRequestReaderInput]
+  );
+
+  const didRequestReaderDisplayMessage = useCallback(
+    ({ result }: EventResult<Reader.DisplayMessage>) => {
+      onDidRequestReaderDisplayMessage?.(result);
+      emitter?.emit(REQUEST_READER_DISPLAY_MESSAGE);
+    },
+    [emitter, onDidRequestReaderDisplayMessage]
+  );
+
+  const didChangePaymentStatus = useCallback(
+    ({ result }: EventResult<PaymentStatus>) => {
+      onDidChangePaymentStatus?.(result);
+      emitter?.emit(CHANGE_PAYMENT_STATUS);
+    },
+    [emitter, onDidChangePaymentStatus]
+  );
+
+  const didChangeConnectionStatus = useCallback(
+    ({ result }: EventResult<Reader.ConnectionStatus>) => {
+      onDidChangeConnectionStatus?.(result);
+      emitter?.emit(CHANGE_CONNECTION_STATUS);
+    },
+    [emitter, onDidChangeConnectionStatus]
+  );
+
+  useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
+  useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
+  useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
+  useListener(FINISH_INSTALLING_UPDATE, didFinishInstallingUpdate);
+
+  useListener(UPDATE_DISCOVERED_READERS, didUpdateDiscoveredReaders);
+  useListener(FINISH_DISCOVERING_READERS, didFinishDiscoveringReaders);
+  useListener(
+    REPORT_UNEXPECTED_READER_DISCONNECT,
+    didReportUnexpectedReaderDisconnect
+  );
+  useListener(REQUEST_READER_INPUT, didRequestReaderInput);
+  useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
+  useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
+  useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
+
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {
       const errorMessage =
@@ -162,8 +288,7 @@ export function useStripeTerminal(props?: Props) {
       };
     }
 
-    const res = await initialize();
-    return res;
+    return await initialize();
   }, [initialize, log]);
 
   const _cancelDiscovering = useCallback(async () => {
