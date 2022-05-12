@@ -8097,9 +8097,9 @@ strip-json-comments@~2.0.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
   integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
 
-"stripe-terminal-react-native@git+ssh://git@github.com:stripe/stripe-terminal-react-native.git":
+"stripe-terminal-react-native@https://github.com/stripe/stripe-terminal-react-native":
   version "0.1.0"
-  resolved "git+ssh://git@github.com:stripe/stripe-terminal-react-native.git#655becf987ad377a410389e3b7915fd9f24d832e"
+  resolved "https://github.com/stripe/stripe-terminal-react-native#655becf987ad377a410389e3b7915fd9f24d832e"
   dependencies:
     base-64 "^1.0.0"
     react-native-permissions "^3.3.1"
