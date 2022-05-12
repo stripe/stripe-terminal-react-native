@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -38,6 +38,7 @@ export default function DiscoverReadersScreen() {
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = useRef<Picker<string>>();
 
   const { simulated, discoveryMethod } = params;
 
@@ -319,30 +320,18 @@ export default function DiscoverReadersScreen() {
 
       {simulated && discoveryMethod !== 'internet' && (
         <List title="SIMULATED UPDATE PLAN">
-          {Platform.OS !== 'ios' ? (
-            <Picker
-              selectedValue={selectedUpdatePlan}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-              testID="update-plan-picker"
-              onValueChange={(itemValue) => handleChangeUpdatePlan(itemValue)}
-            >
-              {SIMULATED_UPDATE_PLANS.map((plan) => (
-                <Picker.Item
-                  key={plan}
-                  label={mapToPlanDisplayName(plan)}
-                  testID={plan}
-                  value={plan}
-                />
-              ))}
-            </Picker>
-          ) : (
-            <ListItem
-              testID="update-plan-picker"
-              onPress={() => setShowPicker(true)}
-              title={mapToPlanDisplayName(selectedUpdatePlan)}
-            />
-          )}
+          <ListItem
+            testID="update-plan-picker"
+            onPress={() => {
+              setShowPicker(true);
+
+              // Android workaround for instant diplaying options list
+              setTimeout(() => {
+                pickerRef.current?.focus();
+              }, 100);
+            }}
+            title={mapToPlanDisplayName(selectedUpdatePlan)}
+          />
         </List>
       )}
 
@@ -364,7 +353,9 @@ export default function DiscoverReadersScreen() {
       <Modal visible={showPicker} transparent>
         <TouchableWithoutFeedback
           testID="close-picker"
-          onPress={() => setShowPicker(false)}
+          onPress={() => {
+            setShowPicker(false);
+          }}
         >
           <View style={styles.modalOverlay} />
         </TouchableWithoutFeedback>
@@ -372,9 +363,15 @@ export default function DiscoverReadersScreen() {
         <View style={styles.pickerContainer} testID="picker-container">
           <Picker
             selectedValue={selectedUpdatePlan}
+            ref={pickerRef as any}
             style={styles.picker}
             itemStyle={styles.pickerItem}
-            onValueChange={(itemValue) => handleChangeUpdatePlan(itemValue)}
+            onValueChange={(itemValue) => {
+              handleChangeUpdatePlan(itemValue);
+              if (Platform.OS === 'android') {
+                setShowPicker(false);
+              }
+            }}
           >
             {SIMULATED_UPDATE_PLANS.map((plan) => (
               <Picker.Item
