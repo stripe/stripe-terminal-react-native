@@ -72,7 +72,7 @@ commands:
       - save_cache:
           paths:
             - <<parameters.pod_install_directory>>/Pods
-          key: cache-pods--example{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+          key: cache-pods--example-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
 
   install_node:
     parameters:
