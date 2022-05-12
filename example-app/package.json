@@ -54,7 +54,7 @@
     "@types/react": "~17.0.21",
     "@types/react-native": "~0.67.6",
     "stripe": "^8.181.0",
-    "typescript": "~4.3.5"
+    "typescript": "^4.6.2"
   },
   "private": true
 }
