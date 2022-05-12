@@ -41,9 +41,10 @@ local.properties
 android.iml
 *.hprof
 
-# Cocoapods
+# Ruby / CocoaPods
 #
 dev-app/ios/Pods
+dev-app/vendor/bundle
 
 # node.js
 #

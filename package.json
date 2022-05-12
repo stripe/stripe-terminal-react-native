@@ -27,6 +27,7 @@
     "lint": "jest --config \"jest.eslint.config.js\"",
     "prepare": "bob build",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
+    "release": "./scripts/publish",
     "dev-app": "yarn --cwd dev-app",
     "example-app": "yarn --cwd example-app",
     "pods": "cd dev-app && pod-install --quiet",
@@ -65,23 +66,24 @@
     "@commitlint/config-conventional": "^11.0.0",
     "@expo/config-plugins": "^4.0.18",
     "@react-native-community/eslint-config": "^2.0.0",
+    "@types/base-64": "^1.0.0",
     "@types/jest": "^27.0.2",
     "@types/react": "^16.9.19",
     "@types/react-native": "0.63.18",
     "commitlint": "^11.0.0",
     "detox": "^19.4.3",
-    "eslint": "^7.14.0",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-detox": "^1.0.0",
     "eslint-plugin-prettier": "^3.3.0",
     "husky": "^6.0.0",
     "jest": "^27.3.1",
     "jest-runner-eslint": "^1.0.0",
-    "metro-react-native-babel-preset": "^0.66.2",
+    "metro-react-native-babel-preset": "^0.67.0",
     "pod-install": "^0.1.0",
     "prettier": "^2.0.5",
     "react": "17.0.2",
-    "react-native": "0.66.3",
+    "react-native": "0.68.1",
     "react-native-builder-bob": "^0.18.0",
     "stripe": "^7.14.0",
     "typedoc": "^0.22.15",
@@ -149,5 +151,9 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "base-64": "^1.0.0",
+    "react-native-permissions": "^3.3.1"
   }
 }

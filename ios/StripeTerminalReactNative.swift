@@ -27,7 +27,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             $0.rawValue
         }
     }
-    
+
     @objc override func constantsToExport() -> [AnyHashable : Any]! {
         return ReactNativeConstants.allCases.reduce(into: [String: String]()) {
             $0[String(describing: $1)] = $1.rawValue
@@ -44,6 +44,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var collectSetupIntentCancelable: Cancelable? = nil
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
+    var loggingToken: String? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -70,8 +71,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             Terminal.shared.logLevel = logLevel
         }
 
-        if Terminal.shared.responds(to: NSSelectorFromString("reportAsReactNativeSdk")) {
-            Terminal.shared.performSelector(inBackground: NSSelectorFromString("reportAsReactNativeSdk"), with: self)
+        if Terminal.shared.responds(to: NSSelectorFromString("setReactNativeSdkVersion:")) && params["reactNativeVersion"] != nil {
+            Terminal.shared.performSelector(
+                inBackground: NSSelectorFromString("setReactNativeSdkVersion:"),
+                with: params["reactNativeVersion"]
+            )
         }
 
         resolve(["reader": connectedReader])
@@ -93,7 +97,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             self.collectPaymentMethodCancelable = nil
         }
     }
-    
+
     @objc(cancelCollectRefundPaymentMethod:rejecter:)
     func cancelCollectRefundPaymentMethod(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cancelable = collectRefundPaymentMethodCancelable else {
@@ -150,7 +154,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         Terminal.shared.simulatorConfiguration.availableReaderUpdate = Mappers.mapToSimulateReaderUpdate(update)
         resolve([:])
     }
-    
+
     @objc(setSimulatedCard:resolver:rejecter:)
     func setSimulatedCard(cardNumber: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         Terminal.shared.simulatorConfiguration.simulatedCard = SimulatedCard(testCardNumber: cardNumber)
@@ -273,6 +277,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {
+                self.paymentIntents = [:]
                 resolve([:])
             }
         }
@@ -292,7 +297,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let onBehalfOf = params["onBehalfOf"] as? String
         let transferDataDestination = params["transferDataDestination"] as? String
         let applicationFeeAmount = params["applicationFeeAmount"] as? NSNumber
-        
+
         let stripeDescription = params["stripeDescription"] as? String
         let statementDescriptor = params["statementDescriptor"] as? String
         let receiptEmail = params["receiptEmail"] as? String
@@ -305,19 +310,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
 
         let paymentIntentParams = PaymentIntentParameters(amount: UInt(truncating: amount), currency: currency, paymentMethodTypes: paymentMethodTypes)
-        
+
         paymentIntentParams.setupFutureUsage = setupFutureUsage
         paymentIntentParams.onBehalfOf = onBehalfOf
         paymentIntentParams.transferDataDestination = transferDataDestination
         paymentIntentParams.applicationFeeAmount = applicationFeeAmount
-        
+
         paymentIntentParams.stripeDescription = stripeDescription
         paymentIntentParams.statementDescriptor = statementDescriptor
         paymentIntentParams.receiptEmail = receiptEmail
         paymentIntentParams.customer = customer
         paymentIntentParams.transferGroup = transferGroup
         paymentIntentParams.metadata = metadata
-        
+
         let cardPresentParams = CardPresentParameters(requestExtendedAuthorization: extendedAuth, requestIncrementalAuthorizationSupport: incrementalAuth)
         paymentIntentParams.paymentMethodOptionsParameters = PaymentMethodOptionsParameters(cardPresentParameters: cardPresentParams)
 
@@ -358,9 +363,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
-        
+
         let skipTipping = params["skipTipping"] as? Bool ?? false
-        
+
         self.collectPaymentMethodCancelable = Terminal.shared.collectPaymentMethod(
             paymentIntent,
             collectConfig: CollectConfiguration(skipTipping: skipTipping)
@@ -427,6 +432,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
+                self.paymentIntents = [:]
                 resolve(["paymentIntent": paymentIntent])
             }
         }
@@ -666,7 +672,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(clearCachedCredentials:rejecter:)
     func clearCachedCredentials(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.clearCachedCredentials()
+        self.paymentIntents = [:]
         resolve([:])
+    }
+
+    @objc(getLoggingToken:rejecter:)
+    func getLoggingToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolve(["token": self.loggingToken])
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
