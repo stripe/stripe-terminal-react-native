@@ -1,5 +1,4 @@
 import { PermissionsAndroid, Platform } from 'react-native';
-import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 
 const defaultFineLocationParams = {
   title: 'Location Permission',
@@ -43,22 +42,26 @@ export async function requestNeededExpoAndroidPermissions({
   }
 
   // otherwise within expo we have to make use of react-native-permissions
-  const grantedBT = await request(PERMISSIONS.ANDROID.BLUETOOTH_CONNECT);
+  const grantedBT = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT
+  );
 
   if (!hasGrantedPermission(grantedBT)) {
     return {
       error: {
-        [PERMISSIONS.ANDROID.BLUETOOTH_CONNECT]: grantedBT,
+        [PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT]: grantedBT,
       },
     };
   }
 
-  const grantedBTScan = await request(PERMISSIONS.ANDROID.BLUETOOTH_SCAN);
+  const grantedBTScan = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN
+  );
 
   if (!hasGrantedPermission(grantedBTScan)) {
     return {
       error: {
-        [PERMISSIONS.ANDROID.BLUETOOTH_SCAN]: grantedBTScan,
+        [PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN]: grantedBTScan,
       },
     };
   }
@@ -67,5 +70,5 @@ export async function requestNeededExpoAndroidPermissions({
 }
 
 const hasGrantedPermission = (status: string) => {
-  return status === RESULTS.GRANTED;
+  return status === PermissionsAndroid.RESULTS.GRANTED;
 };
