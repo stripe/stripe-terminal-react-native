@@ -25,10 +25,9 @@ import {
   Reader,
   Location,
   useStripeTerminal,
+  requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
-
-import { requestNeededExpoAndroidPermissions } from './util/requestNeededExpoAndroidPermissions';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -135,7 +134,7 @@ export default function App() {
   useEffect(() => {
     async function handlePermissions() {
       try {
-        const { error } = await requestNeededExpoAndroidPermissions({
+        const { error } = await requestNeededAndroidPermissions({
           accessFineLocation: {
             title: 'Location Permission',
             message: 'Stripe Terminal needs access to your location',
