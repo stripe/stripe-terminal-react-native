@@ -1,6 +1,5 @@
 {
   "exclude": ["example-app"],
-  "include": ["./package.json"],
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {

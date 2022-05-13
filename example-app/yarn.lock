@@ -8092,9 +8092,9 @@ strip-json-comments@~2.0.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
   integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
 
-"stripe-terminal-react-native@file:./vendor/stripe-terminal-react-native-0.0.10-alpha.tgz":
-  version "0.0.10-alpha"
-  resolved "file:./vendor/stripe-terminal-react-native-0.0.10-alpha.tgz#5fbb88a9c8c27245b37fc7c7d64806c83fb68b68"
+"stripe-terminal-react-native@file:./vendor/stripe-terminal-react-native-0.0.11-alpha.tgz":
+  version "0.0.11-alpha"
+  resolved "file:./vendor/stripe-terminal-react-native-0.0.11-alpha.tgz#daa487fa4956de2519f502884df059372bdc21ca"
   dependencies:
     base-64 "^1.0.0"
 
