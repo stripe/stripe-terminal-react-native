@@ -1,10 +1,10 @@
 {
   "name": "stripe-terminal-react-native",
-  "version": "0.1.0",
+  "version": "0.0.1-beta",
   "description": "stripe terminal react native SDK library",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/index.d.ts",
+  "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
   "files": [
@@ -153,7 +153,6 @@
     ]
   },
   "dependencies": {
-    "base-64": "^1.0.0",
-    "react-native-permissions": "^3.3.1"
+    "base-64": "^1.0.0"
   }
 }
