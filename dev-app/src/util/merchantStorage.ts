@@ -1,9 +1,3 @@
-import {
-  STRIPE_PRIVATE_KEY,
-  STRIPE_PRIVATE_CA_KEY,
-  // @ts-ignore
-} from '@env';
-
 import type { Reader } from 'stripe-terminal-react-native';
 
 import type { IShortAccount } from '../types';
@@ -20,24 +14,28 @@ export const getStoredAccounts = async (): Promise<Array<IShortAccount>> => {
   const accts = jsonValue ? JSON.parse(jsonValue) : [];
 
   if (
-    STRIPE_PRIVATE_KEY &&
-    !accts.find((a: IShortAccount) => a.secretKey === STRIPE_PRIVATE_KEY)
+    process.env.STRIPE_PRIVATE_KEY &&
+    !accts.find(
+      (a: IShortAccount) => a.secretKey === process.env.STRIPE_PRIVATE_KEY
+    )
   ) {
     accts.push({
       id: 'acct_1234',
       name: 'CI US TEST ACCT',
-      secretKey: STRIPE_PRIVATE_KEY,
+      secretKey: process.env.STRIPE_PRIVATE_KEY,
     });
   }
 
   if (
-    STRIPE_PRIVATE_CA_KEY &&
-    !accts.find((a: IShortAccount) => a.secretKey === STRIPE_PRIVATE_CA_KEY)
+    process.env.STRIPE_PRIVATE_CA_KEY &&
+    !accts.find(
+      (a: IShortAccount) => a.secretKey === process.env.STRIPE_PRIVATE_CA_KEY
+    )
   ) {
     accts.push({
       id: 'acct_5555',
       name: 'CI CA TEST ACCT',
-      secretKey: STRIPE_PRIVATE_CA_KEY,
+      secretKey: process.env.STRIPE_PRIVATE_CA_KEY,
     });
   }
 
@@ -74,7 +72,9 @@ export const setStoredAccounts = async (accounts: Array<IShortAccount>) =>
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 
 export const getSelectedAccount = async (): Promise<string | null> =>
-  (await AsyncStorage.getItem(SELECTED_ACCOUNT_KEY)) || STRIPE_PRIVATE_KEY;
+  (await AsyncStorage.getItem(SELECTED_ACCOUNT_KEY)) ||
+  process.env.STRIPE_PRIVATE_KEY ||
+  null;
 
 export const setSelectedAccount = async (accountKey: string) =>
   await AsyncStorage.setItem(SELECTED_ACCOUNT_KEY, accountKey);
