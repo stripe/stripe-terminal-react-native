@@ -330,7 +330,7 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
-  - stripe-terminal-react-native (0.1.0):
+  - stripe-terminal-react-native (0.0.11-alpha):
     - React-Core
     - StripeTerminal (= 2.7.0)
   - StripeTerminal (2.7.0)
@@ -511,7 +511,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNReanimated: 61f7efddd08550ffa5dee90021a157cd6e7c82fb
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
-  stripe-terminal-react-native: 15e612259e8b3d12ffe0975ef186101e1117841c
+  stripe-terminal-react-native: 46a7e790a0ed6a822183d8751bfa15e3d9a768ea
   StripeTerminal: 237b759168a00c7f55b97c743cd8a4921866c46b
   Yoga: 17cd9a50243093b547c1e539c749928dd68152da
 

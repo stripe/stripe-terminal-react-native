@@ -1,9 +1,6 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "stripe-terminal-react-native": ["../src/index"]
-    }
+    "strict": true
   }
 }

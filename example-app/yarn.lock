@@ -7197,11 +7197,6 @@ react-native-keyboard-aware-scroll-view@^0.9.5:
     prop-types "^15.6.2"
     react-native-iphone-x-helper "^1.0.3"
 
-react-native-permissions@^3.3.1:
-  version "3.3.1"
-  resolved "https://registry.npmjs.org/react-native-permissions/-/react-native-permissions-3.3.1.tgz#8a359d9c0531afcde2f642a459b48c4c1e3e8f2d"
-  integrity sha512-Ap9nVWBWJ7lyU6Ye3Qltm2V+Ut6XjDcs+6ZBmK1UUxcCoSSGx/mQg2GbMJLjlnoVtUgVHR3IhyZ0mN9DlMPRFQ==
-
 react-native-reanimated@~2.8.0:
   version "2.8.0"
   resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-2.8.0.tgz#93c06ca84d91fb3865110b0857c49a24e316130e"
@@ -8097,12 +8092,11 @@ strip-json-comments@~2.0.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
   integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
 
-"stripe-terminal-react-native@https://github.com/stripe/stripe-terminal-react-native":
-  version "0.1.0"
-  resolved "https://github.com/stripe/stripe-terminal-react-native#655becf987ad377a410389e3b7915fd9f24d832e"
+"stripe-terminal-react-native@file:./vendor/stripe-terminal-react-native-0.0.11-alpha.tgz":
+  version "0.0.11-alpha"
+  resolved "file:./vendor/stripe-terminal-react-native-0.0.11-alpha.tgz#daa487fa4956de2519f502884df059372bdc21ca"
   dependencies:
     base-64 "^1.0.0"
-    react-native-permissions "^3.3.1"
 
 stripe@^8.181.0:
   version "8.201.0"
