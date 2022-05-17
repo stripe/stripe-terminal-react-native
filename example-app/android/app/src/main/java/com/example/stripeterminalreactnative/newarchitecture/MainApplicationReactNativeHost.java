@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnatiive.newarchitecture;
+package com.example.stripeterminalreactnative.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.example.stripeterminalreactnatiive.BuildConfig;
-import com.example.stripeterminalreactnatiive.newarchitecture.components.MainComponentsRegistry;
-import com.example.stripeterminalreactnatiive.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import com.example.stripeterminalreactnative.BuildConfig;
+import com.example.stripeterminalreactnative.newarchitecture.components.MainComponentsRegistry;
+import com.example.stripeterminalreactnative.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 

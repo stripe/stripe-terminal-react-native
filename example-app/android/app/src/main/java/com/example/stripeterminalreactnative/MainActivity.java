@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnatiive;
+package com.example.stripeterminalreactnative;
 
 import android.os.Build;
 import android.os.Bundle;

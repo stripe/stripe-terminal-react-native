@@ -141,7 +141,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId 'com.example.stripeterminalreactnatiive'
+        applicationId 'com.example.stripeterminalreactnative'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

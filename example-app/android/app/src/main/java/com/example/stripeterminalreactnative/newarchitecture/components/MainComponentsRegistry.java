@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnatiive.newarchitecture.components;
+package com.example.stripeterminalreactnative.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;
