@@ -25,7 +25,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.example.stripeterminalreactnatiive</string>
+          <string>com.example.stripeterminalreactnative</string>
         </array>
       </dict>
     </array>
