@@ -327,7 +327,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.10.2):
+  - RNScreens (3.13.1):
     - React-Core
     - React-RCTImage
   - stripe-terminal-react-native (0.0.11-alpha):
@@ -510,7 +510,7 @@ SPEC CHECKSUMS:
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNReanimated: 61f7efddd08550ffa5dee90021a157cd6e7c82fb
-  RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
+  RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   stripe-terminal-react-native: 46a7e790a0ed6a822183d8751bfa15e3d9a768ea
   StripeTerminal: 237b759168a00c7f55b97c743cd8a4921866c46b
   Yoga: 17cd9a50243093b547c1e539c749928dd68152da
