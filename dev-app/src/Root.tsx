@@ -1,10 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
-import {
-  IS_CI,
-  // @ts-ignore
-} from '@env';
-
 import { StripeTerminalProvider } from 'stripe-terminal-react-native';
 import App from './App';
 import { AppContext, api } from './AppContext';
@@ -24,7 +19,7 @@ export default function Root() {
 
   useEffect(() => {
     // var is a string in CircleCI
-    if (IS_CI === 'true') {
+    if (process.env.IS_CI === 'true') {
       clearMerchantStorage();
     }
   }, []);
