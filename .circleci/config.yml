@@ -232,6 +232,16 @@ jobs:
           name: Lint files
           command: |
             yarn lint
+  docs:
+    executor: linux_js
+    steps:
+      - attach_project
+      - run:
+          name: Ensure Docs are up-to-date
+          command: |
+            yarn docs
+            echo "Checking for diffs in docs, if this fails please regenerate and check in latest docs"
+            git diff --exit-code --ignore-space-change
   typescript:
     executor: linux_js
     steps:
@@ -363,6 +373,9 @@ workflows:
           requires:
             - install-dependencies
       - typescript:
+          requires:
+            - install-dependencies
+      - docs:
           requires:
             - install-dependencies
       - example-build-ios:
