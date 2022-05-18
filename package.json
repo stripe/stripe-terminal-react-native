@@ -53,13 +53,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/callstack-internal/stripe-terminal-sdk",
-  "author": "arekkubaczkowski <arek.kubaczkowski@gmail.com> (https://github.com/arekkubaczkowski)",
+  "repository": "https://github.com/stripe/stripe-terminal-react-native",
+  "author": "Stripe",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/callstack-internal/stripe-terminal-sdk/issues"
+    "url": "https://github.com/stripe/stripe-terminal-react-native"
   },
-  "homepage": "https://github.com/callstack-internal/stripe-terminal-sdk#readme",
+  "homepage": "https://github.com/stripe/stripe-terminal-react-native#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
