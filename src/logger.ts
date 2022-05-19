@@ -9,6 +9,7 @@ interface ObjectWithError {
 interface Trace {
   origin_role: string;
   origin_id: string;
+  type?: string;
   trace: {
     action_id: string;
     request_info: {
@@ -40,7 +41,10 @@ const getDeviceInfo = () => {
     // host_hw_version: '', // ex: 'iPad4,1' or 'SM-N960U'
     hardware_model: {
       pos_info: {
-        description: Platform.select({ ios: 'iOS', android: 'Android' }),
+        description: Platform.select({
+          ios: 'iOS',
+          android: 'Android',
+        })?.toString(),
       },
     },
     // app_model: {
@@ -94,7 +98,8 @@ const sendGatorRequest = async (request: object) => {
  */
 export default class Logger {
   static instance: Logger | null = null;
-  _traces: object[] = [];
+  static posId: string = `pos-${Math.random().toString(36).substring(2)}`;
+  _traces: Array<Trace> = [];
 
   static getInstance() {
     if (Logger.instance === null) {
@@ -128,8 +133,8 @@ export default class Logger {
       const action_id = `${Math.floor(Math.random() * 100000000)}`;
 
       const baseTraceObject: Trace = {
-        origin_role: 'pos-js',
-        origin_id: 'pos-b0u0t9vbvob',
+        origin_role: 'pos-rn',
+        origin_id: Logger.posId,
         trace: {
           action_id,
           request_info: {
@@ -170,6 +175,7 @@ export default class Logger {
       return;
     }
 
+    // reportTrace
     const req = buildGatorRequest(
       'reportTrace',
       { proxy_traces: [...Logger.getInstance()._traces] },
@@ -178,6 +184,31 @@ export default class Logger {
     sendGatorRequest(req).then((_resp) => {
       Logger.getInstance()._traces = [];
     });
+
+    // reportEvent
+    const eventRequest = buildGatorRequest(
+      'reportEvent',
+      {
+        proxy_events: Logger.getEventPayload(),
+      },
+      ''
+    );
+    sendGatorRequest(eventRequest).then((_resp) => {
+      Logger.getInstance()._traces = [];
+    });
+  }
+
+  private static getEventPayload() {
+    return Logger.getInstance()._traces.map((trace) => ({
+      origin_role: 'pos-rn',
+      origin_id: Logger.posId,
+      event: {
+        domain: 'Tracer',
+        scope: 'e',
+        event: trace?.trace?.method,
+        result: trace.type === 'success' ? 'OK' : 'ERROR',
+      },
+    }));
   }
 
   private static tracePromise(
