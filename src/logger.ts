@@ -94,6 +94,7 @@ const sendGatorRequest = async (request: object) => {
  */
 export default class Logger {
   static instance: Logger | null = null;
+  static posId: string;
   _traces: object[] = [];
 
   static getInstance() {
@@ -106,6 +107,7 @@ export default class Logger {
 
   constructor() {
     setInterval(Logger.flushTraces, 10 * 1000);
+    Logger.posId = `pos-${Math.random().toString(36).substring(2)}`;
   }
 
   /**
@@ -128,8 +130,8 @@ export default class Logger {
       const action_id = `${Math.floor(Math.random() * 100000000)}`;
 
       const baseTraceObject: Trace = {
-        origin_role: 'pos-js',
-        origin_id: 'pos-b0u0t9vbvob',
+        origin_role: 'pos-rn',
+        origin_id: Logger.posId,
         trace: {
           action_id,
           request_info: {
