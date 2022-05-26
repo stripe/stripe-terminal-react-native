@@ -1,4 +1,4 @@
-import type { Reader } from 'stripe-terminal-react-native';
+import type { Reader } from '@stripe/stripe-terminal-react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

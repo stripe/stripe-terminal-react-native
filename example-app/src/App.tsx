@@ -26,7 +26,7 @@ import {
   Location,
   useStripeTerminal,
   requestNeededAndroidPermissions,
-} from 'stripe-terminal-react-native';
+} from '@stripe/stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
 
 export type RouteParamList = {

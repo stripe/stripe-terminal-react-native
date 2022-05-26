@@ -6,7 +6,7 @@ import {
   useStripeTerminal,
   CommonError,
   StripeError,
-} from 'stripe-terminal-react-native';
+} from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';

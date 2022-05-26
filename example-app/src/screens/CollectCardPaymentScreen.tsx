@@ -7,7 +7,7 @@ import {
   PaymentIntent,
   StripeError,
   CommonError,
-} from 'stripe-terminal-react-native';
+} from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
