@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { StripeTerminalProvider } from 'stripe-terminal-react-native';
+import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 import App from './App';
 import { AppContext, api } from './AppContext';
 

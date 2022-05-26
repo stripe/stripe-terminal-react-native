@@ -1964,6 +1964,13 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@stripe/stripe-terminal-react-native@^0.0.1-beta.2":
+  version "0.0.1-beta.2"
+  resolved "https://registry.npmjs.org/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.2.tgz#b7d945c7338adc5d884f86893ca4dac4213a8396"
+  integrity sha512-IXKFvX5MSpoSrdtsv7gIBaCsVMsV8NzqCjUyoMp2leZJjLd+3y/1bhx0McGyFKHVS0CSFHH50rfQPSnSMUXD5w==
+  dependencies:
+    base-64 "^1.0.0"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -7677,12 +7684,6 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
   integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
-
-"stripe-terminal-react-native@file:./vendor/stripe-stripe-terminal-react-native-v0.0.1-beta.0.tgz":
-  version "0.0.1-beta.0"
-  resolved "file:./vendor/stripe-stripe-terminal-react-native-v0.0.1-beta.0.tgz#01912a698ec38d1884e25bde5bbafa2de644849f"
-  dependencies:
-    base-64 "^1.0.0"
 
 stripe@^8.181.0:
   version "8.201.0"

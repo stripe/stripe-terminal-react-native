@@ -12,7 +12,7 @@
     },
     "plugins": [
       [
-        "stripe-terminal-react-native",
+        "@stripe/stripe-terminal-react-native",
         {
           "bluetoothBackgroundMode": true,
           "locationWhenInUsePermission": "Location access is required in order to accept payments.",

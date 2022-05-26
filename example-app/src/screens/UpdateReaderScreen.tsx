@@ -1,7 +1,7 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useStripeTerminal } from 'stripe-terminal-react-native';
+import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import icon from '../assets/icon.png';
 import List from '../components/List';

@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/core';
 import React, { useContext, useEffect, useCallback } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { useStripeTerminal } from 'stripe-terminal-react-native';
+import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
