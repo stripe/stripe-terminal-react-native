@@ -14,13 +14,7 @@
     "ios",
     "cpp",
     "app.plugin.js",
-    "stripe-terminal-react-native.podspec",
-    "!lib/typescript/dev-app",
-    "!android/build",
-    "!ios/build",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__"
+    "stripe-terminal-react-native.podspec"
   ],
   "scripts": {
     "test": "jest",
