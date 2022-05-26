@@ -1,0 +1,13 @@
+**/__fixtures__
+**/__mocks__
+**/__tests__
+android/.gradle
+android/.idea
+android/build
+dev-app
+docs
+e2e
+example-app
+fastlane
+ios/build
+lib/typescript/dev-app

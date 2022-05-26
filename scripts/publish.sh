@@ -118,11 +118,8 @@ yarn -s run unit-test:android
 echo "Linting"
 yarn -s run lint
 
-echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
-yarn -s version --$RELEASE_TYPE
-
-echo "Publishing release"
-yarn -s --ignore-scripts publish --non-interactive --access=public
+echo "Tagging and publishing $RELEASE_TYPE release"
+yarn -s --ignore-scripts publish --$RELEASE_TYPE --access=public
 
 echo "Pushing git commit and tag"
 git push --follow-tags
