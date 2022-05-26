@@ -4,30 +4,14 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
 
 - [Getting started](#getting-started)
 - [Requirements](#requirements)
-  - [JS](#js)
-  - [Android](#android)
-  - [iOS](#ios)
+  * [JS](#js)
+  * [Android](#android)
+  * [iOS](#ios)
 - [Installation](#installation)
-- [Setup](#setup)
-  - [React Native CLI](#react-native-cli)
-    - [iOS](#ios-1)
-      - [Permissions](#permissions)
-    - [Android](#android-1)
-      - [Permissions](#permissions-1)
-      - [Manifest](#manifest)
-  - [Usage With Expo](#usage-with-expo)
-    - [Android](#android-2)
-      - [build.gradle](#buildgradle)
-      - [Permissions](#permissions-2)
-    - [iOS](#ios-2)
-    - [Configuring the SDK](#configuring-the-sdk)
-    - [Build](#build)
-- [Example Code](#example-code)
-  - [Initialization](#initialization)
-  - [Hooks and Events](#hooks-and-events)
-  - [Common Operations](#common-operations)
-- [Additional Docs](#additional-docs)
-  - [Internal Docs](#internal-docs)
+- [Example code](#example-code)
+  * [Initialization](#initialization)
+  * [Hooks and events](#hooks-and-events)
+- [Additional docs](#additional-docs)
 - [Contributing](#contributing)
 
 # Getting started
@@ -59,10 +43,12 @@ Updating to a newer version of the SDK? See our [changelog](https://github.com/s
 
 ```sh
 yarn add @stripe/stripe-terminal-react-native
+```
 or
+```sh
 npm install @stripe/stripe-terminal-react-native
 ```
-# Example Code
+# Example code
 
 ## Initialization
 
@@ -74,7 +60,7 @@ Next, create a token provider that will fetch connection token from your server 
 Stripe Terminal SDK will fetch it when it's needed.
 
 ```tsx
-// Root.ts
+// Root.tsx
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 
 function Root() {
@@ -109,22 +95,20 @@ function App() {
   const { initialize } = useStripeTerminal();
 
   useEffect(() => {
-    initialize({
-      logLevel: 'verbose',
-    });
+    initialize();
   }, [initialize]);
 
   return <View />;
 }
 ```
 
-## Hooks and Events
+## Hooks and events
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
 
 ```tsx
-// Screen.ts
+// PaymentScreen.tsx
 
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 
@@ -158,14 +142,18 @@ Please note that unlike the hooks approach, you need to use event emitter to lis
 Example:
 
 ```tsx
+// PaymentScreen.tsx
+
 import {
   withStripeTerminal,
   WithStripeTerminalProps,
   CHANGE_CONNECTION_STATUS,
   Reader,
+} from '@stripe/stripe-terminal-react-native';
+
+class PaymentScreen extends React.Component {
   componentDidMount() {
     this.discoverReaders();
-
     const eventSubscription = props.emitter.addListener(
       CHANGE_CONNECTION_STATUS, // didChangeConnectionStatus
       (status: Reader.ConnectionStatus) => {
@@ -173,7 +161,6 @@ import {
       }
     );
   }
-
   async discoverReaders() {
     this.props.discoverReaders({
       discoveryMethod: 'bluetoothScan',
@@ -184,7 +171,7 @@ import {
 
 export default withStripeTerminal(PaymentScreen);
 ```
-# Additional Docs
+# Additional docs
 
 - [Running the Example Application](/docs/example-applications.md)
 - [Running e2e tests locally](/docs/e2e-tests.md)
