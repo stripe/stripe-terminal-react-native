@@ -7,7 +7,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Location, useStripeTerminal } from 'stripe-terminal-react-native';
+import {
+  Location,
+  useStripeTerminal,
+} from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import ListItem from '../components/ListItem';
 
