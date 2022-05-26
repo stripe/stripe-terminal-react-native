@@ -19,7 +19,7 @@ type AndroidManifest = {
   };
 };
 
-const pkg = require('stripe-terminal-react-native/package.json');
+const pkg = require('@stripe/stripe-terminal-react-native/package.json');
 
 type StripeTerminalPluginProps = {
   bluetoothBackgroundMode?: boolean;
