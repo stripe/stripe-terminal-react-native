@@ -1,5 +1,5 @@
 {
-  "name": "stripe-terminal-react-native",
+  "name": "@stripe/stripe-terminal-react-native",
   "version": "0.0.1-beta.0",
   "description": "Stripe Terminal React Native SDK",
   "main": "lib/commonjs/index",

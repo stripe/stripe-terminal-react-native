@@ -2,7 +2,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useContext, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useStripeTerminal } from 'stripe-terminal-react-native';
+import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';

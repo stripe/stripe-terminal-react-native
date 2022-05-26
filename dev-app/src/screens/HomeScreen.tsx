@@ -17,7 +17,10 @@ import {
   getDiscoveryMethod,
   setDiscoveryMethod as setStoredDiscoveryMethod,
 } from '../util/merchantStorage';
-import { Reader, useStripeTerminal } from 'stripe-terminal-react-native';
+import {
+  Reader,
+  useStripeTerminal,
+} from '@stripe/stripe-terminal-react-native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();

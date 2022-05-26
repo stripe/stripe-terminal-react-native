@@ -13,9 +13,9 @@ import {
   useStripeTerminal,
   Location,
   Reader,
-} from 'stripe-terminal-react-native';
+} from '@stripe/stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
-import type { StripeError } from 'stripe-terminal-react-native';
+import type { StripeError } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
