@@ -8,7 +8,6 @@ export namespace PaymentIntent {
     created: string;
     currency: string;
     status: Status;
-    stripeId: string;
   }
 
   export type Status =
