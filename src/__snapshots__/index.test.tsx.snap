@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`index.ts Public API snapshot ensure there are no unexpected changes to our public exports 1`] = `
+Object {
+  "CommonError": Object {
+    "Canceled": "Canceled",
+    "Failed": "Failed",
+    "Unknown": "Unknown",
+  },
+  "PaymentIntent": Object {},
+  "PaymentMethod": Object {
+    "Android": Object {},
+    "IOS": Object {},
+  },
+  "Reader": Object {
+    "Android": Object {},
+    "IOS": Object {},
+  },
+  "Refund": Object {
+    "Android": Object {},
+    "IOS": Object {},
+  },
+  "SetupIntent": Object {
+    "Android": Object {},
+    "IOS": Object {},
+  },
+  "StripeTerminalProvider": [Function],
+  "StripeTerminalProviderProps": undefined,
+  "UseStripeTerminalProps": undefined,
+  "WithStripeTerminalProps": undefined,
+  "requestNeededAndroidPermissions": [Function],
+  "useStripeTerminal": [Function],
+  "withStripeTerminal": [Function],
+}
+`;

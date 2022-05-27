@@ -17,7 +17,7 @@
     "stripe-terminal-react-native.podspec"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "yarn unit-test:android && yarn unit-test:js",
     "typescript": "tsc --noEmit",
     "lint": "jest --config \"jest.eslint.config.js\"",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
@@ -40,7 +40,8 @@
     "e2e:test:ios:release": " detox test --configuration ios.sim.release --take-screenshots failing --loglevel verbose",
     "get:testbutler": "curl -f -o ./test-butler-app.apk https://repo1.maven.org/maven2/com/linkedin/testbutler/test-butler-app/2.2.1/test-butler-app-2.2.1.apk",
     "docs": "npx typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json",
-    "unit-test:android": "cd android && ./gradlew testDebugUnitTest"
+    "unit-test:android": "cd android && ./gradlew testDebugUnitTest",
+    "unit-test:js": "jest"
   },
   "keywords": [
     "react-native",
@@ -86,10 +87,16 @@
   },
   "jest": {
     "preset": "react-native",
+    "setupFiles": [
+      "<rootDir>/jestSetup.js"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/dev-app/node_modules",
       "<rootDir>/lib/"
-    ]
+    ],
+    "moduleNameMapper": {
+      "package.json$": "<rootDir>/package.json"
+    }
   },
   "peerDependencies": {
     "react": "*",
