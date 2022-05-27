@@ -254,9 +254,11 @@ jobs:
       - store_artifacts:
           path: coverage
   unit-android:
-    executor: linux_js
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
     steps:
-      - attach_project
+      - setup_android_executor
       - run:
           command: yarn unit-test:android
           name: unit tests

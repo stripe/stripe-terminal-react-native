@@ -54,6 +54,9 @@ yarn-debug.log
 yarn-error.log
 .npmrc
 
+junit.xml
+coverage/
+
 # BUCK
 buck-out/
 \.buckd/
