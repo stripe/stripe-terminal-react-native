@@ -263,7 +263,7 @@ jobs:
           command: yarn unit-test:android
           name: unit tests
       - store_test_results:
-          path: ~/android/build/test-results/testDebugUnitTest
+          path: android/build/test-results/testDebugUnitTest
   example-build-android:
     executor:
       name: android/android-machine
@@ -314,6 +314,8 @@ jobs:
       - run:
           command: yarn e2e:test:ios:release
           name: test detox
+      - store_test_results:
+          path: junit.xml
       - store_artifacts:
           path: ./artifacts
 
@@ -338,6 +340,8 @@ jobs:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
           name: test detox
+      - store_test_results:
+          path: junit.xml
       - store_artifacts:
           path: ./artifacts
 
