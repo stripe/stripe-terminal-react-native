@@ -249,8 +249,21 @@ jobs:
           name: Jest
           command: |
             yarn unit-test:js --coverage
+      - store_test_results:
+          path: junit.xml
       - store_artifacts:
           path: coverage
+  unit-android:
+    executor:
+      name: android/android-machine
+      tag: 2021.10.1
+    steps:
+      - setup_android_executor
+      - run:
+          command: yarn unit-test:android
+          name: unit tests
+      - store_test_results:
+          path: android/build/test-results/testDebugUnitTest
   example-build-android:
     executor:
       name: android/android-machine
@@ -301,6 +314,8 @@ jobs:
       - run:
           command: yarn e2e:test:ios:release
           name: test detox
+      - store_test_results:
+          path: junit.xml
       - store_artifacts:
           path: ./artifacts
 
@@ -322,14 +337,11 @@ jobs:
       - android/save-gradle-cache
       - android/save-build-cache
       - run:
-          command: yarn unit-test:android
-          name: unit tests
-      - store_test_results:
-          path: ~/android/build/test-results/testDebugUnitTest
-      - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
           name: test detox
+      - store_test_results:
+          path: junit.xml
       - store_artifacts:
           path: ./artifacts
 
@@ -376,6 +388,9 @@ workflows:
           requires:
             - install-dependencies
       - unit-js:
+          requires:
+            - install-dependencies
+      - unit-android:
           requires:
             - install-dependencies
       - example-build-ios:
