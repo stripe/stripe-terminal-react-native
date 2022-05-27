@@ -9,3 +9,4 @@ tsconfig.json
 config.json
 app.json
 tsconfig.build.json
+*.snap
