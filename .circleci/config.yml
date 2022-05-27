@@ -241,7 +241,7 @@ jobs:
           command: |
             yarn typescript
             yarn --cwd example-app typescript
-  js-unit:
+  unit-js:
     executor: linux_js
     steps:
       - attach_project
@@ -249,6 +249,8 @@ jobs:
           name: Jest
           command: |
             yarn unit-test:js --coverage
+      - store_artifacts:
+          path: coverage
   example-build-android:
     executor:
       name: android/android-machine
@@ -373,7 +375,7 @@ workflows:
       - typescript:
           requires:
             - install-dependencies
-      - js-unit:
+      - unit-js:
           requires:
             - install-dependencies
       - example-build-ios:
