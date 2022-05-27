@@ -75,6 +75,7 @@
     "eslint-plugin-prettier": "^3.3.0",
     "husky": "^6.0.0",
     "jest": "^27.3.1",
+    "jest-junit": "^13.2.0",
     "jest-runner-eslint": "^1.0.0",
     "metro-react-native-babel-preset": "^0.67.0",
     "pod-install": "^0.1.0",
@@ -89,6 +90,10 @@
     "preset": "react-native",
     "setupFiles": [
       "<rootDir>/jestSetup.js"
+    ],
+    "reporters": [
+      "default",
+      "jest-junit"
     ],
     "modulePathIgnorePatterns": [
       "<rootDir>/dev-app/node_modules",
