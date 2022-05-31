@@ -151,17 +151,15 @@ export function useStripeTerminal(props?: Props) {
     ({ readers }: { readers: Reader.Type[] }) => {
       setDiscoveredReaders(readers);
       onUpdateDiscoveredReaders?.(readers);
-      emitter?.emit(UPDATE_DISCOVERED_READERS, readers);
     },
-    [setDiscoveredReaders, onUpdateDiscoveredReaders, emitter]
+    [setDiscoveredReaders, onUpdateDiscoveredReaders]
   );
 
   const didFinishDiscoveringReaders = useCallback(
     ({ result }: EventResult<{ error?: StripeError }>) => {
       onFinishDiscoveringReaders?.(result.error);
-      emitter?.emit(FINISH_DISCOVERING_READERS, result.error);
     },
-    [emitter, onFinishDiscoveringReaders]
+    [onFinishDiscoveringReaders]
   );
 
   const didReportUnexpectedReaderDisconnect = useCallback(
@@ -169,10 +167,8 @@ export function useStripeTerminal(props?: Props) {
       setConnectedReader(null);
       setDiscoveredReaders([]);
       onDidReportUnexpectedReaderDisconnect?.(error);
-      emitter?.emit(REPORT_UNEXPECTED_READER_DISCONNECT, error);
     },
     [
-      emitter,
       onDidReportUnexpectedReaderDisconnect,
       setConnectedReader,
       setDiscoveredReaders,
@@ -182,25 +178,22 @@ export function useStripeTerminal(props?: Props) {
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       onDidReportAvailableUpdate?.(result);
-      emitter?.emit(REPORT_AVAILABLE_UPDATE, result);
     },
-    [emitter, onDidReportAvailableUpdate]
+    [onDidReportAvailableUpdate]
   );
 
   const didStartInstallingUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       onDidStartInstallingUpdate?.(result);
-      emitter?.emit(START_INSTALLING_UPDATE, result);
     },
-    [emitter, onDidStartInstallingUpdate]
+    [onDidStartInstallingUpdate]
   );
 
   const didReportReaderSoftwareUpdateProgress = useCallback(
     ({ result }: EventResult<{ progress: string }>) => {
       onDidReportReaderSoftwareUpdateProgress?.(result.progress);
-      emitter?.emit(REPORT_UPDATE_PROGRESS, { progress: result.progress });
     },
-    [emitter, onDidReportReaderSoftwareUpdateProgress]
+    [onDidReportReaderSoftwareUpdateProgress]
   );
 
   const didFinishInstallingUpdate = useCallback(
@@ -214,51 +207,42 @@ export function useStripeTerminal(props?: Props) {
           update: undefined,
           error: error,
         });
-        emitter?.emit(FINISH_INSTALLING_UPDATE, { update: undefined, error });
       } else {
         onDidFinishInstallingUpdate?.({
           update: result as Reader.SoftwareUpdate,
           error: undefined,
         });
-        emitter?.emit(FINISH_INSTALLING_UPDATE, {
-          update: result,
-          error: undefined,
-        });
       }
     },
-    [emitter, onDidFinishInstallingUpdate]
+    [onDidFinishInstallingUpdate]
   );
 
   const didRequestReaderInput = useCallback(
     ({ result }: EventResult<Reader.InputOptions[]>) => {
       onDidRequestReaderInput?.(result);
-      emitter?.emit(REQUEST_READER_INPUT, result);
     },
-    [emitter, onDidRequestReaderInput]
+    [onDidRequestReaderInput]
   );
 
   const didRequestReaderDisplayMessage = useCallback(
     ({ result }: EventResult<Reader.DisplayMessage>) => {
       onDidRequestReaderDisplayMessage?.(result);
-      emitter?.emit(REQUEST_READER_DISPLAY_MESSAGE, result);
     },
-    [emitter, onDidRequestReaderDisplayMessage]
+    [onDidRequestReaderDisplayMessage]
   );
 
   const didChangePaymentStatus = useCallback(
     ({ result }: EventResult<PaymentStatus>) => {
       onDidChangePaymentStatus?.(result);
-      emitter?.emit(CHANGE_PAYMENT_STATUS, result);
     },
-    [emitter, onDidChangePaymentStatus]
+    [onDidChangePaymentStatus]
   );
 
   const didChangeConnectionStatus = useCallback(
     ({ result }: EventResult<Reader.ConnectionStatus>) => {
       onDidChangeConnectionStatus?.(result);
-      emitter?.emit(CHANGE_CONNECTION_STATUS, result);
     },
-    [emitter, onDidChangeConnectionStatus]
+    [onDidChangeConnectionStatus]
   );
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
