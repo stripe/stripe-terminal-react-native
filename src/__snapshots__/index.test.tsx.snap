@@ -2,16 +2,26 @@
 
 exports[`index.ts Public API snapshot ensure there are no unexpected changes to our public exports 1`] = `
 Object {
+  "CHANGE_CONNECTION_STATUS": "CHANGE_CONNECTION_STATUS",
+  "CHANGE_PAYMENT_STATUS": "CHANGE_PAYMENT_STATUS",
   "CommonError": Object {
     "Canceled": "Canceled",
     "Failed": "Failed",
     "Unknown": "Unknown",
   },
+  "FETCH_TOKEN_PROVIDER": "FETCH_TOKEN_PROVIDER",
+  "FINISH_DISCOVERING_READERS": "FINISH_DISCOVERING_READERS",
+  "FINISH_INSTALLING_UPDATE": "FINISH_INSTALLING_UPDATE",
   "PaymentIntent": Object {},
   "PaymentMethod": Object {
     "Android": Object {},
     "IOS": Object {},
   },
+  "REPORT_AVAILABLE_UPDATE": "REPORT_AVAILABLE_UPDATE",
+  "REPORT_UNEXPECTED_READER_DISCONNECT": "REPORT_UNEXPECTED_READER_DISCONNECT",
+  "REPORT_UPDATE_PROGRESS": "REPORT_UPDATE_PROGRESS",
+  "REQUEST_READER_DISPLAY_MESSAGE": "REQUEST_READER_DISPLAY_MESSAGE",
+  "REQUEST_READER_INPUT": "REQUEST_READER_INPUT",
   "Reader": Object {
     "Android": Object {},
     "IOS": Object {},
@@ -20,12 +30,14 @@ Object {
     "Android": Object {},
     "IOS": Object {},
   },
+  "START_INSTALLING_UPDATE": "START_INSTALLING_UPDATE",
   "SetupIntent": Object {
     "Android": Object {},
     "IOS": Object {},
   },
   "StripeTerminalProvider": [Function],
   "StripeTerminalProviderProps": undefined,
+  "UPDATE_DISCOVERED_READERS": "UPDATE_DISCOVERED_READERS",
   "UseStripeTerminalProps": undefined,
   "WithStripeTerminalProps": undefined,
   "requestNeededAndroidPermissions": [Function],
