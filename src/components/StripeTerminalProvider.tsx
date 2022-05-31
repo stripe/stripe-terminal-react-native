@@ -90,6 +90,7 @@ export function StripeTerminalProvider({
   const didUpdateDiscoveredReaders = useCallback(
     ({ readers }: { readers: Reader.Type[] }) => {
       log('didUpdateDiscoveredReaders', readers);
+      emitter?.emit(UPDATE_DISCOVERED_READERS, readers);
     },
     [log]
   );
@@ -97,6 +98,7 @@ export function StripeTerminalProvider({
   const didFinishDiscoveringReaders = useCallback(
     ({ result }: EventResult<{ error?: StripeError }>) => {
       log('didFinishDiscoveringReaders', result);
+      emitter?.emit(FINISH_DISCOVERING_READERS, result.error);
     },
     [log]
   );
@@ -104,6 +106,7 @@ export function StripeTerminalProvider({
   const didReportUnexpectedReaderDisconnect = useCallback(
     ({ error }: { error?: StripeError }) => {
       log('didReportUnexpectedReaderDisconnect', error);
+      emitter?.emit(REPORT_UNEXPECTED_READER_DISCONNECT, error);
     },
     [log]
   );
@@ -111,6 +114,7 @@ export function StripeTerminalProvider({
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didReportAvailableUpdate', result);
+      emitter?.emit(REPORT_AVAILABLE_UPDATE, result);
     },
     [log]
   );
@@ -118,6 +122,7 @@ export function StripeTerminalProvider({
   const didStartInstallingUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didStartInstallingUpdate', result);
+      emitter?.emit(START_INSTALLING_UPDATE, result);
     },
     [log]
   );
@@ -125,6 +130,7 @@ export function StripeTerminalProvider({
   const didReportReaderSoftwareUpdateProgress = useCallback(
     ({ result }: EventResult<{ progress: string }>) => {
       log('didReportReaderSoftwareUpdateProgress', result);
+      emitter?.emit(REPORT_UPDATE_PROGRESS, result.progress);
     },
     [log]
   );
@@ -134,6 +140,7 @@ export function StripeTerminalProvider({
       result,
     }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
       log('didFinishInstallingUpdate', result);
+      emitter?.emit(FINISH_INSTALLING_UPDATE, result);
     },
     [log]
   );
@@ -141,6 +148,7 @@ export function StripeTerminalProvider({
   const didRequestReaderInput = useCallback(
     ({ result }: EventResult<Reader.InputOptions[]>) => {
       log('didRequestReaderInput', result);
+      emitter?.emit(REQUEST_READER_INPUT, result);
     },
     [log]
   );
@@ -148,6 +156,7 @@ export function StripeTerminalProvider({
   const didRequestReaderDisplayMessage = useCallback(
     ({ result }: EventResult<Reader.DisplayMessage>) => {
       log('didRequestReaderDisplayMessage', result);
+      emitter?.emit(REQUEST_READER_DISPLAY_MESSAGE, result);
     },
     [log]
   );
@@ -155,6 +164,7 @@ export function StripeTerminalProvider({
   const didChangePaymentStatus = useCallback(
     ({ result }: EventResult<PaymentStatus>) => {
       log('didChangePaymentStatus', result);
+      emitter?.emit(CHANGE_PAYMENT_STATUS, result);
     },
     [log]
   );
@@ -162,6 +172,7 @@ export function StripeTerminalProvider({
   const didChangeConnectionStatus = useCallback(
     ({ result }: EventResult<Reader.ConnectionStatus>) => {
       log('didChangeConnectionStatus', result);
+      emitter?.emit(CHANGE_CONNECTION_STATUS, result);
     },
     [log]
   );
