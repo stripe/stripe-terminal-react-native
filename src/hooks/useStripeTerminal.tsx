@@ -151,7 +151,7 @@ export function useStripeTerminal(props?: Props) {
     ({ readers }: { readers: Reader.Type[] }) => {
       setDiscoveredReaders(readers);
       onUpdateDiscoveredReaders?.(readers);
-      emitter?.emit(UPDATE_DISCOVERED_READERS);
+      emitter?.emit(UPDATE_DISCOVERED_READERS, readers);
     },
     [setDiscoveredReaders, onUpdateDiscoveredReaders, emitter]
   );
@@ -159,7 +159,7 @@ export function useStripeTerminal(props?: Props) {
   const didFinishDiscoveringReaders = useCallback(
     ({ result }: EventResult<{ error?: StripeError }>) => {
       onFinishDiscoveringReaders?.(result.error);
-      emitter?.emit(FINISH_DISCOVERING_READERS);
+      emitter?.emit(FINISH_DISCOVERING_READERS, result.error);
     },
     [emitter, onFinishDiscoveringReaders]
   );
@@ -169,7 +169,7 @@ export function useStripeTerminal(props?: Props) {
       setConnectedReader(null);
       setDiscoveredReaders([]);
       onDidReportUnexpectedReaderDisconnect?.(error);
-      emitter?.emit(REPORT_UNEXPECTED_READER_DISCONNECT);
+      emitter?.emit(REPORT_UNEXPECTED_READER_DISCONNECT, error);
     },
     [
       emitter,
@@ -182,7 +182,7 @@ export function useStripeTerminal(props?: Props) {
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       onDidReportAvailableUpdate?.(result);
-      emitter?.emit(REPORT_AVAILABLE_UPDATE);
+      emitter?.emit(REPORT_AVAILABLE_UPDATE, result);
     },
     [emitter, onDidReportAvailableUpdate]
   );
@@ -190,7 +190,7 @@ export function useStripeTerminal(props?: Props) {
   const didStartInstallingUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       onDidStartInstallingUpdate?.(result);
-      emitter?.emit(START_INSTALLING_UPDATE);
+      emitter?.emit(START_INSTALLING_UPDATE, result);
     },
     [emitter, onDidStartInstallingUpdate]
   );
@@ -198,7 +198,7 @@ export function useStripeTerminal(props?: Props) {
   const didReportReaderSoftwareUpdateProgress = useCallback(
     ({ result }: EventResult<{ progress: string }>) => {
       onDidReportReaderSoftwareUpdateProgress?.(result.progress);
-      emitter?.emit(REPORT_UPDATE_PROGRESS);
+      emitter?.emit(REPORT_UPDATE_PROGRESS, { progress: result.progress });
     },
     [emitter, onDidReportReaderSoftwareUpdateProgress]
   );
@@ -214,13 +214,17 @@ export function useStripeTerminal(props?: Props) {
           update: undefined,
           error: error,
         });
+        emitter?.emit(FINISH_INSTALLING_UPDATE, { update: undefined, error });
       } else {
         onDidFinishInstallingUpdate?.({
           update: result as Reader.SoftwareUpdate,
           error: undefined,
         });
+        emitter?.emit(FINISH_INSTALLING_UPDATE, {
+          update: result,
+          error: undefined,
+        });
       }
-      emitter?.emit(FINISH_INSTALLING_UPDATE);
     },
     [emitter, onDidFinishInstallingUpdate]
   );
@@ -228,7 +232,7 @@ export function useStripeTerminal(props?: Props) {
   const didRequestReaderInput = useCallback(
     ({ result }: EventResult<Reader.InputOptions[]>) => {
       onDidRequestReaderInput?.(result);
-      emitter?.emit(REQUEST_READER_INPUT);
+      emitter?.emit(REQUEST_READER_INPUT, result);
     },
     [emitter, onDidRequestReaderInput]
   );
@@ -236,7 +240,7 @@ export function useStripeTerminal(props?: Props) {
   const didRequestReaderDisplayMessage = useCallback(
     ({ result }: EventResult<Reader.DisplayMessage>) => {
       onDidRequestReaderDisplayMessage?.(result);
-      emitter?.emit(REQUEST_READER_DISPLAY_MESSAGE);
+      emitter?.emit(REQUEST_READER_DISPLAY_MESSAGE, result);
     },
     [emitter, onDidRequestReaderDisplayMessage]
   );
@@ -244,7 +248,7 @@ export function useStripeTerminal(props?: Props) {
   const didChangePaymentStatus = useCallback(
     ({ result }: EventResult<PaymentStatus>) => {
       onDidChangePaymentStatus?.(result);
-      emitter?.emit(CHANGE_PAYMENT_STATUS);
+      emitter?.emit(CHANGE_PAYMENT_STATUS, result);
     },
     [emitter, onDidChangePaymentStatus]
   );
@@ -252,7 +256,7 @@ export function useStripeTerminal(props?: Props) {
   const didChangeConnectionStatus = useCallback(
     ({ result }: EventResult<Reader.ConnectionStatus>) => {
       onDidChangeConnectionStatus?.(result);
-      emitter?.emit(CHANGE_CONNECTION_STATUS);
+      emitter?.emit(CHANGE_CONNECTION_STATUS, result);
     },
     [emitter, onDidChangeConnectionStatus]
   );
