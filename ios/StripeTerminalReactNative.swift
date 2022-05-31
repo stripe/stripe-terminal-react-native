@@ -78,6 +78,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             )
         }
 
+        Terminal.shared.delegate = self
+
         resolve(["reader": connectedReader])
     }
 
