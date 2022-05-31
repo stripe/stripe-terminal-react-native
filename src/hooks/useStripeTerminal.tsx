@@ -60,7 +60,7 @@ import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
 import { NativeModules } from 'react-native';
 
-const {
+export const {
   FETCH_TOKEN_PROVIDER,
   CHANGE_CONNECTION_STATUS,
   CHANGE_PAYMENT_STATUS,
