@@ -9,7 +9,7 @@ orbs:
 executors:
   linux_js:
     docker:
-      - image: cimg/node:14.15.0
+      - image: cimg/node:16.15.0
     resource_class: medium+
     environment:
       PATH: '/opt/yarn/yarn-v1.5.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
