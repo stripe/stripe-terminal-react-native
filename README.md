@@ -48,7 +48,7 @@ To build the example app from source, you'll need to:
 
 1. Run `yarn boostrap` from the root directory to build the SDK.
 2. Navigate to our [example backend](https://github.com/stripe/example-terminal-backend) and click the button to deploy it on Heroku.
-3. Navgiate to the `example-app` folder and run `yarn install` to install all example app dependencies.
+3. Navigate to the `example-app` folder and run `yarn install` to install all example app dependencies.
 4. Copy `.env.example` to `.env`, and set the URL of the Heroku app you just deployed.
 5. Run either `yarn ios` or `yarn android` depending on which platform you would like to build.
 
