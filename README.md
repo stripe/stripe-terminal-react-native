@@ -7,6 +7,7 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
   * [JS](#js)
   * [Android](#android)
   * [iOS](#ios)
+- [Try the example app](#try-the-example-app)
 - [Installation](#installation)
 - [Example code](#example-code)
   * [Initialization](#initialization)
@@ -14,7 +15,7 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
 - [Additional docs](#additional-docs)
 - [Contributing](#contributing)
 
-# Getting started
+## Getting started
 
 > Note: The below docs are not yet available and will be released as we near open beta
 
@@ -22,24 +23,36 @@ Get started with our [📚 integration guides](https://stripe.com/docs/terminal/
 
 Updating to a newer version of the SDK? See our [release notes](https://github.com/stripe/stripe-terminal-react-native/releases).
 
-# Requirements
+## Requirements
 
-## JS
+### JS
 
 - The SDK uses TypeScript features available in Babel version `7.9.0` and above.
   Alternatively use the `plugin-transform-typescript` plugin in your project.
 
-## Android
+### Android
 
 - Android 5.0 (API level 21) and above
 - compileSdkVersion = 31
 - targetSdkVersion = 31
 
-## iOS
+### iOS
 
 - Compatible with apps targeting iOS 10 or above.
 
-# Installation
+## Try the example app
+
+The React Native SDK includes an open-source example app, which you can use to familiarize yourself with the SDK and reader before starting your own integration.
+
+To build the example app from source, you'll need to:
+
+1. Run `yarn boostrap` from the root directory to build the SDK.
+2. Navigate to our [example backend](https://github.com/stripe/example-terminal-backend) and click the button to deploy it on Heroku.
+3. Navigate to the `example-app` folder and run `yarn install` to install all example app dependencies.
+4. Copy `.env.example` to `.env`, and set the URL of the Heroku app you just deployed.
+5. Run either `yarn ios` or `yarn android` depending on which platform you would like to build.
+
+## Installation
 
 ```sh
 yarn add @stripe/stripe-terminal-react-native
@@ -48,9 +61,9 @@ or
 ```sh
 npm install @stripe/stripe-terminal-react-native
 ```
-# Example code
+## Example code
 
-## Initialization
+### Initialization
 
 To initialize Stripe Terminal SDK in your React Native app, use the `StripeTerminalProvider` component in the root component of your application.
 
@@ -102,7 +115,7 @@ function App() {
 }
 ```
 
-## Hooks and events
+### Hooks and events
 
 Stripe Terminal SDK provides dedicated hook which exposes bunch of methods and props to be used within your App.
 Additionally, you have access to the internal state of SDK that contains information about the current connection, discovered readers and loading state.
@@ -171,11 +184,10 @@ class PaymentScreen extends React.Component {
 
 export default withStripeTerminal(PaymentScreen);
 ```
-# Additional docs
+## Additional docs
 
-- [Running the Example Application](/docs/example-applications.md)
 - [Running e2e tests locally](/docs/e2e-tests.md)
 
-# Contributing
+## Contributing
 
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
