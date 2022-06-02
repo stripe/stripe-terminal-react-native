@@ -7,15 +7,6 @@
   "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
-  "files": [
-    "lib",
-    "src",
-    "android",
-    "ios",
-    "cpp",
-    "app.plugin.js",
-    "stripe-terminal-react-native.podspec"
-  ],
   "scripts": {
     "test": "yarn unit-test:android && yarn unit-test:js",
     "typescript": "tsc --noEmit",
