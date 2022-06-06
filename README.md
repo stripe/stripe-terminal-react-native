@@ -46,7 +46,7 @@ The React Native SDK includes an open-source example app, which you can use to f
 
 To build the example app from source, you'll need to:
 
-1. Run `yarn boostrap` from the root directory to build the SDK.
+1. Run `yarn bootstrap` from the root directory to build the SDK.
 2. Navigate to our [example backend](https://github.com/stripe/example-terminal-backend) and click the button to deploy it on Heroku.
 3. Navigate to the `example-app` folder and run `yarn install` to install all example app dependencies.
 4. Copy `.env.example` to `.env`, and set the URL of the Heroku app you just deployed.
