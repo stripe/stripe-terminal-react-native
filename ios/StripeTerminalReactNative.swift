@@ -181,6 +181,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod),
             simulated: simulated ?? false
         )
+        
+        guard discoverCancelable == nil else {
+            resolve(Errors.createError(code: ErrorCode.busy, message: "Could not execute discoverReaders because the SDK is busy with another command: discoverReaders."))
+            return
+        }
 
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
             if let error = error as NSError? {

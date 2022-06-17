@@ -150,6 +150,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         val listener = RNDiscoveryListener(context) { discoveredReadersList = it }
 
+        throwIfBusy(discoverCancelable) {
+            "Could not execute discoverReaders because the SDK is busy with another command: discoverReaders."
+        }
+
         discoverCancelable = terminal.discoverReaders(
             DiscoveryConfiguration(0, discoveryMethod, getBoolean(params, "simulated")),
             listener,
@@ -160,7 +164,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun cancelDiscovering(promise: Promise) {
-        cancelOperation(promise, discoverCancelable, "discoverReaders")
+        cancelOperation(promise, discoverCancelable, "discoverReaders") {
+            discoverCancelable = null
+        }
     }
 
     private fun connectReader(
@@ -561,10 +567,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise: Promise,
         cancelable: Cancelable?,
         operationName: String,
+        block: (() -> Unit)? = null
     ) = withExceptionResolver(promise) {
         val toCancel = requireCancelable(cancelable) {
             "$operationName could not be canceled because it has already been canceled or has completed."
         }
         toCancel.cancel(NoOpCallback(promise))
+        block?.invoke()
     }
 }
