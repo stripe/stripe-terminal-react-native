@@ -151,7 +151,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listener = RNDiscoveryListener(context) { discoveredReadersList = it }
 
         throwIfBusy(discoverCancelable) {
-            "Could not execute discoverReaders because the SDK is busy with another command: discoverReaders."
+            busyMessage("discoverReaders", "discoverReaders")
         }
 
         discoverCancelable = terminal.discoverReaders(
@@ -574,5 +574,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
         toCancel.cancel(NoOpCallback(promise))
         block?.invoke()
+    }
+
+    private fun busyMessage(command: String, busyBy: String): String {
+        return  "Could not execute $command because the SDK is busy with another command: $busyBy."
     }
 }

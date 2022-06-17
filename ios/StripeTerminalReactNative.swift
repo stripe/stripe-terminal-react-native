@@ -183,7 +183,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         )
         
         guard discoverCancelable == nil else {
-            resolve(Errors.createError(code: ErrorCode.busy, message: "Could not execute discoverReaders because the SDK is busy with another command: discoverReaders."))
+            let message = busyMessage(command: "discoverReaders", by: "discoverReaders")
+            resolve(Errors.createError(code: ErrorCode.busy, message: message))
             return
         }
 
