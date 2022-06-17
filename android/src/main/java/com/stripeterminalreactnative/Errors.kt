@@ -41,6 +41,16 @@ internal fun <T> requireCancelable(cancelable: T?, lazyMessage: () -> String): T
 }
 
 @Throws(TerminalException::class)
+internal fun <T> throwIfBusy(command: T?, lazyMessage: () -> String): Unit? {
+    return command?.run {
+        throw TerminalException(
+            TerminalErrorCode.READER_BUSY,
+            lazyMessage()
+        )
+    }
+}
+
+@Throws(TerminalException::class)
 internal fun <T> requireParam(input: T?, lazyMessage: () -> String): T {
     return input ?: throw TerminalException(
         TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
