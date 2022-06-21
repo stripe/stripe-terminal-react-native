@@ -404,7 +404,7 @@ export async function getLocations(
       }
       return {
         locations: locations!,
-        hasMore: hasMore!,
+        hasMore: hasMore || false,
         error: undefined,
       };
     } catch (error) {
