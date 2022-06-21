@@ -1964,10 +1964,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@stripe/stripe-terminal-react-native@^0.0.1-beta.5":
-  version "0.0.1-beta.5"
-  resolved "https://registry.npmjs.org/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.5.tgz#3c8107d7be88de9b11e9dab2c9e7048f68ac7654"
-  integrity sha512-Fx14Ty4Rk/5f70CApSOZWV5w0OAT/d9Ql7ThkGBSvn3+yvTsk66+UsSsx+JaMawB5QAyGuEMPr2Qm0BBFU6upQ==
+"@stripe/stripe-terminal-react-native@^0.0.1-beta.6":
+  version "0.0.1-beta.6"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.6.tgz#2108e155ffaf0cd624235085c7d6d39061dfc154"
+  integrity sha512-MJ1MGf1xUXA7Y7WNaFunB/kO+OawyT0x+8ViDVifFJ+kv11A1/oi7J+PWFvuJf7/BM84Sb93x/fvHARieZq7Yg==
   dependencies:
     base-64 "^1.0.0"
 
