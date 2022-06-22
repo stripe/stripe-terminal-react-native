@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-terminal-react-native",
-  "version": "0.0.1-beta.6",
+  "version": "0.0.1-beta.7",
   "description": "Stripe Terminal React Native SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
