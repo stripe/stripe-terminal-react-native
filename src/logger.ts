@@ -9,7 +9,6 @@ interface ObjectWithError {
 interface Trace {
   origin_role: string;
   origin_id: string;
-  type?: string;
   trace: {
     action_id: string;
     request_info: {
@@ -20,6 +19,8 @@ interface Trace {
     service: string;
     method: string;
     request: string;
+    response?: string;
+    exception?: string;
     version_info: {
       client_type: string;
       client_version: string;
@@ -211,7 +212,7 @@ export default class Logger {
         domain: 'Tracer',
         scope: 'e',
         event: trace?.trace?.method,
-        result: trace.type === 'success' ? 'OK' : 'ERROR',
+        result: trace?.trace?.exception ? 'ERROR' : 'OK',
       },
     }));
   }
@@ -256,7 +257,7 @@ export default class Logger {
       ...baseTraceObject,
       trace: {
         ...baseTraceObject.trace,
-        exception: response.error,
+        exception: JSON.stringify(response.error),
         response: JSON.stringify(response),
       },
     };
