@@ -160,12 +160,17 @@ export default class Logger {
 
       const response = fn.apply(this, args);
 
-      if ('error' in response) {
-        Logger.traceError(baseTraceObject, response);
-      } else {
-        Logger.traceSuccess(baseTraceObject, response);
+      if (response instanceof Promise) {
+        Logger.tracePromise(baseTraceObject, response);
+        return response;
       }
 
+      if ('error' in response) {
+        Logger.traceError(baseTraceObject, response);
+        return response;
+      }
+
+      Logger.traceSuccess(baseTraceObject, JSON.stringify(response));
       return response;
     };
   }
@@ -179,7 +184,7 @@ export default class Logger {
     const req = buildGatorRequest(
       'reportTrace',
       { proxy_traces: [...Logger.getInstance()._traces] },
-      '' // TODO: Fetch the logging token from the native module
+      ''
     );
     sendGatorRequest(req).then((_resp) => {
       Logger.getInstance()._traces = [];
@@ -218,6 +223,11 @@ export default class Logger {
     const clonedTraceBase = { ...baseTraceObject };
     response
       .then((resp) => {
+        if ('error' in resp && resp.error) {
+          Logger.traceError(clonedTraceBase, resp);
+          return;
+        }
+
         const responseString = JSON.stringify(resp);
         Logger.traceSuccess(clonedTraceBase, responseString);
       })
@@ -226,17 +236,15 @@ export default class Logger {
       });
   }
 
-  private static traceSuccess(baseTraceObject: Trace, response: any): void {
-    if (response instanceof Promise) {
-      Logger.tracePromise(baseTraceObject, response);
-      return;
-    }
-
+  private static traceSuccess(baseTraceObject: Trace, response: string): void {
     const trace = {
-      type: 'success',
-      response: JSON.stringify(response),
       ...baseTraceObject,
+      trace: {
+        ...baseTraceObject.trace,
+        response,
+      },
     };
+
     Logger.getInstance()._traces.push(trace);
   }
 
@@ -245,10 +253,12 @@ export default class Logger {
     response: ObjectWithError
   ): void {
     const trace = {
-      type: 'exception',
-      exception: response.error,
-      errorCode: 'error',
       ...baseTraceObject,
+      trace: {
+        ...baseTraceObject.trace,
+        exception: response.error,
+        response: JSON.stringify(response),
+      },
     };
     Logger.getInstance()._traces.push(trace);
   }
@@ -258,10 +268,13 @@ export default class Logger {
     exception: Error
   ): void {
     const trace = {
-      type: 'exception',
-      exception: exception.message,
-      errorCode: exception.cause,
       ...baseTraceObject,
+      trace: {
+        ...baseTraceObject.trace,
+        exception: exception.message,
+        status_code: exception.cause,
+        response: JSON.stringify(exception),
+      },
     };
     Logger.getInstance()._traces.push(trace);
   }
