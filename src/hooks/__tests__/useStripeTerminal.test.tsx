@@ -8,6 +8,226 @@ jest.mock(
   '../../../node_modules/react-native/Libraries/EventEmitter/NativeEventEmitter'
 );
 
+function spyAllFunctions() {
+  const createSetupIntent = jest.fn();
+  jest
+    .spyOn(functions, 'createSetupIntent')
+    .mockImplementation(createSetupIntent);
+  //
+  const connectBluetoothReader = jest.fn();
+  jest
+    .spyOn(functions, 'connectBluetoothReader')
+    .mockImplementation(connectBluetoothReader);
+  //
+  const discoverReaders = jest.fn();
+  jest.spyOn(functions, 'discoverReaders').mockImplementation(discoverReaders);
+  //
+  const cancelDiscovering = jest.fn();
+  jest
+    .spyOn(functions, 'cancelDiscovering')
+    .mockImplementation(cancelDiscovering);
+  //
+  const connectInternetReader = jest.fn();
+  jest
+    .spyOn(functions, 'connectInternetReader')
+    .mockImplementation(connectInternetReader);
+  //
+  const connectUsbReader = jest.fn();
+  jest
+    .spyOn(functions, 'connectUsbReader')
+    .mockImplementation(connectUsbReader);
+  //
+  const createPaymentIntent = jest.fn();
+  jest
+    .spyOn(functions, 'createPaymentIntent')
+    .mockImplementation(createPaymentIntent);
+  //
+  const collectPaymentMethod = jest.fn();
+  jest
+    .spyOn(functions, 'collectPaymentMethod')
+    .mockImplementation(collectPaymentMethod);
+  //
+  const retrievePaymentIntent = jest.fn();
+  jest
+    .spyOn(functions, 'retrievePaymentIntent')
+    .mockImplementation(retrievePaymentIntent);
+  //
+  const getLocations = jest.fn();
+  jest.spyOn(functions, 'getLocations').mockImplementation(getLocations);
+  //
+  const processPayment = jest.fn();
+  jest.spyOn(functions, 'processPayment').mockImplementation(processPayment);
+  //
+  const cancelPaymentIntent = jest.fn();
+  jest
+    .spyOn(functions, 'cancelPaymentIntent')
+    .mockImplementation(cancelPaymentIntent);
+  //
+  const disconnectReader = jest.fn();
+  jest
+    .spyOn(functions, 'disconnectReader')
+    .mockImplementation(disconnectReader);
+  //
+
+  const installAvailableUpdate = jest.fn();
+  jest
+    .spyOn(functions, 'installAvailableUpdate')
+    .mockImplementation(installAvailableUpdate);
+  //
+  const cancelInstallingUpdate = jest.fn();
+  jest
+    .spyOn(functions, 'cancelInstallingUpdate')
+    .mockImplementation(cancelInstallingUpdate);
+  //
+  const setReaderDisplay = jest.fn();
+  jest
+    .spyOn(functions, 'setReaderDisplay')
+    .mockImplementation(setReaderDisplay);
+
+  //
+  const clearReaderDisplay = jest.fn();
+  jest
+    .spyOn(functions, 'clearReaderDisplay')
+    .mockImplementation(clearReaderDisplay);
+
+  //
+  const retrieveSetupIntent = jest.fn();
+  jest
+    .spyOn(functions, 'retrieveSetupIntent')
+    .mockImplementation(retrieveSetupIntent);
+
+  //
+  const collectSetupIntentPaymentMethod = jest.fn();
+  jest
+    .spyOn(functions, 'collectSetupIntentPaymentMethod')
+    .mockImplementation(collectSetupIntentPaymentMethod);
+
+  //
+  const cancelSetupIntent = jest.fn();
+  jest
+    .spyOn(functions, 'cancelSetupIntent')
+    .mockImplementation(cancelSetupIntent);
+
+  //
+  const confirmSetupIntent = jest.fn();
+  jest
+    .spyOn(functions, 'confirmSetupIntent')
+    .mockImplementation(confirmSetupIntent);
+
+  //
+  const simulateReaderUpdate = jest.fn();
+  jest
+    .spyOn(functions, 'simulateReaderUpdate')
+    .mockImplementation(simulateReaderUpdate);
+
+  //
+  const collectRefundPaymentMethod = jest.fn();
+  jest
+    .spyOn(functions, 'collectRefundPaymentMethod')
+    .mockImplementation(collectRefundPaymentMethod);
+
+  //
+  const processRefund = jest.fn();
+  jest.spyOn(functions, 'processRefund').mockImplementation(processRefund);
+
+  //
+  const clearCachedCredentials = jest.fn();
+  jest
+    .spyOn(functions, 'clearCachedCredentials')
+    .mockImplementation(clearCachedCredentials);
+
+  //
+  const readReusableCard = jest.fn();
+  jest
+    .spyOn(functions, 'readReusableCard')
+    .mockImplementation(readReusableCard);
+
+  //
+  const cancelCollectPaymentMethod = jest.fn();
+  jest
+    .spyOn(functions, 'cancelCollectPaymentMethod')
+    .mockImplementation(cancelCollectPaymentMethod);
+
+  //
+  const cancelCollectRefundPaymentMethod = jest.fn();
+  jest
+    .spyOn(functions, 'cancelCollectRefundPaymentMethod')
+    .mockImplementation(cancelCollectRefundPaymentMethod);
+
+  //
+  const cancelCollectSetupIntent = jest.fn();
+  jest
+    .spyOn(functions, 'cancelCollectSetupIntent')
+    .mockImplementation(cancelCollectSetupIntent);
+
+  //
+  const cancelReadReusableCard = jest.fn();
+  jest
+    .spyOn(functions, 'cancelReadReusableCard')
+    .mockImplementation(cancelReadReusableCard);
+
+  //
+  const connectEmbeddedReader = jest.fn();
+  jest
+    .spyOn(functions, 'connectEmbeddedReader')
+    .mockImplementation(connectEmbeddedReader);
+
+  //
+  const connectHandoffReader = jest.fn();
+  jest
+    .spyOn(functions, 'connectHandoffReader')
+    .mockImplementation(connectHandoffReader);
+
+  //
+  const connectLocalMobileReader = jest.fn();
+  jest
+    .spyOn(functions, 'connectLocalMobileReader')
+    .mockImplementation(connectLocalMobileReader);
+
+  //
+  const setSimulatedCard = jest.fn();
+  jest
+    .spyOn(functions, 'setSimulatedCard')
+    .mockImplementation(setSimulatedCard);
+
+  return {
+    discoverReaders,
+    cancelDiscovering,
+    connectBluetoothReader,
+    disconnectReader,
+    connectInternetReader,
+    connectUsbReader,
+    createPaymentIntent,
+    collectPaymentMethod,
+    retrievePaymentIntent,
+    getLocations,
+    processPayment,
+    createSetupIntent,
+    cancelPaymentIntent,
+    installAvailableUpdate,
+    cancelInstallingUpdate,
+    setReaderDisplay,
+    clearReaderDisplay,
+    retrieveSetupIntent,
+    collectSetupIntentPaymentMethod,
+    cancelSetupIntent,
+    confirmSetupIntent,
+    simulateReaderUpdate,
+    collectRefundPaymentMethod,
+    processRefund,
+    clearCachedCredentials,
+    readReusableCard,
+    cancelCollectPaymentMethod,
+    cancelCollectRefundPaymentMethod,
+    cancelCollectSetupIntent,
+    cancelReadReusableCard,
+    connectEmbeddedReader,
+    connectHandoffReader,
+    connectLocalMobileReader,
+    setSimulatedCard,
+  };
+}
+
 const createContextWrapper =
   (providerProps: any): React.FC =>
   ({ children }) =>
@@ -78,19 +298,7 @@ describe('useStripeTerminal.test.tsx', () => {
     });
 
     it('public methods are called when it is initialized', () => {
-      const connectBluetoothReaderFn = jest.fn();
-      const discoverReadersFn = jest.fn();
-      const cancelDiscoveringFn = jest.fn();
-
-      jest
-        .spyOn(functions, 'connectBluetoothReader')
-        .mockImplementation(connectBluetoothReaderFn);
-      jest
-        .spyOn(functions, 'discoverReaders')
-        .mockImplementation(discoverReadersFn);
-      jest
-        .spyOn(functions, 'cancelDiscovering')
-        .mockImplementation(cancelDiscoveringFn);
+      const fns = spyAllFunctions();
 
       const ContextWrapper = createContextWrapper({ isInitialized: true });
       const { result } = renderHook(() => useStripeTerminal(), {
@@ -100,29 +308,48 @@ describe('useStripeTerminal.test.tsx', () => {
       act(() => {
         result.current.connectBluetoothReader({} as any);
         result.current.discoverReaders({} as any);
+        result.current.cancelCollectPaymentMethod();
         result.current.cancelDiscovering();
+        result.current.cancelCollectRefundPaymentMethod();
+        result.current.cancelInstallingUpdate();
+        result.current.cancelPaymentIntent('');
+        result.current.cancelReadReusableCard();
+        result.current.cancelSetupIntent('');
+        result.current.clearCachedCredentials();
+        result.current.clearReaderDisplay();
+        result.current.collectPaymentMethod({} as any);
+        result.current.collectRefundPaymentMethod({} as any);
+        result.current.collectSetupIntentPaymentMethod({} as any);
+        result.current.confirmSetupIntent('');
+        result.current.connectBluetoothReader({} as any);
+        result.current.connectEmbeddedReader({} as any);
+        result.current.connectHandoffReader({} as any);
+        result.current.connectInternetReader({} as any);
+        result.current.connectLocalMobileReader({} as any);
+        result.current.connectUsbReader({} as any);
+        result.current.createPaymentIntent({} as any);
+        result.current.createSetupIntent({} as any);
+        result.current.disconnectReader();
+        result.current.retrievePaymentIntent('');
+        result.current.getLocations({} as any);
+        result.current.processPayment('');
+        result.current.retrieveSetupIntent('');
+        result.current.simulateReaderUpdate({} as any);
+        result.current.readReusableCard({} as any);
+        result.current.setSimulatedCard('');
+        result.current.installAvailableUpdate();
+        result.current.setReaderDisplay({} as any);
+        result.current.processRefund();
+        result.current.cancelCollectSetupIntent();
       });
 
-      expect(connectBluetoothReaderFn).toBeCalled();
-      expect(discoverReadersFn).toBeCalled();
-      expect(cancelDiscoveringFn).toBeCalled();
+      Object.values(fns).forEach((fn) => {
+        expect(fn).toBeCalled();
+      });
     });
 
     it('public methods are not called when it is not initialized', () => {
-      const connectBluetoothReaderFn = jest.fn();
-      const discoverReadersFn = jest.fn();
-      const cancelDiscoveringFn = jest.fn();
-
-      jest
-        .spyOn(functions, 'connectBluetoothReader')
-        .mockImplementation(connectBluetoothReaderFn);
-      jest
-        .spyOn(functions, 'discoverReaders')
-        .mockImplementation(discoverReadersFn);
-      jest
-        .spyOn(functions, 'cancelDiscovering')
-        .mockImplementation(cancelDiscoveringFn);
-
+      const fns = spyAllFunctions();
       console.error = jest.fn();
 
       const ContextWrapper = createContextWrapper({ isInitialized: false });
@@ -133,16 +360,48 @@ describe('useStripeTerminal.test.tsx', () => {
       act(() => {
         result.current.connectBluetoothReader({} as any);
         result.current.discoverReaders({} as any);
+        result.current.cancelCollectPaymentMethod();
         result.current.cancelDiscovering();
+        result.current.cancelCollectRefundPaymentMethod();
+        result.current.cancelInstallingUpdate();
+        result.current.cancelPaymentIntent('');
+        result.current.cancelReadReusableCard();
+        result.current.cancelSetupIntent('');
+        result.current.clearCachedCredentials();
+        result.current.clearReaderDisplay();
+        result.current.collectPaymentMethod({} as any);
+        result.current.collectRefundPaymentMethod({} as any);
+        result.current.collectSetupIntentPaymentMethod({} as any);
+        result.current.confirmSetupIntent('');
+        result.current.connectBluetoothReader({} as any);
+        result.current.connectEmbeddedReader({} as any);
+        result.current.connectHandoffReader({} as any);
+        result.current.connectInternetReader({} as any);
+        result.current.connectLocalMobileReader({} as any);
+        result.current.connectUsbReader({} as any);
+        result.current.createPaymentIntent({} as any);
+        result.current.createSetupIntent({} as any);
+        result.current.disconnectReader();
+        result.current.retrievePaymentIntent('');
+        result.current.getLocations({} as any);
+        result.current.processPayment('');
+        result.current.retrieveSetupIntent('');
+        result.current.simulateReaderUpdate({} as any);
+        result.current.readReusableCard({} as any);
+        result.current.setSimulatedCard('');
+        result.current.installAvailableUpdate();
+        result.current.setReaderDisplay({} as any);
+        result.current.processRefund();
+        result.current.cancelCollectSetupIntent();
       });
 
-      expect(connectBluetoothReaderFn).not.toBeCalled();
-      expect(discoverReadersFn).not.toBeCalled();
-      expect(cancelDiscoveringFn).not.toBeCalled();
+      Object.values(fns).forEach((fn) => {
+        expect(fn).not.toBeCalled();
+      });
       expect(console.error).toBeCalledWith(
         'First initialize the Stripe Terminal SDK before performing any action'
       );
-      expect(console.error).toBeCalledTimes(3);
+      expect(console.error).toBeCalledTimes(35);
     });
   });
 });
