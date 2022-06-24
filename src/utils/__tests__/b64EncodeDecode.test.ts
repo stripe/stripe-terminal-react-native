@@ -13,8 +13,8 @@ describe('b64EncodeDecode.ts', () => {
         '8J+NqyDigJMgY2hvY29sYXRl'
       );
 
-      expect(b64EncodeUnicode('🍫 – chocolate')).toEqual(
-        '8J+NqyDigJMgY2hvY29sYXRl'
+      expect(b64EncodeUnicode('🍿 – popcorn')).toEqual(
+        '8J+NvyDigJMgcG9wY29ybg=='
       );
 
       expect(b64EncodeUnicode('🍪 🥧 🍬 🍪')).toEqual(
@@ -33,8 +33,8 @@ describe('b64EncodeDecode.ts', () => {
         '🍫 – chocolate'
       );
 
-      expect(b64DecodeUnicode('8J+NqyDigJMgY2hvY29sYXRl')).toEqual(
-        '🍫 – chocolate'
+      expect(b64DecodeUnicode('8J+NvyDigJMgcG9wY29ybg==')).toEqual(
+        '🍿 – popcorn'
       );
 
       expect(b64DecodeUnicode('8J+NqiDwn6WnIPCfjawg8J+Nqg==')).toEqual(

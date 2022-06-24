@@ -746,3 +746,7 @@ describe('functions.test.ts', () => {
     });
   });
 });
+
+// workaround to avoiding producing d.ts files that introduces types conflicts
+// https://backbencher.dev/articles/typescript-solved-cannot-redeclare-block-scoped-variable-name
+export {};
