@@ -2467,9 +2467,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@testing-library/react-native@https://github.com/callstack/react-native-testing-library#main":
-  version "9.2.0"
-  resolved "https://github.com/callstack/react-native-testing-library#597fa3c4f84b40cccfd28a2babeb90d98dbe7c93"
+"@testing-library/react-native@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@testing-library/react-native/-/react-native-10.0.0.tgz#fe8539c09c62df522b21528a5796dbecad3e34a2"
+  integrity sha512-aFq2BQReP9ijZsQ83XMLJthGyffFS7vv0YN3ZAvgIgxEfAQ78v0GOMLyoTNyZEM+wDGb4cn1yorHXYUWs8krwA==
   dependencies:
     pretty-format "^27.0.0"
 
