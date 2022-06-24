@@ -1964,10 +1964,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@stripe/stripe-terminal-react-native@^0.0.1-beta.5":
-  version "0.0.1-beta.5"
-  resolved "https://registry.npmjs.org/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.5.tgz#3c8107d7be88de9b11e9dab2c9e7048f68ac7654"
-  integrity sha512-Fx14Ty4Rk/5f70CApSOZWV5w0OAT/d9Ql7ThkGBSvn3+yvTsk66+UsSsx+JaMawB5QAyGuEMPr2Qm0BBFU6upQ==
+"@stripe/stripe-terminal-react-native@^0.0.1-beta.7":
+  version "0.0.1-beta.7"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.7.tgz#4a72f8db6b2ac3ce5a28b9b608b57a04f9b5a982"
+  integrity sha512-eDHRy0YSUHIZkbjbWfPOugV+YMMsbCRye3W+fC1CjqPjemS6N2I2pZl8pLTDA5CNxhYXE7iaOGRRKDOolffjKw==
   dependencies:
     base-64 "^1.0.0"
 
@@ -7376,7 +7376,7 @@ shebang-regex@^3.0.0:
 shell-quote@1.6.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.6.1.tgz#f4781949cce402697127430ea3b3c5476f481767"
-  integrity sha1-9HgZSczkAmlxJ0MOo7PFR29IF2c=
+  integrity sha512-V0iQEZ/uoem3NmD91rD8XiuozJnq9/ZJnbHVXHnWqP1ucAhS3yJ7sLIIzEi57wFFcK3oi3kFUC46uSyWr35mxg==
   dependencies:
     array-filter "~0.0.0"
     array-map "~0.0.0"

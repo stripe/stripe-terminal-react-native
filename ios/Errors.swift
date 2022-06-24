@@ -38,6 +38,10 @@ class Errors {
     }
 }
 
+func busyMessage(command: String, by busyCommand: String) -> String {
+    return "Could not execute \(command) because the SDK is busy with another command: \(busyCommand)."
+}
+
 extension ErrorCode.Code {
     var stringValue: String {
         switch self {
