@@ -106,6 +106,7 @@ export default function DiscoverReadersScreen() {
   const handleGoBack = useCallback(
     async (action: NavigationAction) => {
       await cancelDiscovering();
+
       if (navigation.canGoBack()) {
         navigation.dispatch(action);
       }
@@ -118,14 +119,23 @@ export default function DiscoverReadersScreen() {
       headerBackTitle: 'Cancel',
     });
 
-    navigation.addListener('beforeRemove', (e) => {
-      if (!discoveringLoading) {
+    const listener = navigation.addListener('beforeRemove', (e) => {
+      if (!discoveringLoading || !!connectingReader) {
         return;
       }
+
       e.preventDefault();
       handleGoBack(e.data.action);
     });
-  }, [navigation, cancelDiscovering, discoveringLoading, handleGoBack]);
+
+    return () => navigation.removeListener('beforeRemove', listener);
+  }, [
+    navigation,
+    cancelDiscovering,
+    discoveringLoading,
+    handleGoBack,
+    connectingReader,
+  ]);
 
   const handleDiscoverReaders = useCallback(async () => {
     setDiscoveringLoading(true);
