@@ -8,178 +8,178 @@ jest.mock(
   '../../../node_modules/react-native/Libraries/EventEmitter/NativeEventEmitter'
 );
 
-function spyAllFunctions() {
-  const createSetupIntent = jest.fn();
+function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
+  const createSetupIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'createSetupIntent')
     .mockImplementation(createSetupIntent);
   //
-  const connectBluetoothReader = jest.fn();
+  const connectBluetoothReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectBluetoothReader')
     .mockImplementation(connectBluetoothReader);
   //
-  const discoverReaders = jest.fn();
+  const discoverReaders = jest.fn(() => returnWith);
   jest.spyOn(functions, 'discoverReaders').mockImplementation(discoverReaders);
   //
-  const cancelDiscovering = jest.fn();
+  const cancelDiscovering = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelDiscovering')
     .mockImplementation(cancelDiscovering);
   //
-  const connectInternetReader = jest.fn();
+  const connectInternetReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectInternetReader')
     .mockImplementation(connectInternetReader);
   //
-  const connectUsbReader = jest.fn();
+  const connectUsbReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectUsbReader')
     .mockImplementation(connectUsbReader);
   //
-  const createPaymentIntent = jest.fn();
+  const createPaymentIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'createPaymentIntent')
     .mockImplementation(createPaymentIntent);
   //
-  const collectPaymentMethod = jest.fn();
+  const collectPaymentMethod = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'collectPaymentMethod')
     .mockImplementation(collectPaymentMethod);
   //
-  const retrievePaymentIntent = jest.fn();
+  const retrievePaymentIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'retrievePaymentIntent')
     .mockImplementation(retrievePaymentIntent);
   //
-  const getLocations = jest.fn();
+  const getLocations = jest.fn(() => returnWith);
   jest.spyOn(functions, 'getLocations').mockImplementation(getLocations);
   //
-  const processPayment = jest.fn();
+  const processPayment = jest.fn(() => returnWith);
   jest.spyOn(functions, 'processPayment').mockImplementation(processPayment);
   //
-  const cancelPaymentIntent = jest.fn();
+  const cancelPaymentIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelPaymentIntent')
     .mockImplementation(cancelPaymentIntent);
   //
-  const disconnectReader = jest.fn();
+  const disconnectReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'disconnectReader')
     .mockImplementation(disconnectReader);
   //
 
-  const installAvailableUpdate = jest.fn();
+  const installAvailableUpdate = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'installAvailableUpdate')
     .mockImplementation(installAvailableUpdate);
   //
-  const cancelInstallingUpdate = jest.fn();
+  const cancelInstallingUpdate = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelInstallingUpdate')
     .mockImplementation(cancelInstallingUpdate);
   //
-  const setReaderDisplay = jest.fn();
+  const setReaderDisplay = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'setReaderDisplay')
     .mockImplementation(setReaderDisplay);
 
   //
-  const clearReaderDisplay = jest.fn();
+  const clearReaderDisplay = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'clearReaderDisplay')
     .mockImplementation(clearReaderDisplay);
 
   //
-  const retrieveSetupIntent = jest.fn();
+  const retrieveSetupIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'retrieveSetupIntent')
     .mockImplementation(retrieveSetupIntent);
 
   //
-  const collectSetupIntentPaymentMethod = jest.fn();
+  const collectSetupIntentPaymentMethod = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'collectSetupIntentPaymentMethod')
     .mockImplementation(collectSetupIntentPaymentMethod);
 
   //
-  const cancelSetupIntent = jest.fn();
+  const cancelSetupIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelSetupIntent')
     .mockImplementation(cancelSetupIntent);
 
   //
-  const confirmSetupIntent = jest.fn();
+  const confirmSetupIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'confirmSetupIntent')
     .mockImplementation(confirmSetupIntent);
 
   //
-  const simulateReaderUpdate = jest.fn();
+  const simulateReaderUpdate = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'simulateReaderUpdate')
     .mockImplementation(simulateReaderUpdate);
 
   //
-  const collectRefundPaymentMethod = jest.fn();
+  const collectRefundPaymentMethod = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'collectRefundPaymentMethod')
     .mockImplementation(collectRefundPaymentMethod);
 
   //
-  const processRefund = jest.fn();
+  const processRefund = jest.fn(() => returnWith);
   jest.spyOn(functions, 'processRefund').mockImplementation(processRefund);
 
   //
-  const readReusableCard = jest.fn();
+  const readReusableCard = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'readReusableCard')
     .mockImplementation(readReusableCard);
 
   //
-  const cancelCollectPaymentMethod = jest.fn();
+  const cancelCollectPaymentMethod = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelCollectPaymentMethod')
     .mockImplementation(cancelCollectPaymentMethod);
 
   //
-  const cancelCollectRefundPaymentMethod = jest.fn();
+  const cancelCollectRefundPaymentMethod = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelCollectRefundPaymentMethod')
     .mockImplementation(cancelCollectRefundPaymentMethod);
 
   //
-  const cancelCollectSetupIntent = jest.fn();
+  const cancelCollectSetupIntent = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelCollectSetupIntent')
     .mockImplementation(cancelCollectSetupIntent);
 
   //
-  const cancelReadReusableCard = jest.fn();
+  const cancelReadReusableCard = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'cancelReadReusableCard')
     .mockImplementation(cancelReadReusableCard);
 
   //
-  const connectEmbeddedReader = jest.fn();
+  const connectEmbeddedReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectEmbeddedReader')
     .mockImplementation(connectEmbeddedReader);
 
   //
-  const connectHandoffReader = jest.fn();
+  const connectHandoffReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectHandoffReader')
     .mockImplementation(connectHandoffReader);
 
   //
-  const connectLocalMobileReader = jest.fn();
+  const connectLocalMobileReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectLocalMobileReader')
     .mockImplementation(connectLocalMobileReader);
 
   //
-  const setSimulatedCard = jest.fn();
+  const setSimulatedCard = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'setSimulatedCard')
     .mockImplementation(setSimulatedCard);
@@ -412,6 +412,113 @@ describe('useStripeTerminal.test.tsx', () => {
         'First initialize the Stripe Terminal SDK before performing any action'
       );
       expect(console.error).toBeCalledTimes(34);
+    });
+
+    it('public methods are returns with mocked value', async () => {
+      spyAllFunctions({ returnWith: '_value' });
+
+      const ContextWrapper = createContextWrapper({ isInitialized: true });
+      const { result } = renderHook(() => useStripeTerminal(), {
+        wrapper: ContextWrapper,
+      });
+
+      await expect(
+        result.current.connectBluetoothReader({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.discoverReaders({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.cancelCollectPaymentMethod()
+      ).resolves.toEqual('_value');
+      await expect(result.current.cancelDiscovering()).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.cancelCollectRefundPaymentMethod()
+      ).resolves.toEqual('_value');
+      await expect(result.current.cancelInstallingUpdate()).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.cancelPaymentIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.cancelReadReusableCard()).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.cancelSetupIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.clearReaderDisplay()).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.collectPaymentMethod({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.collectRefundPaymentMethod({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.collectSetupIntentPaymentMethod({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.confirmSetupIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.connectEmbeddedReader({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.connectHandoffReader({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.connectInternetReader({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.connectLocalMobileReader({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.connectUsbReader({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.createPaymentIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.createSetupIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.disconnectReader()).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.retrievePaymentIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.getLocations({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(result.current.processPayment({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(
+        result.current.retrieveSetupIntent({} as any)
+      ).resolves.toEqual('_value');
+      await expect(
+        result.current.simulateReaderUpdate({} as any)
+      ).resolves.toEqual('_value');
+      await expect(result.current.readReusableCard({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(result.current.setSimulatedCard({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(result.current.installAvailableUpdate()).resolves.toEqual(
+        '_value'
+      );
+      await expect(result.current.setReaderDisplay({} as any)).resolves.toEqual(
+        '_value'
+      );
+      await expect(result.current.processRefund()).resolves.toEqual('_value');
+      await expect(result.current.cancelCollectSetupIntent()).resolves.toEqual(
+        '_value'
+      );
     });
   });
 });
