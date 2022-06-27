@@ -1,6 +1,6 @@
 import { requestNeededAndroidPermissions } from '../androidPermissionsUtils';
 
-const permissionsContantsMock = {
+const permissionsConstantsMock = {
   PERMISSIONS: {
     ACCESS_FINE_LOCATION: 'ACCESS_FINE_LOCATION',
     BLUETOOTH_CONNECT: 'BLUETOOTH_CONNECT',
@@ -31,7 +31,7 @@ describe('androidPermissionsUtils.ts', () => {
         request: (status: keyof typeof permissionsMock) => {
           return permissionsMock[status];
         },
-        ...permissionsContantsMock,
+        ...permissionsConstantsMock,
       })
     );
 
@@ -59,7 +59,7 @@ describe('androidPermissionsUtils.ts', () => {
         request: (permission: keyof typeof permissionsMock) => {
           return permissionsMock[permission];
         },
-        ...permissionsContantsMock,
+        ...permissionsConstantsMock,
       })
     );
 
@@ -89,7 +89,7 @@ describe('androidPermissionsUtils.ts', () => {
         request: (permission: keyof typeof permissionsMock) => {
           return permissionsMock[permission];
         },
-        ...permissionsContantsMock,
+        ...permissionsConstantsMock,
       })
     );
 
@@ -119,7 +119,7 @@ describe('androidPermissionsUtils.ts', () => {
         request: (permission: keyof typeof permissionsMock) => {
           return permissionsMock[permission];
         },
-        ...permissionsContantsMock,
+        ...permissionsConstantsMock,
       })
     );
 
@@ -149,7 +149,7 @@ describe('androidPermissionsUtils.ts', () => {
         request: (permission: keyof typeof permissionsMock) => {
           return permissionsMock[permission];
         },
-        ...permissionsContantsMock,
+        ...permissionsConstantsMock,
       })
     );
 
