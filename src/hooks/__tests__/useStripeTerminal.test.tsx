@@ -131,12 +131,6 @@ function spyAllFunctions() {
   jest.spyOn(functions, 'processRefund').mockImplementation(processRefund);
 
   //
-  const clearCachedCredentials = jest.fn();
-  jest
-    .spyOn(functions, 'clearCachedCredentials')
-    .mockImplementation(clearCachedCredentials);
-
-  //
   const readReusableCard = jest.fn();
   jest
     .spyOn(functions, 'readReusableCard')
@@ -215,7 +209,6 @@ function spyAllFunctions() {
     simulateReaderUpdate,
     collectRefundPaymentMethod,
     processRefund,
-    clearCachedCredentials,
     readReusableCard,
     cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod,
@@ -283,6 +276,24 @@ describe('useStripeTerminal.test.tsx', () => {
   });
 
   describe('Public methods are called properly', () => {
+    it('clearCachedCredentials is called', () => {
+      const clearCachedCredentials = jest.fn();
+      jest
+        .spyOn(functions, 'clearCachedCredentials')
+        .mockImplementation(clearCachedCredentials);
+
+      const ContextWrapper = createContextWrapper({});
+      const { result } = renderHook(() => useStripeTerminal(), {
+        wrapper: ContextWrapper,
+      });
+
+      act(() => {
+        result.current.clearCachedCredentials();
+      });
+
+      expect(clearCachedCredentials).toBeCalled();
+    });
+
     it('initialized method is called', () => {
       const initializeFn = jest.fn();
       const ContextWrapper = createContextWrapper({ initialize: initializeFn });
@@ -367,7 +378,6 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.cancelPaymentIntent('');
         result.current.cancelReadReusableCard();
         result.current.cancelSetupIntent('');
-        result.current.clearCachedCredentials();
         result.current.clearReaderDisplay();
         result.current.collectPaymentMethod({} as any);
         result.current.collectRefundPaymentMethod({} as any);
@@ -401,7 +411,7 @@ describe('useStripeTerminal.test.tsx', () => {
       expect(console.error).toBeCalledWith(
         'First initialize the Stripe Terminal SDK before performing any action'
       );
-      expect(console.error).toBeCalledTimes(35);
+      expect(console.error).toBeCalledTimes(34);
     });
   });
 });

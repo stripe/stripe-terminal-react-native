@@ -741,10 +741,6 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading, _isInitialized]);
 
   const _clearCachedCredentials = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
     setLoading(true);
 
     const response = await clearCachedCredentials();
@@ -752,7 +748,7 @@ export function useStripeTerminal(props?: Props) {
     setLoading(false);
 
     return response;
-  }, [_isInitialized, setLoading]);
+  }, [setLoading]);
 
   const _readReusableCard = useCallback(
     async (params: ReadReusableCardParamsType) => {
