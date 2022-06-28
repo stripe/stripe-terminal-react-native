@@ -4,7 +4,7 @@ orbs:
   android:  circleci/android@2.0.0
   heroku:   circleci/heroku@1.2.6
   macos:    circleci/macos@2.1.0
-  ruby:     circleci/ruby@1.4.0
+  ruby:     circleci/ruby@1.8.0
 
 executors:
   linux_js:
@@ -356,7 +356,7 @@ jobs:
     steps:
       - setup_android_executor
       - ruby/install-deps:
-          key: -gems-{{ arch }}-v1
+          key: -gems-{{ arch }}-v1b
       - run:
           name: Install Firebase CLI
           command: |
