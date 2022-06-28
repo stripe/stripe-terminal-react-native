@@ -192,16 +192,16 @@ jobs:
       - attach_project
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package.json" }}
-            - dependencies-
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
       - restore_cache:
           keys:
-            - dependencies-dev-app-{{ checksum "dev-app/package.json" }}
-            - dependencies-dev-app-
+            - v1-dependencies-dev-app-{{ checksum "dev-app/package.json" }}
+            - v1-dependencies-dev-app-
       - restore_cache:
           keys:
-            - dependencies-example-app-{{ checksum "example-app/package.json" }}
-            - dependencies-example-app-
+            - v1-dependencies-example-app-{{ checksum "example-app/package.json" }}
+            - v1-dependencies-example-app-
       - run:
           name: Install dependencies
           command: |
