@@ -335,9 +335,9 @@ jobs:
           command: yarn e2e:build:android:release
           name: build for detox
       - android/save-gradle-cache
-        - cache-prefix: v1b
+          cache-prefix: v1b
       - android/save-build-cache
-        - cache-prefix: v1b
+          cache-prefix: v1b
       - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
@@ -372,9 +372,9 @@ jobs:
           command: yarn dev-app:build:android:release
           name: build
       - android/save-gradle-cache
-        - cache-prefix: v1b
+          cache-prefix: v1b
       - android/save-build-cache
-        - cache-prefix: v1b
+          cache-prefix: v1b
       - run:
           name: "Deploy dev app to Firebase"
           command: |
