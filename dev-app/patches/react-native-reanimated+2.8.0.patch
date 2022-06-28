@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-reanimated/android/CMakeLists.txt b/node_modules/react-native-reanimated/android/CMakeLists.txt
-index e6ff5f2..9358358 100644
+index e6ff5f2..945b1fb 100644
 --- a/node_modules/react-native-reanimated/android/CMakeLists.txt
 +++ b/node_modules/react-native-reanimated/android/CMakeLists.txt
 @@ -1,3 +1,4 @@
@@ -75,7 +75,7 @@ index e6ff5f2..9358358 100644
              android
      )
 diff --git a/node_modules/react-native-reanimated/android/build.gradle b/node_modules/react-native-reanimated/android/build.gradle
-index cc460da..31f7aa1 100644
+index cc460da..66047b5 100644
 --- a/node_modules/react-native-reanimated/android/build.gradle
 +++ b/node_modules/react-native-reanimated/android/build.gradle
 @@ -1,10 +1,8 @@
@@ -319,16 +319,18 @@ index cc460da..31f7aa1 100644
                  abiFilters (*reactNativeArchitectures())
                  _stackProtectorFlag ? (cppFlags("-fstack-protector-all")) : null
              }
-@@ -412,6 +212,8 @@ android {
+@@ -411,7 +211,10 @@ android {
+                 "**/libhermes.so",
                  "**/libreactnativejni.so",
                  "**/libjscexecutor.so",
++                "**/libfolly_runtime.so"
          ]
-+        // META-INF is duplicate by CameraX.
++
 +        exclude "META-INF/**"
      }
      tasks.withType(JavaCompile) {
          compileTask ->
-@@ -435,7 +237,7 @@ task cleanCmakeCache() {
+@@ -435,7 +238,7 @@ task cleanCmakeCache() {
  }
  
  task printVersions {
@@ -337,7 +339,7 @@ index cc460da..31f7aa1 100644
      println "Gradle: ${project.gradle.gradleVersion}"
  }
  
-@@ -459,7 +261,12 @@ task createNativeDepsDirectories(dependsOn: applyJavaPatches) {
+@@ -459,7 +262,12 @@ task createNativeDepsDirectories(dependsOn: applyJavaPatches) {
  }
  
  task downloadBoost(dependsOn: createNativeDepsDirectories, type: Download) {
@@ -351,7 +353,7 @@ index cc460da..31f7aa1 100644
      onlyIfNewer(true)
      overwrite(false)
      dest(new File(downloadsDir, "boost_${BOOST_VERSION}.tar.gz"))
-@@ -672,9 +479,29 @@ dependencies {
+@@ -672,9 +480,29 @@ dependencies {
      extractHeaders("com.facebook.fbjni:fbjni:" + FBJNI_VERSION + ":headers")
      extractSO("com.facebook.fbjni:fbjni:" + FBJNI_VERSION)
  
@@ -383,7 +385,7 @@ index cc460da..31f7aa1 100644
  }
  
  task downloadNdkBuildDependencies {
-@@ -686,7 +513,7 @@ task downloadNdkBuildDependencies {
+@@ -686,7 +514,7 @@ task downloadNdkBuildDependencies {
      dependsOn(downloadGlog)
  }
  
@@ -392,7 +394,7 @@ index cc460da..31f7aa1 100644
  }
  
  def nativeBuildDependsOn(dependsOnTask) {
-@@ -702,11 +529,17 @@ afterEvaluate {
+@@ -702,11 +530,17 @@ afterEvaluate {
      nativeBuildDependsOn(prepareThirdPartyNdkHeaders)
      nativeBuildDependsOn(extractAARHeaders)
      nativeBuildDependsOn(extractSOFiles)
