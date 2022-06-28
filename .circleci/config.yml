@@ -39,8 +39,8 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
-            - cache-pods-
+            - v1-cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+            - v1-cache-pods-
       - run:
           name: Install CocoaPods
           command: |
@@ -50,7 +50,7 @@ commands:
       - save_cache:
           paths:
             - <<parameters.pod_install_directory>>/Pods
-          key: cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+          key: v1-cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
 
   pod_install_example:
     parameters:
