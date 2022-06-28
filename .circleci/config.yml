@@ -329,8 +329,10 @@ jobs:
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - android/restore-gradle-cache:
+          cache-prefix: v1b
+      - android/restore-build-cache:
+          cache-prefix: v1b
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
@@ -366,8 +368,10 @@ jobs:
           name: "Increment dev app version"
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - android/restore-gradle-cache:
+          cache-prefix: v1b
+      - android/restore-build-cache:
+          cache-prefix: v1b
       - run:
           command: yarn dev-app:build:android:release
           name: build
