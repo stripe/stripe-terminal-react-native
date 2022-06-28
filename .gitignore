@@ -28,6 +28,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
+dev-app/ios/.xcode.env.local
 
 # Android/IJ
 #
@@ -78,3 +79,4 @@ test-butler-app.apk
 # Fastlane
 /fastlane/README.md
 /fastlane/report.xml
+/fastlane/test_output
