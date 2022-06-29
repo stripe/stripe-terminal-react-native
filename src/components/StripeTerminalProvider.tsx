@@ -11,7 +11,6 @@ import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
 import { useListener } from '../hooks/useListener';
 import { NativeModules } from 'react-native';
-// @ts-ignore
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
 
 const {

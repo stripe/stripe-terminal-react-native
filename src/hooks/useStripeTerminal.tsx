@@ -357,6 +357,10 @@ export function useStripeTerminal(props?: Props) {
 
   const _connectEmbeddedReader = useCallback(
     async (params: ConnectEmbeddedParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
       setLoading(true);
 
       const response = await connectEmbeddedReader(params);
@@ -368,11 +372,15 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setConnectedReader, setLoading]
+    [_isInitialized, setConnectedReader, setLoading]
   );
 
   const _connectLocalMobileReader = useCallback(
     async (params: ConnectLocalMobileParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
       setLoading(true);
 
       const response = await connectLocalMobileReader(params);
@@ -384,11 +392,15 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setConnectedReader, setLoading]
+    [_isInitialized, setConnectedReader, setLoading]
   );
 
   const _connectHandoffReader = useCallback(
     async (params: ConnectEmbeddedParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
       setLoading(true);
 
       const response = await connectHandoffReader(params);
@@ -400,7 +412,7 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setConnectedReader, setLoading]
+    [_isInitialized, setConnectedReader, setLoading]
   );
 
   const _disconnectReader = useCallback(async () => {
@@ -667,6 +679,10 @@ export function useStripeTerminal(props?: Props) {
 
   const _setSimulatedCard = useCallback(
     async (cardNumber: string) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
       setLoading(true);
 
       const response = await setSimulatedCard(cardNumber);
@@ -674,7 +690,7 @@ export function useStripeTerminal(props?: Props) {
 
       return response;
     },
-    [setLoading]
+    [_isInitialized, setLoading]
   );
 
   const _simulateReaderUpdate = useCallback(

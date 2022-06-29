@@ -1,7 +1,7 @@
-import * as StripeTerminal from './index';
+import * as StripeTerminal from '../index';
 
 jest.mock(
-  '../node_modules/react-native/Libraries/EventEmitter/NativeEventEmitter'
+  '../../node_modules/react-native/Libraries/EventEmitter/NativeEventEmitter'
 );
 
 describe('index.ts', () => {
