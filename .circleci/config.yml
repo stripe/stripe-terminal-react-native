@@ -4,7 +4,7 @@ orbs:
   android:  circleci/android@2.0.0
   heroku:   circleci/heroku@1.2.6
   macos:    circleci/macos@2.1.0
-  ruby:     circleci/ruby@1.4.0
+  ruby:     circleci/ruby@1.8.0
 
 executors:
   linux_js:
@@ -39,8 +39,8 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
-            - cache-pods-
+            - v1-cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+            - v1-cache-pods-
       - run:
           name: Install CocoaPods
           command: |
@@ -50,7 +50,7 @@ commands:
       - save_cache:
           paths:
             - <<parameters.pod_install_directory>>/Pods
-          key: cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
+          key: v1-cache-pods-{{ checksum "<<parameters.pod_install_directory>>/Podfile.lock" }}-v1
 
   pod_install_example:
     parameters:
@@ -178,7 +178,7 @@ commands:
       - android/start-emulator:
           avd-name: <<parameters.device_name>>
           no-window: true
-          restore-gradle-cache-prefix: v1a
+          restore-gradle-cache-prefix: v1b
           memory: 2048
           gpu: auto
           run-logcat: true
@@ -192,16 +192,16 @@ jobs:
       - attach_project
       - restore_cache:
           keys:
-            - dependencies-{{ checksum "package.json" }}
-            - dependencies-
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
       - restore_cache:
           keys:
-            - dependencies-dev-app-{{ checksum "dev-app/package.json" }}
-            - dependencies-dev-app-
+            - v1-dependencies-dev-app-{{ checksum "dev-app/package.json" }}
+            - v1-dependencies-dev-app-
       - restore_cache:
           keys:
-            - dependencies-example-app-{{ checksum "example-app/package.json" }}
-            - dependencies-example-app-
+            - v1-dependencies-example-app-{{ checksum "example-app/package.json" }}
+            - v1-dependencies-example-app-
       - run:
           name: Install dependencies
           command: |
@@ -329,13 +329,17 @@ jobs:
       - run:
           command: yarn install --frozen-lockfile
           name: yarn install
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - android/restore-gradle-cache:
+          cache-prefix: v1b
+      - android/restore-build-cache:
+          cache-prefix: v1b
       - run:
           command: yarn e2e:build:android:release
           name: build for detox
-      - android/save-gradle-cache
-      - android/save-build-cache
+      - android/save-gradle-cache:
+          cache-prefix: v1b
+      - android/save-build-cache:
+          cache-prefix: v1b
       - run:
           no_output_timeout: 60m
           command: yarn e2e:test:android:release
@@ -352,7 +356,7 @@ jobs:
     steps:
       - setup_android_executor
       - ruby/install-deps:
-          key: -gems-{{ arch }}-v1
+          key: -gems-{{ arch }}-v1b
       - run:
           name: Install Firebase CLI
           command: |
@@ -364,13 +368,17 @@ jobs:
           name: "Increment dev app version"
           command: |
               bundle exec fastlane increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - android/restore-gradle-cache:
+          cache-prefix: v1b
+      - android/restore-build-cache:
+          cache-prefix: v1b
       - run:
           command: yarn dev-app:build:android:release
           name: build
-      - android/save-gradle-cache
-      - android/save-build-cache
+      - android/save-gradle-cache:
+          cache-prefix: v1b
+      - android/save-build-cache:
+          cache-prefix: v1b
       - run:
           name: "Deploy dev app to Firebase"
           command: |
