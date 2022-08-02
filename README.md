@@ -186,8 +186,8 @@ export default withStripeTerminal(PaymentScreen);
 ```
 ## Additional docs
 
-- [Running e2e tests locally](/docs/e2e-tests.md)
+- [Running e2e tests locally](https://github.com/stripe/stripe-terminal-react-native/blob/main/docs/e2e-tests.md)
 
 ## Contributing
 
-See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
+See the [contributor guidelines](https://github.com/stripe/stripe-terminal-react-native/blob/main/CONTRIBUTING.md) to learn how to contribute to the repository.
