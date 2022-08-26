@@ -7,7 +7,6 @@ import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
-import com.stripe.stripeterminal.external.OnReaderTips
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
 import com.stripe.stripeterminal.external.models.*
@@ -336,7 +335,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         })
     }
 
-    @OptIn(OnReaderTips::class)
     @ReactMethod
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
