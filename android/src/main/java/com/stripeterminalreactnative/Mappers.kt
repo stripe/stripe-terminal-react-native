@@ -59,13 +59,13 @@ internal fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
 }
 
 internal fun nativeMapOf(block: WritableMap.() -> Unit = {}): WritableMap {
-    return WritableNativeMap().apply {
+    return NativeTypeFactory.writableNativeMap().apply {
         block()
     }
 }
 
 internal fun nativeArrayOf(block: WritableArray.() -> Unit = {}): WritableArray {
-    return WritableNativeArray().apply {
+    return NativeTypeFactory.writableNativeArray().apply {
         block()
     }
 }

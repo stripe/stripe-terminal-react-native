@@ -101,7 +101,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 tokenProvider,
                 RNTerminalListener(context)
             )
-            WritableNativeMap()
+            NativeTypeFactory.writableNativeMap()
         } else {
             nativeMapOf {
                 terminal.connectedReader?.let {
@@ -135,7 +135,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun simulateReaderUpdate(update: String, promise: Promise) {
         val updateMapped = mapFromSimulateReaderUpdate(update)
         terminal.simulatorConfiguration = SimulatorConfiguration(updateMapped)
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -145,7 +145,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             terminal.simulatorConfiguration.update,
             SimulatedCard(testCardNumber = cardNumber)
         )
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -468,7 +468,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun installAvailableUpdate(promise: Promise) {
         terminal.installAvailableUpdate()
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -491,7 +491,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         val cartLineItems =
-            mapToCartLineItems(params.getArray("lineItems") ?: WritableNativeArray())
+            mapToCartLineItems(params.getArray("lineItems") ?: NativeTypeFactory.writableNativeArray())
 
         val cart = Cart.Builder(
             currency = currency,
@@ -562,7 +562,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun clearCachedCredentials(promise: Promise) {
         terminal.clearCachedCredentials()
         paymentIntents.clear()
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
