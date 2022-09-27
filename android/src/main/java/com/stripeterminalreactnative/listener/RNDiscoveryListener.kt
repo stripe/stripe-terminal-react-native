@@ -2,6 +2,7 @@ package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.callable.DiscoveryListener
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalException
@@ -17,7 +18,10 @@ internal class RNDiscoveryListener(
     promise: Promise,
     private val onDiscoveredReaders: (readers: List<Reader>) -> Unit,
     private val onComplete: () -> Unit,
-) : DiscoveryListener, NoOpCallback(promise) {
+) : DiscoveryListener, Callback {
+
+    // Our no-op callback handles resolving the promise.
+    private val noOpCallback = NoOpCallback(promise)
 
     override fun onUpdateDiscoveredReaders(readers: List<Reader>) {
         onDiscoveredReaders(readers)
@@ -27,7 +31,7 @@ internal class RNDiscoveryListener(
     }
 
     override fun onSuccess() {
-        super.onSuccess()
+        noOpCallback.onSuccess()
         context.sendEvent(ReactNativeConstants.FINISH_DISCOVERING_READERS.listenerName) {
             putMap("result", nativeMapOf())
         }
@@ -35,7 +39,7 @@ internal class RNDiscoveryListener(
     }
 
     override fun onFailure(e: TerminalException) {
-        super.onFailure(e)
+        noOpCallback.onFailure(e)
         context.sendEvent(ReactNativeConstants.FINISH_DISCOVERING_READERS.listenerName) {
             putMap("result", createError(e))
         }
