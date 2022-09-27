@@ -3,13 +3,35 @@ package com.stripeterminalreactnative
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
-import com.stripe.stripeterminal.external.models.*
+import com.stripe.stripeterminal.external.models.CardPresentParameters
+import com.stripe.stripeterminal.external.models.Cart
+import com.stripe.stripeterminal.external.models.CollectConfiguration
+import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
+import com.stripe.stripeterminal.external.models.DiscoveryMethod
+import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentIntentParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
+import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.RefundParameters
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
+import com.stripe.stripeterminal.external.models.SetupIntentParameters
+import com.stripe.stripeterminal.external.models.SimulatedCard
+import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
@@ -25,7 +47,6 @@ import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.collections.HashMap
 
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
@@ -80,7 +101,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 tokenProvider,
                 RNTerminalListener(context)
             )
-            WritableNativeMap()
+            NativeTypeFactory.writableNativeMap()
         } else {
             nativeMapOf {
                 terminal.connectedReader?.let {
@@ -114,7 +135,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun simulateReaderUpdate(update: String, promise: Promise) {
         val updateMapped = mapFromSimulateReaderUpdate(update)
         terminal.simulatorConfiguration = SimulatorConfiguration(updateMapped)
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -124,7 +145,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             terminal.simulatorConfiguration.update,
             SimulatedCard(testCardNumber = cardNumber)
         )
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -147,7 +168,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
 
-        val listener = RNDiscoveryListener(context) { discoveredReadersList = it }
+        val listener = RNDiscoveryListener(
+            context,
+            promise,
+            { discoveredReadersList = it },
+            { discoverCancelable = null }
+        )
 
         throwIfBusy(discoverCancelable) {
             busyMessage("discoverReaders", "discoverReaders")
@@ -346,9 +372,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "There is no associated paymentIntent with id $paymentIntentId"
             }
 
-            val config = if (params.hasKey("skipTipping")) {
-                CollectConfiguration(skipTipping = getBoolean(params, "skipTipping"))
-            } else null
+            val configBuilder = CollectConfiguration.Builder()
+            if (params.hasKey("skipTipping")) {
+                configBuilder.skipTipping = getBoolean(params, "skipTipping")
+            }
+            val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
@@ -447,7 +475,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun installAvailableUpdate(promise: Promise) {
         terminal.installAvailableUpdate()
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -470,7 +498,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         val cartLineItems =
-            mapToCartLineItems(params.getArray("lineItems") ?: WritableNativeArray())
+            mapToCartLineItems(params.getArray("lineItems") ?: NativeTypeFactory.writableNativeArray())
 
         val cart = Cart.Builder(
             currency = currency,
@@ -541,7 +569,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun clearCachedCredentials(promise: Promise) {
         terminal.clearCachedCredentials()
         paymentIntents.clear()
-        promise.resolve(WritableNativeMap())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod

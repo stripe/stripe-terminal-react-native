@@ -25,7 +25,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.util.*
+import java.util.Date
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 

@@ -1,8 +1,40 @@
 package com.stripeterminalreactnative
 
-import com.facebook.react.bridge.*
-import com.stripe.stripeterminal.external.models.*
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
+import com.stripe.stripeterminal.external.models.Address
+import com.stripe.stripeterminal.external.models.CardDetails
+import com.stripe.stripeterminal.external.models.CardPresentDetails
+import com.stripe.stripeterminal.external.models.CartLineItem
+import com.stripe.stripeterminal.external.models.Charge
+import com.stripe.stripeterminal.external.models.ConnectionStatus
+import com.stripe.stripeterminal.external.models.DeviceType
+import com.stripe.stripeterminal.external.models.DiscoveryMethod
+import com.stripe.stripeterminal.external.models.Location
+import com.stripe.stripeterminal.external.models.LocationStatus
+import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentIntentStatus
+import com.stripe.stripeterminal.external.models.PaymentMethod
+import com.stripe.stripeterminal.external.models.PaymentMethodDetails
+import com.stripe.stripeterminal.external.models.PaymentStatus
+import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
+import com.stripe.stripeterminal.external.models.ReaderEvent
+import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
+import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReceiptDetails
+import com.stripe.stripeterminal.external.models.Refund
+import com.stripe.stripeterminal.external.models.SetupAttempt
+import com.stripe.stripeterminal.external.models.SetupAttemptStatus
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
+import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
+import com.stripe.stripeterminal.external.models.SetupIntentStatus
+import com.stripe.stripeterminal.external.models.SetupIntentUsage
+import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -27,13 +59,13 @@ internal fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
 }
 
 internal fun nativeMapOf(block: WritableMap.() -> Unit = {}): WritableMap {
-    return WritableNativeMap().apply {
+    return NativeTypeFactory.writableNativeMap().apply {
         block()
     }
 }
 
 internal fun nativeArrayOf(block: WritableArray.() -> Unit = {}): WritableArray {
-    return WritableNativeArray().apply {
+    return NativeTypeFactory.writableNativeArray().apply {
         block()
     }
 }
