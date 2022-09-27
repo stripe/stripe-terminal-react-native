@@ -558,7 +558,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 1dc1ea9d4b64f999042afafbaccf5b143f0b2fa2
   RNReanimated: 64573e25e078ae6bec03b891586d50b9ec284393
   RNScreens: 4d83613b50b74ed277026375dc0810893b0c347f
-  stripe-terminal-react-native: 989918a03b888fe5531c08af63507e3850e572d4
+  stripe-terminal-react-native: 0d5927961c4a6dd4e44969c7abff40e6aed2720f
   StripeTerminal: 6644ad8f766cf7b8ea8381e922c208b7d8894468
   Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
 
