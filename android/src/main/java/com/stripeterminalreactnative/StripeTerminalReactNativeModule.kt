@@ -168,7 +168,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
 
-        val listener = RNDiscoveryListener(context) { discoveredReadersList = it }
+        val listener = RNDiscoveryListener(
+            context,
+            promise,
+            { discoveredReadersList = it }
+        )
 
         throwIfBusy(discoverCancelable) {
             busyMessage("discoverReaders", "discoverReaders")
