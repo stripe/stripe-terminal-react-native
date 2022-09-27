@@ -16,6 +16,7 @@ internal class RNDiscoveryListener(
     private val context: ReactApplicationContext,
     promise: Promise,
     private val onDiscoveredReaders: (readers: List<Reader>) -> Unit,
+    private val onComplete: () -> Unit,
 ) : DiscoveryListener, NoOpCallback(promise) {
 
     override fun onUpdateDiscoveredReaders(readers: List<Reader>) {
@@ -30,6 +31,7 @@ internal class RNDiscoveryListener(
         context.sendEvent(ReactNativeConstants.FINISH_DISCOVERING_READERS.listenerName) {
             putMap("result", nativeMapOf())
         }
+        onComplete()
     }
 
     override fun onFailure(e: TerminalException) {
@@ -37,5 +39,6 @@ internal class RNDiscoveryListener(
         context.sendEvent(ReactNativeConstants.FINISH_DISCOVERING_READERS.listenerName) {
             putMap("result", createError(e))
         }
+        onComplete()
     }
 }

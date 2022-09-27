@@ -41,15 +41,18 @@ class RNDiscoveryListenerTest {
     fun `should send onUpdateDiscoveredReaders event`() {
         val mockPromise = mockk<Promise>()
         val mockOnDiscoveredReaders = mockk<(List<Reader>) -> Unit>(relaxed = true)
+        val mockOnComplete = mockk<() -> Unit>()
         RNDiscoveryListener(
             context,
             mockPromise,
-            mockOnDiscoveredReaders
+            mockOnDiscoveredReaders,
+            mockOnComplete
         ).onUpdateDiscoveredReaders(readers)
 
         verify(exactly = 0) { mockPromise.resolve(any()) }
         verify(exactly = 1) { mockOnDiscoveredReaders.invoke(readers) }
         verify(exactly = 1) { context.sendEvent(UPDATE_DISCOVERED_READERS.listenerName, any()) }
+        verify(exactly = 0) { mockOnComplete.invoke() }
 
         assertTrue(typeReplacer.sendEventSlot.captured.hasValue("readers"))
     }
@@ -58,10 +61,12 @@ class RNDiscoveryListenerTest {
     fun `should send onSuccess event`() = mockkObject(NativeTypeFactory) {
         every { NativeTypeFactory.writableNativeMap() } returns mockk()
         val mockPromise = mockk<Promise>(relaxed = true)
+        val mockOnComplete = mockk<() -> Unit>(relaxed = true)
         RNDiscoveryListener(
             context,
             mockPromise,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockOnComplete
         ).onSuccess()
 
         verify(exactly = 1) { mockPromise.resolve(any()) }
@@ -71,6 +76,7 @@ class RNDiscoveryListenerTest {
                 any()
             )
         }
+        verify(exactly = 1) { mockOnComplete.invoke() }
 
         assertTrue(typeReplacer.sendEventSlot.captured.hasEmptyResult())
     }
@@ -79,10 +85,12 @@ class RNDiscoveryListenerTest {
     fun `should send onFailure event`() = mockkObject(NativeTypeFactory) {
         every { NativeTypeFactory.writableNativeMap() } returns mockk()
         val mockPromise = mockk<Promise>(relaxed = true)
-        RNDiscoveryListener(context, mockPromise, mockk()).onFailure(EXCEPTION)
+        val mockOnComplete = mockk<() -> Unit>(relaxed = true)
+        RNDiscoveryListener(context, mockPromise, mockk(), mockOnComplete).onFailure(EXCEPTION)
 
         verify(exactly = 1) { mockPromise.resolve(any()) }
         verify(exactly = 1) { context.sendEvent(FINISH_DISCOVERING_READERS.listenerName, any()) }
+        verify(exactly = 1) { mockOnComplete.invoke() }
 
         assertTrue(typeReplacer.sendEventSlot.captured.hasError())
     }

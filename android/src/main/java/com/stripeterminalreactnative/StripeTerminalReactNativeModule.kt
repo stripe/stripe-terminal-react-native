@@ -171,7 +171,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listener = RNDiscoveryListener(
             context,
             promise,
-            { discoveredReadersList = it }
+            { discoveredReadersList = it },
+            { discoverCancelable = null }
         )
 
         throwIfBusy(discoverCancelable) {
