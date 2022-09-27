@@ -372,9 +372,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "There is no associated paymentIntent with id $paymentIntentId"
             }
 
-            val config = if (params.hasKey("skipTipping")) {
-                CollectConfiguration(skipTipping = getBoolean(params, "skipTipping"))
-            } else null
+            val configBuilder = CollectConfiguration.Builder()
+            if (params.hasKey("skipTipping")) {
+                configBuilder.skipTipping = getBoolean(params, "skipTipping")
+            }
+            val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
