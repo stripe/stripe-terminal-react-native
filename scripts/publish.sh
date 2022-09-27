@@ -3,15 +3,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-RELEASE_TYPE=${1:-}
-
 echo_help() {
   cat << EOF
 USAGE:
-    ./scripts/publish <release_type>
-ARGS:
-    <release_type>
-            A Semantic Versioning release type used to bump the version number. Either "patch", "minor", or "major".
+    ./scripts/publish.sh
 EOF
 }
 
@@ -73,19 +68,6 @@ case $1 in
     ;;
 esac
 
-# Validate passed release type
-case $RELEASE_TYPE in
-  patch | minor | major)
-    ;;
-
-  *)
-    echo "Error! Invalid release type supplied"
-    echo ""
-    echo_help
-    exit 1
-    ;;
-esac
-
 # Make sure our working dir is the repo root directory
 cd "$(git rev-parse --show-toplevel)"
 
@@ -118,8 +100,8 @@ yarn -s run unit-test:android
 echo "Linting"
 yarn -s run lint
 
-echo "Tagging and publishing $RELEASE_TYPE release"
-yarn -s --ignore-scripts publish --$RELEASE_TYPE --access=public
+echo "Tagging and publishing release"
+yarn -s --ignore-scripts publish --access=public
 
 echo "Pushing git commit and tag"
 git push --follow-tags
