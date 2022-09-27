@@ -33,9 +33,9 @@ $current_version
 <!-- Please group the following commits into one of the sections below. -->
 <!-- Remove empty sections when done. -->
 $commit_titles
-### New features
-### Fixes
-### Changed
+## New features
+## Fixes
+## Changed
 EOF
 )"
 
