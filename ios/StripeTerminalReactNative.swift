@@ -192,14 +192,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error as NSError? {
                 let _error = Errors.createError(nsError: error)
 
+                resolve(_error)
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": _error])
                 self.discoverCancelable = nil
             } else {
+                resolve([:])
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": ["error": nil]])
                 self.discoverCancelable = nil
             }
         }
-        resolve([:])
     }
 
     @objc(cancelDiscovering:rejecter:)
