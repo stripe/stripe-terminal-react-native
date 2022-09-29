@@ -52,21 +52,21 @@ Remember to create a release on GitHub with a changelog notes:
 EOF
 }
 
-# Show help if no arguments passed
-if [ $# -eq 0 ]; then
-  echo "Error! Missing release type argument"
-  echo ""
-  echo_help
-  exit 1
+if [ $# -gt 0 ]; then
+  # Show help message if -h, --help, or help passed
+  case $1 in
+    -h | --help | help)
+      echo_help
+      exit 0
+      ;;
+    *)
+      echo "Invalid argument $1"
+      echo ""
+      echo_help
+      exit 1
+      ;;
+  esac
 fi
-
-# Show help message if -h, --help, or help passed
-case $1 in
-  -h | --help | help)
-    echo_help
-    exit 0
-    ;;
-esac
 
 # Make sure our working dir is the repo root directory
 cd "$(git rev-parse --show-toplevel)"
