@@ -7,7 +7,7 @@ import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.NativeTypeFactory
 import com.stripeterminalreactnative.createError
 
-internal open class NoOpCallback(private val promise: Promise) : Callback {
+internal class NoOpCallback(private val promise: Promise) : Callback {
     override fun onSuccess() {
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
