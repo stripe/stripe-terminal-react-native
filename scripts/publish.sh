@@ -52,7 +52,7 @@ Remember to create a release on GitHub with a changelog notes:
 EOF
 }
 
-if [ $# -eq 1 ]; then
+if [ $# -gt 0 ]; then
   # Show help message if -h, --help, or help passed
   case $1 in
     -h | --help | help)
