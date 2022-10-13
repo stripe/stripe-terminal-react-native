@@ -121,6 +121,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.WISEPAD_3 -> "wisePad3"
         DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISECUBE -> "wisecube"
+        DeviceType.STRIPE_S700 -> "stripeS700"
     }
 }
 
