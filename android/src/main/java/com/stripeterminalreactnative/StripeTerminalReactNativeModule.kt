@@ -374,7 +374,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             val configBuilder = CollectConfiguration.Builder()
             if (params.hasKey("skipTipping")) {
-                configBuilder.skipTipping = getBoolean(params, "skipTipping")
+                configBuilder.skipTipping(getBoolean(params, "skipTipping"))
             }
             val config = configBuilder.build()
 
