@@ -7,7 +7,7 @@ enum CommonErrorType: String {
 class Errors {
     class func validateRequiredParameters(params: NSDictionary, requiredParams: [String]) -> String? {
         var invalid: [String] = []
-        
+
         requiredParams.forEach {
             if (params.object(forKey: $0) == nil) {
                 invalid.append($0)
@@ -16,19 +16,19 @@ class Errors {
         let joined = invalid.joined(separator: ", ")
         return joined.isEmpty ? nil : joined
     }
-    
+
     class func createError(code: ErrorCode.Code, message: String) -> NSDictionary {
         return createError(errorCode: code.stringValue, message: message)
     }
-    
+
     class func createError(code: CommonErrorType, message: String) -> NSDictionary {
         return createError(errorCode: code.rawValue, message: message)
     }
-    
+
     class func createError(nsError: NSError) -> NSDictionary {
         return createError(code: ErrorCode.Code.init(rawValue: nsError.code) ?? ErrorCode.unexpectedSdkError, message: nsError.localizedDescription)
     }
-    
+
     private class func createError(errorCode: String, message: String) -> NSDictionary {
         let error: NSDictionary = [
             "code": errorCode,
@@ -171,6 +171,12 @@ extension ErrorCode.Code {
             return "ConnectionTokenProviderCompletedWithError"
         case .sessionExpired:
             return "SessionExpired"
+        case .invalidRequiredParameter:
+            return "InvalidRequiredParameter"
+        case .readerConnectionConfigurationInvalid:
+            return "ReaderConnectionConfigurationInvalid"
+        case .bluetoothReconnectStarted:
+            return "BluetoothReconnectStarted"
         @unknown default:
             return "Unknown"
         }

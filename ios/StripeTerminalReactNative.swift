@@ -181,7 +181,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod),
             simulated: simulated ?? false
         )
-        
+
         guard discoverCancelable == nil else {
             let message = busyMessage(command: "discoverReaders", by: "discoverReaders")
             resolve(Errors.createError(code: ErrorCode.busy, message: message))
@@ -374,10 +374,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let skipTipping = params["skipTipping"] as? Bool ?? false
-
+        let collectConfig = CollectConfiguration(skipTipping: skipTipping)
+        if let eligibleAmount = params["tipEligibleAmount"] as? Int {
+            let tippingConfig = TippingConfiguration(eligibleAmount: eligibleAmount)
+            collectConfig.tippingConfiguration = tippingConfig
+        }
         self.collectPaymentMethodCancelable = Terminal.shared.collectPaymentMethod(
             paymentIntent,
-            collectConfig: CollectConfiguration(skipTipping: skipTipping)
+            collectConfig: collectConfig
         ) { pi, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
