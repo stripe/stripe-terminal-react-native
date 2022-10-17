@@ -320,7 +320,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             intentParams.setReceiptEmail(it)
         }
         customer?.let {
-            intentParams.setCurrency(it)
+            intentParams.setCustomer(it)
         }
         transferGroup?.let {
             intentParams.setTransferGroup(it)
