@@ -532,7 +532,7 @@ export default function CollectCardPaymentScreen() {
 
       <List bolded={false} topSpacing={false} title="TIP-ELIGIBLE AMOUNT">
         <TextInput
-          testID="amount-text-field"
+          testID="tip-eligible-amount"
           keyboardType="numeric"
           style={styles.input}
           value={tipEligibleAmount}
