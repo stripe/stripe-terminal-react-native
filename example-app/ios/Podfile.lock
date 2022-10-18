@@ -349,7 +349,7 @@ PODS:
   - RNScreens (3.11.1):
     - React-Core
     - React-RCTImage
-  - stripe-terminal-react-native (0.0.1-beta.10):
+  - stripe-terminal-react-native (0.0.1-beta.11):
     - React-Core
     - StripeTerminal (= 2.11.0)
   - StripeTerminal (2.11.0)
