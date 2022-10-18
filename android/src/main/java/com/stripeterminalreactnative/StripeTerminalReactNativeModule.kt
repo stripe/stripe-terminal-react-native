@@ -32,6 +32,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentCancellationParamete
 import com.stripe.stripeterminal.external.models.SetupIntentParameters
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
@@ -375,6 +376,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val configBuilder = CollectConfiguration.Builder()
             if (params.hasKey("skipTipping")) {
                 configBuilder.skipTipping(getBoolean(params, "skipTipping"))
+            }
+            if (params.hasKey("tipEligibleAmount")) {
+                val tipEligibleAmount = getInt(params, "tipEligibleAmount")?.toLong()
+                configBuilder.setTippingConfiguration(
+                    TippingConfiguration.Builder()
+                        .setEligibleAmount(tipEligibleAmount)
+                        .build()
+                )
             }
             val config = configBuilder.build()
 

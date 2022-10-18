@@ -45,7 +45,8 @@ export default function CollectCardPaymentScreen() {
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
-  const [skipTipping, setSkipTipping] = useState(true);
+  const [skipTipping, setSkipTipping] = useState(false);
+  const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
@@ -239,6 +240,9 @@ export default function CollectCardPaymentScreen() {
     const { paymentIntent, error } = await collectPaymentMethod({
       paymentIntentId: paymentIntentId,
       skipTipping: skipTipping,
+      tipEligibleAmount: tipEligibleAmount
+        ? Number(tipEligibleAmount)
+        : undefined,
     });
 
     if (error) {
@@ -523,6 +527,17 @@ export default function CollectCardPaymentScreen() {
               onValueChange={(value) => setSkipTipping(value)}
             />
           }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="TIP-ELIGIBLE AMOUNT">
+        <TextInput
+          testID="tip-eligible-amount"
+          keyboardType="numeric"
+          style={styles.input}
+          value={tipEligibleAmount}
+          onChangeText={(value: string) => setTipEligibleAmount(value)}
+          placeholder="Tip-eligible amount"
         />
       </List>
 
