@@ -17,20 +17,20 @@ class Errors {
         return joined.isEmpty ? nil : joined
     }
 
-    class func createError(code: ErrorCode.Code, message: String) -> NSDictionary {
+    class func createError(code: ErrorCode.Code, message: String) -> [String: Any] {
         return createError(errorCode: code.stringValue, message: message)
     }
 
-    class func createError(code: CommonErrorType, message: String) -> NSDictionary {
+    class func createError(code: CommonErrorType, message: String) -> [String: Any] {
         return createError(errorCode: code.rawValue, message: message)
     }
 
-    class func createError(nsError: NSError) -> NSDictionary {
+    class func createError(nsError: NSError) -> [String: Any?] {
         return createError(code: ErrorCode.Code.init(rawValue: nsError.code) ?? ErrorCode.unexpectedSdkError, message: nsError.localizedDescription)
     }
 
-    private class func createError(errorCode: String, message: String) -> NSDictionary {
-        let error: NSDictionary = [
+    private class func createError(errorCode: String, message: String) -> [String: Any] {
+        let error = [
             "code": errorCode,
             "message": message
         ]
