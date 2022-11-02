@@ -713,7 +713,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
         var result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
         if let nsError = error as NSError? {
-            result["error"] = Errors.createError(nsError: nsError)
+           let errorAsDictionary = Errors.createError(nsError: nsError)
+            // createError will return a dictionary of ["error": {the error}]
+            // so merge that with the result so we have a single result.error
+            result = result.merging(errorAsDictionary, uniquingKeysWith: { _, error in
+                error
+            })
         }
         sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result])
     }
