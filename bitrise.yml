@@ -1,0 +1,268 @@
+---
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: react-native
+pipelines:
+  main-trigger-pipeline:
+    stages:
+    - stage-trigger-run-main: {}
+  pr-trigger-pipeline:
+    stages:
+    - stage-trigger-run-pr: {}
+stages:
+  stage-trigger-run-pr:
+    workflows:
+    - lint: {}
+    - typescript: {}
+    - unit-js: {}
+    - unit-android: {}
+    - example-build-ios: {}
+    - example-build-android: {}
+    - e2e-android: {}
+    - e2e-ios: {}
+  stage-trigger-run-main:
+    workflows:
+    - lint: {}
+    - typescript: {}
+    - unit-js: {}
+    - unit-android: {}
+    - example-build-ios: {}
+    - example-build-android: {}
+    - e2e-android: {}
+    - e2e-ios: {}
+    - deploy-firebase-android: {}
+workflows:
+  complete_all:
+    steps:
+    - save-npm-cache@1: {}
+    - save-cocoapods-cache@1: {}
+    - deploy-to-bitrise-io@2: {}
+  deploy-firebase-android:
+    steps:
+    - fastlane@3:
+        inputs:
+        - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
+        title: fastlane increment version
+    - yarn@0:
+        inputs:
+        - command: dev-app:build:android:release
+        - cache_local_deps: 'yes'
+        title: Build app for Firebase deploy
+    - fastlane@3:
+        inputs:
+        - lane: publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
+        title: fastlane distribute app
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+  e2e-android:
+    steps:
+    - avd-manager@1:
+        inputs:
+        - emulator_id: TestingAVD
+        - tag: default
+        - abi: x86_64
+        - api_level: '30'
+    - yarn@0:
+        inputs:
+        - command: install --frozen-lockfile
+        - cache_local_deps: 'yes'
+        title: yarn install --frozen-lockfile
+    - yarn@0:
+        inputs:
+        - command: e2e:build:android:release
+        - cache_local_deps: 'yes'
+        title: build for detox
+    - yarn@0:
+        inputs:
+        - command: e2e:test:android:release
+        - cache_local_deps: 'yes'
+        title: test detox
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+  e2e-ios:
+    steps:
+    - bundler@0: {}
+    - script@1:
+        inputs:
+        - content: |-
+            set -e
+            # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
+            cd dev-app/ios && rbenv install 2.7.4 && bundle install && \
+            gem install cocoapods && pod install && cd - && \
+            echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
+            git diff --exit-code
+        title: Set up cocoapods
+    - yarn@0:
+        inputs:
+        - command: e2e:build:ios:release
+        - cache_local_deps: 'yes'
+        title: build for detox
+    - yarn@0:
+        inputs:
+        - command: e2e:test:ios:release
+        - cache_local_deps: 'yes'
+        title: test detox
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+  example-build-android:
+    steps:
+    - avd-manager@1:
+        inputs:
+        - emulator_id: TestingAVD
+        - tag: default
+        - abi: x86_64
+        - api_level: '30'
+    - yarn@0:
+        inputs:
+        - command: build:android:ci
+        - cache_local_deps: 'yes'
+        - workdir: example-app
+        title: yarn build:android
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+    meta:
+      bitrise.io:
+        stack: osx-xcode-13.3.x
+        machine_type_id: g2.12core
+  example-build-ios:
+    steps:
+    - cocoapods-install@2:
+        inputs:
+        - source_root_path: "$BITRISE_SOURCE_DIR/example-app/ios"
+    - yarn@0:
+        inputs:
+        - command: e2e:build:example:ios
+        - cache_local_deps: 'yes'
+        title: yarn e2e:build:example:ios
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+  lint:
+    steps:
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: lint
+        title: yarn lint
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
+  prep_all:
+    steps:
+    - activate-ssh-key@4: {}
+    - git-clone@6: {}
+    - restore-npm-cache@1: {}
+    - restore-cocoapods-cache@1: {}
+    - script@1:
+        inputs:
+        - content: |-
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
+            source $BASH_ENV
+            brew update >/dev/null
+            brew bundle install >/dev/null
+            touch .watchmanconfig
+            npm install --global expo-cli
+        title: Misc prep steps
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - workdir: example-app
+        - command: install
+        title: yarn install example-app
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - workdir: dev-app
+        - command: install
+        title: yarn install dev-app
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: install
+        title: yarn install
+    - script@1:
+        inputs:
+        - content: |-
+            echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
+            git diff --exit-code
+        title: Check for diffs in yarn lockfile
+  typescript:
+    steps:
+    - yarn@0:
+        inputs:
+        - cache_local_deps: 'yes'
+        - command: typescript
+        title: yarn typescript
+    - yarn@0:
+        inputs:
+        - workdir: example-app
+        - cache_local_deps: 'yes'
+        - command: typescript
+        title: yarn typescript example-app
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+  unit-android:
+    steps:
+    - yarn@0:
+        inputs:
+        - command: unit-test:android
+        - cache_local_deps: 'yes'
+        title: yarn unit-test:android
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+  unit-js:
+    steps:
+    - yarn@0:
+        inputs:
+        - command: unit-test:js --coverage
+        - cache_local_deps: 'yes'
+        title: yarn unit-test:js --coverage
+    before_run:
+    - prep_all
+    after_run:
+    - complete_all
+meta:
+  bitrise.io:
+    stack: osx-xcode-13.3.x
+    machine_type_id: g2-m1.8core
+app:
+  envs:
+  - opts:
+      is_expand: false
+    PLATFORM: all
+  - opts:
+      is_expand: false
+    API_CA_URL_ANDROID: http://10.0.2.2:3003
+  - opts:
+      is_expand: false
+    API_URL: http://127.0.0.1:3002
+  - opts:
+      is_expand: false
+    API_URL_ANDROID: http://10.0.2.2:3002
+trigger_map:
+- push_branch: "*"
+  pipeline: main-trigger-pipeline
+- pull_request_source_branch: "*"
+  pipeline: pr-trigger-pipeline
