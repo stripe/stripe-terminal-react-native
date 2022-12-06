@@ -116,6 +116,12 @@ workflows:
     - complete_all
   example-build-android:
     steps:
+    - avd-manager@1:
+        inputs:
+        - emulator_id: TestingAVD
+        - tag: default
+        - abi: x86_64
+        - api_level: '30'
     - yarn@0:
         inputs:
         - command: build:android:ci
@@ -126,6 +132,10 @@ workflows:
     - prep_all
     after_run:
     - complete_all
+    meta:
+      bitrise.io:
+        stack: osx-xcode-13.3.x
+        machine_type_id: g2.12core
   example-build-ios:
     steps:
     - cocoapods-install@2:
@@ -169,6 +179,7 @@ workflows:
             brew update >/dev/null
             brew bundle install >/dev/null
             touch .watchmanconfig
+            npm install --global expo-cli
         title: Misc prep steps
     - yarn@0:
         inputs:
