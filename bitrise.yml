@@ -1,6 +1,6 @@
 ---
 format_version: '11'
-default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: react-native
 pipelines:
   main-trigger-pipeline:
@@ -41,20 +41,16 @@ workflows:
     steps:
     - fastlane@3:
         inputs:
-        - lane: >-
-            increment_version app_id:$FIREBASE_APP_ID_ANDROID
-            version_suffix:$VERSION_SUFFIX
+        - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
         title: fastlane increment version
     - yarn@0:
         inputs:
-        - command: 'dev-app:build:android:release'
+        - command: dev-app:build:android:release
         - cache_local_deps: 'yes'
         title: Build app for Firebase deploy
     - fastlane@3:
         inputs:
-        - lane: >-
-            publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID
-            firebase_token:$FIREBASE_TOKEN
+        - lane: publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
         title: fastlane distribute app
     before_run:
     - prep_all
@@ -75,12 +71,12 @@ workflows:
         title: yarn install --frozen-lockfile
     - yarn@0:
         inputs:
-        - command: 'e2e:build:android:release'
+        - command: e2e:build:android:release
         - cache_local_deps: 'yes'
         title: build for detox
     - yarn@0:
         inputs:
-        - command: 'e2e:test:android:release'
+        - command: e2e:test:android:release
         - cache_local_deps: 'yes'
         title: test detox
     before_run:
@@ -94,25 +90,24 @@ workflows:
   e2e-ios:
     steps:
     - bundler@0: {}
-    - cocoapods-install@2:
-        inputs:
-        - source_root_path: $BITRISE_SOURCE_DIR/dev-app/ios
     - script@1:
         inputs:
-        - content: >-
-            echo "Checking for diffs in pod lockfile, if this fails please
-            ensure all dependencies are up to date"
-
+        - content: |-
+            set -e
+            # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
+            cd dev-app/ios && rbenv install 2.7.4 && bundle install && \
+            gem install cocoapods && pod install && cd - && \
+            echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
             git diff --exit-code
-        title: Check pod lockfile diffs
+        title: Set up cocoapods
     - yarn@0:
         inputs:
-        - command: 'e2e:build:ios:release'
+        - command: e2e:build:ios:release
         - cache_local_deps: 'yes'
         title: build for detox
     - yarn@0:
         inputs:
-        - command: 'e2e:test:ios:release'
+        - command: e2e:test:ios:release
         - cache_local_deps: 'yes'
         title: test detox
     before_run:
@@ -123,10 +118,10 @@ workflows:
     steps:
     - yarn@0:
         inputs:
-        - command: 'build:android:ci'
+        - command: build:android:ci
         - cache_local_deps: 'yes'
         - workdir: example-app
-        title: 'yarn build:android'
+        title: yarn build:android
     before_run:
     - prep_all
     after_run:
@@ -135,12 +130,12 @@ workflows:
     steps:
     - cocoapods-install@2:
         inputs:
-        - source_root_path: $BITRISE_SOURCE_DIR/example-app/ios
+        - source_root_path: "$BITRISE_SOURCE_DIR/example-app/ios"
     - yarn@0:
         inputs:
-        - command: 'e2e:build:example:ios'
+        - command: e2e:build:example:ios
         - cache_local_deps: 'yes'
-        title: 'yarn e2e:build:example:ios'
+        title: yarn e2e:build:example:ios
     before_run:
     - prep_all
     after_run:
@@ -156,6 +151,10 @@ workflows:
     - prep_all
     after_run:
     - complete_all
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
   prep_all:
     steps:
     - activate-ssh-key@4: {}
@@ -164,17 +163,11 @@ workflows:
     - restore-cocoapods-cache@1: {}
     - script@1:
         inputs:
-        - content: >-
-            echo 'export
-            PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"'
-            >> $BASH_ENV
-
+        - content: |-
+            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
             source $BASH_ENV
-
             brew update >/dev/null
-
             brew bundle install >/dev/null
-
             touch .watchmanconfig
         title: Misc prep steps
     - yarn@0:
@@ -196,10 +189,8 @@ workflows:
         title: yarn install
     - script@1:
         inputs:
-        - content: >-
-            echo "Checking for diffs in yarn lockfile, if this fails please
-            ensure all dependencies are up to date"
-
+        - content: |-
+            echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
             git diff --exit-code
         title: Check for diffs in yarn lockfile
   typescript:
@@ -223,9 +214,9 @@ workflows:
     steps:
     - yarn@0:
         inputs:
-        - command: 'unit-test:android'
+        - command: unit-test:android
         - cache_local_deps: 'yes'
-        title: 'yarn unit-test:android'
+        title: yarn unit-test:android
     before_run:
     - prep_all
     after_run:
@@ -234,9 +225,9 @@ workflows:
     steps:
     - yarn@0:
         inputs:
-        - command: 'unit-test:js --coverage'
+        - command: unit-test:js --coverage
         - cache_local_deps: 'yes'
-        title: 'yarn unit-test:js --coverage'
+        title: yarn unit-test:js --coverage
     before_run:
     - prep_all
     after_run:
@@ -252,15 +243,15 @@ app:
     PLATFORM: all
   - opts:
       is_expand: false
-    API_CA_URL_ANDROID: 'http://10.0.2.2:3003'
+    API_CA_URL_ANDROID: http://10.0.2.2:3003
   - opts:
       is_expand: false
-    API_URL: 'http://127.0.0.1:3002'
+    API_URL: http://127.0.0.1:3002
   - opts:
       is_expand: false
-    API_URL_ANDROID: 'http://10.0.2.2:3002'
+    API_URL_ANDROID: http://10.0.2.2:3002
 trigger_map:
-- push_branch: '*'
+- push_branch: "*"
   pipeline: main-trigger-pipeline
-- pull_request_source_branch: '*'
+- pull_request_source_branch: "*"
   pipeline: pr-trigger-pipeline
