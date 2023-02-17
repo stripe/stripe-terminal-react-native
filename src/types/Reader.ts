@@ -87,6 +87,9 @@ export namespace Reader {
     | 'wiseCube'
     | 'wisePad3'
     | 'wisePosE'
+    | 'wisePad3s'
+    | 'wisePadEDevkit'
+    | 'stripeS700Devkit'
     | 'cotsDevice';
 
   export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
