@@ -24,7 +24,7 @@
     "@react-native-picker/picker": "2.4.0",
     "@react-navigation/native": "^5.x",
     "@react-navigation/stack": "^5.x",
-    "@stripe/stripe-terminal-react-native": "^0.0.1-beta.11",
+    "@stripe/stripe-terminal-react-native": "https://github.com/therusskiy/react-native-star-prnt.git#23b98073275bb6ae41112baf7d67f11c581c4055",
     "@types/jest": "^27.0.2",
     "expo": "^45.0.3",
     "expo-splash-screen": "~0.15.1",

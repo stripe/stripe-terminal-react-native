@@ -18,7 +18,6 @@ Object {
     "collectSetupIntentPaymentMethod": [Function],
     "confirmSetupIntent": [Function],
     "connectBluetoothReader": [Function],
-    "connectEmbeddedReader": [Function],
     "connectHandoffReader": [Function],
     "connectInternetReader": [Function],
     "connectLocalMobileReader": [Function],

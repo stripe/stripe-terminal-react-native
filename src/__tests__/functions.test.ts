@@ -134,9 +134,6 @@ describe('functions.test.ts', () => {
           .mockImplementation(() => ({})),
         cancelCollectSetupIntent: jest.fn().mockImplementation(() => ({})),
         cancelReadReusableCard: jest.fn().mockImplementation(() => ({})),
-        connectEmbeddedReader: jest
-          .fn()
-          .mockImplementation(() => ({ reader: mockReader })),
         setSimulatedCard: jest.fn(),
       }));
     });
@@ -379,16 +376,6 @@ describe('functions.test.ts', () => {
       await expect(functions.cancelReadReusableCard()).resolves.toEqual({});
     });
 
-    it('connectEmbeddedReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectEmbeddedReader({} as any)).resolves.toEqual(
-        {
-          error: undefined,
-          reader: mockReader,
-        }
-      );
-    });
-
     it('connectLocalMobileReader returns a proper value', async () => {
       const functions = require('../functions');
       await expect(
@@ -487,9 +474,6 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         cancelReadReusableCard: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-        connectEmbeddedReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
 
@@ -681,16 +665,6 @@ describe('functions.test.ts', () => {
         error: '_error',
         paymentMethod: undefined,
       });
-    });
-
-    it('connectEmbeddedReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectEmbeddedReader({} as any)).resolves.toEqual(
-        {
-          error: '_error',
-          reader: undefined,
-        }
-      );
     });
 
     it('connectLocalMobileReader returns a proper value', async () => {

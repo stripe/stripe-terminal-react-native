@@ -161,12 +161,6 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .mockImplementation(cancelReadReusableCard);
 
   //
-  const connectEmbeddedReader = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'connectEmbeddedReader')
-    .mockImplementation(connectEmbeddedReader);
-
-  //
   const connectHandoffReader = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'connectHandoffReader')
@@ -214,7 +208,6 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent,
     cancelReadReusableCard,
-    connectEmbeddedReader,
     connectHandoffReader,
     connectLocalMobileReader,
     setSimulatedCard,
@@ -333,7 +326,6 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.collectSetupIntentPaymentMethod({} as any);
         result.current.confirmSetupIntent('');
         result.current.connectBluetoothReader({} as any);
-        result.current.connectEmbeddedReader({} as any);
         result.current.connectHandoffReader({} as any);
         result.current.connectInternetReader({} as any);
         result.current.connectLocalMobileReader({} as any);
@@ -384,7 +376,6 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.collectSetupIntentPaymentMethod({} as any);
         result.current.confirmSetupIntent('');
         result.current.connectBluetoothReader({} as any);
-        result.current.connectEmbeddedReader({} as any);
         result.current.connectHandoffReader({} as any);
         result.current.connectInternetReader({} as any);
         result.current.connectLocalMobileReader({} as any);
@@ -463,9 +454,6 @@ describe('useStripeTerminal.test.tsx', () => {
       ).resolves.toEqual('_value');
       await expect(
         result.current.confirmSetupIntent({} as any)
-      ).resolves.toEqual('_value');
-      await expect(
-        result.current.connectEmbeddedReader({} as any)
       ).resolves.toEqual('_value');
       await expect(
         result.current.connectHandoffReader({} as any)

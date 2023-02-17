@@ -52,11 +52,6 @@ export type ConnectHandoffParams = {
   locationId?: string;
 };
 
-export type ConnectEmbeddedParams = {
-  reader: Reader.Type;
-  locationId?: string;
-};
-
 export type LineItem = {
   displayName: string;
   quantity: number;

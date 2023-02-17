@@ -50,7 +50,6 @@ export namespace Reader {
     export type DiscoveryMethod =
       | 'bluetoothScan'
       | 'internet'
-      | 'embedded'
       | 'localMobile'
       | 'handoff'
       | 'usb';
