@@ -402,7 +402,7 @@ describe('useStripeTerminal.test.tsx', () => {
       expect(console.error).toBeCalledWith(
         'First initialize the Stripe Terminal SDK before performing any action'
       );
-      expect(console.error).toBeCalledTimes(34);
+      expect(console.error).toBeCalledTimes(33);
     });
 
     it('public methods are returns with mocked value', async () => {

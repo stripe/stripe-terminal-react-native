@@ -121,7 +121,6 @@ suspend fun Terminal.connectReader(
             connectHandoffReader(reader, HandoffConnectionConfiguration(locationId), listener)
         else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
     }
-    EMBEDDED -> connectEmbeddedReader(reader, EmbeddedConnectionConfiguration(Unit))
     USB -> {
         if (listener is UsbReaderListener)
             connectUsbReader(reader, UsbConnectionConfiguration(locationId), listener)
