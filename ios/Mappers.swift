@@ -69,8 +69,7 @@ class Mappers {
         case DeviceType.wiseCube: return "wiseCube"
         case DeviceType.wisePad3: return "wisePad3"
         case DeviceType.wisePosE: return "wisePosE"
-        case DeviceType.wisePad3s: return "wisePad3s"
-        case DeviceType.wisePosEDevKit: return "wisePadEDevkit"
+        case DeviceType.wisePosEDevKit: return "wisePosEDevkit"
         case DeviceType.stripeS700DevKit: return "stripeS700Devkit"
         default: return "unknown"
         }
