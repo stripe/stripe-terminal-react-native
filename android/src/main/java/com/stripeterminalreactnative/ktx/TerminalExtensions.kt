@@ -42,16 +42,6 @@ suspend fun Terminal.connectBluetoothReader(
 }
 
 /**
- * @see [Terminal.connectEmbeddedReader]
- */
-suspend fun Terminal.connectEmbeddedReader(
-    reader: Reader,
-    config: EmbeddedConnectionConfiguration
-): Reader {
-    return readerCallbackCoroutine { connectEmbeddedReader(reader, config, it) }
-}
-
-/**
  * @see [Terminal.connectHandoffReader]
  */
 suspend fun Terminal.connectHandoffReader(
@@ -131,10 +121,12 @@ suspend fun Terminal.connectReader(
             connectHandoffReader(reader, HandoffConnectionConfiguration(locationId), listener)
         else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
     }
-    EMBEDDED -> connectEmbeddedReader(reader, EmbeddedConnectionConfiguration(Unit))
     USB -> {
         if (listener is UsbReaderListener)
             connectUsbReader(reader, UsbConnectionConfiguration(locationId), listener)
         else connectUsbReader(reader, UsbConnectionConfiguration(locationId))
+    }
+    else -> {
+        throw IllegalArgumentException("Unsupported discovery method: ${discoveryMethod}")
     }
 }

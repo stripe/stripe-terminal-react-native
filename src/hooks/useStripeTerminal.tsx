@@ -12,7 +12,7 @@ import type {
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
   ReadReusableCardParamsType,
-  ConnectEmbeddedParams,
+  ConnectHandoffParams,
   ConnectLocalMobileParams,
   CollectPaymentMethodParams,
   StripeError,
@@ -50,7 +50,6 @@ import {
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
   cancelReadReusableCard,
-  connectEmbeddedReader,
   connectHandoffReader,
   connectLocalMobileReader,
   setSimulatedCard,
@@ -355,26 +354,6 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setConnectedReader, setLoading]
   );
 
-  const _connectEmbeddedReader = useCallback(
-    async (params: ConnectEmbeddedParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await connectEmbeddedReader(params);
-
-      if (response.reader) {
-        setConnectedReader(response.reader);
-      }
-      setLoading(false);
-
-      return response;
-    },
-    [_isInitialized, setConnectedReader, setLoading]
-  );
-
   const _connectLocalMobileReader = useCallback(
     async (params: ConnectLocalMobileParams) => {
       if (!_isInitialized()) {
@@ -396,7 +375,7 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _connectHandoffReader = useCallback(
-    async (params: ConnectEmbeddedParams) => {
+    async (params: ConnectHandoffParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -855,7 +834,6 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
     cancelReadReusableCard: _cancelReadReusableCard,
-    connectEmbeddedReader: _connectEmbeddedReader,
     connectHandoffReader: _connectHandoffReader,
     connectLocalMobileReader: _connectLocalMobileReader,
     setSimulatedCard: _setSimulatedCard,

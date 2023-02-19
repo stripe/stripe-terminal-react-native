@@ -52,7 +52,6 @@ export default function DiscoveryMethodScreen() {
 
       {Platform.OS === 'android' ? (
         <>
-          <ListItem onPress={() => onSelect('embedded')} title="Embedded" />
           <ListItem onPress={() => onSelect('handoff')} title="Handoff" />
           <ListItem
             onPress={() => onSelect('localMobile')}

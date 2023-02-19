@@ -312,7 +312,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let receiptEmail = params["receiptEmail"] as? String
         let customer = params["customer"] as? String
         let transferGroup = params["transferGroup"] as? String
-        let metadata = params["metadata"] as? [AnyHashable : Any]
+        let metadata = params["metadata"] as? [String : String]
         let paymentMethodOptions = params["paymentMethodOptions"] as? [AnyHashable : Any] ?? [:]
         let extendedAuth = paymentMethodOptions["requestExtendedAuthorization"] as? Bool ?? false
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false

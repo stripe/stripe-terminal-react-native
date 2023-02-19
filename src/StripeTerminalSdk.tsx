@@ -26,7 +26,6 @@ import type {
   PaymentMethodResultType,
   SetConnectionTokenParams,
   ConnectHandoffParams,
-  ConnectEmbeddedParams,
   ConnectLocalMobileParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
@@ -62,9 +61,6 @@ type StripeTerminalSdkType = {
   ): Promise<ConnectReaderResultType>;
   connectHandoffReader(
     params: ConnectHandoffParams
-  ): Promise<ConnectReaderResultType>;
-  connectEmbeddedReader(
-    params: ConnectEmbeddedParams
   ): Promise<ConnectReaderResultType>;
   connectLocalMobileReader(
     params: ConnectLocalMobileParams

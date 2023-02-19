@@ -238,12 +238,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun connectEmbeddedReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.EMBEDDED)
-    }
-
-    @ReactMethod
-    @Suppress("unused")
     fun connectHandoffReader(params: ReadableMap, promise: Promise) {
         val listener = RNHandoffReaderListener(context)
         connectReader(params, promise, DiscoveryMethod.HANDOFF, listener)
