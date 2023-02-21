@@ -38,7 +38,7 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 
 ### iOS
 
-- Compatible with apps targeting iOS 10 or above.
+- Compatible with apps targeting iOS 11 or above.
 
 ## Try the example app
 

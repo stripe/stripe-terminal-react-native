@@ -134,7 +134,7 @@ workflows:
     - complete_all
     meta:
       bitrise.io:
-        stack: osx-xcode-13.3.x
+        stack: osx-xcode-14.0.x-ventura
         machine_type_id: g2.12core
   example-build-ios:
     steps:
@@ -245,7 +245,7 @@ workflows:
     - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-13.3.x
+    stack: osx-xcode-14.0.x-ventura
     machine_type_id: g2-m1.8core
 app:
   envs:
