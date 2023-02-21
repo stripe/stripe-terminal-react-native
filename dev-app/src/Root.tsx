@@ -18,7 +18,7 @@ export default function Root() {
   >(null);
 
   useEffect(() => {
-    // var is a string in CircleCI
+    // var is a string in CI
     if (process.env.IS_CI === 'true') {
       clearMerchantStorage();
     }

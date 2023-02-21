@@ -1,5 +1,4 @@
 *.log
-.circleci
 .detoxrc.json
 .env
 .github
