@@ -96,7 +96,7 @@ workflows:
             set -e
             # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
             cd dev-app/ios && rbenv install 2.7.4 && bundle install && \
-            gem install cocoapods && pod install && cd - && \
+            gem install cocoapods -v 1.11.3 && pod install && cd - && \
             echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
             git diff --exit-code
         title: Set up cocoapods
