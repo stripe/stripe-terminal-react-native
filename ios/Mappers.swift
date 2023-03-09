@@ -209,6 +209,15 @@ class Mappers {
         }
     }
 
+    class func mapFromChargeStatus(_ status: ChargeStatus) -> String {
+        switch status {
+        case ChargeStatus.failed: return "failed"
+        case ChargeStatus.pending: return "pending"
+        case ChargeStatus.succeeded: return "succeeded"
+        default: return "unknown"
+        }
+    }
+
     class func mapFromReaderDisplayMessage(_ displayMessage: ReaderDisplayMessage) -> String {
         switch displayMessage {
         case ReaderDisplayMessage.insertCard: return "insertCard"
@@ -321,7 +330,7 @@ class Mappers {
             "amount": charge.amount,
             "description": charge.stripeDescription ?? NSNull(),
             "currency": charge.currency,
-            "status": charge.status,
+            "status": mapFromChargeStatus(charge.status),
             "id": charge.stripeId,
         ]
         return result
