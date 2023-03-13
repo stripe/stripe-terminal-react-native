@@ -371,6 +371,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let cardPresentParams = CardPresentParameters(requestExtendedAuthorization: extendedAuth, requestIncrementalAuthorizationSupport: incrementalAuth)
         paymentIntentParams.paymentMethodOptionsParameters = PaymentMethodOptionsParameters(cardPresentParameters: cardPresentParams)
 
+
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
