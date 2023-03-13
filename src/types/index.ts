@@ -45,6 +45,7 @@ export type ConnectUsbReaderParams = {
 export type ConnectLocalMobileParams = {
   reader: Reader.Type;
   locationId?: string;
+  onBehalfOf?: string;
 };
 
 export type ConnectHandoffParams = {

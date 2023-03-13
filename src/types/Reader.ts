@@ -29,7 +29,8 @@ export namespace Reader {
     export type DiscoveryMethod =
       | 'bluetoothProximity'
       | 'bluetoothScan'
-      | 'internet';
+      | 'internet'
+      | 'localMobile';
   }
 
   export namespace Android {

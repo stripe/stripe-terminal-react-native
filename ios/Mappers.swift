@@ -106,6 +106,7 @@ class Mappers {
             case "bluetoothProximity": return DiscoveryMethod.bluetoothProximity
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
             case "internet": return DiscoveryMethod.internet
+            case "localMobile": return DiscoveryMethod.localMobile
             default: return DiscoveryMethod.internet
             }
         }

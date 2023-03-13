@@ -33,6 +33,12 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  connectLocalMobileReader:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   disconnectReader:(RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
