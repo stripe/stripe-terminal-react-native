@@ -43,10 +43,11 @@ export default function CollectCardPaymentScreen() {
     applicationFeeAmount?: string;
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
-    captureMethod?: 'automatic' | 'manual';
+    captureMethod: 'automatic' | 'manual';
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
+    captureMethod: 'manual',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
