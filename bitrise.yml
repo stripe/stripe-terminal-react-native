@@ -41,6 +41,7 @@ workflows:
     steps:
     - fastlane@3:
         inputs:
+        - connection: "off"
         - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
         title: fastlane increment version
     - yarn@0:
@@ -50,6 +51,7 @@ workflows:
         title: Build app for Firebase deploy
     - fastlane@3:
         inputs:
+        - connection: "off"
         - lane: publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
         title: fastlane distribute app
     before_run:
