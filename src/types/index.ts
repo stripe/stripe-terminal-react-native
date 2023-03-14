@@ -161,7 +161,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   transferGroup?: string;
   metadata?: Record<string, string>;
   paymentMethodOptions?: PaymentMethodOptions;
-  captureMethod?: string;
+  captureMethod?: 'automatic' | 'manual';
 };
 
 export type CreatePaymentIntentIOSParams = {
