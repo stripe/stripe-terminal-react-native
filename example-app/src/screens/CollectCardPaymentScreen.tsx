@@ -112,6 +112,7 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         payment_method_types: paymentMethods,
+        capture_method: inputValues?.captureMethod,
       });
 
       if ('error' in resp) {

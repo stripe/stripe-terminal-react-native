@@ -100,6 +100,7 @@ export class Api {
     currency = 'usd',
     description = 'Example PaymentIntent',
     payment_method_types,
+    capture_method,
   }: Stripe.PaymentIntentCreateParams): Promise<
     Partial<Stripe.PaymentIntent> | { error: Stripe.StripeError }
   > {
@@ -107,6 +108,7 @@ export class Api {
     formData.append('amount', amount.toString());
     formData.append('currency', currency);
     formData.append('description', description);
+    formData.append('capture_method', capture_method || 'manual');
 
     if (typeof payment_method_types === 'string') {
       formData.append('payment_method_types[]', payment_method_types);
