@@ -205,6 +205,8 @@ function mapFromDiscoveryMethod(method: Reader.DiscoveryMethod) {
       return 'Bluetooth Proximity';
     case 'internet':
       return 'Internet';
+    case 'embedded':
+      return 'Embedded';
     case 'handoff':
       return 'Handoff';
     case 'localMobile':
