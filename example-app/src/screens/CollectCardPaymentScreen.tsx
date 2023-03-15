@@ -42,7 +42,7 @@ export default function CollectCardPaymentScreen() {
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
-  const [skipTipping, setSkipTipping] = useState(true);
+  const [skipTipping, setSkipTipping] = useState(false);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;

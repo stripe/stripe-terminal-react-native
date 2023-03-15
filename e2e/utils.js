@@ -38,7 +38,10 @@ export const setSelectedCurrency = async (currency = 'USD') => {
   await picker.tap();
 
   if (device.getPlatform() === 'ios') {
-    await element(by.type('UIPickerView')).setColumnToValue(0, currency);
+    await element(by.id('select-currency-picker')).setColumnToValue(
+      0,
+      currency
+    );
     await picker.tap();
   } else {
     await element(by.text(currency)).tap();
@@ -147,15 +150,20 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
   await waitFor(amountInput).toBeVisible().withTimeout(10000);
   await waitFor(cardNumberInput).toBeVisible().withTimeout(10000);
 
-  const enableInteracSwitch = element(by.id('enable-interac'));
-  await waitFor(enableInteracSwitch).toBeVisible().withTimeout(10000);
-  await enableInteracSwitch.tap();
-
   // set interac test card
   await cardNumberInput.replaceText('4506445006931933');
   await cardNumberInput.tapReturnKey();
 
   await setSelectedCurrency('CAD');
+
+  await waitFor(element(by.id('enable-interac')))
+    .toBeVisible()
+    .whileElement(by.id('collect-scroll-view'))
+    .scroll(50, 'down');
+
+  const enableInteracSwitch = element(by.id('enable-interac'));
+  await waitFor(enableInteracSwitch).toBeVisible().withTimeout(10000);
+  await enableInteracSwitch.tap();
 
   await element(by.id('collect-scroll-view')).scrollTo('bottom');
 

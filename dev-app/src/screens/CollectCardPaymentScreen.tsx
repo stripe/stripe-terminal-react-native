@@ -28,6 +28,11 @@ const CURRENCIES = [
   { value: 'sek', label: 'SEK' },
 ];
 
+const CAPTURE_METHODS = [
+  { value: 'automatic', label: 'automatic' },
+  { value: 'manual', label: 'manual' },
+];
+
 export default function CollectCardPaymentScreen() {
   const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
 
@@ -38,9 +43,11 @@ export default function CollectCardPaymentScreen() {
     applicationFeeAmount?: string;
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
+    captureMethod: 'automatic' | 'manual';
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
+    captureMethod: 'manual',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
@@ -121,6 +128,7 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         payment_method_types: paymentMethods,
+        capture_method: inputValues?.captureMethod,
       });
 
       if ('error' in resp) {
@@ -167,6 +175,7 @@ export default function CollectCardPaymentScreen() {
           requestIncrementalAuthorizationSupport:
             inputValues.requestIncrementalAuthorizationSupport,
         },
+        captureMethod: inputValues?.captureMethod,
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -444,6 +453,26 @@ export default function CollectCardPaymentScreen() {
           }
         >
           {CURRENCIES.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
+      <List bolded={false} topSpacing={false} title="CAPTURE METHOD">
+        <Picker
+          selectedValue={inputValues?.captureMethod}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-capture-method-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, captureMethod: value }))
+          }
+        >
+          {CAPTURE_METHODS.map((a) => (
             <Picker.Item
               key={a.value}
               label={a.label}
