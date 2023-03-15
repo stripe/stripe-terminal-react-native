@@ -14,6 +14,7 @@ import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
+import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
@@ -291,6 +292,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val extendedAuth = getBoolean(paymentMethodOptions, "requestExtendedAuthorization")
         val incrementalAuth =
             getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
+        val captureMethod = params.getString("captureMethod")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -350,6 +352,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 .setCardPresentParameters(cardPresentParams.build())
                 .build()
         )
+
+        captureMethod?.let {
+            when (it) {
+                "manual" -> intentParams.setCaptureMethod(CaptureMethod.Manual)
+                else -> intentParams.setCaptureMethod(CaptureMethod.Automatic)
+            }
+        }
 
         terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) {
             paymentIntents[it.id] = it
