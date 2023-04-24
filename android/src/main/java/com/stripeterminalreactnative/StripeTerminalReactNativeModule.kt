@@ -93,7 +93,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun initialize(params: ReadableMap, promise: Promise) {
+    fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
         val result = if (!Terminal.isInitialized()) {
