@@ -42,7 +42,7 @@ interface InternalInitParams extends InitParams {
   reactNativeVersion: string;
 }
 
-type StripeTerminalSdkType = {
+export interface StripeTerminalSdkType {
   // Initialize StripeTerminalSdk native module
   initialize(params: InternalInitParams): InitializeResultNativeType;
   // Set connection token
@@ -138,6 +138,6 @@ type StripeTerminalSdkType = {
   setSimulatedCard(cardNumber: string): Promise<{
     error?: StripeError;
   }>;
-};
+}
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
