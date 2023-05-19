@@ -4,14 +4,14 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
 
 - [Getting started](#getting-started)
 - [Requirements](#requirements)
-  * [JS](#js)
-  * [Android](#android)
-  * [iOS](#ios)
+  - [JS](#js)
+  - [Android](#android)
+  - [iOS](#ios)
 - [Try the example app](#try-the-example-app)
 - [Installation](#installation)
 - [Example code](#example-code)
-  * [Initialization](#initialization)
-  * [Hooks and events](#hooks-and-events)
+  - [Initialization](#initialization)
+  - [Hooks and events](#hooks-and-events)
 - [Additional docs](#additional-docs)
 - [Contributing](#contributing)
 
@@ -33,7 +33,7 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 ### Android
 
 - Android 5.0 (API level 21) and above
-- compileSdkVersion = 31
+- compileSdkVersion = 33
 - targetSdkVersion = 31
 
 ### iOS
@@ -57,10 +57,13 @@ To build the example app from source, you'll need to:
 ```sh
 yarn add @stripe/stripe-terminal-react-native
 ```
+
 or
+
 ```sh
 npm install @stripe/stripe-terminal-react-native
 ```
+
 ## Example code
 
 ### Initialization
@@ -184,6 +187,7 @@ class PaymentScreen extends React.Component {
 
 export default withStripeTerminal(PaymentScreen);
 ```
+
 ## Additional docs
 
 - [Running e2e tests locally](https://github.com/stripe/stripe-terminal-react-native/blob/main/docs/e2e-tests.md)
