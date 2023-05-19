@@ -263,6 +263,7 @@ internal fun mapFromReaderDisplayMessage(message: ReaderDisplayMessage): String 
         ReaderDisplayMessage.SWIPE_CARD -> "swipeCard"
         ReaderDisplayMessage.TRY_ANOTHER_CARD -> "tryAnotherCard"
         ReaderDisplayMessage.TRY_ANOTHER_READ_METHOD -> "tryAnotherReadMethod"
+        ReaderDisplayMessage.CARD_REMOVED_TOO_EARLY -> "cardRemovedTooEarly"
     }
 }
 
