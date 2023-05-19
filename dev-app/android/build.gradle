@@ -9,6 +9,7 @@ buildscript {
         compileSdkVersion = 33
         targetSdkVersion = 31
         ndkVersion = "21.4.7075529"
+        kotlinVersion = "1.8.21"
 
         if (System.properties['os.arch'] == "aarch64") {
             // For M1 Users we need to use the NDK 24 which added support for aarch64
