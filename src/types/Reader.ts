@@ -104,7 +104,8 @@ export namespace Reader {
     | 'swipeCard'
     | 'tryAnotherCard'
     | 'tryAnotherReadMethod'
-    | 'checkMobileDevice';
+    | 'checkMobileDevice'
+    | 'cardRemovedTooEarly';
 
   export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
 }

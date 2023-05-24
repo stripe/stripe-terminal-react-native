@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.4'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         // noinspection DifferentKotlinGradleVersion
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.codehaus.groovy:groovy-json:3.0.10'
@@ -20,14 +20,6 @@ buildscript {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-// required for Kotlin versions prior to 1.6.20
-// https://issuetracker.google.com/issues/217593040
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-        freeCompilerArgs += ["-Xjvm-default=all"]
-    }
-}
-
 def getExtOrDefault(name) {
     return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['StripeTerminalReactNative_' + name]
 }
@@ -36,7 +28,7 @@ def getExtOrIntegerDefault(name) {
     return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['StripeTerminalReactNative_' + name]).toInteger()
 }
 
-def terminalAndroidSdkVersion = '2.17.1'
+def terminalAndroidSdkVersion = '2.20.1'
 def reactNativeSdkVersion = getVersionFromNpm()
 
 android {

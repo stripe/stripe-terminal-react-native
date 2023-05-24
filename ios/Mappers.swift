@@ -230,6 +230,7 @@ class Mappers {
         case ReaderDisplayMessage.swipeCard: return "swipeCard"
         case ReaderDisplayMessage.tryAnotherCard: return "tryAnotherCard"
         case ReaderDisplayMessage.tryAnotherReadMethod: return "tryAnotherReadMethod"
+        case ReaderDisplayMessage.cardRemovedTooEarly: return "cardRemovedTooEarly"
         default: return "unknown"
         }
     }

@@ -8,9 +8,7 @@ buildscript {
         minSdkVersion = 21
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: "33")
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: "31")
-        if (hasProperty('android.kotlinVersion')) {
-            kotlinVersion = findProperty('android.kotlinVersion')
-        }
+        kotlinVersion = findProperty('android.kotlinVersion') ?: "1.8.21"
 
         if (System.properties['os.arch'] == "aarch64") {
             // For M1 Users we need to use the NDK 24 which added support for aarch64
@@ -25,7 +23,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.4")
+        classpath("com.android.tools.build:gradle:7.4.2")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("de.undercouch:gradle-download-task:4.1.2")
         // NOTE: Do not place your application dependencies here; they belong
