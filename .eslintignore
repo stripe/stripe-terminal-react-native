@@ -4,6 +4,7 @@ ios
 lib
 dev-app/ios
 dev-app/android
+dev-app/vendor/bundle
 package.json
 tsconfig.json
 config.json
