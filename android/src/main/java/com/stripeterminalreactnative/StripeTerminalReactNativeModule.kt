@@ -474,7 +474,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
 
             val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no created paymentIntent with id $setupIntentId"
+                "There is no created setupIntent with id $setupIntentId"
             }
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
