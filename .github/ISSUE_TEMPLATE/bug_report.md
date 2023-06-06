@@ -4,7 +4,6 @@ about: Create a report to help us improve
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
 **Describe the bug**
@@ -26,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Stripe Terminal React Native SDK version**
 
-- (e.g., `^0.0.1-beta.11`)
+- (e.g., `^0.0.1-beta.12`)
 
 **Smartphone (please complete the following information):**
 
