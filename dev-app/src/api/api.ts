@@ -96,6 +96,7 @@ export class Api {
     currency = 'usd',
     description = 'Example PaymentIntent',
     payment_method_types,
+    payment_method_options,
     setup_future_usage,
     capture_method,
   }: Stripe.PaymentIntentCreateParams): Promise<
@@ -116,6 +117,28 @@ export class Api {
       payment_method_types.forEach((method: string) => {
         formData.append('payment_method_types[]', method);
       });
+    }
+
+    if (payment_method_options) {
+      if (payment_method_options.card_present) {
+        if (
+          payment_method_options.card_present.request_extended_authorization
+        ) {
+          formData.append(
+            'payment_method_options[card_present][request_extended_authorization]',
+            payment_method_options.card_present.request_extended_authorization.toString()
+          );
+        }
+        if (
+          payment_method_options.card_present
+            .request_incremental_authorization_support
+        ) {
+          formData.append(
+            'payment_method_options[card_present][request_incremental_authorization_support]',
+            payment_method_options.card_present.request_incremental_authorization_support.toString()
+          );
+        }
+      }
     }
 
     // TODO: implement connect functionality to set these values
