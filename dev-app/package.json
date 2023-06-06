@@ -40,6 +40,6 @@
     "concurrently": "^7.0.0",
     "detox": "^19.4.3",
     "metro-react-native-babel-preset": "^0.67.0",
-    "stripe": "^8.181.0"
+    "stripe": "^12.8.0"
   }
 }

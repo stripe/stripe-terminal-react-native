@@ -30,7 +30,7 @@ export class Api {
     label: string;
     registrationCode: string;
     location: string | null | undefined;
-  }): Promise<Stripe.Terminal.Reader | { error: Stripe.StripeAPIError }> {
+  }): Promise<Stripe.Terminal.Reader | { error: Stripe.StripeRawError }> {
     const formData = new URLSearchParams();
     formData.append('label', label);
     formData.append('registration_code', registrationCode);
@@ -53,7 +53,7 @@ export class Api {
     description?: string;
     paymentMethodTypes?: string;
     customer?: string;
-  }): Promise<Stripe.SetupIntent | { error: Stripe.StripeAPIError }> {
+  }): Promise<Stripe.SetupIntent | { error: Stripe.StripeRawError }> {
     const formData = new URLSearchParams();
     formData.append('description', description);
 
@@ -77,7 +77,7 @@ export class Api {
   async capturePaymentIntent(
     id: string,
     { amount_to_capture }: Stripe.PaymentIntentCaptureParams
-  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeAPIError }> {
+  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeRawError }> {
     const formData = new URLSearchParams();
 
     if (amount_to_capture) {
@@ -96,10 +96,11 @@ export class Api {
     currency = 'usd',
     description = 'Example PaymentIntent',
     payment_method_types,
+    payment_method_options,
     setup_future_usage,
     capture_method,
   }: Stripe.PaymentIntentCreateParams): Promise<
-    Stripe.PaymentIntent | { error: Stripe.StripeError }
+    Stripe.PaymentIntent | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
     formData.append('amount', amount.toString());
@@ -116,6 +117,28 @@ export class Api {
       payment_method_types.forEach((method: string) => {
         formData.append('payment_method_types[]', method);
       });
+    }
+
+    if (payment_method_options) {
+      if (payment_method_options.card_present) {
+        if (
+          payment_method_options.card_present.request_extended_authorization
+        ) {
+          formData.append(
+            'payment_method_options[card_present][request_extended_authorization]',
+            payment_method_options.card_present.request_extended_authorization.toString()
+          );
+        }
+        if (
+          payment_method_options.card_present
+            .request_incremental_authorization_support
+        ) {
+          formData.append(
+            'payment_method_options[card_present][request_incremental_authorization_support]',
+            payment_method_options.card_present.request_incremental_authorization_support.toString()
+          );
+        }
+      }
     }
 
     // TODO: implement connect functionality to set these values
@@ -151,7 +174,7 @@ export class Api {
   static async getAccount(
     secretKey: string
   ): Promise<
-    (Stripe.Account & { secretKey: string }) | { error: Stripe.StripeAPIError }
+    (Stripe.Account & { secretKey: string }) | { error: Stripe.StripeRawError }
   > {
     const result = await fetch('https://api.stripe.com/v1/account', {
       headers: {
@@ -171,7 +194,7 @@ export class Api {
   }
 
   async createConnectionToken(): Promise<
-    Stripe.Terminal.ConnectionToken | { error: Stripe.StripeAPIError }
+    Stripe.Terminal.ConnectionToken | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
@@ -183,7 +206,7 @@ export class Api {
 
   async getCustomers(
     email?: string
-  ): Promise<Array<Stripe.Customer> | { error: Stripe.StripeAPIError }> {
+  ): Promise<Array<Stripe.Customer> | { error: Stripe.StripeRawError }> {
     const params = new URLSearchParams();
     if (email) {
       params.append('email', email);
@@ -203,7 +226,7 @@ export class Api {
 
   async createCustomer(
     email: string
-  ): Promise<Stripe.Customer | { error: Stripe.StripeAPIError }> {
+  ): Promise<Stripe.Customer | { error: Stripe.StripeRawError }> {
     const formData = new URLSearchParams();
     formData.append('email', email);
 
@@ -224,7 +247,7 @@ export class Api {
 
   async getPaymentIntent(
     id: string
-  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeAPIError }> {
+  ): Promise<Stripe.PaymentIntent | { error: Stripe.StripeRawError }> {
     const formData = new URLSearchParams();
 
     return fetch(`https://api.stripe.com/v1/payment_intents/${id}`, {
@@ -243,7 +266,7 @@ export class Api {
   }
 
   async lookupOrCreateExampleCustomer(): Promise<
-    Stripe.Customer | { error: Stripe.StripeAPIError }
+    Stripe.Customer | { error: Stripe.StripeRawError }
   > {
     const customerEmail = 'example@test.com';
     const customerList = await this.getCustomers(customerEmail);

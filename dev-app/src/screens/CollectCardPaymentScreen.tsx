@@ -121,6 +121,14 @@ export default function CollectCardPaymentScreen() {
     if (enableInterac) {
       paymentMethods.push('interac_present');
     }
+    const paymentMethodOptions = {
+      card_present: {
+        request_extended_authorization:
+          inputValues.requestExtendedAuthorization,
+        request_incremental_authorization_support:
+          inputValues.requestIncrementalAuthorizationSupport,
+      },
+    };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
@@ -128,6 +136,7 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         payment_method_types: paymentMethods,
+        payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
       });
 
