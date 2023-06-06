@@ -562,7 +562,11 @@ export default function CollectCardPaymentScreen() {
       <List bolded={false} topSpacing={false} title="TIP-ELIGIBLE AMOUNT">
         <TextInput
           testID="tip-eligible-amount"
-          keyboardType="numeric"
+          keyboardType={Platform.select({
+            ios: 'numbers-and-punctuation',
+            android: 'numeric',
+            default: 'numeric',
+          })}
           style={styles.input}
           value={tipEligibleAmount}
           onChangeText={(value: string) => setTipEligibleAmount(value)}
