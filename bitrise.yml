@@ -136,8 +136,8 @@ workflows:
       - complete_all
     meta:
       bitrise.io:
-        stack: osx-xcode-14.0.x-ventura
-        machine_type_id: g2.12core
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
   example-build-ios:
     steps:
       - cocoapods-install@2:
