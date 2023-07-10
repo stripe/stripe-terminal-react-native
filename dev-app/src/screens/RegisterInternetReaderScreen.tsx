@@ -41,7 +41,7 @@ export default function RegisterInternetReaderScreen() {
 
       if ('error' in resp) {
         console.log(resp.error);
-        setStatus('Could not register reader.');
+        setStatus('Could not register reader.\n' + resp.error.message);
         return;
       }
 
@@ -91,6 +91,7 @@ export default function RegisterInternetReaderScreen() {
           onPress={() => {
             navigation.navigate('LocationListScreen', {
               onSelect: (location: Location) => setSelectedLocation(location),
+              showDummyLocation: true,
             });
           }}
           title={selectedLocation?.displayName || 'No location selected'}

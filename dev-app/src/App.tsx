@@ -46,6 +46,7 @@ export type RouteParamList = {
   };
   LocationList: {
     onSelect: (location: Location) => void;
+    showDummyLocation: boolean;
   };
   DiscoveryMethod: {
     onChange: (method: Reader.DiscoveryMethod) => void;

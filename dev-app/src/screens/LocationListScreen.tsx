@@ -22,6 +22,7 @@ export default function LocationListScreen() {
 
   const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>([]);
+  const dummyLocations: Location[] = [{ id: "ABCD", displayName: "Bad Location" }, { id: "tml_AbC2def4GhIjkL", displayName: "Wrong User Location" }]
 
   useEffect(() => {
     async function init() {
@@ -49,6 +50,14 @@ export default function LocationListScreen() {
 
   return (
     <View style={styles.container}>
+      {params?.showDummyLocation === true && (<FlatList
+        style={{ marginBottom: 30 }}
+        data={dummyLocations}
+        ListHeaderComponent={() => (
+          <Text style={styles.header}>INTERNAL: DUMMY LOCATIONS</Text>
+        )}
+        renderItem={({ item }) => renderItem(item)}
+      />)}
       <FlatList
         data={list}
         ListHeaderComponent={() => (
@@ -64,6 +73,8 @@ export default function LocationListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     backgroundColor: colors.white,
   },
   header: {
