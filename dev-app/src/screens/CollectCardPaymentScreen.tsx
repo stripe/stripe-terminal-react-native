@@ -33,6 +33,12 @@ const CAPTURE_METHODS = [
   { value: 'manual', label: 'manual' },
 ];
 
+const ROUTING_PRIORITY = [
+  { value: '', label: 'default' },
+  { value: 'domestic', label: 'domestic' },
+  { value: 'international', label: 'international' },
+];
+
 export default function CollectCardPaymentScreen() {
   const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
 
@@ -44,10 +50,12 @@ export default function CollectCardPaymentScreen() {
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
     captureMethod: 'automatic' | 'manual';
+    requestPriority: 'domestic' | 'international' | '';
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
     captureMethod: 'manual',
+    requestPriority: '',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
@@ -121,12 +129,16 @@ export default function CollectCardPaymentScreen() {
     if (enableInterac) {
       paymentMethods.push('interac_present');
     }
+    const routingPriority = {
+      requested_priority: inputValues.requestPriority
+    }
     const paymentMethodOptions = {
       card_present: {
         request_extended_authorization:
           inputValues.requestExtendedAuthorization,
         request_incremental_authorization_support:
           inputValues.requestIncrementalAuthorizationSupport,
+        routing: routingPriority
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
@@ -491,6 +503,27 @@ export default function CollectCardPaymentScreen() {
           ))}
         </Picker>
       </List>
+
+      {discoveryMethod === 'internet' && (<List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
+        <Picker
+          selectedValue={inputValues?.requestPriority}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-routing-priority-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, requestPriority: value }))
+          }
+        >
+          {ROUTING_PRIORITY.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>)}
 
       <List bolded={false} topSpacing={false} title="INTERAC">
         <ListItem
