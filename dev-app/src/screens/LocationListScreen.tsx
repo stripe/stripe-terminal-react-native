@@ -22,7 +22,7 @@ export default function LocationListScreen() {
 
   const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>([]);
-  const dummyLocations: Location[] = [{ id: "ABCD", displayName: "Bad Location" }, { id: "tml_AbC2def4GhIjkL", displayName: "Wrong User Location" }]
+  const dummyLocations: Location[] = [{ id: "ABCD", displayName: "Bad Location", livemode: false }, { id: "tml_AbC2def4GhIjkL", displayName: "Wrong User Location", livemode: false }]
 
   useEffect(() => {
     async function init() {
