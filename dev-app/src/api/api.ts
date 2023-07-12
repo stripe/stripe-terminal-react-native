@@ -138,6 +138,12 @@ export class Api {
             payment_method_options.card_present.request_incremental_authorization_support.toString()
           );
         }
+        if (payment_method_options.card_present.routing.requested_priority) {
+          formData.append(
+            'payment_method_options[card_present][routing][requested_priority]',
+            payment_method_options.card_present.routing.requested_priority.toString()
+          );
+        }
       }
     }
 
