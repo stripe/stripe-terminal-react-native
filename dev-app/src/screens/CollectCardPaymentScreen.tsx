@@ -130,15 +130,15 @@ export default function CollectCardPaymentScreen() {
       paymentMethods.push('interac_present');
     }
     const routingPriority = {
-      requested_priority: inputValues.requestPriority
-    }
+      requested_priority: inputValues.requestPriority,
+    };
     const paymentMethodOptions = {
       card_present: {
         request_extended_authorization:
           inputValues.requestExtendedAuthorization,
         request_incremental_authorization_support:
           inputValues.requestIncrementalAuthorizationSupport,
-        routing: routingPriority
+        routing: routingPriority,
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
@@ -504,26 +504,28 @@ export default function CollectCardPaymentScreen() {
         </Picker>
       </List>
 
-      {discoveryMethod === 'internet' && (<List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
-        <Picker
-          selectedValue={inputValues?.requestPriority}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          testID="select-routing-priority-picker"
-          onValueChange={(value) =>
-            setInputValues((state) => ({ ...state, requestPriority: value }))
-          }
-        >
-          {ROUTING_PRIORITY.map((a) => (
-            <Picker.Item
-              key={a.value}
-              label={a.label}
-              testID={a.value}
-              value={a.value}
-            />
-          ))}
-        </Picker>
-      </List>)}
+      {discoveryMethod === 'internet' && (
+        <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
+          <Picker
+            selectedValue={inputValues?.requestPriority}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-routing-priority-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({ ...state, requestPriority: value }))
+            }
+          >
+            {ROUTING_PRIORITY.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
+      )}
 
       <List bolded={false} topSpacing={false} title="INTERAC">
         <ListItem
