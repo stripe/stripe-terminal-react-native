@@ -12,7 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { AppContext } from '../AppContext';
+import { api, AppContext } from '../AppContext';
 import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
 import { getStoredAccounts, setStoredAccounts } from '../util/merchantStorage';
@@ -22,6 +22,7 @@ export default function MerchantSelectScreen() {
   const [accounts, setAccounts] = useState<Array<IShortAccount>>([]);
   const [isAddPending, setIsAddPending] = useState<boolean>(false);
   const [newAccountKey, setNewAccountKey] = useState<string>('');
+  const [newStripeAccountID, setNewStripeAccountID] = useState<string>('');
 
   // on init load all stored accounts
   useEffect(() => {
@@ -89,12 +90,16 @@ export default function MerchantSelectScreen() {
         name: addedAccount?.settings?.dashboard?.display_name,
       })
     );
-
+    //update stripe account id
+    api.setStripeAccountID(
+      newStripeAccountID.length > 0 ? newStripeAccountID : ''
+    );
     // set as current account
     onSelectAccount(newAccountKey);
     setIsAddPending(false);
     setNewAccountKey('');
-  }, [newAccountKey, onSelectAccount, accounts]);
+    setNewStripeAccountID('');
+  }, [newAccountKey, newStripeAccountID, onSelectAccount, accounts]);
 
   return (
     <ScrollView
@@ -109,13 +114,22 @@ export default function MerchantSelectScreen() {
           placeholder="sk_test_xxx"
           editable={!isAddPending}
         />
-        <ListItem
-          color={colors.blue}
-          title="Add Merchant"
-          onPress={onAddAccount}
-          disabled={isAddPending}
+      </List>
+      <List bolded={false} topSpacing={false} title="Direct Payment">
+        <TextInput
+          style={styles.input}
+          value={newStripeAccountID}
+          onChangeText={(value: string) => setNewStripeAccountID(value)}
+          placeholder="acct_xxx"
+          editable={!isAddPending}
         />
       </List>
+      <ListItem
+        color={colors.blue}
+        title="Add Merchant"
+        onPress={onAddAccount}
+        disabled={isAddPending}
+      />
       <List bolded={false} topSpacing={false} title="Select Merchant">
         <Picker
           selectedValue={account?.secretKey}

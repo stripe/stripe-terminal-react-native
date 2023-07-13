@@ -26,10 +26,13 @@ type NewPaymentIntentCreateParams = Stripe.PaymentIntentCreateParams &
 export class Api {
   secretKey: string;
 
+  stripeAccountID: string;
+
   headers: Record<string, string>;
 
   constructor() {
     this.secretKey = '';
+    this.stripeAccountID = '';
     this.headers = {};
   }
 
@@ -40,6 +43,10 @@ export class Api {
       'Authorization': `Bearer ${this.secretKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     };
+  }
+
+  setStripeAccountID(accountID: string): void {
+    this.stripeAccountID = accountID;
   }
 
   async registerDevice({
@@ -223,6 +230,9 @@ export class Api {
     Stripe.Terminal.ConnectionToken | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
+    if (this.stripeAccountID.length > 0) {
+      this.headers['Stripe-Account'] = this.stripeAccountID;
+    }
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
       headers: this.headers,
       method: 'POST',

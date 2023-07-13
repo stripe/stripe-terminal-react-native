@@ -30,6 +30,7 @@ export default function Root() {
         setAccount(null);
         setSelectedAccount('');
         api.setSecretKey('');
+        api.setStripeAccountID('');
         return;
       }
 
@@ -66,7 +67,8 @@ export default function Root() {
       return '';
     }
     const resp = await api.createConnectionToken();
-
+    //reset stripe account id
+    api.setStripeAccountID('');
     if ('error' in resp) {
       console.log('could not fetch connection token');
       return '';
