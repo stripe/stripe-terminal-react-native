@@ -504,28 +504,26 @@ export default function CollectCardPaymentScreen() {
         </Picker>
       </List>
 
-      {discoveryMethod === 'internet' && (
-        <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
-          <Picker
-            selectedValue={inputValues?.requestPriority}
-            style={styles.picker}
-            itemStyle={styles.pickerItem}
-            testID="select-routing-priority-picker"
-            onValueChange={(value) =>
-              setInputValues((state) => ({ ...state, requestPriority: value }))
-            }
-          >
-            {ROUTING_PRIORITY.map((a) => (
-              <Picker.Item
-                key={a.value}
-                label={a.label}
-                testID={a.value}
-                value={a.value}
-              />
-            ))}
-          </Picker>
-        </List>
-      )}
+      <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
+        <Picker
+          selectedValue={inputValues?.requestPriority}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-routing-priority-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, requestPriority: value }))
+          }
+        >
+          {ROUTING_PRIORITY.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
 
       <List bolded={false} topSpacing={false} title="INTERAC">
         <ListItem
