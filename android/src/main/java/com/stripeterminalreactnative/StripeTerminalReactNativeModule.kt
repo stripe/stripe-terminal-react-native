@@ -569,8 +569,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val currency = requireParam(params.getString("currency")) {
                 "You must provide a currency value"
             }
+            val refundApplicationFee = params.getBoolean("refundApplicationFee")
+            val reverseTransfer = params.getBoolean("reverseTransfer")
 
-            val intentParams = RefundParameters.Builder(chargeId, amount, currency).build()
+            val intentParamsBuild = RefundParameters.Builder(chargeId, amount, currency)
+            intentParamsBuild.setRefundApplicationFee(refundApplicationFee)
+                .setReverseTransfer(reverseTransfer)
+            val intentParams = intentParamsBuild.build()
+
             collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
                 intentParams, NoOpCallback(promise)
             )

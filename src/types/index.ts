@@ -232,6 +232,8 @@ export type RefundParams = {
   chargeId: string;
   amount: number;
   currency: string;
+  refundApplicationFee?: boolean;
+  reverseTransfer?: boolean;
 };
 
 export type CardPresent = {
