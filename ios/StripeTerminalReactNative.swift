@@ -682,8 +682,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let amount = params["amount"] as? NSNumber
         let currency = params["currency"] as? String
         let intAmount = UInt(truncating: amount!);
+        let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
+        let reverseTransfer = params["reverseTransfer"] as? NSNumber
 
         let refundParams = RefundParameters(chargeId: chargeId!, amount: intAmount, currency: currency!)
+        refundParams.refundApplicationFee = refundApplicationFee
+        refundParams.reverseTransfer = reverseTransfer
 
         self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
             if let error = error as NSError? {
