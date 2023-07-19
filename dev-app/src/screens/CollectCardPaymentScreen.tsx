@@ -504,6 +504,19 @@ export default function CollectCardPaymentScreen() {
         </Picker>
       </List>
 
+      <List bolded={false} topSpacing={false} title="INTERAC">
+        <ListItem
+          title="Enable Interac Present"
+          rightElement={
+            <Switch
+              testID="enable-interac"
+              value={enableInterac}
+              onValueChange={(value) => setEnableInterac(value)}
+            />
+          }
+        />
+      </List>
+
       <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
         <Picker
           selectedValue={inputValues?.requestPriority}
@@ -523,19 +536,6 @@ export default function CollectCardPaymentScreen() {
             />
           ))}
         </Picker>
-      </List>
-
-      <List bolded={false} topSpacing={false} title="INTERAC">
-        <ListItem
-          title="Enable Interac Present"
-          rightElement={
-            <Switch
-              testID="enable-interac"
-              value={enableInterac}
-              onValueChange={(value) => setEnableInterac(value)}
-            />
-          }
-        />
       </List>
 
       <List bolded={false} topSpacing={false} title="CONNECT">
