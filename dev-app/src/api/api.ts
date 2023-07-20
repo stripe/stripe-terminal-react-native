@@ -1,4 +1,6 @@
 import type { Stripe } from 'stripe';
+import type { IShortAccount } from '../types';
+import { ChargeType } from '@stripe/stripe-terminal-react-native';
 
 // Disclaimer: we're using the client layer in lieu of a merchant backend in order
 // to allow dynamic switching of merchant accounts within the app. This eases dev and qa
@@ -26,13 +28,13 @@ type NewPaymentIntentCreateParams = Stripe.PaymentIntentCreateParams &
 export class Api {
   secretKey: string;
 
-  stripeAccountID: string;
+  currentAccount: IShortAccount | null;
 
   headers: Record<string, string>;
 
   constructor() {
     this.secretKey = '';
-    this.stripeAccountID = '';
+    this.currentAccount = null;
     this.headers = {};
   }
 
@@ -45,8 +47,8 @@ export class Api {
     };
   }
 
-  setStripeAccountID(accountID: string): void {
-    this.stripeAccountID = accountID;
+  setCurrentAccount(account: IShortAccount | null): void {
+    this.currentAccount = account;
   }
 
   async registerDevice({
@@ -174,16 +176,20 @@ export class Api {
       }
     }
 
-    // TODO: implement connect functionality to set these values
-    // if (
-    //   this.connectedAccount &&
-    //   this.connectedAccount.type === ConnectChargeType.Destination
-    // ) {
-    //   formData.append('on_behalf_of', this.connectedAccount.id);
-    //   formData.append('transfer_data[destination]', this.connectedAccount.id);
-    // }
+    if (
+      this.currentAccount &&
+      this.currentAccount.connectedAccountType === ChargeType.DestinationCharges
+    ) {
+      formData.append('on_behalf_of', this.currentAccount.stripeAccountID);
+      formData.append('transfer_data[destination]', this.currentAccount.stripeAccountID);
+      formData.append('application_fee_amount', '200');
+    }
 
     formData.append('payment_method_types[]', 'card_present');
+
+    if (this.currentAccount && this.currentAccount.connectedAccountType === ChargeType.DirectCharge) {
+      this.headers['Stripe-Account'] = this.currentAccount.stripeAccountID;
+    }
 
     return fetch('https://api.stripe.com/v1/payment_intents', {
       headers: this.headers,
@@ -230,8 +236,8 @@ export class Api {
     Stripe.Terminal.ConnectionToken | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
-    if (this.stripeAccountID.length > 0) {
-      this.headers['Stripe-Account'] = this.stripeAccountID;
+    if (this.currentAccount && this.currentAccount.connectedAccountType === ChargeType.DirectCharge) {
+      this.headers['Stripe-Account'] = this.currentAccount.stripeAccountID;
     }
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
       headers: this.headers,

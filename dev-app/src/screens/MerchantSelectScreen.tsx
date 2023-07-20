@@ -1,11 +1,5 @@
-import React, { useCallback, useEffect, useState, useContext } from 'react';
-import {
-  Alert,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  TextInput,
-} from 'react-native';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Alert, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Picker } from '@react-native-picker/picker';
 
@@ -16,6 +10,7 @@ import { api, AppContext } from '../AppContext';
 import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
 import { getStoredAccounts, setStoredAccounts } from '../util/merchantStorage';
+import { ChargeType } from '@stripe/stripe-terminal-react-native';
 
 export default function MerchantSelectScreen() {
   const { account, setAccount } = useContext(AppContext);
@@ -23,7 +18,27 @@ export default function MerchantSelectScreen() {
   const [isAddPending, setIsAddPending] = useState<boolean>(false);
   const [newAccountKey, setNewAccountKey] = useState<string>('');
   const [newStripeAccountID, setNewStripeAccountID] = useState<string>('');
+  const connectAccounts = [
+    { value: 'Default', type: ChargeType.Default },
+    { value: 'Direct', type: ChargeType.DirectCharge },
+    { value: 'Destination', type: ChargeType.DestinationCharges },
+  ];
+  const [selectedConnectAccount, setSelectedConnectAccount] = useState(connectAccounts[0].value);
+  const [showInputStripeAccountID, setShowInputStripeAccountID] = useState(false);
 
+  useEffect(() => {
+    console.log('useEffect selectedConnectAccount:', selectedConnectAccount);
+  }, [selectedConnectAccount]);
+
+  const onSelectAccountChange = (itemValue: string) => {
+    setSelectedConnectAccount(itemValue);
+    // Hide TextInput if "Standard" is selected
+    if (itemValue === ChargeType.Default) {
+      setShowInputStripeAccountID(false);
+    } else {
+      setShowInputStripeAccountID(true);
+    }
+  };
   // on init load all stored accounts
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -47,8 +62,12 @@ export default function MerchantSelectScreen() {
   const onSelectAccount = useCallback(
     async (secretKey: string | null) => {
       setAccount({ selectedAccountKey: secretKey });
+      const selectAccount = accounts.find((a) => a.secretKey === secretKey);
+      if (selectAccount) {
+        api.setCurrentAccount(selectAccount);
+      }
     },
-    [setAccount]
+    [accounts, setAccount]
   );
 
   const onRemoveAllMerchants = useCallback(() => {
@@ -72,34 +91,35 @@ export default function MerchantSelectScreen() {
       setNewAccountKey('');
       return;
     }
-
+    if (selectedConnectAccount !== 'Default') {
+      if (newStripeAccountID == null || newStripeAccountID.length === 0) {
+        Alert.alert('Please input Connected-Stripe-Account-ID!');
+        return;
+      }
+    }
     setIsAddPending(true);
     const addedAccount = await Api.getAccount(newAccountKey);
-
     if ('error' in addedAccount) {
       Alert.alert('Unable to add account', addedAccount.error.message);
       setIsAddPending(false);
       return;
     }
-
     // update state
-    setAccounts((prev) =>
-      prev.concat({
-        id: addedAccount.id,
-        secretKey: addedAccount.secretKey,
-        name: addedAccount?.settings?.dashboard?.display_name,
-      })
-    );
-    //update stripe account id
-    api.setStripeAccountID(
-      newStripeAccountID.length > 0 ? newStripeAccountID : ''
-    );
+    accounts.push({
+      id: addedAccount.id,
+      secretKey: addedAccount.secretKey,
+      name: addedAccount?.settings?.dashboard?.display_name,
+      stripeAccountID: newStripeAccountID,
+      connectedAccountType: selectedConnectAccount as ChargeType,
+    });
+    setAccounts(accounts);
+
     // set as current account
     onSelectAccount(newAccountKey);
     setIsAddPending(false);
     setNewAccountKey('');
     setNewStripeAccountID('');
-  }, [newAccountKey, newStripeAccountID, onSelectAccount, accounts]);
+  }, [accounts, newAccountKey, newStripeAccountID, onSelectAccount, selectedConnectAccount]);
 
   return (
     <ScrollView
@@ -115,14 +135,32 @@ export default function MerchantSelectScreen() {
           editable={!isAddPending}
         />
       </List>
-      <List bolded={false} topSpacing={false} title="Direct Payment">
-        <TextInput
-          style={styles.input}
-          value={newStripeAccountID}
-          onChangeText={(value: string) => setNewStripeAccountID(value)}
-          placeholder="acct_xxx"
-          editable={!isAddPending}
-        />
+      <List bolded={false} topSpacing={false} title="CONNECT ACCOUNT">
+        <Picker
+          selectedValue={selectedConnectAccount}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-connect-account-picker"
+          onValueChange={(value:string) => {onSelectAccountChange(value);}}
+        >
+          {connectAccounts.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.value}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+        {showInputStripeAccountID ? (
+          <TextInput
+            style={styles.input}
+            value={newStripeAccountID}
+            onChangeText={(value: string) => setNewStripeAccountID(value)}
+            placeholder="Connected Stripe Account ID"
+            editable={!isAddPending}
+          />
+        ) : <View/>}
       </List>
       <ListItem
         color={colors.blue}
@@ -206,6 +244,7 @@ const styles = StyleSheet.create({
         fontSize: 13,
         paddingHorizontal: 16,
         paddingVertical: 12,
+        marginBottom: 10,
         backgroundColor: colors.white,
       },
     }),
