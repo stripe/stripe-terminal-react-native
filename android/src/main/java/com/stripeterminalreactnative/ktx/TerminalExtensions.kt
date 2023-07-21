@@ -1,7 +1,6 @@
 package com.stripeterminalreactnative.ktx
 
 import com.stripe.stripeterminal.Terminal
-import com.stripe.stripeterminal.external.UsbConnectivity
 import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.HandoffReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderCallback
@@ -77,7 +76,6 @@ suspend fun Terminal.connectLocalMobileReader(
 /**
  * @see [Terminal.connectUsbReader]
  */
-@UsbConnectivity
 suspend fun Terminal.connectUsbReader(
     reader: Reader,
     config: UsbConnectionConfiguration,
@@ -102,7 +100,6 @@ private suspend inline fun readerCallbackCoroutine(crossinline block: (ReaderCal
     }
 }
 
-@OptIn(UsbConnectivity::class)
 suspend fun Terminal.connectReader(
     discoveryMethod: DiscoveryMethod,
     reader: Reader,
