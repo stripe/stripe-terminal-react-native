@@ -181,13 +181,19 @@ export class Api {
       this.currentAccount.connectedAccountType === ChargeType.DestinationCharges
     ) {
       formData.append('on_behalf_of', this.currentAccount.stripeAccountID);
-      formData.append('transfer_data[destination]', this.currentAccount.stripeAccountID);
+      formData.append(
+        'transfer_data[destination]',
+        this.currentAccount.stripeAccountID
+      );
       formData.append('application_fee_amount', '200');
     }
 
     formData.append('payment_method_types[]', 'card_present');
 
-    if (this.currentAccount && this.currentAccount.connectedAccountType === ChargeType.DirectCharge) {
+    if (
+      this.currentAccount &&
+      this.currentAccount.connectedAccountType === ChargeType.DirectCharge
+    ) {
       this.headers['Stripe-Account'] = this.currentAccount.stripeAccountID;
     }
 
@@ -236,7 +242,10 @@ export class Api {
     Stripe.Terminal.ConnectionToken | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
-    if (this.currentAccount && this.currentAccount.connectedAccountType === ChargeType.DirectCharge) {
+    if (
+      this.currentAccount &&
+      this.currentAccount.connectedAccountType === ChargeType.DirectCharge
+    ) {
       this.headers['Stripe-Account'] = this.currentAccount.stripeAccountID;
     }
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {

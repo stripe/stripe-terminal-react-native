@@ -1,5 +1,12 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { Picker } from '@react-native-picker/picker';
 
@@ -23,8 +30,11 @@ export default function MerchantSelectScreen() {
     { value: 'Direct', type: ChargeType.DirectCharge },
     { value: 'Destination', type: ChargeType.DestinationCharges },
   ];
-  const [selectedConnectAccount, setSelectedConnectAccount] = useState(connectAccounts[0].value);
-  const [showInputStripeAccountID, setShowInputStripeAccountID] = useState(false);
+  const [selectedConnectAccount, setSelectedConnectAccount] = useState(
+    connectAccounts[0].value
+  );
+  const [showInputStripeAccountID, setShowInputStripeAccountID] =
+    useState(false);
 
   useEffect(() => {
     console.log('useEffect selectedConnectAccount:', selectedConnectAccount);
@@ -119,7 +129,13 @@ export default function MerchantSelectScreen() {
     setIsAddPending(false);
     setNewAccountKey('');
     setNewStripeAccountID('');
-  }, [accounts, newAccountKey, newStripeAccountID, onSelectAccount, selectedConnectAccount]);
+  }, [
+    accounts,
+    newAccountKey,
+    newStripeAccountID,
+    onSelectAccount,
+    selectedConnectAccount,
+  ]);
 
   return (
     <ScrollView
@@ -141,7 +157,9 @@ export default function MerchantSelectScreen() {
           style={styles.picker}
           itemStyle={styles.pickerItem}
           testID="select-connect-account-picker"
-          onValueChange={(value:string) => {onSelectAccountChange(value);}}
+          onValueChange={(value: string) => {
+            onSelectAccountChange(value);
+          }}
         >
           {connectAccounts.map((a) => (
             <Picker.Item
@@ -160,7 +178,9 @@ export default function MerchantSelectScreen() {
             placeholder="Connected Stripe Account ID"
             editable={!isAddPending}
           />
-        ) : <View/>}
+        ) : (
+          <View />
+        )}
       </List>
       <ListItem
         color={colors.blue}
