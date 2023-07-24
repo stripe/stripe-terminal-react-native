@@ -50,12 +50,12 @@ export default function CollectCardPaymentScreen() {
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
     captureMethod: 'automatic' | 'manual';
-    requestPriority: 'domestic' | 'international' | '';
+    requestedPriority: 'domestic' | 'international' | '';
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
     captureMethod: 'manual',
-    requestPriority: '',
+    requestedPriority: '',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
@@ -130,7 +130,7 @@ export default function CollectCardPaymentScreen() {
       paymentMethods.push('interac_present');
     }
     const routingPriority = {
-      requested_priority: inputValues.requestPriority,
+      requested_priority: inputValues.requestedPriority,
     };
     const paymentMethodOptions = {
       card_present: {
@@ -195,6 +195,7 @@ export default function CollectCardPaymentScreen() {
             inputValues.requestExtendedAuthorization,
           requestIncrementalAuthorizationSupport:
             inputValues.requestIncrementalAuthorizationSupport,
+          requestedPriority: inputValues.requestedPriority,
         },
         captureMethod: inputValues?.captureMethod,
       });
@@ -519,12 +520,12 @@ export default function CollectCardPaymentScreen() {
 
       <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
         <Picker
-          selectedValue={inputValues?.requestPriority}
+          selectedValue={inputValues?.requestedPriority}
           style={styles.picker}
           itemStyle={styles.pickerItem}
           testID="select-routing-priority-picker"
           onValueChange={(value) =>
-            setInputValues((state) => ({ ...state, requestPriority: value }))
+            setInputValues((state) => ({ ...state, requestedPriority: value }))
           }
         >
           {ROUTING_PRIORITY.map((a) => (

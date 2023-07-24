@@ -171,6 +171,7 @@ export type CreatePaymentIntentIOSParams = {
 export type PaymentMethodOptions = {
   requestExtendedAuthorization?: boolean;
   requestIncrementalAuthorizationSupport?: boolean;
+  requestedPriority: string;
 };
 
 export type CollectPaymentMethodParams = {
