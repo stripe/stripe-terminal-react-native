@@ -332,9 +332,3 @@ export type PaymentMethodResultType =
       paymentMethod: undefined;
       error: StripeError;
     };
-
-export enum ChargeType {
-  Default = 'Default',
-  DirectCharge = 'Direct',
-  DestinationCharges = 'Destination',
-}

@@ -1,6 +1,6 @@
 import type { Stripe } from 'stripe';
 import type { IShortAccount } from '../types';
-import { ChargeType } from '@stripe/stripe-terminal-react-native';
+import { ChargeType } from '../AppContext';
 
 // Disclaimer: we're using the client layer in lieu of a merchant backend in order
 // to allow dynamic switching of merchant accounts within the app. This eases dev and qa

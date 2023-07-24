@@ -12,3 +12,9 @@ export const AppContext = React.createContext<IAppContext>({
   lastSuccessfulChargeId: null,
   setLastSuccessfulChargeId: (_id) => null,
 });
+
+export enum ChargeType {
+  Default = 'Default',
+  DirectCharge = 'Direct',
+  DestinationCharges = 'Destination',
+}

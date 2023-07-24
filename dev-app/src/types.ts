@@ -1,6 +1,6 @@
 import type { Stripe } from 'stripe';
 import type { Api as IApi } from './api/api';
-import type { ChargeType } from '@stripe/stripe-terminal-react-native';
+import type { ChargeType } from './AppContext';
 
 export type IAccount = Stripe.Account & { secretKey: string };
 

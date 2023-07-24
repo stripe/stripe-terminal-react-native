@@ -13,11 +13,10 @@ import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { api, AppContext } from '../AppContext';
+import { api, AppContext, ChargeType } from '../AppContext';
 import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
 import { getStoredAccounts, setStoredAccounts } from '../util/merchantStorage';
-import { ChargeType } from '@stripe/stripe-terminal-react-native';
 
 export default function MerchantSelectScreen() {
   const { account, setAccount } = useContext(AppContext);
@@ -42,7 +41,7 @@ export default function MerchantSelectScreen() {
 
   const onSelectAccountChange = (itemValue: string) => {
     setSelectedConnectAccount(itemValue);
-    // Hide TextInput if "Standard" is selected
+    // Hide TextInput if "Default" is selected
     if (itemValue === ChargeType.Default) {
       setShowInputStripeAccountID(false);
     } else {
