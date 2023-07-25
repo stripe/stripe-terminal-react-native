@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
-  View,
 } from 'react-native';
 
 import { Picker } from '@react-native-picker/picker';
@@ -13,41 +12,23 @@ import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { api, AppContext, ChargeType } from '../AppContext';
+import { api, AppContext } from '../AppContext';
 import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
-import { getStoredAccounts, setStoredAccounts } from '../util/merchantStorage';
+import {
+  getStoredAccounts,
+  getStoredConnectedAccountID,
+  setStoredAccounts,
+  setStoredConnectedAccountID,
+} from '../util/merchantStorage';
 
 export default function MerchantSelectScreen() {
   const { account, setAccount } = useContext(AppContext);
   const [accounts, setAccounts] = useState<Array<IShortAccount>>([]);
   const [isAddPending, setIsAddPending] = useState<boolean>(false);
   const [newAccountKey, setNewAccountKey] = useState<string>('');
-  const [newStripeAccountID, setNewStripeAccountID] = useState<string>('');
-  const connectAccounts = [
-    { value: 'Default', type: ChargeType.Default },
-    { value: 'Direct', type: ChargeType.DirectCharge },
-    { value: 'Destination', type: ChargeType.DestinationCharges },
-  ];
-  const [selectedConnectAccount, setSelectedConnectAccount] = useState(
-    connectAccounts[0].value
-  );
-  const [showInputStripeAccountID, setShowInputStripeAccountID] =
-    useState(false);
-
-  useEffect(() => {
-    console.log('useEffect selectedConnectAccount:', selectedConnectAccount);
-  }, [selectedConnectAccount]);
-
-  const onSelectAccountChange = (itemValue: string) => {
-    setSelectedConnectAccount(itemValue);
-    // Hide TextInput if "Default" is selected
-    if (itemValue === ChargeType.Default) {
-      setShowInputStripeAccountID(false);
-    } else {
-      setShowInputStripeAccountID(true);
-    }
-  };
+  const [connectedStripeAccountID, setConnectedStripeAccountID] =
+    useState<string>('');
   // on init load all stored accounts
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -68,6 +49,23 @@ export default function MerchantSelectScreen() {
     setStoredAccounts(accounts);
   }, [accounts]);
 
+  // fetch connected stripe account id from storage if there was ever a cache
+  useEffect(() => {
+    getStoredConnectedAccountID().then((value) => {
+      if (value) {
+        api.directChargeStripeAccountID = value;
+        setConnectedStripeAccountID(value);
+      }
+    });
+  }, []);
+
+  // store connected stripe account id to storage
+  const onConnectedAccountInputChange = (value: string) => {
+    setConnectedStripeAccountID(value);
+    api.setStripeAccountID(value);
+    setStoredConnectedAccountID(value);
+  };
+
   const onSelectAccount = useCallback(
     async (secretKey: string | null) => {
       setAccount({ selectedAccountKey: secretKey });
@@ -82,7 +80,8 @@ export default function MerchantSelectScreen() {
   const onRemoveAllMerchants = useCallback(() => {
     setAccounts([]);
     onSelectAccount(null);
-  }, [setAccounts, onSelectAccount]);
+    setConnectedStripeAccountID('');
+  }, [setAccounts, onSelectAccount, setConnectedStripeAccountID]);
 
   const onRemoveSelectedMerchant = useCallback(() => {
     setAccounts((prev) => {
@@ -100,12 +99,6 @@ export default function MerchantSelectScreen() {
       setNewAccountKey('');
       return;
     }
-    if (selectedConnectAccount !== 'Default') {
-      if (newStripeAccountID == null || newStripeAccountID.length === 0) {
-        Alert.alert('Please input Connected-Stripe-Account-ID!');
-        return;
-      }
-    }
     setIsAddPending(true);
     const addedAccount = await Api.getAccount(newAccountKey);
     if ('error' in addedAccount) {
@@ -118,8 +111,6 @@ export default function MerchantSelectScreen() {
       id: addedAccount.id,
       secretKey: addedAccount.secretKey,
       name: addedAccount?.settings?.dashboard?.display_name,
-      stripeAccountID: newStripeAccountID,
-      connectedAccountType: selectedConnectAccount as ChargeType,
     });
     setAccounts(accounts);
 
@@ -127,14 +118,7 @@ export default function MerchantSelectScreen() {
     onSelectAccount(newAccountKey);
     setIsAddPending(false);
     setNewAccountKey('');
-    setNewStripeAccountID('');
-  }, [
-    accounts,
-    newAccountKey,
-    newStripeAccountID,
-    onSelectAccount,
-    selectedConnectAccount,
-  ]);
+  }, [accounts, newAccountKey, onSelectAccount]);
 
   return (
     <ScrollView
@@ -150,36 +134,14 @@ export default function MerchantSelectScreen() {
           editable={!isAddPending}
         />
       </List>
-      <List bolded={false} topSpacing={false} title="CONNECT ACCOUNT">
-        <Picker
-          selectedValue={selectedConnectAccount}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          testID="select-connect-account-picker"
-          onValueChange={(value: string) => {
-            onSelectAccountChange(value);
-          }}
-        >
-          {connectAccounts.map((a) => (
-            <Picker.Item
-              key={a.value}
-              label={a.value}
-              testID={a.value}
-              value={a.value}
-            />
-          ))}
-        </Picker>
-        {showInputStripeAccountID ? (
-          <TextInput
-            style={styles.input}
-            value={newStripeAccountID}
-            onChangeText={(value: string) => setNewStripeAccountID(value)}
-            placeholder="Connected Stripe Account ID"
-            editable={!isAddPending}
-          />
-        ) : (
-          <View />
-        )}
+      <List bolded={false} topSpacing={false} title="DIRECT PAYMENT">
+        <TextInput
+          style={styles.input}
+          value={connectedStripeAccountID}
+          onChangeText={onConnectedAccountInputChange}
+          placeholder="Connected Stripe Account ID"
+          editable={!isAddPending}
+        />
       </List>
       <ListItem
         color={colors.blue}

@@ -1,6 +1,5 @@
 import type { Stripe } from 'stripe';
 import type { IShortAccount } from '../types';
-import { ChargeType } from '../AppContext';
 
 // Disclaimer: we're using the client layer in lieu of a merchant backend in order
 // to allow dynamic switching of merchant accounts within the app. This eases dev and qa
@@ -28,12 +27,15 @@ type NewPaymentIntentCreateParams = Stripe.PaymentIntentCreateParams &
 export class Api {
   secretKey: string;
 
+  directChargeStripeAccountID = '';
+
   currentAccount: IShortAccount | null;
 
   headers: Record<string, string>;
 
   constructor() {
     this.secretKey = '';
+    this.directChargeStripeAccountID = '';
     this.currentAccount = null;
     this.headers = {};
   }
@@ -45,6 +47,10 @@ export class Api {
       'Authorization': `Bearer ${this.secretKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     };
+  }
+
+  setStripeAccountID(stripeAccountID: string): void {
+    this.directChargeStripeAccountID = stripeAccountID;
   }
 
   setCurrentAccount(account: IShortAccount | null): void {
@@ -128,7 +134,9 @@ export class Api {
     payment_method_options,
     setup_future_usage,
     capture_method,
-  }: NewPaymentIntentCreateParams): Promise<
+    on_behalf_of,
+    application_fee_amount,
+  }: Stripe.PaymentIntentCreateParams): Promise<
     Stripe.PaymentIntent | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
@@ -176,25 +184,22 @@ export class Api {
       }
     }
 
-    if (
-      this.currentAccount &&
-      this.currentAccount.connectedAccountType === ChargeType.DestinationCharges
-    ) {
-      formData.append('on_behalf_of', this.currentAccount.stripeAccountID);
-      formData.append(
-        'transfer_data[destination]',
-        this.currentAccount.stripeAccountID
-      );
-      formData.append('application_fee_amount', '200');
+    if (on_behalf_of) {
+      formData.append('on_behalf_of', on_behalf_of);
+      formData.append('transfer_data[destination]', on_behalf_of);
+    }
+
+    if (application_fee_amount) {
+      formData.append('application_fee_amount', String(application_fee_amount));
     }
 
     formData.append('payment_method_types[]', 'card_present');
 
     if (
-      this.currentAccount &&
-      this.currentAccount.connectedAccountType === ChargeType.DirectCharge
+      this.directChargeStripeAccountID &&
+      this.directChargeStripeAccountID.length > 0
     ) {
-      this.headers['Stripe-Account'] = this.currentAccount.stripeAccountID;
+      this.headers['Stripe-Account'] = this.directChargeStripeAccountID;
     }
 
     return fetch('https://api.stripe.com/v1/payment_intents', {
@@ -242,11 +247,12 @@ export class Api {
     Stripe.Terminal.ConnectionToken | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
+
     if (
-      this.currentAccount &&
-      this.currentAccount.connectedAccountType === ChargeType.DirectCharge
+      this.directChargeStripeAccountID &&
+      this.directChargeStripeAccountID.length > 0
     ) {
-      this.headers['Stripe-Account'] = this.currentAccount.stripeAccountID;
+      this.headers['Stripe-Account'] = this.directChargeStripeAccountID;
     }
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
       headers: this.headers,
