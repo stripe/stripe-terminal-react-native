@@ -49,6 +49,7 @@ target 'StripeTerminalReactNativeDevApp' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'stripe-terminal-react-native', path: '../..'
 
   target 'StripeTerminalReactNativeDevAppTests' do
     inherit! :complete
