@@ -131,6 +131,12 @@ export default function MerchantSelectScreen() {
           editable={!isAddPending}
         />
       </List>
+      <ListItem
+        color={colors.blue}
+        title="Add Merchant"
+        onPress={onAddAccount}
+        disabled={isAddPending}
+      />
       <List bolded={false} topSpacing={false} title="DIRECT PAYMENT">
         <TextInput
           style={styles.input}
@@ -140,12 +146,6 @@ export default function MerchantSelectScreen() {
           editable={!isAddPending}
         />
       </List>
-      <ListItem
-        color={colors.blue}
-        title="Add Merchant"
-        onPress={onAddAccount}
-        disabled={isAddPending}
-      />
       <List bolded={false} topSpacing={false} title="Select Merchant">
         <Picker
           selectedValue={account?.secretKey}
