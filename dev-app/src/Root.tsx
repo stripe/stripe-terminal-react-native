@@ -66,7 +66,6 @@ export default function Root() {
       return '';
     }
     const resp = await api.createConnectionToken();
-    //reset stripe account id
     if ('error' in resp) {
       console.log('could not fetch connection token');
       return '';

@@ -1,5 +1,4 @@
 import type { Stripe } from 'stripe';
-import type { IShortAccount } from '../types';
 
 // Disclaimer: we're using the client layer in lieu of a merchant backend in order
 // to allow dynamic switching of merchant accounts within the app. This eases dev and qa
@@ -29,14 +28,11 @@ export class Api {
 
   directChargeStripeAccountID = '';
 
-  currentAccount: IShortAccount | null;
-
   headers: Record<string, string>;
 
   constructor() {
     this.secretKey = '';
     this.directChargeStripeAccountID = '';
-    this.currentAccount = null;
     this.headers = {};
   }
 
@@ -51,10 +47,6 @@ export class Api {
 
   setStripeAccountID(stripeAccountID: string): void {
     this.directChargeStripeAccountID = stripeAccountID;
-  }
-
-  setCurrentAccount(account: IShortAccount | null): void {
-    this.currentAccount = account;
   }
 
   async registerDevice({

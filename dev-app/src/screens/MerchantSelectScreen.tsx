@@ -69,12 +69,8 @@ export default function MerchantSelectScreen() {
   const onSelectAccount = useCallback(
     async (secretKey: string | null) => {
       setAccount({ selectedAccountKey: secretKey });
-      const selectAccount = accounts.find((a) => a.secretKey === secretKey);
-      if (selectAccount) {
-        api.setCurrentAccount(selectAccount);
-      }
     },
-    [accounts, setAccount]
+    [setAccount]
   );
 
   const onRemoveAllMerchants = useCallback(() => {
@@ -107,12 +103,13 @@ export default function MerchantSelectScreen() {
       return;
     }
     // update state
-    accounts.push({
-      id: addedAccount.id,
-      secretKey: addedAccount.secretKey,
-      name: addedAccount?.settings?.dashboard?.display_name,
-    });
-    setAccounts(accounts);
+    setAccounts((prev) =>
+      prev.concat({
+        id: addedAccount.id,
+        secretKey: addedAccount.secretKey,
+        name: addedAccount?.settings?.dashboard?.display_name,
+      })
+    );
 
     // set as current account
     onSelectAccount(newAccountKey);
