@@ -544,7 +544,7 @@ export default function CollectCardPaymentScreen() {
 
       <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
         <ListItem
-          title="Enable update PaymentIntent"
+          title="Enable Update PaymentIntent"
           rightElement={
             <Switch
               testID="enable-update-paymentIntent"
