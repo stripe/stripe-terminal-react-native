@@ -425,7 +425,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let skipTipping = params["skipTipping"] as? Bool ?? false
-        let collectConfig = CollectConfiguration(skipTipping: skipTipping)
+        let enableUpdatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
+        let collectConfig = CollectConfiguration(skipTipping: skipTipping, enableUpdatePaymentIntent: updatePaymentIntent)
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             let tippingConfig = TippingConfiguration(eligibleAmount: eligibleAmount)
             collectConfig.tippingConfiguration = tippingConfig

@@ -178,6 +178,7 @@ export type CollectPaymentMethodParams = {
   paymentIntentId: string;
   skipTipping?: boolean;
   tipEligibleAmount?: number;
+  updatePaymentIntent?: boolean;
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
