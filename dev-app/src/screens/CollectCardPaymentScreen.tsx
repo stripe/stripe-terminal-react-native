@@ -542,19 +542,6 @@ export default function CollectCardPaymentScreen() {
         </Picker>
       </List>
 
-      <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
-        <ListItem
-          title="Enable Update PaymentIntent"
-          rightElement={
-            <Switch
-              testID="enable-update-paymentIntent"
-              value={enableUpdatePaymentIntent}
-              onValueChange={(value) => setEnableUpdatePaymentIntent(value)}
-            />
-          }
-        />
-      </List>
-
       <List bolded={false} topSpacing={false} title="CONNECT">
         <ListItem
           title="Enable Connect"
@@ -664,6 +651,19 @@ export default function CollectCardPaymentScreen() {
                   requestIncrementalAuthorizationSupport: value,
                 }))
               }
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
+        <ListItem
+          title="Enable Update PaymentIntent"
+          rightElement={
+            <Switch
+              testID="enable-update-paymentIntent"
+              value={enableUpdatePaymentIntent}
+              onValueChange={(value) => setEnableUpdatePaymentIntent(value)}
             />
           }
         />
