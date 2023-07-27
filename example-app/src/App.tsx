@@ -1,10 +1,11 @@
 import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
-  createStackNavigator,
-  HeaderBackButton,
-  TransitionPresets,
+  TransitionPresets, createStackNavigator,
 } from '@react-navigation/stack';
+import {
+  HeaderBackButton,
+} from '@react-navigation/elements'
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';

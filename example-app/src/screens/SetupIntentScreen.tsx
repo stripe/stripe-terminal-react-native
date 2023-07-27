@@ -12,11 +12,13 @@ import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 
 import type { RouteParamList } from '../App';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
   const { discoveryMethod } = params;
 

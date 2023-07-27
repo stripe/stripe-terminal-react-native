@@ -9,6 +9,8 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 import type { RouteParamList } from '../App';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 export default function RefundPaymentScreen() {
   const { lastSuccessfulChargeId } = useContext(AppContext);
@@ -21,7 +23,7 @@ export default function RefundPaymentScreen() {
     amount: '100',
     currency: 'CAD',
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
 

@@ -15,6 +15,8 @@ import { LogContext } from '../components/LogContext';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
@@ -47,7 +49,7 @@ export default function CollectCardPaymentScreen() {
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
 
   const {
     createPaymentIntent,

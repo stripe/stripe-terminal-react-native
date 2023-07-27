@@ -6,9 +6,11 @@ import { colors } from '../colors';
 import ListItem from '../components/ListItem';
 
 import type { RouteParamList } from '../App';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 export default function DiscoveryMethodScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'DiscoveryMethod'>>();
   const onChange = params?.onChange;
 

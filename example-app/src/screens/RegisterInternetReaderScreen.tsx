@@ -14,6 +14,8 @@ import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 type InputValuesType = {
   registration_code: string;
@@ -22,7 +24,7 @@ type InputValuesType = {
 
 export default function RegisterInternetReaderScreen() {
   const { api } = useContext(AppContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();;
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [status, setStatus] = useState<string>('');
   const [inputValues, setInputValues] = useState<InputValuesType>({

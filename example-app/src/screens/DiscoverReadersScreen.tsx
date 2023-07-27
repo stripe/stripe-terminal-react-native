@@ -23,6 +23,8 @@ import ListItem from '../components/ListItem';
 import List from '../components/List';
 
 import type { RouteParamList } from '../App';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -33,7 +35,7 @@ const SIMULATED_UPDATE_PLANS = [
 ];
 
 export default function DiscoverReadersScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReaders'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();

@@ -5,11 +5,13 @@ import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ParamListBase } from '@react-navigation/native';
 
 export default function ReadReusableCardScreen() {
   const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
 
   const { readReusableCard, cancelReadReusableCard } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {

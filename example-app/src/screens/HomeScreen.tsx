@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
 import {
   StyleSheet,
   View,
@@ -20,9 +20,10 @@ import {
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const [simulated, setSimulated] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
