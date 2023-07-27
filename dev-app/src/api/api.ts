@@ -128,7 +128,7 @@ export class Api {
     capture_method,
     on_behalf_of,
     application_fee_amount,
-  }: Stripe.PaymentIntentCreateParams): Promise<
+  }: NewPaymentIntentCreateParams): Promise<
     Stripe.PaymentIntent | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
