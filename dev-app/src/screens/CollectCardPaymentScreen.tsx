@@ -61,6 +61,8 @@ export default function CollectCardPaymentScreen() {
   const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
+  const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
+    useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -274,6 +276,7 @@ export default function CollectCardPaymentScreen() {
       tipEligibleAmount: tipEligibleAmount
         ? Number(tipEligibleAmount)
         : undefined,
+      updatePaymentIntent: enableUpdatePaymentIntent,
     });
 
     if (error) {
@@ -648,6 +651,19 @@ export default function CollectCardPaymentScreen() {
                   requestIncrementalAuthorizationSupport: value,
                 }))
               }
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
+        <ListItem
+          title="Enable Update PaymentIntent"
+          rightElement={
+            <Switch
+              testID="enable-update-paymentIntent"
+              value={enableUpdatePaymentIntent}
+              onValueChange={(value) => setEnableUpdatePaymentIntent(value)}
             />
           }
         />

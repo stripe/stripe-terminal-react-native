@@ -398,6 +398,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         .build()
                 )
             }
+            if (params.hasKey("updatePaymentIntent")) {
+                configBuilder.updatePaymentIntent(getBoolean(params, "updatePaymentIntent"))
+            }
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
