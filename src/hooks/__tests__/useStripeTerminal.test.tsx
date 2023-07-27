@@ -216,7 +216,7 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
 
 const createContextWrapper =
   (providerProps: any): React.FC =>
-    ({ }) =>
+  ({}) =>
     (
       <StripeTerminalContext.Provider
         value={{
@@ -234,7 +234,7 @@ const createContextWrapper =
           ...providerProps,
         }}
       >
-        { }
+        {}
       </StripeTerminalContext.Provider>
     );
 

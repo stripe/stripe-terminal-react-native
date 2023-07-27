@@ -6,7 +6,7 @@ interface Props {
   title: string;
 }
 
-export const Collapse: React.FC<Props> = React.memo(({ children, title }) => {
+export const Collapse: React.FC<Props> = React.memo(({ title }) => {
   const [expanded, setExpanded] = React.useState(false);
 
   return (
@@ -18,7 +18,7 @@ export const Collapse: React.FC<Props> = React.memo(({ children, title }) => {
         <Text style={styles.title}>{title}</Text>
       </TouchableOpacity>
 
-      {expanded && <View style={styles.content}>{children}</View>}
+      {expanded && <View style={styles.content}>{}</View>}
     </View>
   );
 });

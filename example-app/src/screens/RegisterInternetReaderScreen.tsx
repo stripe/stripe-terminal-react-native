@@ -24,7 +24,7 @@ type InputValuesType = {
 
 export default function RegisterInternetReaderScreen() {
   const { api } = useContext(AppContext);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();;
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [status, setStatus] = useState<string>('');
   const [inputValues, setInputValues] = useState<InputValuesType>({
