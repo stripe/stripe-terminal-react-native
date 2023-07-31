@@ -171,12 +171,14 @@ export type CreatePaymentIntentIOSParams = {
 export type PaymentMethodOptions = {
   requestExtendedAuthorization?: boolean;
   requestIncrementalAuthorizationSupport?: boolean;
+  requestedPriority: string;
 };
 
 export type CollectPaymentMethodParams = {
   paymentIntentId: string;
   skipTipping?: boolean;
   tipEligibleAmount?: number;
+  updatePaymentIntent?: boolean;
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
@@ -232,6 +234,8 @@ export type RefundParams = {
   chargeId: string;
   amount: number;
   currency: string;
+  refundApplicationFee?: boolean;
+  reverseTransfer?: boolean;
 };
 
 export type CardPresent = {

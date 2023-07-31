@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useContext, useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput } from 'react-native';
+import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -16,10 +16,14 @@ export default function RefundPaymentScreen() {
     chargeId: string;
     amount: string;
     currency: string;
+    refundApplicationFee?: boolean;
+    reverseTransfer?: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
     amount: '100',
     currency: 'CAD',
+    refundApplicationFee: false,
+    reverseTransfer: false,
   });
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
@@ -220,6 +224,42 @@ export default function RefundPaymentScreen() {
             setInputValues((state) => ({ ...state, currency: value }))
           }
           placeholder="currency"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="REFUND APPLICATION FEE">
+        <ListItem
+          title="Refund Application Fee"
+          rightElement={
+            <Switch
+              testID="refund-application-fee"
+              value={inputValues.refundApplicationFee}
+              onValueChange={(value) => {
+                setInputValues((state) => ({
+                  ...state,
+                  refundApplicationFee: value,
+                }));
+              }}
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="REVERSE TRANSFER">
+        <ListItem
+          title="Reverse Transfer"
+          rightElement={
+            <Switch
+              testID="reverse-transfer"
+              value={inputValues.reverseTransfer}
+              onValueChange={(value) =>
+                setInputValues((state) => ({
+                  ...state,
+                  reverseTransfer: value,
+                }))
+              }
+            />
+          }
         />
       </List>
 

@@ -352,6 +352,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let paymentMethodOptions = params["paymentMethodOptions"] as? [AnyHashable : Any] ?? [:]
         let extendedAuth = paymentMethodOptions["requestExtendedAuthorization"] as? Bool ?? false
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
+        let requestedPriority = paymentMethodOptions["requestedPriority"] as? String
         let captureMethod = params["captureMethod"] as? String
 
         let paymentIntentParams = PaymentIntentParameters(
@@ -373,7 +374,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         paymentIntentParams.transferGroup = transferGroup
         paymentIntentParams.metadata = metadata
 
-        let cardPresentParams = CardPresentParameters(requestExtendedAuthorization: extendedAuth, requestIncrementalAuthorizationSupport: incrementalAuth)
+        var cardPresentParams = CardPresentParameters(requestExtendedAuthorization: extendedAuth, requestIncrementalAuthorizationSupport: incrementalAuth)
+        switch requestedPriority {
+        case "domestic":
+            cardPresentParams.requestedPriority = CardPresentRouting.domestic.rawValue as NSNumber
+        case "international":
+            cardPresentParams.requestedPriority = CardPresentRouting.international.rawValue as NSNumber
+        default:
+            break
+        }
+
         paymentIntentParams.paymentMethodOptionsParameters = PaymentMethodOptionsParameters(cardPresentParameters: cardPresentParams)
 
 
@@ -415,7 +425,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let skipTipping = params["skipTipping"] as? Bool ?? false
-        let collectConfig = CollectConfiguration(skipTipping: skipTipping)
+        let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
+        let collectConfig = CollectConfiguration(skipTipping: skipTipping, updatePaymentIntent: updatePaymentIntent)
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             let tippingConfig = TippingConfiguration(eligibleAmount: eligibleAmount)
             collectConfig.tippingConfiguration = tippingConfig
@@ -682,8 +693,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let amount = params["amount"] as? NSNumber
         let currency = params["currency"] as? String
         let intAmount = UInt(truncating: amount!);
+        let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
+        let reverseTransfer = params["reverseTransfer"] as? NSNumber
 
         let refundParams = RefundParameters(chargeId: chargeId!, amount: intAmount, currency: currency!)
+        refundParams.refundApplicationFee = refundApplicationFee
+        refundParams.reverseTransfer = reverseTransfer
 
         self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
             if let error = error as NSError? {
