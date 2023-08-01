@@ -299,6 +299,10 @@ export type UserCallbacks = {
 
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
+
+  onDidStartReaderReconnect?(reader: Reader.Type): void;
+  onTerminalDidSucceedReaderReconnect?(reader: Reader.Type): void;
+  onTerminalDidFailReaderReconnect?(reader: Reader.Type): void;
 };
 
 export namespace PaymentMethod {

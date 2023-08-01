@@ -46,6 +46,7 @@ import com.stripeterminalreactnative.ktx.connectReader
 import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
 import com.stripeterminalreactnative.listener.RNHandoffReaderListener
+import com.stripeterminalreactnative.listener.RNReaderReconnectionListener
 import com.stripeterminalreactnative.listener.RNTerminalListener
 import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
@@ -220,12 +221,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
-
+                val reconnectionListener = RNReaderReconnectionListener(context)
                 val connectedReader =
-                    terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
-                promise.resolve(nativeMapOf {
-                    putMap("reader", mapFromReader(connectedReader))
-                })
+                    terminal.connectReader(
+                        discoveryMethod,
+                        selectedReader,
+                        locationId,
+                        listener,
+                        reconnectionListener
+                    )
+                promise.resolve(
+                    nativeMapOf {
+                        putMap("reader", mapFromReader(connectedReader))
+                    }
+                )
             }
         }
     }

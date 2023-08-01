@@ -14,6 +14,9 @@ enum ReactNativeConstants: String, CaseIterable {
     case REQUEST_READER_DISPLAY_MESSAGE = "didRequestReaderDisplayMessage"
     case CHANGE_PAYMENT_STATUS = "didChangePaymentStatus"
     case CHANGE_CONNECTION_STATUS = "didChangeConnectionStatus"
+    case START_READER_RECONNECT = "didStartReaderReconnect"
+    case TERMINAL_SUCCEED_READER_RECONNECT = "terminalDidSucceedReaderReconnect"
+    case TERMINAL_FAIL_READER_RECONNECT = "terminalDidFailReaderReconnect"
 }
 
 @objc(StripeTerminalReactNative)

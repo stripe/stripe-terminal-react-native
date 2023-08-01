@@ -7,14 +7,12 @@ import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.callable.ReaderListenable
 import com.stripe.stripeterminal.external.callable.UsbReaderListener
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.BluetoothConnectionConfiguration
-import com.stripe.stripeterminal.external.models.ConnectionConfiguration.EmbeddedConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.HandoffConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.InternetConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.LocalMobileConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.UsbConnectionConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryMethod
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.BLUETOOTH_SCAN
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.EMBEDDED
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.HANDOFF
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.INTERNET
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.LOCAL_MOBILE
@@ -105,11 +103,21 @@ suspend fun Terminal.connectReader(
     reader: Reader,
     locationId: String,
     listener: ReaderListenable? = null,
+    reconnectionListener: ReaderReconnectionListener
 ): Reader = when (discoveryMethod) {
     BLUETOOTH_SCAN -> {
-        if (listener is BluetoothReaderListener)
-            connectBluetoothReader(reader, BluetoothConnectionConfiguration(locationId), listener)
-        else connectBluetoothReader(reader, BluetoothConnectionConfiguration(locationId))
+        if (listener is BluetoothReaderListener) {
+            connectBluetoothReader(
+                reader,
+                BluetoothConnectionConfiguration(locationId, true, reconnectionListener),
+                listener
+            )
+        } else {
+            connectBluetoothReader(
+                reader,
+                BluetoothConnectionConfiguration(locationId, true, reconnectionListener)
+            )
+        }
     }
     LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
     INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
@@ -119,9 +127,18 @@ suspend fun Terminal.connectReader(
         else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
     }
     USB -> {
-        if (listener is UsbReaderListener)
-            connectUsbReader(reader, UsbConnectionConfiguration(locationId), listener)
-        else connectUsbReader(reader, UsbConnectionConfiguration(locationId))
+        if (listener is UsbReaderListener) {
+            connectUsbReader(
+                reader,
+                UsbConnectionConfiguration(locationId, true, reconnectionListener),
+                listener
+            )
+        } else {
+            connectUsbReader(
+                reader,
+                UsbConnectionConfiguration(locationId, true, reconnectionListener)
+            )
+        }
     }
     else -> {
         throw IllegalArgumentException("Unsupported discovery method: ${discoveryMethod}")

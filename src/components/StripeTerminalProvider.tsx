@@ -26,6 +26,9 @@ const {
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
+  START_READER_RECONNECT,
+  TERMINAL_SUCCEED_READER_RECONNECT,
+  TERMINAL_FAIL_READER_RECONNECT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -176,6 +179,30 @@ export function StripeTerminalProvider({
     [log]
   );
 
+  const didStartReaderReconnect = useCallback(
+    ({ reader }: { reader: Reader.Type }) => {
+      log('didStartReaderReconnect', reader);
+      emitter?.emit(START_READER_RECONNECT, reader);
+    },
+    [log]
+  );
+
+  const terminalDidSucceedReaderReconnect = useCallback(
+    ({ reader }: { reader: Reader.Type }) => {
+      log('terminalDidSucceedReaderReconnect', reader);
+      emitter?.emit(TERMINAL_SUCCEED_READER_RECONNECT, reader);
+    },
+    [log]
+  );
+
+  const terminalDidFailReaderReconnect = useCallback(
+    ({ reader }: { reader: Reader.Type }) => {
+      log('terminalDidFailReaderReconnect', reader);
+      emitter?.emit(TERMINAL_FAIL_READER_RECONNECT, reader);
+    },
+    [log]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -191,6 +218,13 @@ export function StripeTerminalProvider({
   useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
+
+  useListener(START_READER_RECONNECT, didStartReaderReconnect);
+  useListener(
+    TERMINAL_SUCCEED_READER_RECONNECT,
+    terminalDidSucceedReaderReconnect
+  );
+  useListener(TERMINAL_FAIL_READER_RECONNECT, terminalDidFailReaderReconnect);
 
   const tokenProviderHandler = async () => {
     try {
