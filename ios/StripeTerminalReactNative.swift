@@ -20,7 +20,7 @@ enum ReactNativeConstants: String, CaseIterable {
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate {
 
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
@@ -244,7 +244,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let locationId = params["locationId"] as? String
 
         let connectionConfig = BluetoothConnectionConfiguration(
-            locationId: locationId ?? selectedReader.locationId ?? ""
+            locationId: locationId ?? selectedReader.locationId ?? "",
+            autoReconnectOnUnexpectedDisconnect: true,
+            autoReconnectionDelegate: self
         )
 
         Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
@@ -514,6 +516,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didChangeConnectionStatus status: ConnectionStatus) {
         let result = Mappers.mapFromConnectionStatus(status)
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
+    }
+
+    func terminal(_ terminal: Terminal, didStartReaderReconnect cancelable: SCPCancelable) {
+        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: nil)
+    }
+
+    func terminalDidSucceedReaderReconnect(_ terminal: Terminal) {
+        sendEvent(withName: ReactNativeConstants.TERMINAL_SUCCEED_READER_RECONNECT.rawValue, body: nil)
+    }
+
+    func terminalDidFailReaderReconnect(_ terminal: Terminal) {
+        sendEvent(withName: ReactNativeConstants.TERMINAL_FAIL_READER_RECONNECT.rawValue, body: nil)
     }
 
     @objc(cancelPaymentIntent:resolver:rejecter:)
