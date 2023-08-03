@@ -5,6 +5,7 @@ import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.HandoffReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.callable.ReaderListenable
+import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
 import com.stripe.stripeterminal.external.callable.UsbReaderListener
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.BluetoothConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.HandoffConnectionConfiguration
