@@ -518,7 +518,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
 
-    func terminal(_ terminal: Terminal, didStartReaderReconnect cancelable: SCPCancelable) {
+    func terminal(_ terminal: Terminal, didStartReaderReconnect cancelable: Cancelable) {
         sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: nil)
     }
 
