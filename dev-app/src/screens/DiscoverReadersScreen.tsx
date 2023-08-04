@@ -8,6 +8,7 @@ import {
   View,
   TouchableWithoutFeedback,
   Platform,
+  Switch,
 } from 'react-native';
 import {
   useStripeTerminal,
@@ -23,6 +24,10 @@ import ListItem from '../components/ListItem';
 import List from '../components/List';
 
 import type { RouteParamList } from '../App';
+import {
+  getEnableAutoReconnect,
+  setEnableAutoReconnect,
+} from '../util/merchantStorage';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -38,6 +43,7 @@ export default function DiscoverReadersScreen() {
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
+  const [autoReconnection, setAutoReconnection] = useState(false);
   const pickerRef = useRef<Picker<string>>();
 
   const { simulated, discoveryMethod } = params;
@@ -136,6 +142,16 @@ export default function DiscoverReadersScreen() {
     connectingReader,
   ]);
 
+  useEffect(() => {
+    const fetchAutoReconnectValue = async () => {
+      const value = await getEnableAutoReconnect();
+      if (value !== null) {
+        setAutoReconnection(value);
+      }
+    };
+    fetchAutoReconnectValue();
+  }, []);
+
   const handleDiscoverReaders = useCallback(async () => {
     setDiscoveringLoading(true);
     // List of discovered readers will be available within useStripeTerminal hook
@@ -225,6 +241,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectBluetoothReader({
       reader,
       locationId: selectedLocation?.id || reader?.location?.id,
+      autoReconnect: autoReconnection,
     });
 
     if (error) {
@@ -256,6 +273,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectUsbReader({
       reader,
       locationId: selectedLocation?.id || reader?.location?.id,
+      autoReconnect: autoReconnection,
     });
 
     if (error) {
@@ -324,6 +342,37 @@ export default function DiscoverReadersScreen() {
           />
         </List>
       )}
+
+      {!simulated &&
+        (discoveryMethod === 'bluetoothScan' ||
+          discoveryMethod === 'usb' ||
+          discoveryMethod === 'bluetoothProximity') && (
+          <List
+            bolded={false}
+            topSpacing={false}
+            title="AUTOMATIC RECONNECTION"
+          >
+            <ListItem
+              title="Enable Auto-Reconnect"
+              rightElement={
+                <Switch
+                  testID="enable-automatic-reconnection"
+                  value={autoReconnection}
+                  onValueChange={(value) => {
+                    setAutoReconnection(value);
+                    setEnableAutoReconnect(value);
+                  }}
+                />
+              }
+            />
+
+            <Text style={styles.infoText}>
+              Automatic reconnection support for Bluetooth in iOS and Bluetooth
+              and USB in Android, where if the reader loses connection the SDK
+              will automatically attempts to reconnect to the reader.
+            </Text>
+          </List>
+        )}
 
       <List
         title="NEARBY READERS"

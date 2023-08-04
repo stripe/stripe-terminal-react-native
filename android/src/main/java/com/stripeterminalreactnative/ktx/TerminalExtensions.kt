@@ -103,21 +103,20 @@ suspend fun Terminal.connectReader(
     discoveryMethod: DiscoveryMethod,
     reader: Reader,
     locationId: String,
+    autoReconnect: Boolean = false,
     listener: ReaderListenable? = null,
     reconnectionListener: ReaderReconnectionListener
 ): Reader = when (discoveryMethod) {
     BLUETOOTH_SCAN -> {
-        if (listener is BluetoothReaderListener) {
-            connectBluetoothReader(
-                reader,
-                BluetoothConnectionConfiguration(locationId, true, reconnectionListener),
-                listener
-            )
+        val connConfig = if (autoReconnect) {
+            BluetoothConnectionConfiguration(locationId, true, reconnectionListener)
         } else {
-            connectBluetoothReader(
-                reader,
-                BluetoothConnectionConfiguration(locationId, true, reconnectionListener)
-            )
+            BluetoothConnectionConfiguration(locationId)
+        }
+        if (listener is BluetoothReaderListener) {
+            connectBluetoothReader(reader, connConfig, listener)
+        } else {
+            connectBluetoothReader(reader, connConfig)
         }
     }
     LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
@@ -128,17 +127,15 @@ suspend fun Terminal.connectReader(
         else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
     }
     USB -> {
-        if (listener is UsbReaderListener) {
-            connectUsbReader(
-                reader,
-                UsbConnectionConfiguration(locationId, true, reconnectionListener),
-                listener
-            )
+        val connConfig = if (autoReconnect) {
+            UsbConnectionConfiguration(locationId, true, reconnectionListener)
         } else {
-            connectUsbReader(
-                reader,
-                UsbConnectionConfiguration(locationId, true, reconnectionListener)
-            )
+            UsbConnectionConfiguration(locationId)
+        }
+        if (listener is UsbReaderListener) {
+            connectUsbReader(reader, connConfig, listener)
+        } else {
+            connectUsbReader(reader, connConfig)
         }
     }
     else -> {

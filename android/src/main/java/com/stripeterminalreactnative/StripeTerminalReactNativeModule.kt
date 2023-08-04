@@ -221,12 +221,15 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
+                val autoReconnect = params.getBoolean("autoReconnect") ?: false
+
                 val reconnectionListener = RNReaderReconnectionListener(context)
                 val connectedReader =
                     terminal.connectReader(
                         discoveryMethod,
                         selectedReader,
                         locationId,
+                        autoReconnect,
                         listener,
                         reconnectionListener
                     )

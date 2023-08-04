@@ -242,12 +242,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let locationId = params["locationId"] as? String
+        let autoReconnect = params["autoReconnect"] as? Bool
 
-        let connectionConfig = BluetoothConnectionConfiguration(
-            locationId: locationId ?? selectedReader.locationId ?? "",
-            autoReconnectOnUnexpectedDisconnect: true,
-            autoReconnectionDelegate: self
-        )
+        let connectionConfig: BluetoothConnectionConfiguration? = nil
+        if autoReconnect {
+            connectionConfig = BluetoothConnectionConfiguration(
+                        locationId: locationId ?? selectedReader.locationId ?? "",
+                        autoReconnectOnUnexpectedDisconnect: true,
+                        autoReconnectionDelegate: self
+                    )
+        } else {
+             connectionConfig = BluetoothConnectionConfiguration(
+						locationId: locationId ?? selectedReader.locationId ?? "")
+        }
 
         Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
