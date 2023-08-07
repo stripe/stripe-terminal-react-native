@@ -250,26 +250,20 @@ export function useStripeTerminal(props?: Props) {
     [onDidChangeConnectionStatus]
   );
 
-  const didStartReaderReconnect = useCallback(
-    ({ reader }: { reader: Reader.Type }) => {
-      onDidStartReaderReconnect?.(reader);
-    },
-    [onDidStartReaderReconnect]
-  );
+  const didStartReaderReconnect = useCallback(() => {
+    onDidStartReaderReconnect?.();
+  }, [onDidStartReaderReconnect]);
 
-  const terminalDidSucceedReaderReconnect = useCallback(
-    ({ reader }: { reader: Reader.Type }) => {
-      onTerminalDidSucceedReaderReconnect?.(reader);
-    },
-    [onTerminalDidSucceedReaderReconnect]
-  );
+  const terminalDidSucceedReaderReconnect = useCallback(() => {
+    console.log('Eric userStripeTerminal terminalDidSucceedReaderReconnect');
+    onTerminalDidSucceedReaderReconnect?.();
+  }, [onTerminalDidSucceedReaderReconnect]);
 
-  const terminalDidFailReaderReconnect = useCallback(
-    ({ reader }: { reader: Reader.Type }) => {
-      onTerminalDidFailReaderReconnect?.(reader);
-    },
-    [onTerminalDidFailReaderReconnect]
-  );
+  const terminalDidFailReaderReconnect = useCallback(() => {
+    console.log('Eric userStripeTerminal terminalDidFailReaderReconnect');
+    onTerminalDidFailReaderReconnect?.();
+    setConnectedReader(null);
+  }, [onTerminalDidFailReaderReconnect, setConnectedReader]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
