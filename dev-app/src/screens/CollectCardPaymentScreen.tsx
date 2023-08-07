@@ -152,6 +152,10 @@ export default function CollectCardPaymentScreen() {
         payment_method_types: paymentMethods,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
+        on_behalf_of: inputValues?.connectedAccountId,
+        application_fee_amount: inputValues?.applicationFeeAmount
+          ? Number(inputValues.applicationFeeAmount)
+          : undefined,
       });
 
       if ('error' in resp) {
