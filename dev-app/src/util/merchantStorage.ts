@@ -7,6 +7,7 @@ const SELECTED_ACCOUNT_KEY = '@rn_selected_example_account';
 const ACCOUNTS_KEY = '@rn_example_accounts';
 const DISCOVERY_KEY = '@rn_example_discovery';
 const AUTOMATIC_RECONNECTION_KEY = 'autoReconnection';
+const CONNECTED_ACCOUNT_ID_KEY = '@rn_example_connected_account_key';
 
 export const clearMerchantStorage = async () => AsyncStorage.clear();
 
@@ -95,3 +96,14 @@ export const setEnableAutoReconnect = async (autoReconnection: boolean) =>
     AUTOMATIC_RECONNECTION_KEY,
     JSON.stringify(autoReconnection)
   );
+
+export const setStoredConnectedAccountID = async (
+  storedConnectedAccountID: string
+) =>
+  await AsyncStorage.setItem(
+    CONNECTED_ACCOUNT_ID_KEY,
+    storedConnectedAccountID
+  );
+
+export const getStoredConnectedAccountID = async (): Promise<string | null> =>
+  await AsyncStorage.getItem(CONNECTED_ACCOUNT_ID_KEY);
