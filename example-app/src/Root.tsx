@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 import App from './App';
@@ -9,9 +9,8 @@ export default function Root() {
     string | null
   >(null);
 
-  const fetchTokenProvider = async (): Promise<string> => {
+  const fetchTokenProvider = useCallback(async (): Promise<string> => {
     if (!api) {
-      console.log('hi hi hi');
       return '';
     }
 
@@ -23,7 +22,7 @@ export default function Root() {
     }
 
     return resp?.secret || '';
-  };
+  }, []);
 
   return (
     <AppContext.Provider

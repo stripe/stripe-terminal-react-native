@@ -61,7 +61,7 @@ export default function Root() {
     initAccount();
   }, [onSelectAccount]);
 
-  const fetchTokenProvider = async (): Promise<string> => {
+  const fetchTokenProvider = useCallback(async (): Promise<string> => {
     if (!api) {
       return '';
     }
@@ -72,7 +72,7 @@ export default function Root() {
     }
 
     return resp?.secret || '';
-  };
+  }, []);
 
   return (
     <AppContext.Provider
