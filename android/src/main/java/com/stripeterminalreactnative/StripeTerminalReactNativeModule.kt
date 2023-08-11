@@ -221,7 +221,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
-                val autoReconnect = params.getBoolean("autoReconnect") ?: false
+
+                val autoReconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB) {
+                    params.getBoolean("autoReconnect") ?: false
+                } else false
 
                 val reconnectionListener = RNReaderReconnectionListener(context)
                 val connectedReader =
