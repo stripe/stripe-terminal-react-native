@@ -255,12 +255,10 @@ export function useStripeTerminal(props?: Props) {
   }, [onDidStartReaderReconnect]);
 
   const terminalDidSucceedReaderReconnect = useCallback(() => {
-    console.log('Eric userStripeTerminal terminalDidSucceedReaderReconnect');
     onTerminalDidSucceedReaderReconnect?.();
   }, [onTerminalDidSucceedReaderReconnect]);
 
   const terminalDidFailReaderReconnect = useCallback(() => {
-    console.log('Eric userStripeTerminal terminalDidFailReaderReconnect');
     onTerminalDidFailReaderReconnect?.();
     setConnectedReader(null);
   }, [onTerminalDidFailReaderReconnect, setConnectedReader]);

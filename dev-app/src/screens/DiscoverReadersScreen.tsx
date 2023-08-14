@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   StyleSheet,
   Text,
@@ -24,10 +30,7 @@ import ListItem from '../components/ListItem';
 import List from '../components/List';
 
 import type { RouteParamList } from '../App';
-import {
-  getEnableAutoReconnect,
-  setEnableAutoReconnect,
-} from '../util/merchantStorage';
+import { AppContext } from '../AppContext';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -43,9 +46,11 @@ export default function DiscoverReadersScreen() {
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
-  const [autoReconnection, setAutoReconnection] = useState(false);
   const pickerRef = useRef<Picker<string>>();
-
+  const {
+    autoReconnectOnUnexpectedDisconnect,
+    setAutoReconnectOnUnexpectedDisconnect,
+  } = useContext(AppContext);
   const { simulated, discoveryMethod } = params;
 
   const {
@@ -142,16 +147,6 @@ export default function DiscoverReadersScreen() {
     connectingReader,
   ]);
 
-  useEffect(() => {
-    const fetchAutoReconnectValue = async () => {
-      const value = await getEnableAutoReconnect();
-      if (value !== null) {
-        setAutoReconnection(value);
-      }
-    };
-    fetchAutoReconnectValue();
-  }, []);
-
   const handleDiscoverReaders = useCallback(async () => {
     setDiscoveringLoading(true);
     // List of discovered readers will be available within useStripeTerminal hook
@@ -241,7 +236,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectBluetoothReader({
       reader,
       locationId: selectedLocation?.id || reader?.location?.id,
-      autoReconnect: autoReconnection,
+      autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     });
 
     if (error) {
@@ -273,7 +268,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectUsbReader({
       reader,
       locationId: selectedLocation?.id || reader?.location?.id,
-      autoReconnect: autoReconnection,
+      autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     });
 
     if (error) {
@@ -357,10 +352,9 @@ export default function DiscoverReadersScreen() {
               rightElement={
                 <Switch
                   testID="enable-automatic-reconnection"
-                  value={autoReconnection}
+                  value={autoReconnectOnUnexpectedDisconnect}
                   onValueChange={(value) => {
-                    setAutoReconnection(value);
-                    setEnableAutoReconnect(value);
+                    setAutoReconnectOnUnexpectedDisconnect(value);
                   }}
                 />
               }

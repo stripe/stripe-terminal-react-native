@@ -181,17 +181,14 @@ export function StripeTerminalProvider({
 
   const didStartReaderReconnect = useCallback(() => {
     log('didStartReaderReconnect');
-    emitter?.emit(START_READER_RECONNECT);
   }, [log]);
 
   const terminalDidSucceedReaderReconnect = useCallback(() => {
     log('terminalDidSucceedReaderReconnect');
-    emitter?.emit(TERMINAL_SUCCEED_READER_RECONNECT);
   }, [log]);
 
   const terminalDidFailReaderReconnect = useCallback(() => {
     log('terminalDidFailReaderReconnect');
-    emitter?.emit(TERMINAL_FAIL_READER_RECONNECT);
   }, [log]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);

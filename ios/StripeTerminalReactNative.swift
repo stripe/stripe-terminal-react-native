@@ -242,10 +242,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let locationId = params["locationId"] as? String
-        let autoReconnect = params["autoReconnect"] as? Bool ?? false
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
 
         var connectionConfig: BluetoothConnectionConfiguration
-        if autoReconnect {
+        if autoReconnectOnUnexpectedDisconnect {
             connectionConfig = BluetoothConnectionConfiguration(
                         locationId: locationId ?? selectedReader.locationId ?? "",
                         autoReconnectOnUnexpectedDisconnect: true,

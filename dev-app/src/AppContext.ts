@@ -11,4 +11,6 @@ export const AppContext = React.createContext<IAppContext>({
   setAccount: (_k) => null,
   lastSuccessfulChargeId: null,
   setLastSuccessfulChargeId: (_id) => null,
+  autoReconnectOnUnexpectedDisconnect: false,
+  setAutoReconnectOnUnexpectedDisconnect: (_b) => null,
 });
