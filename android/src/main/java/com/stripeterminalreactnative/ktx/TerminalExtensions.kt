@@ -108,11 +108,7 @@ suspend fun Terminal.connectReader(
     reconnectionListener: ReaderReconnectionListener
 ): Reader = when (discoveryMethod) {
     BLUETOOTH_SCAN -> {
-        val connConfig = if (autoReconnectOnUnexpectedDisconnect) {
-            BluetoothConnectionConfiguration(locationId, true, reconnectionListener)
-        } else {
-            BluetoothConnectionConfiguration(locationId)
-        }
+        val connConfig = BluetoothConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
         if (listener is BluetoothReaderListener) {
             connectBluetoothReader(reader, connConfig, listener)
         } else {
@@ -127,11 +123,7 @@ suspend fun Terminal.connectReader(
         else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
     }
     USB -> {
-        val connConfig = if (autoReconnectOnUnexpectedDisconnect) {
-            UsbConnectionConfiguration(locationId, true, reconnectionListener)
-        } else {
-            UsbConnectionConfiguration(locationId)
-        }
+        val connConfig = UsbConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
         if (listener is UsbReaderListener) {
             connectUsbReader(reader, connConfig, listener)
         } else {
