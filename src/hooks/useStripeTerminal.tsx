@@ -73,8 +73,8 @@ export const {
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
   START_READER_RECONNECT,
-  TERMINAL_SUCCEED_READER_RECONNECT,
-  TERMINAL_FAIL_READER_RECONNECT,
+  READER_RECONNECT_SUCCEED,
+  READER_RECONNECT_FAIL,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -130,8 +130,8 @@ export function useStripeTerminal(props?: Props) {
     onDidChangePaymentStatus,
     onDidChangeConnectionStatus,
     onDidStartReaderReconnect,
-    onTerminalDidSucceedReaderReconnect,
-    onTerminalDidFailReaderReconnect,
+    onDidSucceedReaderReconnect,
+    onDidFailReaderReconnect,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -254,14 +254,14 @@ export function useStripeTerminal(props?: Props) {
     onDidStartReaderReconnect?.();
   }, [onDidStartReaderReconnect]);
 
-  const terminalDidSucceedReaderReconnect = useCallback(() => {
-    onTerminalDidSucceedReaderReconnect?.();
-  }, [onTerminalDidSucceedReaderReconnect]);
+  const didSucceedReaderReconnect = useCallback(() => {
+    onDidSucceedReaderReconnect?.();
+  }, [onDidSucceedReaderReconnect]);
 
-  const terminalDidFailReaderReconnect = useCallback(() => {
-    onTerminalDidFailReaderReconnect?.();
+  const didFailReaderReconnect = useCallback(() => {
+    onDidFailReaderReconnect?.();
     setConnectedReader(null);
-  }, [onTerminalDidFailReaderReconnect, setConnectedReader]);
+  }, [onDidFailReaderReconnect, setConnectedReader]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
@@ -280,11 +280,8 @@ export function useStripeTerminal(props?: Props) {
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
   useListener(START_READER_RECONNECT, didStartReaderReconnect);
-  useListener(
-    TERMINAL_SUCCEED_READER_RECONNECT,
-    terminalDidSucceedReaderReconnect
-  );
-  useListener(TERMINAL_FAIL_READER_RECONNECT, terminalDidFailReaderReconnect);
+  useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
+  useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {

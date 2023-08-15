@@ -63,6 +63,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
     private var readReusableCardCancelable: Cancelable? = null
+    private var cancelReaderConnectionCancellable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -226,7 +227,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     params.getBoolean("autoReconnectOnUnexpectedDisconnect") ?: false
                 } else false
 
-                val reconnectionListener = RNReaderReconnectionListener(context)
+                val reconnectionListener = RNReaderReconnectionListener(context) {
+                    cancelReaderConnectionCancellable = it
+                }
                 val connectedReader =
                     terminal.connectReader(
                         discoveryMethod,
@@ -287,6 +290,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun disconnectReader(promise: Promise) {
         paymentIntents.clear()
         terminal.disconnectReader(NoOpCallback(promise))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun cancelReaderReconnection(promise: Promise) {
+        cancelOperation(promise, cancelReaderConnectionCancellable, "readerReconnection")
     }
 
     @ReactMethod

@@ -303,8 +303,8 @@ export type UserCallbacks = {
   onDidChangePaymentStatus?(status: PaymentStatus): void;
 
   onDidStartReaderReconnect?(): void;
-  onTerminalDidSucceedReaderReconnect?(): void;
-  onTerminalDidFailReaderReconnect?(): void;
+  onDidSucceedReaderReconnect?(): void;
+  onDidFailReaderReconnect?(): void;
 };
 
 export namespace PaymentMethod {

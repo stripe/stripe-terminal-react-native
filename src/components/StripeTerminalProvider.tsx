@@ -27,8 +27,8 @@ const {
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
   START_READER_RECONNECT,
-  TERMINAL_SUCCEED_READER_RECONNECT,
-  TERMINAL_FAIL_READER_RECONNECT,
+  READER_RECONNECT_SUCCEED,
+  READER_RECONNECT_FAIL,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -183,12 +183,12 @@ export function StripeTerminalProvider({
     log('didStartReaderReconnect');
   }, [log]);
 
-  const terminalDidSucceedReaderReconnect = useCallback(() => {
-    log('terminalDidSucceedReaderReconnect');
+  const didSucceedReaderReconnect = useCallback(() => {
+    log('didSucceedReaderReconnect');
   }, [log]);
 
-  const terminalDidFailReaderReconnect = useCallback(() => {
-    log('terminalDidFailReaderReconnect');
+  const didFailReaderReconnect = useCallback(() => {
+    log('didFailReaderReconnect');
   }, [log]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
@@ -208,11 +208,8 @@ export function StripeTerminalProvider({
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
 
   useListener(START_READER_RECONNECT, didStartReaderReconnect);
-  useListener(
-    TERMINAL_SUCCEED_READER_RECONNECT,
-    terminalDidSucceedReaderReconnect
-  );
-  useListener(TERMINAL_FAIL_READER_RECONNECT, terminalDidFailReaderReconnect);
+  useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
+  useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
 
   const tokenProviderHandler = async () => {
     try {
