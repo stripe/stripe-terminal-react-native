@@ -138,7 +138,6 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         paymentMethodTypes: paymentMethods,
-        setupFutureUsage: enableInterac ? undefined : 'off_session',
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount

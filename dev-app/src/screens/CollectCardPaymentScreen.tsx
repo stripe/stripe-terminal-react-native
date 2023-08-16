@@ -153,9 +153,7 @@ export default function CollectCardPaymentScreen() {
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,
-        application_fee_amount: inputValues?.applicationFeeAmount
-          ? Number(inputValues.applicationFeeAmount)
-          : undefined,
+        application_fee_amount: Number(inputValues.applicationFeeAmount),
       });
 
       if ('error' in resp) {
@@ -190,7 +188,6 @@ export default function CollectCardPaymentScreen() {
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
         paymentMethodTypes: paymentMethods,
-        setupFutureUsage: enableInterac ? undefined : 'off_session',
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount

@@ -124,7 +124,6 @@ export class Api {
     description = 'Example PaymentIntent',
     payment_method_types,
     payment_method_options,
-    setup_future_usage,
     capture_method,
     on_behalf_of,
     application_fee_amount,
@@ -136,9 +135,6 @@ export class Api {
     formData.append('currency', currency);
     formData.append('description', description);
     formData.append('capture_method', capture_method || 'manual');
-    if (setup_future_usage) {
-      formData.append('setup_future_usage', setup_future_usage);
-    }
 
     if (typeof payment_method_types === 'string') {
       formData.append('payment_method_types[]', payment_method_types);
