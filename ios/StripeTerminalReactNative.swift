@@ -14,10 +14,13 @@ enum ReactNativeConstants: String, CaseIterable {
     case REQUEST_READER_DISPLAY_MESSAGE = "didRequestReaderDisplayMessage"
     case CHANGE_PAYMENT_STATUS = "didChangePaymentStatus"
     case CHANGE_CONNECTION_STATUS = "didChangeConnectionStatus"
+    case START_READER_RECONNECT = "didStartReaderReconnect"
+    case READER_RECONNECT_SUCCEED = "didSucceedReaderReconnect"
+    case READER_RECONNECT_FAIL = "didFailReaderReconnect"
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate {
 
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
@@ -45,7 +48,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var collectSetupIntentCancelable: Cancelable? = nil
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
+    var cancelReaderConnectionCancellable: Cancelable? = nil
     var loggingToken: String? = nil
+    var reconnectReader: Reader? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -239,13 +244,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let locationId = params["locationId"] as? String
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
 
         let connectionConfig = BluetoothConnectionConfiguration(
-            locationId: locationId ?? selectedReader.locationId ?? ""
+                        locationId: locationId ?? selectedReader.locationId ?? "",
+                        autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+                        autoReconnectionDelegate: autoReconnectOnUnexpectedDisconnect ? self : nil
         )
 
         Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
+                self.reconnectReader = reader
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
@@ -511,6 +520,34 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didChangeConnectionStatus status: ConnectionStatus) {
         let result = Mappers.mapFromConnectionStatus(status)
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
+    }
+
+    func terminal(_ terminal: Terminal, didStartReaderReconnect cancelable: Cancelable) {
+        self.cancelReaderConnectionCancellable = cancelable
+        let reader = Mappers.mapFromReader(self.reconnectReader!)
+        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reader": reader])
+    }
+
+    func terminalDidSucceedReaderReconnect(_ terminal: Terminal) {
+        let reader = Mappers.mapFromReader(self.reconnectReader!)
+        sendEvent(withName: ReactNativeConstants.READER_RECONNECT_SUCCEED.rawValue, body: ["reader": reader])
+    }
+
+    func terminalDidFailReaderReconnect(_ terminal: Terminal) {
+        self.reconnectReader = nil
+        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader reconnect fail")
+        sendEvent(withName: ReactNativeConstants.READER_RECONNECT_FAIL.rawValue, body: error)
+    }
+
+    @objc(cancelReaderReconnection:rejecter:)
+    func cancelReaderReconnection(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.cancelReaderConnectionCancellable?.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else {
+                resolve([:])
+            }
+        }
     }
 
     @objc(cancelPaymentIntent:resolver:rejecter:)

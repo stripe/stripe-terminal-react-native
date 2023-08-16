@@ -13,4 +13,7 @@ enum class ReactNativeConstants(val listenerName: String) {
     REPORT_UPDATE_PROGRESS("didReportReaderSoftwareUpdateProgress"),
     START_INSTALLING_UPDATE("didStartInstallingUpdate"),
     UPDATE_DISCOVERED_READERS("didUpdateDiscoveredReaders"),
+    START_READER_RECONNECT("didStartReaderReconnect"),
+    READER_RECONNECT_SUCCEED("didSucceedReaderReconnect"),
+    READER_RECONNECT_FAIL("didFailReaderReconnect"),
 }

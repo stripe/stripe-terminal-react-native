@@ -16,6 +16,10 @@ export default function Root() {
   const [lastSuccessfulChargeId, setLastSuccessfulChargeId] = useState<
     string | null
   >(null);
+  const [
+    autoReconnectOnUnexpectedDisconnect,
+    setAutoReconnectOnUnexpectedDisconnect,
+  ] = useState<boolean | false>(false);
 
   useEffect(() => {
     // var is a string in CI
@@ -82,6 +86,9 @@ export default function Root() {
         setAccount: onSelectAccount,
         setLastSuccessfulChargeId: (id) => setLastSuccessfulChargeId(id),
         lastSuccessfulChargeId,
+        autoReconnectOnUnexpectedDisconnect,
+        setAutoReconnectOnUnexpectedDisconnect: (b) =>
+          setAutoReconnectOnUnexpectedDisconnect(b),
       }}
     >
       <StripeTerminalProvider

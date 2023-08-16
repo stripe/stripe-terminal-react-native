@@ -46,6 +46,7 @@ import com.stripeterminalreactnative.ktx.connectReader
 import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
 import com.stripeterminalreactnative.listener.RNHandoffReaderListener
+import com.stripeterminalreactnative.listener.RNReaderReconnectionListener
 import com.stripeterminalreactnative.listener.RNTerminalListener
 import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +63,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
     private var readReusableCardCancelable: Cancelable? = null
+    private var cancelReaderConnectionCancellable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -221,11 +223,27 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
+                val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB) {
+                    params.getBoolean("autoReconnectOnUnexpectedDisconnect") ?: false
+                } else false
+
+                val reconnectionListener = RNReaderReconnectionListener(context) {
+                    cancelReaderConnectionCancellable = it
+                }
                 val connectedReader =
-                    terminal.connectReader(discoveryMethod, selectedReader, locationId, listener)
-                promise.resolve(nativeMapOf {
-                    putMap("reader", mapFromReader(connectedReader))
-                })
+                    terminal.connectReader(
+                        discoveryMethod,
+                        selectedReader,
+                        locationId,
+                        autoReconnectOnUnexpectedDisconnect,
+                        listener,
+                        reconnectionListener
+                    )
+                promise.resolve(
+                    nativeMapOf {
+                        putMap("reader", mapFromReader(connectedReader))
+                    }
+                )
             }
         }
     }
@@ -272,6 +290,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun disconnectReader(promise: Promise) {
         paymentIntents.clear()
         terminal.disconnectReader(NoOpCallback(promise))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun cancelReaderReconnection(promise: Promise) {
+        cancelOperation(promise, cancelReaderConnectionCancellable, "readerReconnection")
     }
 
     @ReactMethod
