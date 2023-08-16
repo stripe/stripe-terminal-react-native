@@ -179,17 +179,29 @@ export function StripeTerminalProvider({
     [log]
   );
 
-  const didStartReaderReconnect = useCallback(() => {
-    log('didStartReaderReconnect');
-  }, [log]);
+  const didStartReaderReconnect = useCallback(
+    ({ reader }: { reader: Reader.Type }) => {
+      log('didStartReaderReconnect', reader);
+      emitter?.emit(START_READER_RECONNECT, reader);
+    },
+    [log]
+  );
 
-  const didSucceedReaderReconnect = useCallback(() => {
-    log('didSucceedReaderReconnect');
-  }, [log]);
+  const didSucceedReaderReconnect = useCallback(
+    ({ reader }: { reader: Reader.Type }) => {
+      log('didSucceedReaderReconnect');
+      emitter?.emit(READER_RECONNECT_SUCCEED, reader);
+    },
+    [log]
+  );
 
-  const didFailReaderReconnect = useCallback(() => {
-    log('didFailReaderReconnect');
-  }, [log]);
+  const didFailReaderReconnect = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      log('didFailReaderReconnect');
+      emitter?.emit(READER_RECONNECT_FAIL, error);
+    },
+    [log]
+  );
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
