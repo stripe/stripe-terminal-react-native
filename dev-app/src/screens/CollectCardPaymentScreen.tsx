@@ -33,6 +33,12 @@ const CAPTURE_METHODS = [
   { value: 'manual', label: 'manual' },
 ];
 
+const ROUTING_PRIORITY = [
+  { value: '', label: 'default' },
+  { value: 'domestic', label: 'domestic' },
+  { value: 'international', label: 'international' },
+];
+
 export default function CollectCardPaymentScreen() {
   const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
 
@@ -44,15 +50,19 @@ export default function CollectCardPaymentScreen() {
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
     captureMethod: 'automatic' | 'manual';
+    requestedPriority: 'domestic' | 'international' | '';
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
     captureMethod: 'manual',
+    requestedPriority: '',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
+  const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
+    useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -121,12 +131,16 @@ export default function CollectCardPaymentScreen() {
     if (enableInterac) {
       paymentMethods.push('interac_present');
     }
+    const routingPriority = {
+      requested_priority: inputValues.requestedPriority,
+    };
     const paymentMethodOptions = {
       card_present: {
         request_extended_authorization:
           inputValues.requestExtendedAuthorization,
         request_incremental_authorization_support:
           inputValues.requestIncrementalAuthorizationSupport,
+        routing: routingPriority,
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
@@ -183,6 +197,7 @@ export default function CollectCardPaymentScreen() {
             inputValues.requestExtendedAuthorization,
           requestIncrementalAuthorizationSupport:
             inputValues.requestIncrementalAuthorizationSupport,
+          requestedPriority: inputValues.requestedPriority,
         },
         captureMethod: inputValues?.captureMethod,
       });
@@ -261,6 +276,7 @@ export default function CollectCardPaymentScreen() {
       tipEligibleAmount: tipEligibleAmount
         ? Number(tipEligibleAmount)
         : undefined,
+      updatePaymentIntent: enableUpdatePaymentIntent,
     });
 
     if (error) {
@@ -505,6 +521,27 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
+      <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
+        <Picker
+          selectedValue={inputValues?.requestedPriority}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-routing-priority-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, requestedPriority: value }))
+          }
+        >
+          {ROUTING_PRIORITY.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
+
       <List bolded={false} topSpacing={false} title="CONNECT">
         <ListItem
           title="Enable Connect"
@@ -614,6 +651,19 @@ export default function CollectCardPaymentScreen() {
                   requestIncrementalAuthorizationSupport: value,
                 }))
               }
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
+        <ListItem
+          title="Enable Update PaymentIntent"
+          rightElement={
+            <Switch
+              testID="enable-update-paymentIntent"
+              value={enableUpdatePaymentIntent}
+              onValueChange={(value) => setEnableUpdatePaymentIntent(value)}
             />
           }
         />

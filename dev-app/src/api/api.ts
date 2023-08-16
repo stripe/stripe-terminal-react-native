@@ -3,6 +3,26 @@ import type { Stripe } from 'stripe';
 // Disclaimer: we're using the client layer in lieu of a merchant backend in order
 // to allow dynamic switching of merchant accounts within the app. This eases dev and qa
 // validation within stripe and SHOULD NOT be used as prior art for your own POS implementation
+
+interface RequestedPriority {
+  requested_priority: string;
+}
+
+interface CardPresentEx {
+  routing: RequestedPriority;
+}
+
+interface PaymentMethodOptionsEx {
+  card_present: CardPresentEx;
+}
+
+interface PaymentIntentCreateParamsEx {
+  payment_method_options: PaymentMethodOptionsEx;
+}
+
+type NewPaymentIntentCreateParams = Stripe.PaymentIntentCreateParams &
+  PaymentIntentCreateParamsEx;
+
 export class Api {
   secretKey: string;
 
@@ -99,7 +119,7 @@ export class Api {
     payment_method_options,
     setup_future_usage,
     capture_method,
-  }: Stripe.PaymentIntentCreateParams): Promise<
+  }: NewPaymentIntentCreateParams): Promise<
     Stripe.PaymentIntent | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
@@ -136,6 +156,12 @@ export class Api {
           formData.append(
             'payment_method_options[card_present][request_incremental_authorization_support]',
             payment_method_options.card_present.request_incremental_authorization_support.toString()
+          );
+        }
+        if (payment_method_options.card_present.routing.requested_priority) {
+          formData.append(
+            'payment_method_options[card_present][routing][requested_priority]',
+            payment_method_options.card_present.routing.requested_priority.toString()
           );
         }
       }
