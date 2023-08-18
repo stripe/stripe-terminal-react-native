@@ -1,4 +1,5 @@
 {
+  "maxWorkers": 1,
   "testEnvironment": "./environment",
   "testRunner": "jest-circus/runner",
   "testTimeout": 200000,
