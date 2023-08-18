@@ -424,7 +424,7 @@ export default function DiscoverReadersScreen() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.light_gray,
-    height: '100%',
+    alignSelf: 'stretch',
   },
   pickerContainer: {
     position: 'absolute',
