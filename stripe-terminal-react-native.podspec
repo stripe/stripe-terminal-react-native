@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
 
   s.dependency 'React-Core'
-  s.dependency 'StripeTerminal', '2.22.0'
+  s.dependency 'StripeTerminal', '2.23.1'
 end
