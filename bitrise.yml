@@ -140,9 +140,13 @@ workflows:
         machine_type_id: elite-xl
   example-build-ios:
     steps:
-      - cocoapods-install@2:
+      - script@1:
           inputs:
-            - source_root_path: '$BITRISE_SOURCE_DIR/example-app/ios'
+            - content: |-
+                cd example-app/ios
+                pod update RCT-Folly --no-repo-update
+                pod install
+          title: Pod install
       - yarn@0:
           inputs:
             - command: e2e:build:example:ios
