@@ -26,10 +26,13 @@ type NewPaymentIntentCreateParams = Stripe.PaymentIntentCreateParams &
 export class Api {
   secretKey: string;
 
+  directChargeStripeAccountID = '';
+
   headers: Record<string, string>;
 
   constructor() {
     this.secretKey = '';
+    this.directChargeStripeAccountID = '';
     this.headers = {};
   }
 
@@ -40,6 +43,10 @@ export class Api {
       'Authorization': `Bearer ${this.secretKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     };
+  }
+
+  setStripeAccountID(stripeAccountID: string): void {
+    this.directChargeStripeAccountID = stripeAccountID;
   }
 
   async registerDevice({
@@ -117,8 +124,9 @@ export class Api {
     description = 'Example PaymentIntent',
     payment_method_types,
     payment_method_options,
-    setup_future_usage,
     capture_method,
+    on_behalf_of,
+    application_fee_amount,
   }: NewPaymentIntentCreateParams): Promise<
     Stripe.PaymentIntent | { error: Stripe.StripeRawError }
   > {
@@ -127,9 +135,6 @@ export class Api {
     formData.append('currency', currency);
     formData.append('description', description);
     formData.append('capture_method', capture_method || 'manual');
-    if (setup_future_usage) {
-      formData.append('setup_future_usage', setup_future_usage);
-    }
 
     if (typeof payment_method_types === 'string') {
       formData.append('payment_method_types[]', payment_method_types);
@@ -167,16 +172,23 @@ export class Api {
       }
     }
 
-    // TODO: implement connect functionality to set these values
-    // if (
-    //   this.connectedAccount &&
-    //   this.connectedAccount.type === ConnectChargeType.Destination
-    // ) {
-    //   formData.append('on_behalf_of', this.connectedAccount.id);
-    //   formData.append('transfer_data[destination]', this.connectedAccount.id);
-    // }
+    if (on_behalf_of) {
+      formData.append('on_behalf_of', on_behalf_of);
+      formData.append('transfer_data[destination]', on_behalf_of);
+    }
+
+    if (application_fee_amount) {
+      formData.append('application_fee_amount', String(application_fee_amount));
+    }
 
     formData.append('payment_method_types[]', 'card_present');
+
+    if (
+      this.directChargeStripeAccountID &&
+      this.directChargeStripeAccountID.length > 0
+    ) {
+      this.headers['Stripe-Account'] = this.directChargeStripeAccountID;
+    }
 
     return fetch('https://api.stripe.com/v1/payment_intents', {
       headers: this.headers,
@@ -223,6 +235,13 @@ export class Api {
     Stripe.Terminal.ConnectionToken | { error: Stripe.StripeRawError }
   > {
     const formData = new URLSearchParams();
+
+    if (
+      this.directChargeStripeAccountID &&
+      this.directChargeStripeAccountID.length > 0
+    ) {
+      this.headers['Stripe-Account'] = this.directChargeStripeAccountID;
+    }
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
       headers: this.headers,
       method: 'POST',

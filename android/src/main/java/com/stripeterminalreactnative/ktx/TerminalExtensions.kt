@@ -5,16 +5,15 @@ import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.HandoffReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.callable.ReaderListenable
+import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
 import com.stripe.stripeterminal.external.callable.UsbReaderListener
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.BluetoothConnectionConfiguration
-import com.stripe.stripeterminal.external.models.ConnectionConfiguration.EmbeddedConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.HandoffConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.InternetConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.LocalMobileConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.UsbConnectionConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryMethod
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.BLUETOOTH_SCAN
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.EMBEDDED
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.HANDOFF
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.INTERNET
 import com.stripe.stripeterminal.external.models.DiscoveryMethod.LOCAL_MOBILE
@@ -104,12 +103,17 @@ suspend fun Terminal.connectReader(
     discoveryMethod: DiscoveryMethod,
     reader: Reader,
     locationId: String,
+    autoReconnectOnUnexpectedDisconnect: Boolean = false,
     listener: ReaderListenable? = null,
+    reconnectionListener: ReaderReconnectionListener
 ): Reader = when (discoveryMethod) {
     BLUETOOTH_SCAN -> {
-        if (listener is BluetoothReaderListener)
-            connectBluetoothReader(reader, BluetoothConnectionConfiguration(locationId), listener)
-        else connectBluetoothReader(reader, BluetoothConnectionConfiguration(locationId))
+        val connConfig = BluetoothConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
+        if (listener is BluetoothReaderListener) {
+            connectBluetoothReader(reader, connConfig, listener)
+        } else {
+            connectBluetoothReader(reader, connConfig)
+        }
     }
     LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
     INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
@@ -119,9 +123,12 @@ suspend fun Terminal.connectReader(
         else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
     }
     USB -> {
-        if (listener is UsbReaderListener)
-            connectUsbReader(reader, UsbConnectionConfiguration(locationId), listener)
-        else connectUsbReader(reader, UsbConnectionConfiguration(locationId))
+        val connConfig = UsbConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
+        if (listener is UsbReaderListener) {
+            connectUsbReader(reader, connConfig, listener)
+        } else {
+            connectUsbReader(reader, connConfig)
+        }
     }
     else -> {
         throw IllegalArgumentException("Unsupported discovery method: ${discoveryMethod}")

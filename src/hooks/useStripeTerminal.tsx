@@ -72,6 +72,9 @@ export const {
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
+  START_READER_RECONNECT,
+  READER_RECONNECT_SUCCEED,
+  READER_RECONNECT_FAIL,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -126,6 +129,9 @@ export function useStripeTerminal(props?: Props) {
     onDidRequestReaderDisplayMessage,
     onDidChangePaymentStatus,
     onDidChangeConnectionStatus,
+    onDidStartReaderReconnect,
+    onDidSucceedReaderReconnect,
+    onDidFailReaderReconnect,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -244,6 +250,19 @@ export function useStripeTerminal(props?: Props) {
     [onDidChangeConnectionStatus]
   );
 
+  const didStartReaderReconnect = useCallback(() => {
+    onDidStartReaderReconnect?.();
+  }, [onDidStartReaderReconnect]);
+
+  const didSucceedReaderReconnect = useCallback(() => {
+    onDidSucceedReaderReconnect?.();
+  }, [onDidSucceedReaderReconnect]);
+
+  const didFailReaderReconnect = useCallback(() => {
+    onDidFailReaderReconnect?.();
+    setConnectedReader(null);
+  }, [onDidFailReaderReconnect, setConnectedReader]);
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -259,6 +278,10 @@ export function useStripeTerminal(props?: Props) {
   useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
   useListener(CHANGE_CONNECTION_STATUS, didChangeConnectionStatus);
+
+  useListener(START_READER_RECONNECT, didStartReaderReconnect);
+  useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
+  useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {

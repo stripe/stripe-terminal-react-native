@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SELECTED_ACCOUNT_KEY = '@rn_selected_example_account';
 const ACCOUNTS_KEY = '@rn_example_accounts';
 const DISCOVERY_KEY = '@rn_example_discovery';
+const CONNECTED_ACCOUNT_ID_KEY = '@rn_example_connected_account_key';
 
 export const clearMerchantStorage = async () => AsyncStorage.clear();
 
@@ -78,3 +79,14 @@ export const getSelectedAccount = async (): Promise<string | null> =>
 
 export const setSelectedAccount = async (accountKey: string) =>
   await AsyncStorage.setItem(SELECTED_ACCOUNT_KEY, accountKey);
+
+export const setStoredConnectedAccountID = async (
+  storedConnectedAccountID: string
+) =>
+  await AsyncStorage.setItem(
+    CONNECTED_ACCOUNT_ID_KEY,
+    storedConnectedAccountID
+  );
+
+export const getStoredConnectedAccountID = async (): Promise<string | null> =>
+  await AsyncStorage.getItem(CONNECTED_ACCOUNT_ID_KEY);

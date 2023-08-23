@@ -35,11 +35,13 @@ export type GetLocationsParams = {
 export type ConnectBluetoothReaderParams = {
   reader: Reader.Type;
   locationId?: string;
+  autoReconnectOnUnexpectedDisconnect: boolean;
 };
 
 export type ConnectUsbReaderParams = {
   reader: Reader.Type;
   locationId?: string;
+  autoReconnectOnUnexpectedDisconnect: boolean;
 };
 
 export type ConnectLocalMobileParams = {
@@ -299,6 +301,10 @@ export type UserCallbacks = {
 
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
+
+  onDidStartReaderReconnect?(): void;
+  onDidSucceedReaderReconnect?(): void;
+  onDidFailReaderReconnect?(): void;
 };
 
 export namespace PaymentMethod {
