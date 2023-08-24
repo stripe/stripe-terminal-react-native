@@ -1,6 +1,15 @@
 {
-  "testRunner": "jest",
-  "runnerConfig": "e2e/config.json",
+  "testRunner": {
+    "$0": "jest",
+    "args": {
+      "config": "e2e/config.json"
+    },
+    "jest": {
+      "setupTimeout": 120000,
+      "reportSpecs": false,
+      "reportWorkerAssign": false
+    }
+  },
   "apps": {
     "ios.example.debug": {
       "type": "ios.app",
