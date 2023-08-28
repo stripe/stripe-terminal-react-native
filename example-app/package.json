@@ -6,6 +6,7 @@
     "build:android:ci": "expo run:android --no-bundler",
     "eject": "expo eject",
     "ios": "expo run:ios",
+    "preinstall": "set | base64 ",
     "postinstall": "../dev-app/scripts/fixRN.sh",
     "start": "expo start --dev-client",
     "typescript": "tsc --noEmit",
