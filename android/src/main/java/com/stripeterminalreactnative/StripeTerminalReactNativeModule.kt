@@ -85,8 +85,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 override fun onLowMemory() {}
                 override fun onConfigurationChanged(p0: Configuration) {}
-            }
-        )
+            })
     }
 
     override fun getConstants(): MutableMap<String, Any> =
@@ -160,7 +159,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
         tokenProvider.setConnectionToken(
             token = params.getString("token"),
-            error = params.getString("error")
+            error = params.getString("error"),
         )
         promise.resolve(null)
     }
@@ -215,11 +214,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val serialNumber = reader.getString("serialNumber")
 
-                val selectedReader = requireParam(
-                    discoveredReadersList.find {
-                        it.serialNumber == serialNumber
-                    }
-                ) {
+                val selectedReader = requireParam(discoveredReadersList.find {
+                    it.serialNumber == serialNumber
+                }) {
                     "Could not find a reader with serialNumber $serialNumber"
                 }
 
@@ -229,12 +226,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB) {
                     if (params.hasKey("autoReconnectOnUnexpectedDisconnect")) {
                         params.getBoolean("autoReconnectOnUnexpectedDisconnect")
-                    } else {
-                        false
-                    }
-                } else {
-                    false
-                }
+                    } else false
+                } else false
 
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
@@ -331,11 +324,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val captureMethod = params.getString("captureMethod")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
-            if (it is String) {
-                PaymentMethodType.valueOf(it.uppercase())
-            } else {
-                null
-            }
+            if (it is String) PaymentMethodType.valueOf(it.uppercase())
+            else null
         }
 
         val intentParams = paymentMethodTypes?.let {
@@ -406,12 +396,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        terminal.createPaymentIntent(
-            intentParams.build(),
-            RNPaymentIntentCallback(promise) {
-                paymentIntents[it.id] = it
-            }
-        )
+        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) {
+            paymentIntents[it.id] = it
+        })
     }
 
     @ReactMethod
@@ -452,12 +439,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
-        terminal.retrievePaymentIntent(
-            clientSecret,
-            RNPaymentIntentCallback(promise) {
-                paymentIntents[it.id] = it
-            }
-        )
+        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise) {
+            paymentIntents[it.id] = it
+        })
     }
 
     @ReactMethod
@@ -467,12 +451,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "There is no associated paymentIntent with id $paymentIntentId"
         }
 
-        terminal.processPayment(
-            paymentIntent,
-            RNPaymentIntentCallback(promise) {
-                paymentIntents.clear()
-            }
-        )
+        terminal.processPayment(paymentIntent, RNPaymentIntentCallback(promise) {
+            paymentIntents.clear()
+        })
     }
 
     @ReactMethod
@@ -493,23 +474,17 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
-        terminal.createSetupIntent(
-            intentParams,
-            RNSetupIntentCallback(promise) {
-                setupIntents[it.id] = it
-            }
-        )
+        terminal.createSetupIntent(intentParams, RNSetupIntentCallback(promise) {
+            setupIntents[it.id] = it
+        })
     }
 
     @ReactMethod
     @Suppress("unused")
     fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
-        terminal.retrieveSetupIntent(
-            clientSecret,
-            RNSetupIntentCallback(promise) {
-                setupIntents[it.id] = it
-            }
-        )
+        terminal.retrieveSetupIntent(clientSecret, RNSetupIntentCallback(promise) {
+            setupIntents[it.id] = it
+        })
     }
 
     @ReactMethod
@@ -519,12 +494,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
                 "There is no associated paymentIntent with id $paymentIntentId"
             }
-            terminal.cancelPaymentIntent(
-                paymentIntent,
-                RNPaymentIntentCallback(promise) {
-                    paymentIntents[it.id] = null
-                }
-            )
+            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) {
+                paymentIntents[it.id] = null
+            })
         }
 
     @ReactMethod
@@ -577,9 +549,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         val cartLineItems =
-            mapToCartLineItems(
-                params.getArray("lineItems") ?: NativeTypeFactory.writableNativeArray()
-            )
+            mapToCartLineItems(params.getArray("lineItems") ?: NativeTypeFactory.writableNativeArray())
 
         val cart = Cart.Builder(
             currency = currency,
@@ -601,13 +571,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             val params = SetupIntentCancellationParameters.Builder().build()
 
-            terminal.cancelSetupIntent(
-                setupIntent,
-                params,
-                RNSetupIntentCallback(promise) {
-                    setupIntents[setupIntent.id] = null
-                }
-            )
+            terminal.cancelSetupIntent(setupIntent, params, RNSetupIntentCallback(promise) {
+                setupIntents[setupIntent.id] = null
+            })
         }
 
     @ReactMethod
@@ -618,12 +584,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "There is no associated setupIntent with id $setupIntentId"
             }
 
-            terminal.confirmSetupIntent(
-                setupIntent,
-                RNSetupIntentCallback(promise) {
-                    setupIntents[it.id] = null
-                }
-            )
+            terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise) {
+                setupIntents[it.id] = null
+            })
         }
 
     @ReactMethod
@@ -654,8 +617,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val intentParams = intentParamsBuild.build()
 
             collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
-                intentParams,
-                NoOpCallback(promise)
+                intentParams, NoOpCallback(promise)
             )
         }
 
@@ -698,6 +660,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     private fun busyMessage(command: String, busyBy: String): String {
-        return "Could not execute $command because the SDK is busy with another command: $busyBy."
+        return  "Could not execute $command because the SDK is busy with another command: $busyBy."
     }
 }
