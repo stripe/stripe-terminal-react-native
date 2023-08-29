@@ -214,6 +214,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectBluetoothReader({
       reader,
       locationId: selectedLocation?.id || reader?.location?.id,
+      autoReconnectOnUnexpectedDisconnect: false,
     });
 
     if (error) {
@@ -245,6 +246,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectUsbReader({
       reader,
       locationId: selectedLocation?.id || reader?.location?.id,
+      autoReconnectOnUnexpectedDisconnect: false,
     });
 
     if (error) {
