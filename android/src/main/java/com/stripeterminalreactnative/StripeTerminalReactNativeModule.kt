@@ -224,9 +224,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
                 val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB) {
-                    if (params.hasKey("autoReconnectOnUnexpectedDisconnect")) {
-                        params.getBoolean("autoReconnectOnUnexpectedDisconnect")
-                    } else false
+                    getBoolean(params,"autoReconnectOnUnexpectedDisconnect")
                 } else false
 
                 val reconnectionListener = RNReaderReconnectionListener(context) {
