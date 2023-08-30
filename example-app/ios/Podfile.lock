@@ -611,11 +611,10 @@ PODS:
   - RNScreens (3.22.1):
     - React-Core
     - React-RCTImage
-  - SocketRocket (0.6.1)
-  - stripe-terminal-react-native (0.0.1-beta.12):
+  - stripe-terminal-react-native (0.0.1-beta.13):
     - React-Core
-    - StripeTerminal (= 2.20.2)
-  - StripeTerminal (2.20.2)
+    - StripeTerminal (= 2.23.1)
+  - StripeTerminal (2.23.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -922,15 +921,13 @@ SPEC CHECKSUMS:
   ReactCommon: e593d19c9e271a6da4d0bd7f13b28cfeae5d164b
   RNCAsyncStorage: ddc4ee162bfd41b0d2c68bf2d95acd81dd7f1f93
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
-  RNCPicker: 0bc2f0a29abcca7b7ed44a2d036aac9ab6d25700
-  RNGestureHandler: dec4645026e7401a0899f2846d864403478ff6a5
-  RNReanimated: 9f7068e43b9358a46a688d94a5a3adb258139457
-  RNScreens: 50ffe2fa2342eabb2d0afbe19f7c1af286bc7fb3
-  SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  stripe-terminal-react-native: ff8497e70c22c15b36a81c38de86d57fceadf7b0
-  StripeTerminal: 3e288d7fd3f9922f1da1d09fd69fa2a93cdaa3d1
-  Yoga: 65286bb6a07edce5e4fe8c90774da977ae8fc009
-  YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
+  RNCPicker: 6d5d64e7b90c240c779ee0938ec433c11e2dd758
+  RNGestureHandler: e145476da655f3dbc48ef2f0a08cf7a34338c02b
+  RNReanimated: 64573e25e078ae6bec03b891586d50b9ec284393
+  RNScreens: 4d83613b50b74ed277026375dc0810893b0c347f
+  stripe-terminal-react-native: d62dd5bd4753fcfe73072011456f9ff9b6aba734
+  StripeTerminal: 2a5e2cca803c6a0dac291cc494fe522c43ae632f
+  Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
 
 PODFILE CHECKSUM: f0284f8e530b7a27015d9a495fa5f1a30ea9a300
 
