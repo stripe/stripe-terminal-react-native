@@ -35,13 +35,13 @@ export type GetLocationsParams = {
 export type ConnectBluetoothReaderParams = {
   reader: Reader.Type;
   locationId?: string;
-  autoReconnectOnUnexpectedDisconnect: boolean;
+  autoReconnectOnUnexpectedDisconnect?: boolean;
 };
 
 export type ConnectUsbReaderParams = {
   reader: Reader.Type;
   locationId?: string;
-  autoReconnectOnUnexpectedDisconnect: boolean;
+  autoReconnectOnUnexpectedDisconnect?: boolean;
 };
 
 export type ConnectLocalMobileParams = {
