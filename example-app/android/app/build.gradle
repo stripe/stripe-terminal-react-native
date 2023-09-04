@@ -81,7 +81,7 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.exampleapp"
+    namespace 'com.example.stripeterminalreactnative'
     defaultConfig {
         applicationId 'com.example.stripeterminalreactnative'
         minSdkVersion rootProject.ext.minSdkVersion
