@@ -1,25 +1,19 @@
 package com.stripeterminalreactnative.ktx
 
 import com.stripe.stripeterminal.Terminal
-import com.stripe.stripeterminal.external.callable.BluetoothReaderListener
 import com.stripe.stripeterminal.external.callable.HandoffReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.callable.ReaderListenable
+import com.stripe.stripeterminal.external.callable.ReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
-import com.stripe.stripeterminal.external.callable.UsbReaderListener
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.BluetoothConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.HandoffConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.InternetConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.LocalMobileConnectionConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration.UsbConnectionConfiguration
-import com.stripe.stripeterminal.external.models.DiscoveryMethod
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.BLUETOOTH_SCAN
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.HANDOFF
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.INTERNET
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.LOCAL_MOBILE
-import com.stripe.stripeterminal.external.models.DiscoveryMethod.USB
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripeterminalreactnative.DiscoveryMethod
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -32,7 +26,7 @@ import kotlin.coroutines.resumeWithException
 suspend fun Terminal.connectBluetoothReader(
     reader: Reader,
     config: BluetoothConnectionConfiguration,
-    listener: BluetoothReaderListener = object : BluetoothReaderListener {},
+    listener: ReaderListener = object : ReaderListener {},
 ): Reader {
     return readerCallbackCoroutine {
         connectBluetoothReader(reader, config, listener, it)
@@ -78,7 +72,7 @@ suspend fun Terminal.connectLocalMobileReader(
 suspend fun Terminal.connectUsbReader(
     reader: Reader,
     config: UsbConnectionConfiguration,
-    listener: UsbReaderListener = object : UsbReaderListener {},
+    listener: ReaderListener = object : ReaderListener {},
 ): Reader {
     return readerCallbackCoroutine {
         connectUsbReader(reader, config, listener, it)
@@ -107,24 +101,24 @@ suspend fun Terminal.connectReader(
     listener: ReaderListenable? = null,
     reconnectionListener: ReaderReconnectionListener
 ): Reader = when (discoveryMethod) {
-    BLUETOOTH_SCAN -> {
+    DiscoveryMethod.BLUETOOTH_SCAN -> {
         val connConfig = BluetoothConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
-        if (listener is BluetoothReaderListener) {
+        if (listener is ReaderListener) {
             connectBluetoothReader(reader, connConfig, listener)
         } else {
             connectBluetoothReader(reader, connConfig)
         }
     }
-    LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
-    INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
-    HANDOFF -> {
+    DiscoveryMethod.LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
+    DiscoveryMethod.INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
+    DiscoveryMethod.HANDOFF -> {
         if (listener is HandoffReaderListener)
-            connectHandoffReader(reader, HandoffConnectionConfiguration(locationId), listener)
-        else connectHandoffReader(reader, HandoffConnectionConfiguration(locationId))
+            connectHandoffReader(reader, HandoffConnectionConfiguration(), listener)
+        else connectHandoffReader(reader, HandoffConnectionConfiguration())
     }
-    USB -> {
+    DiscoveryMethod.USB -> {
         val connConfig = UsbConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
-        if (listener is UsbReaderListener) {
+        if (listener is ReaderListener) {
             connectUsbReader(reader, connConfig, listener)
         } else {
             connectUsbReader(reader, connConfig)

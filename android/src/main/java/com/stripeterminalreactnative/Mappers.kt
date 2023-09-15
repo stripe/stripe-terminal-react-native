@@ -11,7 +11,6 @@ import com.stripe.stripeterminal.external.models.CartLineItem
 import com.stripe.stripeterminal.external.models.Charge
 import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
-import com.stripe.stripeterminal.external.models.DiscoveryMethod
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
@@ -140,7 +139,6 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
     return when (method) {
         "bluetoothScan" -> DiscoveryMethod.BLUETOOTH_SCAN
         "internet" -> DiscoveryMethod.INTERNET
-        "embedded" -> DiscoveryMethod.EMBEDDED
         "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
         "handoff" -> DiscoveryMethod.HANDOFF
         "usb" -> DiscoveryMethod.USB
@@ -432,7 +430,6 @@ internal fun mapFromCardDetails(cardDetails: CardDetails?): ReadableMap = native
     putString("country", cardDetails?.country)
     putInt("expMonth", cardDetails?.expMonth ?: 0)
     putInt("expYear", cardDetails?.expYear ?: 0)
-    putString("fingerprint", cardDetails?.fingerprint)
     putString("funding", cardDetails?.funding)
     putString("last4", cardDetails?.last4)
 }
@@ -469,7 +466,6 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
         putString("emvAuthData", cardPresentDetails?.emvAuthData)
         putIntOrNull(this, "expMonth", cardPresentDetails?.expMonth)
         putIntOrNull(this, "expYear", cardPresentDetails?.expYear)
-        putString("fingerprint", cardPresentDetails?.fingerprint)
         putString("funding", cardPresentDetails?.funding)
         putString("generatedCard", cardPresentDetails?.generatedCard)
         putString("last4", cardPresentDetails?.last4)
