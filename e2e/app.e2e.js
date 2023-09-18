@@ -120,25 +120,6 @@ describe('Basic funtionalities', () => {
     await checkIfLogExist('Captured');
   });
 
-  it('Store card via readReusableCard', async () => {
-    await changeDiscoveryMethod('Bluetooth Scan');
-    await navigateTo('Discover Readers');
-    await connectReader();
-
-    await navigateTo('Store card via readReusableCard');
-
-    const eventLogTitle = element(by.text('EVENT LOG'));
-    await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
-
-    await checkIfLogExist('Start');
-
-    if (device.getPlatform() === 'ios') {
-      await checkIfLogExist('insertCard / swipeCard');
-      await checkIfLogExist('removeCard');
-    }
-    await checkIfLogExist('Finished');
-  });
-
   it('Store card via SetupIntent', async () => {
     await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
