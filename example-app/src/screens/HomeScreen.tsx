@@ -79,12 +79,6 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
-          title="Store card via readReusableCard"
-          onPress={() => {
-            navigation.navigate('ReadReusableCardScreen');
-          }}
-        />
-        <ListItem
           title="Store card via Setup Intents"
           onPress={() => {
             navigation.navigate('SetupIntentScreen', { discoveryMethod });

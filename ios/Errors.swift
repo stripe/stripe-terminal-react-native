@@ -45,8 +45,6 @@ func busyMessage(command: String, by busyCommand: String) -> String {
 extension ErrorCode.Code {
     var stringValue: String {
         switch self {
-        case .busy:
-            return "Busy"
         case .cancelFailedAlreadyCompleted:
             return "CancelFailedAlreadyCompleted"
         case .notConnectedToReader:
@@ -55,8 +53,6 @@ extension ErrorCode.Code {
             return "AlreadyConnectedToReader"
         case .connectionTokenProviderCompletedWithNothing:
             return "ConnectionTokenProviderCompletedWithNothing"
-        case .processInvalidPaymentIntent:
-            return "ProcessInvalidPaymentIntent"
         case .nilPaymentIntent:
             return "NilPaymentIntent"
         case .nilSetupIntent:
@@ -67,10 +63,6 @@ extension ErrorCode.Code {
             return "InvalidRefundParameters"
         case .invalidClientSecret:
             return "InvalidClientSecret"
-        case .mustBeDiscoveringToConnect:
-            return "MustBeDiscoveringToConnect"
-        case .cannotConnectToUndiscoveredReader:
-            return "CannotConnectToUndiscoveredReader"
         case .invalidDiscoveryConfiguration:
             return "InvalidDiscoveryConfiguration"
         case .invalidReaderForUpdate:
@@ -177,7 +169,7 @@ extension ErrorCode.Code {
             return "ReaderConnectionConfigurationInvalid"
         case .bluetoothReconnectStarted:
             return "BluetoothReconnectStarted"
-        @unknown default:
+        default:
             return "Unknown"
         }
     }
