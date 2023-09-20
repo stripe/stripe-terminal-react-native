@@ -418,7 +418,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
                 self.paymentIntents[pi.stripeId] = pi
-                resolve(["paymentIntent": paymentIntent])
+                                resolve(["paymentIntent": paymentIntent])
             }
         }
     }
@@ -444,12 +444,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectPaymentMethod:resolver:rejecter:)
     func collectPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-
+        
         guard let id = params["paymentIntentId"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
-        guard let paymentIntent = paymentIntents[id] else {
+        guard let paymentIntent = self.paymentIntents[Optional(id)] else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
@@ -549,7 +549,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
-        guard let paymentIntent = paymentIntents[id] else {
+        
+        guard let paymentIntent = paymentIntents[Optional(id)] else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
@@ -608,7 +609,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
-        guard let paymentIntent = paymentIntents[id] else {
+        guard let paymentIntent = paymentIntents[Optional(id)] else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
