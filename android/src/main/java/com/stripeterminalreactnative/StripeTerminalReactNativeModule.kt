@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
 import com.stripe.stripeterminal.external.models.CaptureMethod
@@ -298,6 +299,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         cancelOperation(promise, cancelReaderConnectionCancellable, "readerReconnection")
     }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
@@ -395,10 +397,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) { pi ->
-            pi.id?.let { paymentIntents[it] = pi }
+            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
         })
     }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
@@ -430,17 +433,18 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
                 RNPaymentIntentCallback(promise) { pi ->
-                    pi.id?.let { paymentIntents[it] = pi }
+                    (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
                 },
                 config
             )
         }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
         terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise) { pi ->
-            pi.id?.let { paymentIntents[it] = pi }
+            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
         })
     }
 
@@ -487,6 +491,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         })
     }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) =
@@ -495,7 +500,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "There is no associated paymentIntent with id $paymentIntentId"
             }
             terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) { pi ->
-                pi.id?.let { paymentIntents[it] = null }
+                (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = null }
             })
         }
 
