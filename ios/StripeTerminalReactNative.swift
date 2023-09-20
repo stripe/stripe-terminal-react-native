@@ -400,16 +400,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
         
         guard let cardPresentParams = try? cardPresentParamsBuilder.build() else {
-            fatalError("Error building CardPresentParams")
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building CardPresentParams"))
+            return
         }
         
         guard let paymentMethodOptionsParameters = try? PaymentMethodOptionsParametersBuilder(cardPresentParameters: cardPresentParams).build() else {
-            fatalError("Error building PaymentMethodOptionsParameters")
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building PaymentMethodOptionsParameters"))
+            return
         }
         
         paymentParamsBuilder.setPaymentMethodOptionsParameters(paymentMethodOptionsParameters)
         guard let paymentIntentParams = try? paymentParamsBuilder.build() else {
-            fatalError("Error building PaymentParams")
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building PaymentParams"))
+            return
         }
         
         Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
@@ -833,7 +836,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(Errors.createError(nsError: error))
             } else {
                 let setupIntent = Mappers.mapFromSetupIntent(si!)
-                resolve(["paymentMethod": setupIntent])
+                resolve(["setupIntent": setupIntent])
             }
         }
     }
