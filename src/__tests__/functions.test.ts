@@ -25,11 +25,6 @@ const mockSetupIntent = {
   status: 'succeeded',
 };
 
-const mockPaymentMethod = {
-  id: 3,
-  customer: '_cus',
-};
-
 const mockRefund = {
   id: 4,
   amount: 502,
