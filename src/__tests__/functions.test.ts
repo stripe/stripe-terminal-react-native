@@ -96,7 +96,7 @@ describe('functions.test.ts', () => {
           locations: mockLocations,
           hasMore: true,
         })),
-        processPayment: jest
+        confirmPaymentIntent: jest
           .fn()
           .mockImplementation(() => ({ paymentIntent: mockPaymentIntent })),
         createSetupIntent: jest
@@ -122,12 +122,9 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({ setupIntent: mockSetupIntent })),
         collectRefundPaymentMethod: jest.fn().mockImplementation(() => ({})),
-        processRefund: jest
+        confirmRefund: jest
           .fn()
           .mockImplementation(() => ({ refund: mockRefund })),
-        readReusableCard: jest
-          .fn()
-          .mockImplementation(() => ({ paymentMethod: mockPaymentMethod })),
         cancelCollectPaymentMethod: jest.fn().mockImplementation(() => ({})),
         cancelCollectRefundPaymentMethod: jest
           .fn()
@@ -235,9 +232,9 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('processPayment returns a proper value', async () => {
+    it('confirmPaymentIntent returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(functions.processPayment({} as any)).resolves.toEqual({
+      await expect(functions.confirmPaymentIntent({} as any)).resolves.toEqual({
         error: undefined,
         paymentIntent: mockPaymentIntent,
       });
@@ -333,9 +330,9 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('processRefund returns a proper value', async () => {
+    it('confirmRefund returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(functions.processRefund()).resolves.toEqual({
+      await expect(functions.confirmRefund()).resolves.toEqual({
         error: undefined,
         refund: mockRefund,
       });
@@ -344,14 +341,6 @@ describe('functions.test.ts', () => {
     it('clearCachedCredentials returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.clearCachedCredentials()).resolves.toEqual({});
-    });
-
-    it('readReusableCard returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.readReusableCard({} as any)).resolves.toEqual({
-        error: undefined,
-        paymentMethod: mockPaymentMethod,
-      });
     });
 
     it('cancelCollectPaymentMethod returns a proper value', async () => {
@@ -432,7 +421,7 @@ describe('functions.test.ts', () => {
         getLocations: jest.fn().mockImplementation(() => ({
           error: '_error',
         })),
-        processPayment: jest
+        confirmPaymentIntent: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         createSetupIntent: jest
@@ -463,13 +452,9 @@ describe('functions.test.ts', () => {
         collectRefundPaymentMethod: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
-        processRefund: jest
+        confirmRefund: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
-        readReusableCard: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-
         cancelCollectSetupIntent: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
@@ -573,9 +558,9 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('processPayment returns a proper value', async () => {
+    it('confirmPaymentIntent returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(functions.processPayment({} as any)).resolves.toEqual({
+      await expect(functions.confirmPaymentIntent({} as any)).resolves.toEqual({
         error: '_error',
       });
     });
@@ -651,19 +636,11 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('processRefund returns a proper value', async () => {
+    it('confirmRefund returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(functions.processRefund()).resolves.toEqual({
+      await expect(functions.confirmRefund()).resolves.toEqual({
         error: '_error',
         refund: undefined,
-      });
-    });
-
-    it('readReusableCard returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.readReusableCard({} as any)).resolves.toEqual({
-        error: '_error',
-        paymentMethod: undefined,
       });
     });
 

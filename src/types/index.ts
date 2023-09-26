@@ -247,7 +247,6 @@ export type CardPresent = {
   cardholderName?: string;
   funding: string;
   brand: string;
-  fingerprint: string;
   generatedCard?: string;
   receipt?: string;
   emvAuthData?: string;
@@ -261,13 +260,9 @@ export type PaymentMethodDetails = {
   interacPresent?: string;
 };
 
-export type ProcessRefundResultType = {
+export type ConfirmRefundResultType = {
   refund?: Refund.Props;
   error?: StripeError;
-};
-
-export type ReadReusableCardParamsType = {
-  customer?: string;
 };
 
 type CardDetails = {
@@ -275,7 +270,6 @@ type CardDetails = {
   country: string;
   expMonth: number;
   expYear: number;
-  fingerprint: string;
   funding: string;
   last4: string;
 };

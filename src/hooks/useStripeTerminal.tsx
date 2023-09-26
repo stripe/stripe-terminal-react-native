@@ -11,7 +11,6 @@ import type {
   CreateSetupIntentParams,
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
-  ReadReusableCardParamsType,
   ConnectHandoffParams,
   ConnectLocalMobileParams,
   CollectPaymentMethodParams,
@@ -31,7 +30,7 @@ import {
   collectPaymentMethod,
   retrievePaymentIntent,
   getLocations,
-  processPayment,
+  confirmPaymentIntent,
   createSetupIntent,
   cancelPaymentIntent,
   installAvailableUpdate,
@@ -44,9 +43,8 @@ import {
   confirmSetupIntent,
   simulateReaderUpdate,
   collectRefundPaymentMethod,
-  processRefund,
+  confirmRefund,
   clearCachedCredentials,
-  readReusableCard,
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
   cancelReadReusableCard,
@@ -504,7 +502,7 @@ export function useStripeTerminal(props?: Props) {
     [setLoading, _isInitialized]
   );
 
-  const _processPayment = useCallback(
+  const _confirmPaymentIntent = useCallback(
     async (paymentIntentId: string) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -512,7 +510,7 @@ export function useStripeTerminal(props?: Props) {
       }
       setLoading(true);
 
-      const response = await processPayment(paymentIntentId);
+      const response = await confirmPaymentIntent(paymentIntentId);
 
       setLoading(false);
 
@@ -728,14 +726,14 @@ export function useStripeTerminal(props?: Props) {
     [setLoading, _isInitialized]
   );
 
-  const _processRefund = useCallback(async () => {
+  const _confirmRefund = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
       throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
     }
     setLoading(true);
 
-    const response = await processRefund();
+    const response = await confirmRefund();
 
     setLoading(false);
 
@@ -751,23 +749,6 @@ export function useStripeTerminal(props?: Props) {
 
     return response;
   }, [setLoading]);
-
-  const _readReusableCard = useCallback(
-    async (params: ReadReusableCardParamsType) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await readReusableCard(params);
-
-      setLoading(false);
-
-      return response;
-    },
-    [setLoading, _isInitialized]
-  );
 
   const _cancelCollectPaymentMethod = useCallback(async () => {
     if (!_isInitialized()) {
@@ -837,7 +818,7 @@ export function useStripeTerminal(props?: Props) {
     collectPaymentMethod: _collectPaymentMethod,
     retrievePaymentIntent: _retrievePaymentIntent,
     getLocations: _getLocations,
-    processPayment: _processPayment,
+    confirmPaymentIntent: _confirmPaymentIntent,
     createSetupIntent: _createSetupIntent,
     cancelPaymentIntent: _cancelPaymentIntent,
     installAvailableUpdate: _installAvailableUpdate,
@@ -850,9 +831,8 @@ export function useStripeTerminal(props?: Props) {
     confirmSetupIntent: _confirmSetupIntent,
     simulateReaderUpdate: _simulateReaderUpdate,
     collectRefundPaymentMethod: _collectRefundPaymentMethod,
-    processRefund: _processRefund,
+    confirmRefund: _confirmRefund,
     clearCachedCredentials: _clearCachedCredentials,
-    readReusableCard: _readReusableCard,
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,

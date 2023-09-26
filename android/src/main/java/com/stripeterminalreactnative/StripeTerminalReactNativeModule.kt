@@ -450,7 +450,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun processPayment(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
+    fun confirmPaymentIntent(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
         val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
             "There is no associated paymentIntent with id $paymentIntentId"
         }
@@ -641,7 +641,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun processRefund(promise: Promise) {
+    fun confirmRefund(promise: Promise) {
         terminal.confirmRefund(RNRefundCallback(promise))
     }
 
