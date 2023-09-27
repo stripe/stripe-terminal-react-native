@@ -21,7 +21,7 @@ enum ReactNativeConstants: String, CaseIterable {
 
 @objc(StripeTerminalReactNative)
 class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate {
-
+    
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
@@ -182,14 +182,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let simulated = params["simulated"] as? Bool
         let discoveryMethod = params["discoveryMethod"] as? String
 
-        guard let config = Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "An error occurred while creating the discovery configuration."))
+        let config: DiscoveryConfiguration
+        do {
+            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false)
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
         guard discoverCancelable == nil else {
             let message = busyMessage(command: "discoverReaders", by: "discoverReaders")
-            resolve(Errors.createError(code: ErrorCode.readerBusy, message: message))
+            resolve(Errors.createError(code: CommonErrorType.AlreadyDiscovering, message: message))
             return
         }
 
@@ -245,15 +248,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let locationId = params["locationId"] as? String
         let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
 
-        guard let connectionConfig = try? BluetoothConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
-            .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-            .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
-            .build() else {
-                resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building BluetoothConnectionConfiguration"))
-                return
-            }
-            
-            Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
+        let connectionConfig: BluetoothConnectionConfiguration
+        do {
+            connectionConfig = try BluetoothConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
+                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
+                .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+
+        Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
@@ -279,14 +285,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        guard let connectionConfig = try? InternetConnectionConfigurationBuilder()
-            .setFailIfInUse(params["failIfInUse"] as? Bool ?? false)
-            .setAllowCustomerCancel(true)
-            .build() else {
-                resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building InternetConnectionConfiguration"))
-                return
-            }
-        
+        let connectionConfig: InternetConnectionConfiguration
+        do {
+             connectionConfig = try InternetConnectionConfigurationBuilder()
+                .setFailIfInUse(params["failIfInUse"] as? Bool ?? false)
+                .setAllowCustomerCancel(true)
+                .build()
+        }  catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+
         Terminal.shared.connectInternetReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
@@ -314,14 +323,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let locationId = params["locationId"] as? String
         let onBehalfOf: String? = params["onBehalfOf"] as? String
         
-        guard let connectionConfig = try? LocalMobileConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
-            .setMerchantDisplayName(nil) // use the location name
-            .setOnBehalfOf(onBehalfOf ?? nil)
-            .build() else {
-                resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building LocalMobileConnectionConfiguration"))
-                return
-            }
-        
+        let connectionConfig: LocalMobileConnectionConfiguration
+        do {
+            connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
+                .setMerchantDisplayName(nil) // use the location name
+                .setOnBehalfOf(onBehalfOf ?? nil)
+                .build()
+        }  catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
 
         Terminal.shared.connectLocalMobileReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
@@ -399,41 +410,54 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             break
         }
         
-        guard let cardPresentParams = try? cardPresentParamsBuilder.build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building CardPresentParams"))
+        let cardPresentParams: CardPresentParameters
+        do {
+            cardPresentParams = try cardPresentParamsBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
-        
-        guard let paymentMethodOptionsParameters = try? PaymentMethodOptionsParametersBuilder(cardPresentParameters: cardPresentParams).build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building PaymentMethodOptionsParameters"))
+
+        let paymentMethodOptionsParameters: PaymentMethodOptionsParameters
+        do {
+            paymentMethodOptionsParameters = try PaymentMethodOptionsParametersBuilder(cardPresentParameters: cardPresentParams).build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
-        
         paymentParamsBuilder.setPaymentMethodOptionsParameters(paymentMethodOptionsParameters)
-        guard let paymentIntentParams = try? paymentParamsBuilder.build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building PaymentParams"))
+
+        let paymentParams: PaymentIntentParameters
+        do {
+            paymentParams = try paymentParamsBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
         
-        Terminal.shared.createPaymentIntent(paymentIntentParams) { pi, error in
+        Terminal.shared.createPaymentIntent(paymentParams) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi)
                 self.paymentIntents[pi.stripeId] = pi
-                                resolve(["paymentIntent": paymentIntent])
+                resolve(["paymentIntent": paymentIntent])
             }
         }
     }
 
     @objc(createSetupIntent:resolver:rejecter:)
     func createSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let setupIntentParams = try? SetupIntentParametersBuilder()
-            .setCustomer(params["customerId"] as? String)
-            .build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building SetupIntentParameters"))
+        let setupIntentParams: SetupIntentParameters
+        do {
+            setupIntentParams = try SetupIntentParametersBuilder()
+                .setCustomer(params["customerId"] as? String)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
+
         Terminal.shared.createSetupIntent(setupIntentParams) { si, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
@@ -471,13 +495,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                     .build()
                 collectConfigBuilder.setTippingConfiguration(tippingConfig)
             } catch {
-                resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building TippingConfiguration"))
+                resolve(Errors.createError(nsError: error as NSError))
                 return
             }
         }
 
-        guard let collectConfig = try? collectConfigBuilder.build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building CollectConfig"))
+        let collectConfig: CollectConfiguration
+        do {
+             collectConfig = try collectConfigBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
         
@@ -531,8 +558,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             listParametersBuilder.setStartingAfter(startingAfterValue)
         }
 
-        guard let listParameters = try? listParametersBuilder.build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building ListLocationsParameters."))
+        let listParameters: ListLocationsParameters
+        do {
+            listParameters = try listParametersBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
@@ -546,8 +576,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
-    @objc(processPayment:resolver:rejecter:)
-    func processPayment(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(confirmPaymentIntent:resolver:rejecter:)
+    func confirmPaymentIntent(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let id = paymentIntentId else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
@@ -664,8 +694,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let cartLineItems = Mappers.mapToCartLineItems(params["lineItems"] as? NSArray ?? NSArray())
         cartBuilder.setLineItems(cartLineItems)
 
-        guard let cart = try? cartBuilder.build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building Cart."))
+        let cart: Cart
+        do {
+            cart = try cartBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
             return
         }
         
@@ -790,14 +823,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
         let reverseTransfer = params["reverseTransfer"] as? NSNumber
         
-        guard let refundParams = try? RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
-            .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
-            .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
-            .build() else {
-                resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building RefundParameters."))
-                return
+        let refundParams: RefundParameters
+        do {
+            refundParams = try RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
+                .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
+                .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
         }
-        
+
         self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
@@ -808,35 +844,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
-    @objc(processRefund:rejecter:)
-    func processRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(confirmRefund:rejecter:)
+    func confirmRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.confirmRefund() { rf, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {
                 let refund = Mappers.mapFromRefund(rf!)
                 resolve(["refund": refund])
-            }
-        }
-    }
-
-    @objc(readReusableCard:resolver:rejecter:)
-    func readReusableCard(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let setupIntentparametersBuilder = SetupIntentParametersBuilder();
-        if let customerId = params["customer"] as? String {
-            setupIntentparametersBuilder.setCustomer(customerId)
-        }
-        guard let setupIntentparameters = try? setupIntentparametersBuilder.build() else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Error building SetupIntentparameters."))
-            return
-        }
-        
-        Terminal.shared.createSetupIntent(setupIntentparameters) { si, error in
-            if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
-            } else {
-                let setupIntent = Mappers.mapFromSetupIntent(si!)
-                resolve(["setupIntent": setupIntent])
             }
         }
     }

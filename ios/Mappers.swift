@@ -88,6 +88,7 @@ class Mappers {
                 .build()
             return lineItem
         } catch {
+            print("Error wihle building CartLineItem, error:\(error)")
             return nil
         }
     }
@@ -119,23 +120,20 @@ class Mappers {
         return DiscoveryMethod.internet
     }
 
-    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool) -> DiscoveryConfiguration? {
-        let config: DiscoveryConfiguration? = try? {
-            switch discoveryMethod {
-            case "bluetoothScan":
-                return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
-            case "bluetoothProximity":
-                return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
-            case "internet":
-                return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).build()
-            case "localMobile":
-                return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
-            default:
-                print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
-                return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
-            }
-        }()
-        return config
+    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool) throws-> DiscoveryConfiguration {
+        switch discoveryMethod {
+        case "bluetoothScan":
+            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "bluetoothProximity":
+            return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "internet":
+            return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "localMobile":
+            return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        @unknown default:
+            print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
+            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        }
     }
 
     
