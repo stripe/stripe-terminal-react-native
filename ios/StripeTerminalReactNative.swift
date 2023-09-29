@@ -321,12 +321,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         let locationId = params["locationId"] as? String
         let onBehalfOf: String? = params["onBehalfOf"] as? String
+        let merchantDisplayName: String? = params["merchantDisplayName"] as? String
+        let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
         
         let connectionConfig: LocalMobileConnectionConfiguration
         do {
             connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
-                .setMerchantDisplayName(nil) // use the location name
+                .setMerchantDisplayName(merchantDisplayName ?? nil)
                 .setOnBehalfOf(onBehalfOf ?? nil)
+                .setTosAcceptancePermitted(tosAcceptancePermitted)
                 .build()
         }  catch {
             resolve(Errors.createError(nsError: error as NSError))

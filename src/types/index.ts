@@ -48,6 +48,8 @@ export type ConnectLocalMobileParams = {
   reader: Reader.Type;
   locationId?: string;
   onBehalfOf?: string;
+  merchantDisplayName?: string;
+  tosAcceptancePermitted?: boolean;
 };
 
 export type ConnectHandoffParams = {
