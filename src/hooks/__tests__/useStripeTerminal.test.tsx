@@ -55,8 +55,10 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
   const getLocations = jest.fn(() => returnWith);
   jest.spyOn(functions, 'getLocations').mockImplementation(getLocations);
   //
-  const processPayment = jest.fn(() => returnWith);
-  jest.spyOn(functions, 'processPayment').mockImplementation(processPayment);
+  const confirmPaymentIntent = jest.fn(() => returnWith);
+  jest
+    .spyOn(functions, 'confirmPaymentIntent')
+    .mockImplementation(confirmPaymentIntent);
   //
   const cancelPaymentIntent = jest.fn(() => returnWith);
   jest
@@ -127,14 +129,8 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .mockImplementation(collectRefundPaymentMethod);
 
   //
-  const processRefund = jest.fn(() => returnWith);
-  jest.spyOn(functions, 'processRefund').mockImplementation(processRefund);
-
-  //
-  const readReusableCard = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'readReusableCard')
-    .mockImplementation(readReusableCard);
+  const confirmRefund = jest.fn(() => returnWith);
+  jest.spyOn(functions, 'confirmRefund').mockImplementation(confirmRefund);
 
   //
   const cancelCollectPaymentMethod = jest.fn(() => returnWith);
@@ -153,12 +149,6 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
   jest
     .spyOn(functions, 'cancelCollectSetupIntent')
     .mockImplementation(cancelCollectSetupIntent);
-
-  //
-  const cancelReadReusableCard = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'cancelReadReusableCard')
-    .mockImplementation(cancelReadReusableCard);
 
   //
   const connectHandoffReader = jest.fn(() => returnWith);
@@ -189,7 +179,7 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     collectPaymentMethod,
     retrievePaymentIntent,
     getLocations,
-    processPayment,
+    confirmPaymentIntent,
     createSetupIntent,
     cancelPaymentIntent,
     installAvailableUpdate,
@@ -202,12 +192,10 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     confirmSetupIntent,
     simulateReaderUpdate,
     collectRefundPaymentMethod,
-    processRefund,
-    readReusableCard,
+    confirmRefund,
     cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent,
-    cancelReadReusableCard,
     connectHandoffReader,
     connectLocalMobileReader,
     setSimulatedCard,
@@ -317,7 +305,6 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.cancelCollectRefundPaymentMethod();
         result.current.cancelInstallingUpdate();
         result.current.cancelPaymentIntent('');
-        result.current.cancelReadReusableCard();
         result.current.cancelSetupIntent('');
         result.current.clearCachedCredentials();
         result.current.clearReaderDisplay();
@@ -335,14 +322,13 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.disconnectReader();
         result.current.retrievePaymentIntent('');
         result.current.getLocations({} as any);
-        result.current.processPayment('');
+        result.current.confirmPaymentIntent('');
         result.current.retrieveSetupIntent('');
         result.current.simulateReaderUpdate({} as any);
-        result.current.readReusableCard({} as any);
         result.current.setSimulatedCard('');
         result.current.installAvailableUpdate();
         result.current.setReaderDisplay({} as any);
-        result.current.processRefund();
+        result.current.confirmRefund();
         result.current.cancelCollectSetupIntent();
       });
 
@@ -368,7 +354,6 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.cancelCollectRefundPaymentMethod();
         result.current.cancelInstallingUpdate();
         result.current.cancelPaymentIntent('');
-        result.current.cancelReadReusableCard();
         result.current.cancelSetupIntent('');
         result.current.clearReaderDisplay();
         result.current.collectPaymentMethod({} as any);
@@ -385,14 +370,13 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.disconnectReader();
         result.current.retrievePaymentIntent('');
         result.current.getLocations({} as any);
-        result.current.processPayment('');
+        result.current.confirmPaymentIntent('');
         result.current.retrieveSetupIntent('');
         result.current.simulateReaderUpdate({} as any);
-        result.current.readReusableCard({} as any);
         result.current.setSimulatedCard('');
         result.current.installAvailableUpdate();
         result.current.setReaderDisplay({} as any);
-        result.current.processRefund();
+        result.current.confirmRefund();
         result.current.cancelCollectSetupIntent();
       });
 
@@ -402,7 +386,7 @@ describe('useStripeTerminal.test.tsx', () => {
       expect(console.error).toBeCalledWith(
         'First initialize the Stripe Terminal SDK before performing any action'
       );
-      expect(console.error).toBeCalledTimes(33);
+      expect(console.error).toBeCalledTimes(31);
     });
 
     it('public methods are returns with mocked value', async () => {
@@ -434,9 +418,6 @@ describe('useStripeTerminal.test.tsx', () => {
       await expect(
         result.current.cancelPaymentIntent({} as any)
       ).resolves.toEqual('_value');
-      await expect(result.current.cancelReadReusableCard()).resolves.toEqual(
-        '_value'
-      );
       await expect(
         result.current.cancelSetupIntent({} as any)
       ).resolves.toEqual('_value');
@@ -482,18 +463,15 @@ describe('useStripeTerminal.test.tsx', () => {
       await expect(result.current.getLocations({} as any)).resolves.toEqual(
         '_value'
       );
-      await expect(result.current.processPayment({} as any)).resolves.toEqual(
-        '_value'
-      );
+      await expect(
+        result.current.confirmPaymentIntent({} as any)
+      ).resolves.toEqual('_value');
       await expect(
         result.current.retrieveSetupIntent({} as any)
       ).resolves.toEqual('_value');
       await expect(
         result.current.simulateReaderUpdate({} as any)
       ).resolves.toEqual('_value');
-      await expect(result.current.readReusableCard({} as any)).resolves.toEqual(
-        '_value'
-      );
       await expect(result.current.setSimulatedCard({} as any)).resolves.toEqual(
         '_value'
       );
@@ -503,7 +481,7 @@ describe('useStripeTerminal.test.tsx', () => {
       await expect(result.current.setReaderDisplay({} as any)).resolves.toEqual(
         '_value'
       );
-      await expect(result.current.processRefund()).resolves.toEqual('_value');
+      await expect(result.current.confirmRefund()).resolves.toEqual('_value');
       await expect(result.current.cancelCollectSetupIntent()).resolves.toEqual(
         '_value'
       );

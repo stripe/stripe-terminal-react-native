@@ -76,15 +76,21 @@ class Mappers {
         }
     }
 
-
     class func mapToCartLineItem(_ cartLineItem: NSDictionary) -> CartLineItem? {
         guard let displayName = cartLineItem["displayName"] as? String else { return nil }
         guard let quantity = cartLineItem["quantity"] as? NSNumber else { return nil }
         guard let amount = cartLineItem["amount"] as? NSNumber else { return nil }
-
-        let lineItem = CartLineItem(displayName: displayName, quantity: Int(truncating: quantity), amount: Int(truncating: amount))
-
-        return lineItem
+        
+        do {
+            let lineItem = try CartLineItemBuilder(displayName: displayName)
+                .setQuantity(Int(truncating: quantity))
+                .setAmount(Int(truncating: amount))
+                .build()
+            return lineItem
+        } catch {
+            print("Error wihle building CartLineItem, error:\(error)")
+            return nil
+        }
     }
 
     class func mapToCartLineItems(_ cartLineItems: NSArray) -> [CartLineItem] {
@@ -114,6 +120,23 @@ class Mappers {
         return DiscoveryMethod.internet
     }
 
+    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool) throws-> DiscoveryConfiguration {
+        switch discoveryMethod {
+        case "bluetoothScan":
+            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "bluetoothProximity":
+            return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "internet":
+            return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "localMobile":
+            return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        @unknown default:
+            print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
+            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        }
+    }
+
+    
     class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent) -> NSDictionary {
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
@@ -366,7 +389,6 @@ class Mappers {
             "cardholderName": cardPresent.cardholderName ?? NSNull(),
             "funding": cardPresent.funding,
             "brand": cardPresent.brand,
-            "fingerprint": cardPresent.fingerprint,
             "generatedCard": cardPresent.generatedCard ?? NSNull(),
             "receipt": cardPresent.receipt ?? NSNull(),
             "emvAuthData": cardPresent.emvAuthData ?? NSNull(),
@@ -441,7 +463,6 @@ class Mappers {
             "expYear": cardDetails.expYear,
             "funding": cardDetails.funding,
             "last4": cardDetails.last4 ?? NSNull(),
-            "fingerprint": cardDetails.fingerprint ?? NSNull(),
         ]
         return result
     }

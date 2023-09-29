@@ -71,20 +71,6 @@ describe('Internet reader', () => {
     await checkIfLogExist('Captured');
   });
 
-  it('Store card via readReusableCard', async () => {
-    await changeDiscoveryMethod('Internet');
-    await navigateTo('Discover Readers');
-    await connectReader('verifoneP400');
-
-    await navigateTo('Store card via readReusableCard');
-
-    const eventLogTitle = element(by.text('EVENT LOG'));
-    await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
-
-    await checkIfLogExist('Start');
-    await checkIfLogExist('Finished');
-  });
-
   it('Store card via SetupIntent', async () => {
     // Store card via SetupIntent is not available for verifoneP400 on iOS
     // while this is the only available simulated reader on Android

@@ -73,7 +73,7 @@ export default function CollectCardPaymentScreen() {
   const {
     createPaymentIntent,
     collectPaymentMethod,
-    processPayment,
+    confirmPaymentIntent,
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
     setSimulatedCard,
@@ -310,38 +310,38 @@ export default function CollectCardPaymentScreen() {
           },
         ],
       });
-      await _processPayment(paymentIntent);
+      await _confirmPaymentIntent(paymentIntent);
     }
   };
 
-  const _processPayment = async (
+  const _confirmPaymentIntent = async (
     collectedPaymentIntent: PaymentIntent.Type
   ) => {
     // @ts-ignore
     setCancel((prev) => ({ ...prev, isDisabled: true }));
     addLogs({
-      name: 'Process Payment',
+      name: 'Confirm Payment Intent',
       events: [
         {
           name: 'Process',
-          description: 'terminal.processPayment',
+          description: 'terminal.confirmPaymentIntent',
           metadata: { paymentIntentId: collectedPaymentIntent.id },
         },
       ],
     });
 
-    const { paymentIntent, error } = await processPayment(
+    const { paymentIntent, error } = await confirmPaymentIntent(
       collectedPaymentIntent.id
     );
 
     if (error) {
       const failedPI = await api.getPaymentIntent(collectedPaymentIntent.id);
       addLogs({
-        name: 'Process Payment',
+        name: 'Confirm Payment Intent',
         events: [
           {
             name: 'Failed',
-            description: 'terminal.processPayment',
+            description: 'terminal.confirmPaymentIntent',
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
@@ -355,11 +355,11 @@ export default function CollectCardPaymentScreen() {
 
     if (!paymentIntent) {
       addLogs({
-        name: 'Process Payment',
+        name: 'Confirm Payment Intent',
         events: [
           {
             name: 'Failed',
-            description: 'terminal.processPayment',
+            description: 'terminal.confirmPaymentIntent',
             metadata: {
               errorCode: 'no_code',
               errorMessage: 'no payment intent id returned!',
@@ -371,11 +371,11 @@ export default function CollectCardPaymentScreen() {
     }
 
     addLogs({
-      name: 'Process Payment',
+      name: 'Confirm Payment Intent',
       events: [
         {
           name: 'Processed',
-          description: 'terminal.processPayment',
+          description: 'terminal.confirmPaymentIntent',
           metadata: {
             paymententIntentId: paymentIntent.id,
             chargeId: paymentIntent.charges[0].id,

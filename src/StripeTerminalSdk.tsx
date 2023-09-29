@@ -21,9 +21,7 @@ import type {
   GetLocationsResultType,
   RefundParams,
   CollectRefundPaymentMethodType,
-  ProcessRefundResultType,
-  ReadReusableCardParamsType,
-  PaymentMethodResultType,
+  ConfirmRefundResultType,
   SetConnectionTokenParams,
   ConnectHandoffParams,
   ConnectLocalMobileParams,
@@ -81,8 +79,10 @@ export interface StripeTerminalSdkType {
   ): Promise<PaymentIntentResultType>;
   // Retrieve Payment Intent
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntentResultType>;
-  // Process a payment
-  processPayment(paymentIntentId: string): Promise<PaymentIntentResultType>;
+  // Confirm Payment Intent
+  confirmPaymentIntent(
+    paymentIntentId: string
+  ): Promise<PaymentIntentResultType>;
   // Create Setup Intent
   createSetupIntent(
     params: CreateSetupIntentParams
@@ -119,13 +119,10 @@ export interface StripeTerminalSdkType {
   cancelCollectRefundPaymentMethod(): Promise<{
     error?: StripeError;
   }>;
-  processRefund(): Promise<ProcessRefundResultType>;
+  confirmRefund(): Promise<ConfirmRefundResultType>;
   clearCachedCredentials(): Promise<{
     error?: StripeError;
   }>;
-  readReusableCard(
-    params: ReadReusableCardParamsType
-  ): Promise<PaymentMethodResultType>;
   cancelCollectPaymentMethod(): Promise<{
     error?: StripeError;
   }>;

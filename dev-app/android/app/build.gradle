@@ -258,6 +258,7 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    implementation 'com.facebook.soloader:soloader:0.10.4+'
 
     androidTestImplementation('com.wix:detox:+'){
         exclude group: 'com.google.android.material'

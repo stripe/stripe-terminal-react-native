@@ -23,9 +23,7 @@ import type {
   SetupIntentResultType,
   Reader,
   RefundParams,
-  PaymentMethodResultType,
-  ReadReusableCardParamsType,
-  ProcessRefundResultType,
+  ConfirmRefundResultType,
   ConnectLocalMobileParams,
   ConnectReaderResultType,
   ConnectHandoffParams,
@@ -387,14 +385,13 @@ export async function getLocations(
   }, 'getLocations')(params);
 }
 
-export async function processPayment(
+export async function confirmPaymentIntent(
   paymentIntentId: string
 ): Promise<PaymentIntentResultType> {
   return Logger.traceSdkMethod(async (innerPaymentIntentId) => {
     try {
-      const { error, paymentIntent } = await StripeTerminalSdk.processPayment(
-        innerPaymentIntentId
-      );
+      const { error, paymentIntent } =
+        await StripeTerminalSdk.confirmPaymentIntent(innerPaymentIntentId);
 
       if (error) {
         return {
@@ -411,7 +408,7 @@ export async function processPayment(
         error: error as any,
       };
     }
-  }, 'processPayment')(paymentIntentId);
+  }, 'confirmPaymentIntent')(paymentIntentId);
 }
 
 export async function cancelPaymentIntent(
@@ -662,10 +659,10 @@ export async function collectRefundPaymentMethod(
   }, 'collectRefundPaymentMethod')(params);
 }
 
-export async function processRefund(): Promise<ProcessRefundResultType> {
+export async function confirmRefund(): Promise<ConfirmRefundResultType> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const { error, refund } = await StripeTerminalSdk.processRefund();
+      const { error, refund } = await StripeTerminalSdk.confirmRefund();
       if (error) {
         return {
           error,
@@ -681,7 +678,7 @@ export async function processRefund(): Promise<ProcessRefundResultType> {
         error: error as any,
       };
     }
-  }, 'processRefund')();
+  }, 'confirmRefund')();
 }
 
 export async function clearCachedCredentials(): Promise<{
@@ -697,32 +694,6 @@ export async function clearCachedCredentials(): Promise<{
       };
     }
   }, 'clearCachedCredentials')();
-}
-
-export async function readReusableCard(
-  params: ReadReusableCardParamsType
-): Promise<PaymentMethodResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { paymentMethod, error } = await StripeTerminalSdk.readReusableCard(
-        innerParams
-      );
-      if (error) {
-        return {
-          error,
-          paymentMethod: undefined,
-        };
-      }
-      return {
-        paymentMethod: paymentMethod!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'readReusableCard')(params);
 }
 
 export async function cancelCollectPaymentMethod(): Promise<{

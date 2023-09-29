@@ -11,7 +11,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
-import com.stripe.stripeterminal.TerminalApplicationDelegate.onTrimMemory
+import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
 import com.stripe.stripeterminal.external.models.CaptureMethod
@@ -20,18 +20,18 @@ import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParamet
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
-import com.stripe.stripeterminal.external.models.DiscoveryMethod
 import com.stripe.stripeterminal.external.models.ListLocationsParameters
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentParameters
 import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
 import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.ReadReusableCardParameters
 import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.RefundConfiguration
 import com.stripe.stripeterminal.external.models.RefundParameters
 import com.stripe.stripeterminal.external.models.RoutingPriority
 import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
+import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SetupIntentParameters
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
@@ -39,7 +39,6 @@ import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
-import com.stripeterminalreactnative.callback.RNPaymentMethodCallback
 import com.stripeterminalreactnative.callback.RNRefundCallback
 import com.stripeterminalreactnative.callback.RNSetupIntentCallback
 import com.stripeterminalreactnative.ktx.connectReader
@@ -79,10 +78,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     init {
         context.registerComponentCallbacks(
             object : ComponentCallbacks2 {
-                override fun onTrimMemory(level: Int) {
-                    onTrimMemory(context.applicationContext as Application, level)
-                }
-
+                override fun onTrimMemory(level: Int) {}
                 override fun onLowMemory() {}
                 override fun onConfigurationChanged(p0: Configuration) {}
             })
@@ -186,7 +182,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         discoverCancelable = terminal.discoverReaders(
-            DiscoveryConfiguration(0, discoveryMethod, getBoolean(params, "simulated")),
+            config = when(discoveryMethod) {
+                DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(0, getBoolean(params, "simulated"))
+                DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(isSimulated = getBoolean(params, "simulated"))
+                DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(0, getBoolean(params, "simulated"))
+                DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
+                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(getBoolean(params, "simulated")) },
             listener,
             listener
         )
@@ -298,6 +299,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         cancelOperation(promise, cancelReaderConnectionCancellable, "readerReconnection")
     }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun createPaymentIntent(params: ReadableMap, promise: Promise) {
@@ -394,11 +396,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) {
-            paymentIntents[it.id] = it
+        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) { pi ->
+            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
         })
     }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
@@ -429,27 +432,30 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
-                RNPaymentIntentCallback(promise) { paymentIntents[it.id] = it },
+                RNPaymentIntentCallback(promise) { pi ->
+                    (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+                },
                 config
             )
         }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
-        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise) {
-            paymentIntents[it.id] = it
+        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise) { pi ->
+            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
         })
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun processPayment(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
+    fun confirmPaymentIntent(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
         val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
             "There is no associated paymentIntent with id $paymentIntentId"
         }
 
-        terminal.processPayment(paymentIntent, RNPaymentIntentCallback(promise) {
+        terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) {
             paymentIntents.clear()
         })
     }
@@ -485,6 +491,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         })
     }
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) =
@@ -492,8 +499,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
                 "There is no associated paymentIntent with id $paymentIntentId"
             }
-            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) {
-                paymentIntents[it.id] = null
+            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) { pi ->
+                (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = null }
             })
         }
 
@@ -516,6 +523,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 customerConsentCollected,
+                SetupIntentConfiguration.Builder()
+                    .setEnableCustomerCancellation(false)
+                    .build(),
                 RNSetupIntentCallback(promise) { setupIntents[it.id] = it }
             )
         }
@@ -615,7 +625,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val intentParams = intentParamsBuild.build()
 
             collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
-                intentParams, NoOpCallback(promise)
+                intentParams,
+                RefundConfiguration.Builder().setEnableCustomerCancellation(false).build(),
+                NoOpCallback(promise)
             )
         }
 
@@ -629,19 +641,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun processRefund(promise: Promise) {
-        terminal.processRefund(RNRefundCallback(promise))
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun readReusableCard(params: ReadableMap, promise: Promise) {
-        val reusableCardParams = params.getString("customer")?.let { customerId ->
-            ReadReusableCardParameters.Builder().setCustomer(customerId).build()
-        } ?: ReadReusableCardParameters.NULL
-
-        readReusableCardCancelable = terminal
-            .readReusableCard(reusableCardParams, RNPaymentMethodCallback(promise))
+    fun confirmRefund(promise: Promise) {
+        terminal.confirmRefund(RNRefundCallback(promise))
     }
 
     private fun cancelOperation(

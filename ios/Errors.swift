@@ -2,6 +2,7 @@ import StripeTerminal
 
 enum CommonErrorType: String {
     case InvalidRequiredParameter
+    case AlreadyDiscovering
 }
 
 class Errors {
@@ -45,8 +46,6 @@ func busyMessage(command: String, by busyCommand: String) -> String {
 extension ErrorCode.Code {
     var stringValue: String {
         switch self {
-        case .busy:
-            return "Busy"
         case .cancelFailedAlreadyCompleted:
             return "CancelFailedAlreadyCompleted"
         case .notConnectedToReader:
@@ -55,10 +54,12 @@ extension ErrorCode.Code {
             return "AlreadyConnectedToReader"
         case .connectionTokenProviderCompletedWithNothing:
             return "ConnectionTokenProviderCompletedWithNothing"
-        case .processInvalidPaymentIntent:
-            return "ProcessInvalidPaymentIntent"
+        case .connectionTokenProviderCompletedWithNothingWhileForwarding:
+            return "ConnectionTokenProviderCompletedWithNothingWhileForwarding"
         case .nilPaymentIntent:
             return "NilPaymentIntent"
+        case .confirmInvalidPaymentIntent:
+            return "ConfirmInvalidPaymentIntent"
         case .nilSetupIntent:
             return "NilSetupIntent"
         case .nilRefundPaymentMethod:
@@ -67,10 +68,6 @@ extension ErrorCode.Code {
             return "InvalidRefundParameters"
         case .invalidClientSecret:
             return "InvalidClientSecret"
-        case .mustBeDiscoveringToConnect:
-            return "MustBeDiscoveringToConnect"
-        case .cannotConnectToUndiscoveredReader:
-            return "CannotConnectToUndiscoveredReader"
         case .invalidDiscoveryConfiguration:
             return "InvalidDiscoveryConfiguration"
         case .invalidReaderForUpdate:
@@ -177,6 +174,84 @@ extension ErrorCode.Code {
             return "ReaderConnectionConfigurationInvalid"
         case .bluetoothReconnectStarted:
             return "BluetoothReconnectStarted"
+        case .accountIdMismatchWhileForwarding:
+            return "AccountIdMismatchWhileForwarding"
+        case .updatePaymentIntentUnavailableWhileOffline:
+            return "UpdatePaymentIntentUnavailableWhileOffline"
+        case .updatePaymentIntentUnavailableWhileOfflineModeEnabled:
+            return "UpdatePaymentIntentUnavailableWhileOfflineModeEnabled"    
+        case .forwardingTestModePaymentInLiveMode:
+            return "ForwardingTestModePaymentInLiveMode"
+        case .forwardingLiveModePaymentInTestMode:
+            return "ForwardingLiveModePaymentInTestMode"
+        case .offlinePaymentsDatabaseTooLarge:
+            return "OfflinePaymentsDatabaseTooLarge"
+        case .readerConnectionNotAvailableOffline:
+            return "ReaderConnectionNotAvailableOffline"
+        case .readerConnectionOfflineLocationMismatch:
+            return "ReaderConnectionOfflineLocationMismatch"
+        case .noLastSeenAccount:
+            return "NoLastSeenAccount"
+        case .amountExceedsMaxOfflineAmount:
+            return "AmountExceedsMaxOfflineAmount"
+        case .invalidOfflineCurrency:
+            return "InvalidOfflineCurrency"
+        case .cardSwipeNotAvailable:
+            return "CardSwipeNotAvailable"
+        case .interacNotSupportedOffline:
+            return "InteracNotSupportedOffline"
+        case .offlineAndCardExpired:
+            return "OfflineAndCardExpired"
+        case .offlineTransactionDeclined:
+            return "OfflineTransactionDeclined"
+        case .offlineCollectAndConfirmMismatch:
+            return "OfflineCollectAndConfirmMismatch"
+        case .connectionTokenProviderCompletedWithErrorWhileForwarding:
+            return "ConnectionTokenProviderCompletedWithErrorWhileForwarding"
+        case .notConnectedToInternetAndOfflineBehaviorRequireOnline:
+            return "NotConnectedToInternetAndOfflineBehaviorRequireOnline"
+        case .offlineBehaviorForceOfflineWithFeatureDisabled:
+            return "OfflineBehaviorForceOfflineWithFeatureDisabled"
+        case .readerTippingParameterInvalid:
+            return "ReaderTippingParameterInvalid"
+        case .invalidLocationIdParameter:
+            return "InvalidLocationIdParameter"
+        case .missingEMVData:
+            return "MissingEMVData"
+        case .commandNotAllowed:
+            return "CommandNotAllowed"
+        case .unsupportedMobileDeviceConfiguration:
+            return "UnsupportedMobileDeviceConfiguration"
+        case .passcodeNotEnabled:
+            return "PasscodeNotEnabled"
+        case .commandNotAllowedDuringCall:
+            return "CommandNotAllowedDuringCall"
+        case .invalidAmount:
+            return "InvalidAmount"
+        case .invalidCurrency:
+            return "InvalidCurrency"
+        case .appleBuiltInReaderTOSAcceptanceRequiresiCloudSignIn:
+            return "AppleBuiltInReaderTOSAcceptanceRequiresiCloudSignIn"
+        case .appleBuiltInReaderTOSAcceptanceCanceled:
+            return "AppleBuiltInReaderTOSAcceptanceCanceled"
+        case .nfcDisabled:
+            return "NfcDisabled"
+        case .readerNotAccessibleInBackground:
+            return "ReaderNotAccessibleInBackground"
+        case .appleBuiltInReaderFailedToPrepare:
+            return "AppleBuiltInReaderFailedToPrepare"
+        case .appleBuiltInReaderDeviceBanned:
+            return "AppleBuiltInReaderDeviceBanned"
+        case .appleBuiltInReaderTOSNotYetAccepted:
+            return "AppleBuiltInReaderTOSNotYetAccepted"
+        case .appleBuiltInReaderTOSAcceptanceFailed:
+            return "AppleBuiltInReaderTOSAcceptanceFailed"
+        case .appleBuiltInReaderMerchantBlocked:
+            return "AppleBuiltInReaderMerchantBlocked"
+        case .appleBuiltInReaderInvalidMerchant:
+            return "AppleBuiltInReaderInvalidMerchant"
+        case .connectionTokenProviderTimedOut:
+            return "ConnectionTokenProviderTimedOut"
         @unknown default:
             return "Unknown"
         }

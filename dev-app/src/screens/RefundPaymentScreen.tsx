@@ -35,7 +35,7 @@ export default function RefundPaymentScreen() {
   const {
     collectRefundPaymentMethod,
     cancelCollectRefundPaymentMethod,
-    processRefund,
+    confirmRefund,
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
@@ -113,29 +113,29 @@ export default function RefundPaymentScreen() {
           },
         ],
       });
-      _processRefund();
+      _confirmRefund();
     }
   };
 
-  const _processRefund = async () => {
+  const _confirmRefund = async () => {
     addLogs({
-      name: 'Process Refund',
+      name: 'Confirm Refund',
       events: [
         {
           name: 'Processing',
-          description: 'terminal.processRefund',
+          description: 'terminal.confirmRefund',
           metadata: _refundMetadata,
         },
       ],
     });
-    const { error, refund } = await processRefund();
+    const { error, refund } = await confirmRefund();
     if (error) {
       addLogs({
-        name: 'Process Refund',
+        name: 'Confirm Refund',
         events: [
           {
             name: 'Failed',
-            description: 'terminal.processRefund',
+            description: 'terminal.confirmRefund',
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
@@ -145,22 +145,22 @@ export default function RefundPaymentScreen() {
       });
     } else if (refund && refund.status === 'succeeded') {
       addLogs({
-        name: 'Process Refund',
+        name: 'Confirm Refund',
         events: [
           {
             name: 'Succeeded',
-            description: 'terminal.processRefund',
+            description: 'terminal.confirmRefund',
             metadata: _refundMetadata,
           },
         ],
       });
     } else {
       addLogs({
-        name: 'Process Refund',
+        name: 'Confirm Refund',
         events: [
           {
             name: 'Pending or unsuccessful',
-            description: 'terminal.processRefund',
+            description: 'terminal.confirmRefund',
             metadata: _refundMetadata,
           },
         ],

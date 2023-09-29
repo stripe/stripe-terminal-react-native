@@ -52,7 +52,7 @@ export default function SetupIntentScreen() {
     },
   });
 
-  const _processPayment = useCallback(
+  const _confirmPaymentIntent = useCallback(
     async (setupIntentId: string) => {
       addLogs({
         name: 'Process Payment',
@@ -137,11 +137,11 @@ export default function SetupIntentScreen() {
             },
           ],
         });
-        await _processPayment(setupIntentId);
+        await _confirmPaymentIntent(setupIntentId);
       }
     },
     [
-      _processPayment,
+      _confirmPaymentIntent,
       addLogs,
       cancelCollectSetupIntent,
       collectSetupIntentPaymentMethod,
