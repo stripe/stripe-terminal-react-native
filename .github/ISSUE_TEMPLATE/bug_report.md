@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Stripe Terminal React Native SDK version**
 
-- (e.g., `^0.0.1-beta.12`)
+- (e.g., `^0.0.1-beta.13`)
 
 **Smartphone (please complete the following information):**
 
