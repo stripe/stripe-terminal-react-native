@@ -28,7 +28,6 @@ import type {
   ConnectReaderResultType,
   ConnectHandoffParams,
   CollectPaymentMethodParams,
-  PaymentIntent,
 } from './types';
 
 export async function initialize(
@@ -387,12 +386,12 @@ export async function getLocations(
 }
 
 export async function confirmPaymentIntent(
-  paymentIntent: PaymentIntent.Type
+  paymentIntentId: string
 ): Promise<PaymentIntentResultType> {
-  return Logger.traceSdkMethod(async (innerPaymentIntent) => {
+  return Logger.traceSdkMethod(async (innerPaymentIntentId) => {
     try {
-      const { error, paymentIntent: confirmedPaymentIntent } =
-        await StripeTerminalSdk.confirmPaymentIntent(innerPaymentIntent);
+      const { error, paymentIntent } =
+        await StripeTerminalSdk.confirmPaymentIntent(innerPaymentIntentId);
 
       if (error) {
         return {
@@ -401,7 +400,7 @@ export async function confirmPaymentIntent(
         };
       }
       return {
-        paymentIntent: confirmedPaymentIntent!,
+        paymentIntent: paymentIntent!,
         error: undefined,
       };
     } catch (error) {
@@ -409,7 +408,7 @@ export async function confirmPaymentIntent(
         error: error as any,
       };
     }
-  }, 'confirmPaymentIntent')(paymentIntent);
+  }, 'confirmPaymentIntent')(paymentIntentId);
 }
 
 export async function cancelPaymentIntent(
