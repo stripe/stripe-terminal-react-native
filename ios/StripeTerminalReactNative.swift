@@ -323,7 +323,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let onBehalfOf: String? = params["onBehalfOf"] as? String
         let merchantDisplayName: String? = params["merchantDisplayName"] as? String
         let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
-        
+
         let connectionConfig: LocalMobileConnectionConfiguration
         do {
             connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
@@ -411,7 +411,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         default:
             break
         }
-        
+
         let cardPresentParams: CardPresentParameters
         do {
             cardPresentParams = try cardPresentParamsBuilder.build()
@@ -436,13 +436,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
-        
+
         Terminal.shared.createPaymentIntent(paymentParams) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi)
-                self.paymentIntents[pi.stripeId] = pi
+                let uuid = UUID().uuidString
+                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
+                self.paymentIntents[uuid] = pi
                 resolve(["paymentIntent": paymentIntent])
             }
         }
@@ -473,22 +474,26 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectPaymentMethod:resolver:rejecter:)
     func collectPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let id = params["paymentIntentId"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
+        guard let paymentIntent = params["paymentIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent."))
             return
         }
-        guard let paymentIntent = self.paymentIntents[Optional(id)] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
+        guard let uuid = paymentIntent["sdk_uuid"] as? String else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
+            return
+        }
+        guard let paymentIntent = self.paymentIntents[Optional(uuid)] else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with uuid \(uuid)"))
             return
         }
 
         let skipTipping = params["skipTipping"] as? Bool ?? false
         let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
-        
+
         let collectConfigBuilder = CollectConfigurationBuilder()
             .setSkipTipping(skipTipping)
             .setUpdatePaymentIntent(updatePaymentIntent)
-        
+
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
                 let tippingConfig = try TippingConfigurationBuilder()
@@ -508,7 +513,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
-        
+
         self.collectPaymentMethodCancelable = Terminal.shared.collectPaymentMethod(
             paymentIntent,
             collectConfig: collectConfig
@@ -516,7 +521,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let paymentIntent = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent)
+                let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": paymentIntent])
             }
             self.collectPaymentMethodCancelable = nil
@@ -534,8 +539,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi)
-                self.paymentIntents[pi.stripeId] = pi
+                let uuid = UUID().uuidString
+                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
+                self.paymentIntents[uuid] = pi
                 resolve(["paymentIntent": paymentIntent])
             }
         }
@@ -583,17 +589,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
             return
         }
-        
+
         guard let paymentIntent = paymentIntents[Optional(id)] else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
             return
         }
-        
+
         Terminal.shared.confirmPaymentIntent(paymentIntent) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi)
+                let uuid = UUID().uuidString
+                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
                 self.paymentIntents = [:]
                 resolve(["paymentIntent": paymentIntent])
             }
@@ -609,18 +616,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let result = Mappers.mapFromConnectionStatus(status)
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
-    
+
     func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable) {
         self.cancelReaderConnectionCancellable = cancelable
         let reader = Mappers.mapFromReader(reader)
         sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reader": reader])
     }
-    
+
     func readerDidSucceedReconnect(_ reader: Reader) {
         let reader = Mappers.mapFromReader(reader)
         sendEvent(withName: ReactNativeConstants.READER_RECONNECT_SUCCEED.rawValue, body: ["reader": reader])
     }
-    
+
     func readerDidFailReconnect(_ reader: Reader) {
         let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader reconnect fail")
         sendEvent(withName: ReactNativeConstants.READER_RECONNECT_FAIL.rawValue, body: error)
@@ -651,7 +658,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi)
+                let uuid = UUID().uuidString
+                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
                 self.paymentIntents[pi.stripeId] = nil
                 resolve(["paymentIntent": paymentIntent])
             }
@@ -691,7 +699,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let cartBuilder = CartBuilder(currency: currency!)
             .setTax(Int(truncating: tax!))
             .setTotal(Int(truncating: total!))
-        
+
         let cartLineItems = Mappers.mapToCartLineItems(params["lineItems"] as? NSArray ?? NSArray())
         cartBuilder.setLineItems(cartLineItems)
 
@@ -702,7 +710,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
-        
+
         Terminal.shared.setReaderDisplay(cart) { error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
@@ -823,7 +831,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let intAmount = UInt(truncating: amount!);
         let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
         let reverseTransfer = params["reverseTransfer"] as? NSNumber
-        
+
         let refundParams: RefundParameters
         do {
             refundParams = try RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
