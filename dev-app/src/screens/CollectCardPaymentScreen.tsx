@@ -254,9 +254,6 @@ export default function CollectCardPaymentScreen() {
       ],
     });
 
-    console.log('create');
-    console.log(paymentIntent);
-
     return await _collectPaymentMethod(paymentIntent);
   };
 

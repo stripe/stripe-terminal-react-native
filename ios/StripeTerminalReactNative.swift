@@ -474,15 +474,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectPaymentMethod:resolver:rejecter:)
     func collectPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let paymentIntent = params["paymentIntent"] as? NSDictionary else {
+        guard let paymentIntentJSON = params["paymentIntent"] as? NSDictionary else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent."))
             return
         }
-        guard let uuid = paymentIntent["sdk_uuid"] as? String else {
+        guard let uuid = paymentIntentJSON["sdk_uuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
             return
         }
-        guard let paymentIntent = self.paymentIntents[Optional(uuid)] else {
+        guard let paymentIntent = self.paymentIntents[uuid] else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with uuid \(uuid)"))
             return
         }
@@ -584,14 +584,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(confirmPaymentIntent:resolver:rejecter:)
-    func confirmPaymentIntent(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let id = paymentIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
+    func confirmPaymentIntent(paymentIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let uuid = paymentIntentJson["sdk_uuid"] as? String else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
             return
         }
-
-        guard let paymentIntent = paymentIntents[Optional(id)] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
+        guard let paymentIntent = self.paymentIntents[uuid] else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with uuid \(uuid)"))
             return
         }
 

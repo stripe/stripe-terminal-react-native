@@ -74,7 +74,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  confirmPaymentIntent:(NSString *)paymentIntentId
+                  confirmPaymentIntent:(NSDictionary *)paymentIntentJson
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
