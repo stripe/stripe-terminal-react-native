@@ -18,6 +18,7 @@ import type {
   PaymentStatus,
   UserCallbacks,
   EventResult,
+  PaymentIntent,
 } from '../types';
 import {
   discoverReaders,
@@ -503,14 +504,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _confirmPaymentIntent = useCallback(
-    async (paymentIntentId: string) => {
+    async (paymentIntent: PaymentIntent.Type) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await confirmPaymentIntent(paymentIntentId);
+      const response = await confirmPaymentIntent(paymentIntent);
 
       setLoading(false);
 

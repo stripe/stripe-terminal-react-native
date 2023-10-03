@@ -254,10 +254,10 @@ export default function CollectCardPaymentScreen() {
       ],
     });
 
-    return await _collectPaymentMethod(paymentIntent.id);
+    return await _collectPaymentMethod(paymentIntent);
   };
 
-  const _collectPaymentMethod = async (paymentIntentId: string) => {
+  const _collectPaymentMethod = async (pi: PaymentIntent.Type) => {
     // @ts-ignore
     setCancel((prev) => ({ ...prev, isDisabled: false }));
     addLogs({
@@ -266,13 +266,13 @@ export default function CollectCardPaymentScreen() {
         {
           name: 'Collect',
           description: 'terminal.collectPaymentMethod',
-          metadata: { paymentIntentId },
+          metadata: { paymentIntentId: pi.id },
           onBack: cancelCollectPaymentMethod,
         },
       ],
     });
     const { paymentIntent, error } = await collectPaymentMethod({
-      paymentIntentId: paymentIntentId,
+      paymentIntent: pi,
       skipTipping: skipTipping,
       tipEligibleAmount: tipEligibleAmount
         ? Number(tipEligibleAmount)
@@ -331,7 +331,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     const { paymentIntent, error } = await confirmPaymentIntent(
-      collectedPaymentIntent.id
+      collectedPaymentIntent
     );
 
     if (error) {
