@@ -80,7 +80,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  cancelPaymentIntent:(NSString *)paymentIntentId
+                  cancelPaymentIntent:(NSDictionary *)paymentIntentJson
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

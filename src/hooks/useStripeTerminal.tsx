@@ -538,14 +538,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _cancelPaymentIntent = useCallback(
-    async (paymentIntentId: string) => {
+    async (paymentIntent: PaymentIntent.Type) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await cancelPaymentIntent(paymentIntentId);
+      const response = await cancelPaymentIntent(paymentIntent);
 
       setLoading(false);
 

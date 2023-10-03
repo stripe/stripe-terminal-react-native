@@ -90,7 +90,7 @@ export interface StripeTerminalSdkType {
   ): Promise<SetupIntentResultType>;
   // Cancel Payment Intent
   cancelPaymentIntent(
-    paymentIntentId: string
+    paymentIntent: PaymentIntent.Type
   ): Promise<PaymentIntentResultType>;
   // Collect Setup Intent payment method
   collectSetupIntentPaymentMethod(

@@ -413,12 +413,12 @@ export async function confirmPaymentIntent(
 }
 
 export async function cancelPaymentIntent(
-  paymentIntentId: string
+  paymentIntent: PaymentIntent.Type
 ): Promise<PaymentIntentResultType> {
-  return Logger.traceSdkMethod(async (innerPaymentIntentId) => {
+  return Logger.traceSdkMethod(async (innerPaymentIntent) => {
     try {
-      const { paymentIntent, error } =
-        await StripeTerminalSdk.cancelPaymentIntent(innerPaymentIntentId);
+      const { paymentIntent: canceledPaymentIntent, error } =
+        await StripeTerminalSdk.cancelPaymentIntent(innerPaymentIntent);
 
       if (error) {
         return {
@@ -427,7 +427,7 @@ export async function cancelPaymentIntent(
         };
       }
       return {
-        paymentIntent: paymentIntent!,
+        paymentIntent: canceledPaymentIntent!,
         error: undefined,
       };
     } catch (error) {
@@ -435,7 +435,7 @@ export async function cancelPaymentIntent(
         error: error as any,
       };
     }
-  }, 'cancelPaymentIntent')(paymentIntentId);
+  }, 'cancelPaymentIntent')(paymentIntent);
 }
 
 export async function installAvailableUpdate(): Promise<{

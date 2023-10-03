@@ -644,13 +644,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(cancelPaymentIntent:resolver:rejecter:)
-    func cancelPaymentIntent(paymentIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let id = paymentIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntentId."))
+    func cancelPaymentIntent(paymentIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let uuid = paymentIntentJson["sdk_uuid"] as? String else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
             return
         }
-        guard let paymentIntent = paymentIntents[Optional(id)] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with id \(id)"))
+        guard let paymentIntent = self.paymentIntents[uuid] else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated paymentIntent with uuid \(uuid)"))
             return
         }
         Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
