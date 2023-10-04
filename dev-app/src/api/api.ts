@@ -219,7 +219,6 @@ export class Api {
         Authorization: `Bearer ${secretKey}`,
       },
     });
-
     const data = await result.json();
 
     if ('error' in data) {

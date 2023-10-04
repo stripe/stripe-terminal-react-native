@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
@@ -51,6 +52,8 @@ import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.UUID
+import kotlin.collections.HashMap
 
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
@@ -160,6 +163,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise.resolve(null)
     }
 
+    @SuppressLint("MissingPermission")
     @ReactMethod
     @Suppress("unused")
     fun discoverReaders(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
@@ -396,8 +400,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) { pi ->
-            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+        val uuid = UUID.randomUUID().toString()
+
+        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise, uuid) { pi ->
+            paymentIntents[uuid] = pi
         })
     }
 
@@ -406,11 +412,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntentId = requireParam(params.getString("paymentIntentId")) {
-                "You must provide a paymentIntentId"
+            val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
+                "You must provide a paymentIntent"
             }
-            val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
-                "There is no associated paymentIntent with id $paymentIntentId"
+            val uuid = requireParam(paymentIntentJson.getString("sdk_uuid")) {
+                "You must provide a sdk_uuid"
+            }
+            val paymentIntent = requireParam(paymentIntents[uuid]) {
+                "There is no associated paymentIntent with id $uuid"
             }
 
             val configBuilder = CollectConfiguration.Builder()
@@ -432,8 +441,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
-                RNPaymentIntentCallback(promise) { pi ->
-                    (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+                RNPaymentIntentCallback(promise, uuid) { pi ->
+                    paymentIntents[uuid] = pi
                 },
                 config
             )
@@ -443,19 +452,23 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
-        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise) { pi ->
-            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+        val uuid = UUID.randomUUID().toString()
+        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise, uuid) { pi ->
+            paymentIntents[uuid] = pi
         })
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmPaymentIntent(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
-        val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
-            "There is no associated paymentIntent with id $paymentIntentId"
+    fun confirmPaymentIntent(paymentIntent: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
+            "You must provide a sdk_uuid"
+        }
+        val paymentIntent = requireParam(paymentIntents[uuid]) {
+            "There is no associated paymentIntent with id $uuid"
         }
 
-        terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) {
+        terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
             paymentIntents.clear()
         })
     }
@@ -494,13 +507,17 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
-    fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) =
+    fun cancelPaymentIntent(paymentIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
-                "There is no associated paymentIntent with id $paymentIntentId"
+            val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
+                "You must provide a sdk_uuid"
             }
-            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) { pi ->
-                (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = null }
+            val paymentIntent = requireParam(paymentIntents[uuid]) {
+                "There is no associated paymentIntent with id $uuid"
+            }
+
+            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
+                paymentIntents[uuid] = null
             })
         }
 

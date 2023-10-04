@@ -10,13 +10,14 @@ import com.stripeterminalreactnative.nativeMapOf
 
 class RNPaymentIntentCallback(
     private val promise: Promise,
+    private val uuid: String,
     private val onPaymentIntentSuccess: (PaymentIntent) -> Unit = {}
     ): PaymentIntentCallback {
 
     override fun onSuccess(paymentIntent: PaymentIntent) {
         onPaymentIntentSuccess(paymentIntent)
         promise.resolve(nativeMapOf {
-            putMap("paymentIntent", mapFromPaymentIntent(paymentIntent))
+            putMap("paymentIntent", mapFromPaymentIntent(paymentIntent, uuid))
         })
     }
 
