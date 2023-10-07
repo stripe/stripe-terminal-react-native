@@ -491,16 +491,18 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
-        terminal.createSetupIntent(intentParams, RNSetupIntentCallback(promise) {
-            setupIntents[it.id] = it
+        val uuid = UUID.randomUUID().toString()
+        terminal.createSetupIntent(intentParams, RNSetupIntentCallback(promise, uuid) {
+            setupIntents[uuid] = it
         })
     }
 
     @ReactMethod
     @Suppress("unused")
     fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
-        terminal.retrieveSetupIntent(clientSecret, RNSetupIntentCallback(promise) {
-            setupIntents[it.id] = it
+        val uuid = UUID.randomUUID().toString()
+        terminal.retrieveSetupIntent(clientSecret, RNSetupIntentCallback(promise, uuid) {
+            setupIntents[uuid] = it
         })
     }
 
@@ -531,19 +533,25 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentId = params.getString("setupIntentId")
+            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+                "You must provide a setupIntent"
+            }
+            val uuid = requireParam(setupIntentJson.getString("sdk_uuid")) {
+                "You must provide a sdk_uuid"
+            }
+            val setupIntent = requireParam(setupIntents[uuid]) {
+                "There is no associated setupIntent with id $uuid"
+            }
+
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
 
-            val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no created setupIntent with id $setupIntentId"
-            }
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 customerConsentCollected,
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(false)
                     .build(),
-                RNSetupIntentCallback(promise) { setupIntents[it.id] = it }
+                RNSetupIntentCallback(promise, uuid) { setupIntents[uuid] = it }
             )
         }
 
@@ -588,28 +596,34 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelSetupIntent(setupIntentId: String, promise: Promise) =
+    fun cancelSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no associated setupIntent with id $setupIntentId"
+            val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
+                "You must provide a sdk_uuid"
+            }
+            val setupIntent = requireParam(setupIntents[uuid]) {
+                "There is no associated setupIntent with id $uuid"
             }
 
             val params = SetupIntentCancellationParameters.Builder().build()
 
-            terminal.cancelSetupIntent(setupIntent, params, RNSetupIntentCallback(promise) {
+            terminal.cancelSetupIntent(setupIntent, params, RNSetupIntentCallback(promise, uuid) {
                 setupIntents[setupIntent.id] = null
             })
         }
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmSetupIntent(setupIntentId: String, promise: Promise) =
+    fun confirmSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no associated setupIntent with id $setupIntentId"
+            val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
+                "You must provide a sdk_uuid"
+            }
+            val setupIntent = requireParam(setupIntents[uuid]) {
+                "There is no associated setupIntent with id $uuid"
             }
 
-            terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise) {
+            terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise, uuid) {
                 setupIntents[it.id] = null
             })
         }

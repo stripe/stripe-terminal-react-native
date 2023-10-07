@@ -157,7 +157,7 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putString("sdk_uuid", uuid)
 }
 
-internal fun mapFromSetupIntent(setupIntent: SetupIntent): ReadableMap = nativeMapOf {
+internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
     putString("created", convertToUnixTimestamp(setupIntent.created))
     putString("id", setupIntent.id)
     putString("status", mapFromSetupIntentStatus(setupIntent.status))
@@ -170,6 +170,7 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent): ReadableMap = nativeM
     putString("onBehalfOfId", setupIntent.onBehalfOfId)
     putString("paymentMethodId", setupIntent.paymentMethodId)
     putString("singleUseMandateId", setupIntent.singleUseMandateId)
+    putString("sdk_uuid", uuid)
 }
 
 internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt?.let {
