@@ -150,9 +150,10 @@ class Mappers {
         return result
     }
 
-    class func mapFromSetupIntent(_ setupIntent: SetupIntent) -> NSDictionary {
+    class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         let result: NSDictionary = [
             "id": setupIntent.stripeId,
+            "sdk_uuid": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "status": mapFromSetupIntentStatus(setupIntent.status),
             "latestAttempt": mapFromSetupAttempt(setupIntent.latestAttempt) ?? NSNull(),

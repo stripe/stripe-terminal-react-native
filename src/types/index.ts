@@ -187,7 +187,7 @@ export type CollectPaymentMethodParams = {
 
 export type CollectSetupIntentPaymentMethodParams = {
   customerConsentCollected?: boolean;
-  setupIntentId: string;
+  setupIntent: SetupIntent.Type;
 };
 
 export type CreateSetupIntentParams = {

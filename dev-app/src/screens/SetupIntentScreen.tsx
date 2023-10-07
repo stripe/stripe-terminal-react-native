@@ -53,18 +53,18 @@ export default function SetupIntentScreen() {
   });
 
   const _confirmPaymentIntent = useCallback(
-    async (setupIntentId: string) => {
+    async (si: SetupIntent.Type) => {
       addLogs({
         name: 'Process Payment',
         events: [
           {
             name: 'Process',
             description: 'terminal.confirmSetupIntent',
-            metadata: { setupIntentId },
+            metadata: { setupIntentId: si.id },
           },
         ],
       });
-      const { setupIntent, error } = await confirmSetupIntent(setupIntentId);
+      const { setupIntent, error } = await confirmSetupIntent(si);
       if (error) {
         addLogs({
           name: 'Process Payment',
@@ -96,20 +96,20 @@ export default function SetupIntentScreen() {
   );
 
   const _collectPaymentMethod = useCallback(
-    async (setupIntentId: string) => {
+    async (si: SetupIntent.Type) => {
       addLogs({
         name: 'Collect Setup Intent',
         events: [
           {
             name: 'Collect',
             description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: { setupIntentId },
+            metadata: { setupIntentId: si.id },
             onBack: cancelCollectSetupIntent,
           },
         ],
       });
       const { setupIntent, error } = await collectSetupIntentPaymentMethod({
-        setupIntentId: setupIntentId,
+        setupIntent: si,
         customerConsentCollected: true,
       });
       if (error) {
@@ -137,7 +137,7 @@ export default function SetupIntentScreen() {
             },
           ],
         });
-        await _confirmPaymentIntent(setupIntentId);
+        await _confirmPaymentIntent(setupIntent);
       }
     },
     [
@@ -251,7 +251,7 @@ export default function SetupIntentScreen() {
         ],
       });
     } else if (setupIntent) {
-      await _collectPaymentMethod(setupIntent.id);
+      await _collectPaymentMethod(setupIntent);
     }
   }, [
     api,

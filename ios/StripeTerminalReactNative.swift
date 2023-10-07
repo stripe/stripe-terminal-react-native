@@ -465,8 +465,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let si = si {
-                let setupIntent = Mappers.mapFromSetupIntent(si)
-                self.setupIntents[si.stripeId] = si
+                let uuid = UUID().uuidString
+                let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
+                self.setupIntents[uuid] = si
                 resolve(["setupIntent": setupIntent])
             }
         }
@@ -720,20 +721,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(cancelSetupIntent:resolver:rejecter:)
-    func cancelSetupIntent(setupIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let id = setupIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntentId."))
+    func cancelSetupIntent(setupIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let uuid = setupIntentJson["sdk_uuid"] as? String else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
             return
         }
-        guard let setupIntent = setupIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated setupIntentId with id \(id)"))
+        guard let setupIntent = self.setupIntents[uuid] else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no associated setupIntentId with id \(uuid)"))
             return
         }
         Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let si = si {
-                let setupIntent = Mappers.mapFromSetupIntent(si)
+                let uuid = UUID().uuidString
+                let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
                 self.setupIntents[si.stripeId] = nil
                 resolve(["setupIntent": setupIntent])
             }
@@ -761,8 +763,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let si = si {
-                self.setupIntents[si.stripeId] = si
-                let si = Mappers.mapFromSetupIntent(si)
+                let uuid = UUID().uuidString
+                self.setupIntents[uuid] = si
+                let si = Mappers.mapFromSetupIntent(si,uuid: uuid)
                 resolve(["setupIntent": si])
             }
         }
@@ -770,14 +773,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectSetupIntentPaymentMethod:resolver:rejecter:)
     func collectSetupIntentPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let setupIntentId = params["setupIntentId"] as? String
-
-        guard let id = setupIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntentId."))
+        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent."))
             return
         }
-        guard let setupIntent = setupIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no created setupIntent with id \(id)"))
+
+        guard let uuid = setupIntentJson["sdk_uuid"] as? String else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
+            return
+        }
+        guard let setupIntent = self.setupIntents[uuid] else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no created setupIntent with uuid \(uuid)"))
             return
         }
 
@@ -787,7 +793,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
-                let setupIntent = Mappers.mapFromSetupIntent(setupIntent)
+                let setupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 resolve(["setupIntent": setupIntent])
             }
             self.collectSetupIntentCancelable = nil
@@ -795,13 +801,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(confirmSetupIntent:resolver:rejecter:)
-    func confirmSetupIntent(setupIntentId: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let id = setupIntentId else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntentId."))
+    func confirmSetupIntent(setupIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let uuid = setupIntentJson["sdk_uuid"] as? String else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide sdk_uuid."))
             return
         }
-        guard let setupIntent = setupIntents[id] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no created setupIntent with id \(id)"))
+        guard let setupIntent = self.setupIntents[uuid] else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "There is no created setupIntent with id \(uuid)"))
             return
         }
 
@@ -810,7 +816,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
-                let setupIntent = Mappers.mapFromSetupIntent(setupIntent)
+                let uuid = UUID().uuidString
+                let setupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 resolve(["setupIntent": setupIntent])
             }
         }

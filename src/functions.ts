@@ -29,6 +29,7 @@ import type {
   ConnectHandoffParams,
   CollectPaymentMethodParams,
   PaymentIntent,
+  SetupIntent,
 } from './types';
 
 export async function initialize(
@@ -556,13 +557,12 @@ export async function clearReaderDisplay(): Promise<ClearReaderDisplayResultType
 }
 
 export async function cancelSetupIntent(
-  setupIntentId: string
+  setupIntent: SetupIntent.Type
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupIntentId) => {
+  return Logger.traceSdkMethod(async (innerSetupInten) => {
     try {
-      const { setupIntent, error } = await StripeTerminalSdk.cancelSetupIntent(
-        innerSetupIntentId
-      );
+      const { setupIntent: canceledSetupIntent, error } =
+        await StripeTerminalSdk.cancelSetupIntent(innerSetupInten);
 
       if (error) {
         return {
@@ -571,7 +571,7 @@ export async function cancelSetupIntent(
         };
       }
       return {
-        setupIntent: setupIntent!,
+        setupIntent: canceledSetupIntent!,
         error: undefined,
       };
     } catch (error) {
@@ -579,17 +579,16 @@ export async function cancelSetupIntent(
         error: error as any,
       };
     }
-  }, 'cancelSetupIntent')(setupIntentId);
+  }, 'cancelSetupIntent')(setupIntent);
 }
 
 export async function confirmSetupIntent(
-  setupIntentId: string
+  setupIntent: SetupIntent.Type
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupIntentId) => {
+  return Logger.traceSdkMethod(async (innerSetupIntent) => {
     try {
-      const { setupIntent, error } = await StripeTerminalSdk.confirmSetupIntent(
-        innerSetupIntentId
-      );
+      const { setupIntent: confirmedSetupIntent, error } =
+        await StripeTerminalSdk.confirmSetupIntent(innerSetupIntent);
 
       if (error) {
         return {
@@ -598,7 +597,7 @@ export async function confirmSetupIntent(
         };
       }
       return {
-        setupIntent: setupIntent!,
+        setupIntent: confirmedSetupIntent!,
         error: undefined,
       };
     } catch (error) {
@@ -606,7 +605,7 @@ export async function confirmSetupIntent(
         error: error as any,
       };
     }
-  }, 'confirmSetupIntent')(setupIntentId);
+  }, 'confirmSetupIntent')(setupIntent);
 }
 
 export async function simulateReaderUpdate(

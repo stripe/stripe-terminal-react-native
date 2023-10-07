@@ -19,6 +19,7 @@ import type {
   UserCallbacks,
   EventResult,
   PaymentIntent,
+  SetupIntent,
 } from '../types';
 import {
   discoverReaders,
@@ -645,14 +646,14 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading, _isInitialized]);
 
   const _cancelSetupIntent = useCallback(
-    async (setupIntentId: string) => {
+    async (setupIntent: SetupIntent.Type) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await cancelSetupIntent(setupIntentId);
+      const response = await cancelSetupIntent(setupIntent);
 
       setLoading(false);
 
@@ -662,14 +663,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _confirmSetupIntent = useCallback(
-    async (setupIntentId: string) => {
+    async (setupIntent: SetupIntent.Type) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await confirmSetupIntent(setupIntentId);
+      const response = await confirmSetupIntent(setupIntent);
 
       setLoading(false);
 

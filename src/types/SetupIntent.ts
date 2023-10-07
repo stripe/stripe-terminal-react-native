@@ -8,6 +8,7 @@ export namespace SetupIntent {
       status: Status;
       latestAttempt: SetupAttempt;
       usage: Usage;
+      sdk_uuid: string;
     };
 
   export type Status =
