@@ -108,11 +108,15 @@ export interface StripeTerminalSdkType {
   clearReaderDisplay(): Promise<ClearReaderDisplayResultType>;
   retrieveSetupIntent(clientSecret: string): Promise<SetupIntentResultType>;
   // Cancel Setup Intent
-  cancelSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
+  cancelSetupIntent(
+    paymentIntent: PaymentIntent.Type
+  ): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
   getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;
   // Confirm Setup Intent
-  confirmSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
+  confirmSetupIntent(
+    paymentIntent: PaymentIntent.Type
+  ): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
   collectRefundPaymentMethod(
     params: RefundParams

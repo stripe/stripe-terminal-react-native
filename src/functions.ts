@@ -559,10 +559,10 @@ export async function clearReaderDisplay(): Promise<ClearReaderDisplayResultType
 export async function cancelSetupIntent(
   setupIntent: SetupIntent.Type
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupInten) => {
+  return Logger.traceSdkMethod(async (innerSetupIntent) => {
     try {
       const { setupIntent: canceledSetupIntent, error } =
-        await StripeTerminalSdk.cancelSetupIntent(innerSetupInten);
+        await StripeTerminalSdk.cancelSetupIntent(innerSetupIntent);
 
       if (error) {
         return {
