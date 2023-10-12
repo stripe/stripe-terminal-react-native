@@ -28,6 +28,7 @@ import type {
   ConnectReaderResultType,
   CollectPaymentMethodParams,
   PaymentIntent,
+  SetupIntent,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -109,13 +110,13 @@ export interface StripeTerminalSdkType {
   retrieveSetupIntent(clientSecret: string): Promise<SetupIntentResultType>;
   // Cancel Setup Intent
   cancelSetupIntent(
-    paymentIntent: PaymentIntent.Type
+    setupIntent: SetupIntent.Type
   ): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
   getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;
   // Confirm Setup Intent
   confirmSetupIntent(
-    paymentIntent: PaymentIntent.Type
+    setupIntent: SetupIntent.Type
   ): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
   collectRefundPaymentMethod(
