@@ -8,6 +8,7 @@ export namespace PaymentIntent {
     created: string;
     currency: string;
     status: Status;
+    sdk_uuid: string;
   }
 
   export type Status =

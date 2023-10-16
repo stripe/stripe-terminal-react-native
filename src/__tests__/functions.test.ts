@@ -125,7 +125,6 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({})),
         cancelCollectSetupIntent: jest.fn().mockImplementation(() => ({})),
-        cancelReadReusableCard: jest.fn().mockImplementation(() => ({})),
         setSimulatedCard: jest.fn(),
       }));
     });
@@ -353,11 +352,6 @@ describe('functions.test.ts', () => {
     it('cancelCollectSetupIntent returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.cancelCollectSetupIntent()).resolves.toEqual({});
-    });
-
-    it('cancelReadReusableCard returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.cancelReadReusableCard()).resolves.toEqual({});
     });
 
     it('connectLocalMobileReader returns a proper value', async () => {

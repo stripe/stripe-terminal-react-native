@@ -146,7 +146,7 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
     }
 }
 
-internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent): ReadableMap = nativeMapOf {
+internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap = nativeMapOf {
     putInt("amount", paymentIntent.amount.toInt())
     putString("currency", paymentIntent.currency)
     putString("id", paymentIntent.id)
@@ -154,9 +154,10 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent): ReadableMap = n
     putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
     putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
     putString("created", convertToUnixTimestamp(paymentIntent.created))
+    putString("sdk_uuid", uuid)
 }
 
-internal fun mapFromSetupIntent(setupIntent: SetupIntent): ReadableMap = nativeMapOf {
+internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
     putString("created", convertToUnixTimestamp(setupIntent.created))
     putString("id", setupIntent.id)
     putString("status", mapFromSetupIntentStatus(setupIntent.status))
@@ -169,6 +170,7 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent): ReadableMap = nativeM
     putString("onBehalfOfId", setupIntent.onBehalfOfId)
     putString("paymentMethodId", setupIntent.paymentMethodId)
     putString("singleUseMandateId", setupIntent.singleUseMandateId)
+    putString("sdk_uuid", uuid)
 }
 
 internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt?.let {

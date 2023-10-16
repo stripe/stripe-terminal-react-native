@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
@@ -51,6 +52,8 @@ import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.UUID
+import kotlin.collections.HashMap
 
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
@@ -61,7 +64,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var collectRefundPaymentMethodCancelable: Cancelable? = null
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
-    private var readReusableCardCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
@@ -160,6 +162,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise.resolve(null)
     }
 
+    @SuppressLint("MissingPermission")
     @ReactMethod
     @Suppress("unused")
     fun discoverReaders(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
@@ -396,8 +399,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise) { pi ->
-            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+        val uuid = UUID.randomUUID().toString()
+
+        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise, uuid) { pi ->
+            paymentIntents[uuid] = pi
         })
     }
 
@@ -406,11 +411,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntentId = requireParam(params.getString("paymentIntentId")) {
-                "You must provide a paymentIntentId"
+            val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
+                "You must provide a paymentIntent"
             }
-            val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
-                "There is no associated paymentIntent with id $paymentIntentId"
+            val uuid = requireParam(paymentIntentJson.getString("sdk_uuid")) {
+                "The PaymentIntent is missing sdk_uuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            }
+            val paymentIntent = requireParam(paymentIntents[uuid]) {
+                "No PaymentIntent was found with the sdk_uuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
             val configBuilder = CollectConfiguration.Builder()
@@ -432,8 +440,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
-                RNPaymentIntentCallback(promise) { pi ->
-                    (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+                RNPaymentIntentCallback(promise, uuid) { pi ->
+                    paymentIntents[uuid] = pi
                 },
                 config
             )
@@ -443,19 +451,23 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
-        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise) { pi ->
-            (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = pi }
+        val uuid = UUID.randomUUID().toString()
+        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise, uuid) { pi ->
+            paymentIntents[uuid] = pi
         })
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmPaymentIntent(paymentIntentId: String, promise: Promise) = withExceptionResolver(promise) {
-        val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
-            "There is no associated paymentIntent with id $paymentIntentId"
+    fun confirmPaymentIntent(paymentIntent: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
+            "The PaymentIntent is missing sdk_uuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+        }
+        val paymentIntent = requireParam(paymentIntents[uuid]) {
+            "No PaymentIntent was found with the sdk_uuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
 
-        terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) {
+        terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
             paymentIntents.clear()
         })
     }
@@ -478,55 +490,61 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             SetupIntentParameters.Builder().setCustomer(customerId).build()
         } ?: SetupIntentParameters.NULL
 
-        terminal.createSetupIntent(intentParams, RNSetupIntentCallback(promise) {
-            setupIntents[it.id] = it
+        val uuid = UUID.randomUUID().toString()
+        terminal.createSetupIntent(intentParams, RNSetupIntentCallback(promise, uuid) {
+            setupIntents[uuid] = it
         })
     }
 
     @ReactMethod
     @Suppress("unused")
     fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
-        terminal.retrieveSetupIntent(clientSecret, RNSetupIntentCallback(promise) {
-            setupIntents[it.id] = it
+        val uuid = UUID.randomUUID().toString()
+        terminal.retrieveSetupIntent(clientSecret, RNSetupIntentCallback(promise, uuid) {
+            setupIntents[uuid] = it
         })
     }
 
     @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
-    fun cancelPaymentIntent(paymentIntentId: String, promise: Promise) =
+    fun cancelPaymentIntent(paymentIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntent = requireParam(paymentIntents[paymentIntentId]) {
-                "There is no associated paymentIntent with id $paymentIntentId"
+            val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
+                "The PaymentIntent is missing sdk_uuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise) { pi ->
-                (pi.id ?: pi.offlineDetails?.id)?.let { paymentIntents[it] = null }
+            val paymentIntent = requireParam(paymentIntents[uuid]) {
+                "No PaymentIntent was found with the sdk_uuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
+            }
+
+            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
+                paymentIntents[uuid] = null
             })
         }
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelReadReusableCard(promise: Promise) {
-        cancelOperation(promise, readReusableCardCancelable, "readReusableCard")
-    }
-
-    @ReactMethod
-    @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentId = params.getString("setupIntentId")
+            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+                "You must provide a setupIntent"
+            }
+            val uuid = requireParam(setupIntentJson.getString("sdk_uuid")) {
+                "The SetupIntent is missing sdk_uuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            }
+            val setupIntent = requireParam(setupIntents[uuid]) {
+                "No SetupIntent was found with the sdk_uuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
+            }
+
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
 
-            val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no created setupIntent with id $setupIntentId"
-            }
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 customerConsentCollected,
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(false)
                     .build(),
-                RNSetupIntentCallback(promise) { setupIntents[it.id] = it }
+                RNSetupIntentCallback(promise, uuid) { setupIntents[uuid] = it }
             )
         }
 
@@ -571,28 +589,34 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelSetupIntent(setupIntentId: String, promise: Promise) =
+    fun cancelSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no associated setupIntent with id $setupIntentId"
+            val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
+                "The SetupIntent is missing sdk_uuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            }
+            val setupIntent = requireParam(setupIntents[uuid]) {
+                "No SetupIntent was found with the sdk_uuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             val params = SetupIntentCancellationParameters.Builder().build()
 
-            terminal.cancelSetupIntent(setupIntent, params, RNSetupIntentCallback(promise) {
+            terminal.cancelSetupIntent(setupIntent, params, RNSetupIntentCallback(promise, uuid) {
                 setupIntents[setupIntent.id] = null
             })
         }
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmSetupIntent(setupIntentId: String, promise: Promise) =
+    fun confirmSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntent = requireParam(setupIntents[setupIntentId]) {
-                "There is no associated setupIntent with id $setupIntentId"
+            val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
+                "The SetupIntent is missing sdk_uuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            }
+            val setupIntent = requireParam(setupIntents[uuid]) {
+                "No SetupIntent was found with the sdk_uuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
-            terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise) {
+            terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise, uuid) {
                 setupIntents[it.id] = null
             })
         }

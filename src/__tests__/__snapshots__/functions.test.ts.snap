@@ -8,7 +8,6 @@ Object {
   "cancelDiscovering": [Function],
   "cancelInstallingUpdate": [Function],
   "cancelPaymentIntent": [Function],
-  "cancelReadReusableCard": [Function],
   "cancelSetupIntent": [Function],
   "clearCachedCredentials": [Function],
   "clearReaderDisplay": [Function],

@@ -10,13 +10,14 @@ import com.stripeterminalreactnative.nativeMapOf
 
 class RNSetupIntentCallback(
     private val promise: Promise,
+    private val uuid: String,
     private val onSetupIntentSuccess: (SetupIntent) -> Unit = {}
     ): SetupIntentCallback {
 
     override fun onSuccess(setupIntent: SetupIntent) {
         onSetupIntentSuccess(setupIntent)
         promise.resolve(nativeMapOf {
-            putMap("setupIntent", mapFromSetupIntent(setupIntent))
+            putMap("setupIntent", mapFromSetupIntent(setupIntent, uuid))
         })
     }
 

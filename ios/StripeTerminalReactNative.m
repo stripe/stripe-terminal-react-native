@@ -74,13 +74,13 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  confirmPaymentIntent:(NSString *)paymentIntentId
+                  confirmPaymentIntent:(NSDictionary *)paymentIntentJson
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 
 RCT_EXTERN_METHOD(
-                  cancelPaymentIntent:(NSString *)paymentIntentId
+                  cancelPaymentIntent:(NSDictionary *)paymentIntentJson
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
@@ -119,7 +119,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  cancelSetupIntent:(NSString *)setupIntentId
+                  cancelSetupIntent:(NSDictionary *)setupIntentJson
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
@@ -131,7 +131,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  confirmSetupIntent:(NSString *)paymentIntentId
+                  confirmSetupIntent:(NSDictionary *)setupIntentJson
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

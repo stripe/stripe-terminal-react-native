@@ -27,6 +27,8 @@ import type {
   ConnectLocalMobileParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
+  PaymentIntent,
+  SetupIntent,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -81,7 +83,7 @@ export interface StripeTerminalSdkType {
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntentResultType>;
   // Confirm Payment Intent
   confirmPaymentIntent(
-    paymentIntentId: string
+    paymentIntentJson: PaymentIntent.Type
   ): Promise<PaymentIntentResultType>;
   // Create Setup Intent
   createSetupIntent(
@@ -89,7 +91,7 @@ export interface StripeTerminalSdkType {
   ): Promise<SetupIntentResultType>;
   // Cancel Payment Intent
   cancelPaymentIntent(
-    paymentIntentId: string
+    paymentIntent: PaymentIntent.Type
   ): Promise<PaymentIntentResultType>;
   // Collect Setup Intent payment method
   collectSetupIntentPaymentMethod(
@@ -107,11 +109,15 @@ export interface StripeTerminalSdkType {
   clearReaderDisplay(): Promise<ClearReaderDisplayResultType>;
   retrieveSetupIntent(clientSecret: string): Promise<SetupIntentResultType>;
   // Cancel Setup Intent
-  cancelSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
+  cancelSetupIntent(
+    setupIntent: SetupIntent.Type
+  ): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
   getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;
   // Confirm Setup Intent
-  confirmSetupIntent(paymentIntentId: string): Promise<SetupIntentResultType>;
+  confirmSetupIntent(
+    setupIntent: SetupIntent.Type
+  ): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
   collectRefundPaymentMethod(
     params: RefundParams
@@ -127,9 +133,6 @@ export interface StripeTerminalSdkType {
     error?: StripeError;
   }>;
   cancelCollectSetupIntent(): Promise<{
-    error?: StripeError;
-  }>;
-  cancelReadReusableCard(): Promise<{
     error?: StripeError;
   }>;
   setSimulatedCard(cardNumber: string): Promise<{

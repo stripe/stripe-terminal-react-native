@@ -80,7 +80,7 @@ class Mappers {
         guard let displayName = cartLineItem["displayName"] as? String else { return nil }
         guard let quantity = cartLineItem["quantity"] as? NSNumber else { return nil }
         guard let amount = cartLineItem["amount"] as? NSNumber else { return nil }
-        
+
         do {
             let lineItem = try CartLineItemBuilder(displayName: displayName)
                 .setQuantity(Int(truncating: quantity))
@@ -136,8 +136,8 @@ class Mappers {
         }
     }
 
-    
-    class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent) -> NSDictionary {
+
+    class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent, uuid: String) -> NSDictionary {
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
             "charges": mapFromCharges(paymentIntent.charges),
@@ -145,13 +145,15 @@ class Mappers {
             "currency": paymentIntent.currency,
             "status": mapFromPaymentIntentStatus(paymentIntent.status),
             "id": paymentIntent.stripeId,
+            "sdk_uuid": uuid,
         ]
         return result
     }
 
-    class func mapFromSetupIntent(_ setupIntent: SetupIntent) -> NSDictionary {
+    class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         let result: NSDictionary = [
             "id": setupIntent.stripeId,
+            "sdk_uuid": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "status": mapFromSetupIntentStatus(setupIntent.status),
             "latestAttempt": mapFromSetupAttempt(setupIntent.latestAttempt) ?? NSNull(),
