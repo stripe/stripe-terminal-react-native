@@ -135,9 +135,6 @@ export interface StripeTerminalSdkType {
   cancelCollectSetupIntent(): Promise<{
     error?: StripeError;
   }>;
-  cancelReadReusableCard(): Promise<{
-    error?: StripeError;
-  }>;
   setSimulatedCard(cardNumber: string): Promise<{
     error?: StripeError;
   }>;

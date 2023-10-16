@@ -64,7 +64,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var collectRefundPaymentMethodCancelable: Cancelable? = null
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
-    private var readReusableCardCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
@@ -416,10 +415,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "You must provide a paymentIntent"
             }
             val uuid = requireParam(paymentIntentJson.getString("sdk_uuid")) {
-                "You must provide a sdk_uuid"
+                "The PaymentIntent is missing sdk_uuid field."
             }
             val paymentIntent = requireParam(paymentIntents[uuid]) {
-                "There is no associated paymentIntent with id $uuid"
+                "No PaymentIntent was found with the sdk_uuid {$uuid}. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
             val configBuilder = CollectConfiguration.Builder()
@@ -462,10 +461,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun confirmPaymentIntent(paymentIntent: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
-            "You must provide a sdk_uuid"
+            "The PaymentIntent is missing sdk_uuid field."
         }
         val paymentIntent = requireParam(paymentIntents[uuid]) {
-            "There is no associated paymentIntent with id $uuid"
+            "No PaymentIntent was found with the sdk_uuid {$uuid}. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
 
         terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
@@ -512,10 +511,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun cancelPaymentIntent(paymentIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
             val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
-                "You must provide a sdk_uuid"
+                "The PaymentIntent is missing sdk_uuid field."
             }
             val paymentIntent = requireParam(paymentIntents[uuid]) {
-                "There is no associated paymentIntent with id $uuid"
+                "No PaymentIntent was found with the sdk_uuid {$uuid}. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
             terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
@@ -525,22 +524,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelReadReusableCard(promise: Promise) {
-        cancelOperation(promise, readReusableCardCancelable, "readReusableCard")
-    }
-
-    @ReactMethod
-    @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
             val setupIntentJson = requireParam(params.getMap("setupIntent")) {
                 "You must provide a setupIntent"
             }
             val uuid = requireParam(setupIntentJson.getString("sdk_uuid")) {
-                "You must provide a sdk_uuid"
+                "The SetupIntent is missing sdk_uuid field."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {
-                "There is no associated setupIntent with id $uuid"
+                "No SetupIntent was found with the sdk_uuid {$uuid}. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
@@ -599,10 +592,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun cancelSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
             val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
-                "You must provide a sdk_uuid"
+                "The SetupIntent is missing sdk_uuid field."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {
-                "There is no associated setupIntent with id $uuid"
+                "No SetupIntent was found with the sdk_uuid {$uuid}. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             val params = SetupIntentCancellationParameters.Builder().build()
@@ -617,10 +610,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun confirmSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
             val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
-                "You must provide a sdk_uuid"
+                "The SetupIntent is missing sdk_uuid field."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {
-                "There is no associated setupIntent with id $uuid"
+                "No SetupIntent was found with the sdk_uuid {$uuid}. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise, uuid) {

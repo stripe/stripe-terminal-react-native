@@ -49,7 +49,6 @@ import {
   clearCachedCredentials,
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
-  cancelReadReusableCard,
   connectHandoffReader,
   connectLocalMobileReader,
   setSimulatedCard,
@@ -794,20 +793,6 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
-  const _cancelReadReusableCard = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
-    setLoading(true);
-
-    const response = await cancelReadReusableCard();
-
-    setLoading(false);
-
-    return response;
-  }, [_isInitialized, setLoading]);
-
   return {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
@@ -838,7 +823,6 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
-    cancelReadReusableCard: _cancelReadReusableCard,
     connectHandoffReader: _connectHandoffReader,
     connectLocalMobileReader: _connectLocalMobileReader,
     setSimulatedCard: _setSimulatedCard,

@@ -740,18 +740,3 @@ export async function cancelCollectSetupIntent(): Promise<{
     }
   }, 'cancelCollectSetupIntent')();
 }
-
-export async function cancelReadReusableCard(): Promise<{
-  error?: StripeError;
-}> {
-  return Logger.traceSdkMethod(async () => {
-    try {
-      await StripeTerminalSdk.cancelReadReusableCard();
-      return {};
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'cancelReadReusableCard')();
-}
