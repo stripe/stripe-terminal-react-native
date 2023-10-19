@@ -63,6 +63,8 @@ export default function CollectCardPaymentScreen() {
   const [skipTipping, setSkipTipping] = useState(false);
   const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
     useState(false);
+  const [enableCustomerCancellation, setEnableCustomerCancellation] =
+    useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -278,6 +280,7 @@ export default function CollectCardPaymentScreen() {
         ? Number(tipEligibleAmount)
         : undefined,
       updatePaymentIntent: enableUpdatePaymentIntent,
+      enableCustomerCancellation: enableCustomerCancellation,
     });
 
     if (error) {
@@ -669,6 +672,21 @@ export default function CollectCardPaymentScreen() {
           }
         />
       </List>
+
+      {discoveryMethod === 'internet' && (
+        <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
+          <ListItem
+            title="Customer cancellation"
+            rightElement={
+              <Switch
+                testID="enable-cancellation"
+                value={enableCustomerCancellation}
+                onValueChange={(value) => setEnableCustomerCancellation(value)}
+              />
+            }
+          />
+        </List>
+      )}
 
       <List
         bolded={false}

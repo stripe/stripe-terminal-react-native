@@ -473,10 +473,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         let skipTipping = params["skipTipping"] as? Bool ?? false
         let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
+        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
 
         let collectConfigBuilder = CollectConfigurationBuilder()
             .setSkipTipping(skipTipping)
             .setUpdatePaymentIntent(updatePaymentIntent)
+            .setEnableCustomerCancellation(enableCustomerCancellation)
 
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
@@ -771,8 +773,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let customerConsentCollected = params["customerConsentCollected"] as? Bool ?? false
+        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        let setupIntentConfiguration: SetupIntentConfiguration
+        do {
+            setupIntentConfiguration = try SetupIntentConfigurationBuilder().setEnableCustomerCancellation(enableCustomerCancellation)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        
 
-        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, customerConsentCollected: customerConsentCollected) { si, collectError  in
+        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, customerConsentCollected: customerConsentCollected, setupConfig: setupIntentConfiguration) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
@@ -820,6 +832,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let intAmount = UInt(truncating: amount!);
         let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
         let reverseTransfer = params["reverseTransfer"] as? NSNumber
+        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
 
         let refundParams: RefundParameters
         do {
@@ -831,8 +844,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
+        
+        let refundConfiguration: RefundConfiguration
+        do {
+            refundConfiguration = try RefundConfigurationBuilder().setEnableCustomerCancellation(enableCustomerCancellation)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
 
-        self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams) { error in
+        self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams, refundConfig: refundConfiguration) { error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {

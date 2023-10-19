@@ -18,18 +18,20 @@ export default function RefundPaymentScreen() {
     currency: string;
     refundApplicationFee?: boolean;
     reverseTransfer?: boolean;
+    enableCustomerCancellation?: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
     amount: '100',
     currency: 'CAD',
     refundApplicationFee: false,
     reverseTransfer: false,
+    enableCustomerCancellation: false,
   });
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
 
-  const { simulated } = params;
+  const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
 
   const {
@@ -262,6 +264,26 @@ export default function RefundPaymentScreen() {
           }
         />
       </List>
+
+      {discoveryMethod === 'internet' && (
+        <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
+          <ListItem
+            title="Customer cancellation"
+            rightElement={
+              <Switch
+                testID="enable-cancellation"
+                value={inputValues.enableCustomerCancellation}
+                onValueChange={(value) =>
+                  setInputValues((state) => ({
+                    ...state,
+                    enableCustomerCancellation: value,
+                  }))
+                }
+              />
+            }
+          />
+        </List>
+      )}
 
       <List
         bolded={false}
