@@ -436,6 +436,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             if (params.hasKey("updatePaymentIntent")) {
                 configBuilder.updatePaymentIntent(getBoolean(params, "updatePaymentIntent"))
             }
+            if (params.hasKey("enableCustomerCancellation")) {
+                configBuilder.setEnableCustomerCancellation(getBoolean(params, "enableCustomerCancellation"))
+            }
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
@@ -537,12 +540,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
+            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 customerConsentCollected,
                 SetupIntentConfiguration.Builder()
-                    .setEnableCustomerCancellation(false)
+                    .setEnableCustomerCancellation(enableCustomerCancellation)
                     .build(),
                 RNSetupIntentCallback(promise, uuid) { setupIntents[uuid] = it }
             )
@@ -648,9 +652,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 .setReverseTransfer(reverseTransfer)
             val intentParams = intentParamsBuild.build()
 
+            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
+
             collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
                 intentParams,
-                RefundConfiguration.Builder().setEnableCustomerCancellation(false).build(),
+                RefundConfiguration.Builder().setEnableCustomerCancellation(enableCustomerCancellation).build(),
                 NoOpCallback(promise)
             )
         }

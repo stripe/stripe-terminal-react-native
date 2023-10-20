@@ -85,6 +85,10 @@ describe('Internet reader', () => {
 
     await navigateTo('Store card via Setup Intents');
 
+    const button = element(by.text('Collect setupIntent'));
+
+    await button.tap();
+
     const eventLogTitle = element(by.text('EVENT LOG'));
     await waitFor(eventLogTitle).toBeVisible().withTimeout(16000);
 

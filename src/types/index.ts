@@ -183,10 +183,12 @@ export type CollectPaymentMethodParams = {
   skipTipping?: boolean;
   tipEligibleAmount?: number;
   updatePaymentIntent?: boolean;
+  enableCustomerCancellation?: boolean;
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
   customerConsentCollected?: boolean;
+  enableCustomerCancellation?: boolean;
   setupIntent: SetupIntent.Type;
 };
 
@@ -240,6 +242,7 @@ export type RefundParams = {
   currency: string;
   refundApplicationFee?: boolean;
   reverseTransfer?: boolean;
+  enableCustomerCancellation?: boolean;
 };
 
 export type CardPresent = {

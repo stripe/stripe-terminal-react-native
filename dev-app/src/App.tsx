@@ -70,6 +70,7 @@ export type RouteParamList = {
   };
   RefundPayment: {
     simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
   };
   Log: {
     event: Event;
@@ -262,7 +263,7 @@ export default function App() {
             <Stack.Screen
               name="SetupIntentScreen"
               options={{
-                headerTitle: 'SetupIntent',
+                headerTitle: 'Collect SetupIntent',
                 headerBackAccessibilityLabel: 'payment-back',
               }}
               component={SetupIntentScreen}

@@ -91,6 +91,7 @@ export default function HomeScreen() {
           onPress={() => {
             navigation.navigate('RefundPaymentScreen', {
               simulated,
+              discoveryMethod,
             });
           }}
         />
