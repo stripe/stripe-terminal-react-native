@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Toast from 'react-native-root-toast'
+import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
   View,
@@ -32,11 +32,11 @@ export default function HomeScreen() {
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal({
-    onDidOfflineStatusChange(status: OfflineStatus) {
-      setOnline(status.networkStatus=='online'? true :false)
+    onDidOfflineStatusChange(status?: OfflineStatus) {
+      setOnline(status?.networkStatus === 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
-      let toast = Toast.show(error?.message? error.message : "unknown error", {
+      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
         shadow: true,
@@ -44,23 +44,26 @@ export default function HomeScreen() {
         hideOnPress: true,
         delay: 0,
       });
-      
+
       setTimeout(function () {
-          Toast.hide(toast);
+        Toast.hide(toast);
       }, 500);
     },
     onDidPaymentIntentForwarded(paymentIntent) {
-      let toast = Toast.show("Payment Intent " + paymentIntent.id + " forwarded", {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
-      });
-      
+      let toast = Toast.show(
+        'Payment Intent ' + paymentIntent.id + ' forwarded',
+        {
+          duration: Toast.durations.LONG,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        }
+      );
+
       setTimeout(function () {
-          Toast.hide(toast);
+        Toast.hide(toast);
       }, 500);
     },
   });
@@ -140,7 +143,14 @@ export default function HomeScreen() {
         <Text style={styles.readerName}>
           {account?.settings?.dashboard?.display_name} ({account?.id})
         </Text>
-        {account && <View style={[styles.indicator, {backgroundColor: online?colors.green:colors.red}]}/>}
+        {account && (
+          <View
+            style={[
+              styles.indicator,
+              { backgroundColor: online ? colors.green : colors.red },
+            ]}
+          />
+        )}
       </View>
       {connectedReader ? (
         <View style={styles.connectedReaderContainer}>
@@ -305,7 +315,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   readerName: {
     width: '60%',
@@ -320,6 +330,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 20,
-    backgroundColor: colors.green
+    backgroundColor: colors.green,
   },
 });

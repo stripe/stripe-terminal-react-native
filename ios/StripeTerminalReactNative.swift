@@ -17,10 +17,13 @@ enum ReactNativeConstants: String, CaseIterable {
     case START_READER_RECONNECT = "didStartReaderReconnect"
     case READER_RECONNECT_SUCCEED = "didSucceedReaderReconnect"
     case READER_RECONNECT_FAIL = "didFailReaderReconnect"
+    case OFFLINE_STATUS_CHANGE = "didOfflineStatusChange"
+    case PAYMENT_INTENT_FORWARDED = "didPaymentIntentForwarded"
+    case FORWARDING_FAILURE = "didForwardingFailure"
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate, OfflineDelegate {
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
@@ -49,6 +52,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var readReusableCardCancelable: Cancelable? = nil
     var cancelReaderConnectionCancellable: Cancelable? = nil
     var loggingToken: String? = nil
+    var terminal: Terminal? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -74,6 +78,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             Terminal.setTokenProvider(TokenProvider.shared)
             Terminal.shared.logLevel = logLevel
         }
+        
+        Terminal.shared.offlineDelegate = self
 
         if Terminal.shared.responds(to: NSSelectorFromString("setReactNativeSdkVersion:")) && params["reactNativeVersion"] != nil {
             Terminal.shared.performSelector(
@@ -337,6 +343,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(Errors.createError(nsError: error))
             } else {
                 self.paymentIntents = [:]
+                self.terminal = nil
                 resolve([:])
             }
         }
@@ -420,7 +427,36 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        Terminal.shared.createPaymentIntent(paymentParams) { pi, error in
+        let offlineBehavior = params["offlineBehavior"] as? String
+        let offlineModeTransactionLimit = params["offlineModeTransactionLimit"] as? NSNumber ?? 0
+        let offlineModeStoredTransactionLimit = params["offlineModeStoredTransactionLimit"] as? NSNumber ?? 0
+        
+        var isOverOfflineTransactionLimit = amount.intValue >= offlineModeTransactionLimit.intValue
+        if let offlinePaymentTotalByCurrency = Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency[paymentParams.currency]?.intValue {
+            isOverOfflineTransactionLimit = isOverOfflineTransactionLimit || (offlinePaymentTotalByCurrency >= offlineModeStoredTransactionLimit.intValue)
+        }
+        let offlineBehaviorFromTransactionLimit: OfflineBehavior = {
+            if isOverOfflineTransactionLimit {
+                return .requireOnline
+            } else {
+                switch offlineBehavior {
+                case "prefer_online": return OfflineBehavior.preferOnline
+                case "require_online": return OfflineBehavior.requireOnline
+                case "force_offline": return OfflineBehavior.forceOffline
+                default: return OfflineBehavior.preferOnline
+                }
+            }
+        }()
+        
+        let offlineCreateConfig: CreateConfiguration
+        do {
+            offlineCreateConfig = try CreateConfigurationBuilder().setOfflineBehavior(offlineBehaviorFromTransactionLimit).build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        
+        Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
@@ -960,5 +996,34 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func localMobileReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
+    }
+
+    func terminal(_ terminal: Terminal, didChange offlineStatus: OfflineStatus) {
+        self.terminal = terminal
+        let offlineStatus = Mappers.mapFromOfflineStatus(offlineStatus)
+        sendEvent(withName: ReactNativeConstants.OFFLINE_STATUS_CHANGE.rawValue, body: ["result",offlineStatus])
+    }
+    
+    func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
+        self.terminal = terminal
+        let result = Mappers.mapFromForwaredePaymentIntent(intent)
+        sendEvent(withName: ReactNativeConstants.PAYMENT_INTENT_FORWARDED.rawValue, body: ["result",result])
+    }
+    
+    func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {
+        self.terminal = terminal
+        let result = Errors.createError(nsError: error as NSError)
+        sendEvent(withName: ReactNativeConstants.FORWARDING_FAILURE.rawValue, body: ["result",result])
+    }
+
+    @objc(getOfflineStatus:rejecter:)
+    func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let offlinePaymentAmountsByCurrencyDic = self.terminal?.offlineStatus.sdk.paymentAmountsByCurrency
+        let sdkDic: NSDictionary = [
+            "offlinePaymentsCount": self.terminal?.offlineStatus.sdk.paymentsCount,
+            "offlinePaymentAmountsByCurrency": offlinePaymentAmountsByCurrencyDic
+        ]
+        
+        resolve(["sdk": sdkDic])
     }
 }

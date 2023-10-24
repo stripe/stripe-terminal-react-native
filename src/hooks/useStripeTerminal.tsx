@@ -276,11 +276,11 @@ export function useStripeTerminal(props?: Props) {
   const didForwardingFailure = useCallback(() => {
     ({ error }: { error?: StripeError }) => {
       onDidForwardingFailure?.(error);
-    }
+    };
   }, [onDidForwardingFailure]);
 
   const didOfflineStatusChange = useCallback(
-    ({ result }: EventResult<OfflineStatus>) => {
+    ({ result }: { result: OfflineStatus }) => {
       onDidOfflineStatusChange?.(result);
     },
     [onDidOfflineStatusChange]
@@ -289,7 +289,7 @@ export function useStripeTerminal(props?: Props) {
   const didPaymentIntentForwarded = useCallback(() => {
     ({ result }: EventResult<PaymentIntent.Type>) => {
       onDidPaymentIntentForwarded?.(result);
-    }
+    };
   }, [onDidPaymentIntentForwarded]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);

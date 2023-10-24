@@ -506,6 +506,35 @@ class Mappers {
         default: return LogLevel.none
         }
     }
+
+    class func mapFromNetworkStatus(_ status: NetworkStatus) -> String {
+        switch status {
+        case NetworkStatus.online: return "online"
+        case NetworkStatus.offline: return "offline"
+        case NetworkStatus.unknown: return "unknown"
+        default: return "unknown"
+        }
+    }
+    
+    class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> String {
+       let result: NSDictionary = [
+           "networkStatus": mapFromNetworkStatus(offlineStatus.sdk.networkStatus)
+       ]
+        return result
+    }
+    
+    class func mapFromForwaredePaymentIntent(_ paymentIntent: PaymentIntent) -> NSDictionary {
+        let result: NSDictionary = [
+            "amount": paymentIntent.amount,
+            "currency": paymentIntent.currency,
+            "id": paymentIntent.stripeId,
+            "description": paymentIntent.description,
+            "status": mapFromPaymentIntentStatus(paymentIntent.status),
+            "charges": mapFromCharges(paymentIntent.charges),
+            "created": convertDateToUnixTimestamp(date: paymentIntent.created) ?? NSNull(),
+        ]
+        return result
+    }
 }
 
 extension UInt {

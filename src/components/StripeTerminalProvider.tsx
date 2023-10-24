@@ -6,6 +6,8 @@ import {
   StripeError,
   EventResult,
   PaymentStatus,
+  OfflineStatus,
+  PaymentIntent,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -207,17 +209,17 @@ export function StripeTerminalProvider({
   );
 
   const didOfflineStatusChange = useCallback(
-    ({ error }: { error?: StripeError }) => {
+    ({ result }: { result?: OfflineStatus }) => {
       log('didOfflineStatusChange');
-      emitter?.emit(OFFLINE_STATUS_CHANGE, error);
+      emitter?.emit(OFFLINE_STATUS_CHANGE, result);
     },
     [log]
   );
 
   const didPaymentIntentForwarded = useCallback(
-    ({ error }: { error?: StripeError }) => {
+    ({ result }: EventResult<PaymentIntent.Type>) => {
       log('didPaymentIntentForwarded');
-      emitter?.emit(PAYMENT_INTENT_FORWARDED, error);
+      emitter?.emit(PAYMENT_INTENT_FORWARDED, result);
     },
     [log]
   );
@@ -249,6 +251,10 @@ export function StripeTerminalProvider({
   useListener(START_READER_RECONNECT, didStartReaderReconnect);
   useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
   useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
+
+  useListener(OFFLINE_STATUS_CHANGE, didOfflineStatusChange);
+  useListener(PAYMENT_INTENT_FORWARDED, didPaymentIntentForwarded);
+  useListener(FORWARDING_FAILURE, didForwardingFailure);
 
   const tokenProviderHandler = async () => {
     try {
