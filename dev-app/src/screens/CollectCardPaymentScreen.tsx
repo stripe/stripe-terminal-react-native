@@ -39,6 +39,12 @@ const ROUTING_PRIORITY = [
   { value: 'international', label: 'international' },
 ];
 
+const OFFLINE_BEHAVIOR = [
+  { value: 'prefer_online', label: 'prefer_online' },
+  { value: 'require_online', label: 'require_online' },
+  { value: 'force_offline', label: 'force_offline' },
+];
+
 export default function CollectCardPaymentScreen() {
   const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
 
@@ -51,11 +57,17 @@ export default function CollectCardPaymentScreen() {
     requestIncrementalAuthorizationSupport?: boolean;
     captureMethod: 'automatic' | 'manual';
     requestedPriority: 'domestic' | 'international' | '';
+    offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
+    offlineModeTransactionLimit: string;
+    offlineModeStoredTransactionLimit: string;
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
     captureMethod: 'manual',
     requestedPriority: '',
+    offlineBehavior: 'prefer_online',
+    offlineModeTransactionLimit: '10000',
+    offlineModeStoredTransactionLimit: '50000',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
@@ -203,6 +215,9 @@ export default function CollectCardPaymentScreen() {
           requestedPriority: inputValues.requestedPriority,
         },
         captureMethod: inputValues?.captureMethod,
+        offlineBehavior: inputValues?.offlineBehavior,
+        offlineModeTransactionLimit: Number(inputValues?.offlineModeTransactionLimit),
+        offlineModeStoredTransactionLimit: Number(inputValues?.offlineModeStoredTransactionLimit),
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -687,6 +702,53 @@ export default function CollectCardPaymentScreen() {
           />
         </List>
       )}
+
+      <List bolded={false} topSpacing={false} title="OFFLINE MODE TRANSACTION LIMIT">
+        <TextInput
+          testID="limit-text-field"
+          keyboardType="numeric"
+          style={styles.input}
+          value={inputValues.offlineModeTransactionLimit}
+          onChangeText={(value) =>
+            setInputValues((state) => ({ ...state, offlineModeTransactionLimit: value }))
+          }
+          placeholder="amount"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="OFFLINE MODE STORED TRANSACTION LIMIT">
+        <TextInput
+          testID="store-limit-text-field"
+          keyboardType="numeric"
+          style={styles.input}
+          value={inputValues.offlineModeStoredTransactionLimit}
+          onChangeText={(value) =>
+            setInputValues((state) => ({ ...state, offlineModeStoredTransactionLimit: value }))
+          }
+          placeholder="amount"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="OFFLINE BEHAVIOR">
+        <Picker
+          selectedValue={inputValues?.offlineBehavior}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-offline-behavior-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, offlineBehavior: value }))
+          }
+        >
+          {OFFLINE_BEHAVIOR.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
 
       <List
         bolded={false}

@@ -29,6 +29,9 @@ const {
   START_READER_RECONNECT,
   READER_RECONNECT_SUCCEED,
   READER_RECONNECT_FAIL,
+  FORWARDING_FAILURE,
+  OFFLINE_STATUS_CHANGE,
+  PAYMENT_INTENT_FORWARDED,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -199,6 +202,30 @@ export function StripeTerminalProvider({
     ({ error }: { error?: StripeError }) => {
       log('didFailReaderReconnect');
       emitter?.emit(READER_RECONNECT_FAIL, error);
+    },
+    [log]
+  );
+
+  const didOfflineStatusChange = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      log('didOfflineStatusChange');
+      emitter?.emit(OFFLINE_STATUS_CHANGE, error);
+    },
+    [log]
+  );
+
+  const didPaymentIntentForwarded = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      log('didPaymentIntentForwarded');
+      emitter?.emit(PAYMENT_INTENT_FORWARDED, error);
+    },
+    [log]
+  );
+
+  const didForwardingFailure = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      log('didForwardingFailure');
+      emitter?.emit(FORWARDING_FAILURE, error);
     },
     [log]
   );

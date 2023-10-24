@@ -18,6 +18,7 @@ import {
   setDiscoveryMethod as setStoredDiscoveryMethod,
 } from '../util/merchantStorage';
 import {
+  OfflineStatus,
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
@@ -26,9 +27,14 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
+  const [online, setOnline] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
-  const { disconnectReader, connectedReader } = useStripeTerminal();
+  const { disconnectReader, connectedReader } = useStripeTerminal({
+    onDidOfflineStatusChange(status: OfflineStatus) {
+      setOnline(status.networkStatus=='online'? true :false)
+    }
+  });
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -105,6 +111,7 @@ export default function HomeScreen() {
         <Text style={styles.readerName}>
           {account?.settings?.dashboard?.display_name} ({account?.id})
         </Text>
+        {account && <View style={[styles.indicator, {backgroundColor: online?colors.green:colors.red}]}/>}
       </View>
       {connectedReader ? (
         <View style={styles.connectedReaderContainer}>
@@ -267,6 +274,9 @@ const styles = StyleSheet.create({
   accountContainer: {
     marginTop: 20,
     alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center'
   },
   readerName: {
     width: '60%',
@@ -276,5 +286,11 @@ const styles = StyleSheet.create({
   },
   connectionStatus: {
     color: colors.dark_gray,
+  },
+  indicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 20,
+    backgroundColor: colors.green
   },
 });

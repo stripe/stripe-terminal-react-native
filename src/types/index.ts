@@ -166,6 +166,9 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   metadata?: Record<string, string>;
   paymentMethodOptions?: PaymentMethodOptions;
   captureMethod?: 'automatic' | 'manual';
+  offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
+  offlineModeTransactionLimit: number;
+  offlineModeStoredTransactionLimit: number;
 };
 
 export type CreatePaymentIntentIOSParams = {
@@ -270,6 +273,10 @@ export type ConfirmRefundResultType = {
   error?: StripeError;
 };
 
+export type OfflineStatus = {
+  networkStatus: 'online' | 'offline' | 'unknown';
+};
+
 type CardDetails = {
   brand: string;
   country: string;
@@ -304,6 +311,10 @@ export type UserCallbacks = {
   onDidStartReaderReconnect?(): void;
   onDidSucceedReaderReconnect?(): void;
   onDidFailReaderReconnect?(): void;
+
+  onDidOfflineStatusChange?(status: OfflineStatus): void;
+  onDidPaymentIntentForwarded?(paymentIntent: PaymentIntent.Type): void;
+  onDidForwardingFailure?(error?: StripeError): void;
 };
 
 export namespace PaymentMethod {

@@ -4,6 +4,8 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
+import com.stripe.stripeterminal.external.InternalApi
+import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.Address
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
@@ -13,6 +15,8 @@ import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
+import com.stripe.stripeterminal.external.models.NetworkStatus
+import com.stripe.stripeterminal.external.models.OfflineStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
 import com.stripe.stripeterminal.external.models.PaymentMethod
@@ -486,4 +490,34 @@ fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
         putString("dedicatedFileName", receiptDetails?.dedicatedFileName)
         putString("tsi", receiptDetails?.tsi)
         putString("tvr", receiptDetails?.tvr)
+    }
+
+internal fun mapFromNetworkStatus(status: NetworkStatus): String {
+    return when (status) {
+        NetworkStatus.ONLINE -> "online"
+        NetworkStatus.OFFLINE -> "offline"
+        NetworkStatus.UNKNOWN -> "unknown"
+    }
+}
+
+fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap =
+    nativeMapOf {
+        putString("networkStatus", mapFromNetworkStatus(offlineStatus.sdk.networkStatus))
+//        putInt("offlinePaymentsCount", offlineStatus.sdk.offlinePaymentsCount)
+//        val readableMap = nativeMapOf {offlineStatus.sdk.offlinePaymentAmountsByCurrency.forEach {
+//            (key, value) -> putInt(key, value.toInt())
+//        }}
+//        putMap("offlinePaymentsCount", readableMap)
+    }
+
+@OptIn(OfflineMode::class, InternalApi::class)
+fun mapFromForwardedPaymentIntent(paymentIntent: PaymentIntent): ReadableMap =
+    nativeMapOf {
+        putInt("amount", paymentIntent.amount.toInt())
+        putString("currency", paymentIntent.currency)
+        putString("id", paymentIntent.id?:paymentIntent.offlineDetails?.id)
+        putString("description", paymentIntent.description)
+        putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
+        putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+        putString("created", convertToUnixTimestamp(paymentIntent.created))
     }

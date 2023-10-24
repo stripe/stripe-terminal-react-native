@@ -740,3 +740,16 @@ export async function cancelCollectSetupIntent(): Promise<{
     }
   }, 'cancelCollectSetupIntent')();
 }
+
+export async function getOfflineStatus(): Promise<{}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.getOfflineStatus();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'getOfflineStatus')();
+}

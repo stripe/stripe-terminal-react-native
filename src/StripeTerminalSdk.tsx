@@ -138,6 +138,7 @@ export interface StripeTerminalSdkType {
   setSimulatedCard(cardNumber: string): Promise<{
     error?: StripeError;
   }>;
+  getOfflineStatus(): Promise<{}>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
