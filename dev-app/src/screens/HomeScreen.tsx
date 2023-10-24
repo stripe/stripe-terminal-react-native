@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-root-toast'
 import {
   StyleSheet,
   View,
@@ -33,7 +34,35 @@ export default function HomeScreen() {
   const { disconnectReader, connectedReader } = useStripeTerminal({
     onDidOfflineStatusChange(status: OfflineStatus) {
       setOnline(status.networkStatus=='online'? true :false)
-    }
+    },
+    onDidForwardingFailure(error) {
+      let toast = Toast.show(error?.message? error.message : "unknown error", {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+      
+      setTimeout(function () {
+          Toast.hide(toast);
+      }, 500);
+    },
+    onDidPaymentIntentForwarded(paymentIntent) {
+      let toast = Toast.show("Payment Intent " + paymentIntent.id + " forwarded", {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+      
+      setTimeout(function () {
+          Toast.hide(toast);
+      }, 500);
+    },
   });
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;

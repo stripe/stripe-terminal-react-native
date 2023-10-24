@@ -20,6 +20,7 @@ import type {
   EventResult,
   PaymentIntent,
   SetupIntent,
+  OfflineStatus,
 } from '../types';
 import {
   discoverReaders,
@@ -273,18 +274,22 @@ export function useStripeTerminal(props?: Props) {
   }, [onDidFailReaderReconnect, setConnectedReader]);
 
   const didForwardingFailure = useCallback(() => {
-    onDidForwardingFailure?.();
+    ({ error }: { error?: StripeError }) => {
+      onDidForwardingFailure?.(error);
+    }
   }, [onDidForwardingFailure]);
 
   const didOfflineStatusChange = useCallback(
-    ({ result }: EventResult<Reader.ConnectionStatus>) => {
+    ({ result }: EventResult<OfflineStatus>) => {
       onDidOfflineStatusChange?.(result);
     },
     [onDidOfflineStatusChange]
   );
 
   const didPaymentIntentForwarded = useCallback(() => {
-    onDidPaymentIntentForwarded?.();
+    ({ result }: EventResult<PaymentIntent.Type>) => {
+      onDidPaymentIntentForwarded?.(result);
+    }
   }, [onDidPaymentIntentForwarded]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
