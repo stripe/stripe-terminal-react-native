@@ -516,7 +516,7 @@ class Mappers {
         }
     }
     
-    class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> String {
+    class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> NSDictionary {
        let result: NSDictionary = [
            "networkStatus": mapFromNetworkStatus(offlineStatus.sdk.networkStatus)
        ]
