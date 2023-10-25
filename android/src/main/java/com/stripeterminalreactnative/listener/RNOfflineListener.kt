@@ -19,7 +19,7 @@ class RNOfflineListener(
 ): OfflineListener {
     override fun onOfflineStatusChange(offlineStatus: OfflineStatus) {
         context.sendEvent(ReactNativeConstants.OFFLINE_STATUS_CHANGE.listenerName) {
-            putMap("offlineStatus" ,mapFromOfflineStatus(offlineStatus))
+            putMap("result" ,mapFromOfflineStatus(offlineStatus))
         }
     }
 

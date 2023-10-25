@@ -31,9 +31,9 @@ const {
   START_READER_RECONNECT,
   READER_RECONNECT_SUCCEED,
   READER_RECONNECT_FAIL,
-  FORWARDING_FAILURE,
   OFFLINE_STATUS_CHANGE,
   PAYMENT_INTENT_FORWARDED,
+  FORWARDING_FAILURE,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();

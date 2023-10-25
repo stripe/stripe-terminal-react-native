@@ -1001,19 +1001,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didChange offlineStatus: OfflineStatus) {
         self.terminal = terminal
         let offlineStatus = Mappers.mapFromOfflineStatus(offlineStatus)
-        sendEvent(withName: ReactNativeConstants.OFFLINE_STATUS_CHANGE.rawValue, body: ["result",offlineStatus])
+        sendEvent(withName: ReactNativeConstants.OFFLINE_STATUS_CHANGE.rawValue, body: ["result": offlineStatus])
     }
     
     func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
         self.terminal = terminal
         let result = Mappers.mapFromForwaredePaymentIntent(intent)
-        sendEvent(withName: ReactNativeConstants.PAYMENT_INTENT_FORWARDED.rawValue, body: ["result",result])
+        sendEvent(withName: ReactNativeConstants.PAYMENT_INTENT_FORWARDED.rawValue, body: ["result": result])
     }
     
     func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {
         self.terminal = terminal
         let result = Errors.createError(nsError: error as NSError)
-        sendEvent(withName: ReactNativeConstants.FORWARDING_FAILURE.rawValue, body: ["result",result])
+        sendEvent(withName: ReactNativeConstants.FORWARDING_FAILURE.rawValue, body: ["result": result])
     }
 
     @objc(getOfflineStatus:rejecter:)

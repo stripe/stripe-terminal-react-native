@@ -216,8 +216,12 @@ export default function CollectCardPaymentScreen() {
         },
         captureMethod: inputValues?.captureMethod,
         offlineBehavior: inputValues?.offlineBehavior,
-        offlineModeTransactionLimit: Number(inputValues?.offlineModeTransactionLimit),
-        offlineModeStoredTransactionLimit: Number(inputValues?.offlineModeStoredTransactionLimit),
+        offlineModeTransactionLimit: Number(
+          inputValues?.offlineModeTransactionLimit
+        ),
+        offlineModeStoredTransactionLimit: Number(
+          inputValues?.offlineModeStoredTransactionLimit
+        ),
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -703,27 +707,41 @@ export default function CollectCardPaymentScreen() {
         </List>
       )}
 
-      <List bolded={false} topSpacing={false} title="OFFLINE MODE TRANSACTION LIMIT">
+      <List
+        bolded={false}
+        topSpacing={false}
+        title="OFFLINE MODE TRANSACTION LIMIT"
+      >
         <TextInput
           testID="limit-text-field"
           keyboardType="numeric"
           style={styles.input}
           value={inputValues.offlineModeTransactionLimit}
           onChangeText={(value) =>
-            setInputValues((state) => ({ ...state, offlineModeTransactionLimit: value }))
+            setInputValues((state) => ({
+              ...state,
+              offlineModeTransactionLimit: value,
+            }))
           }
           placeholder="amount"
         />
       </List>
 
-      <List bolded={false} topSpacing={false} title="OFFLINE MODE STORED TRANSACTION LIMIT">
+      <List
+        bolded={false}
+        topSpacing={false}
+        title="OFFLINE MODE STORED TRANSACTION LIMIT"
+      >
         <TextInput
           testID="store-limit-text-field"
           keyboardType="numeric"
           style={styles.input}
           value={inputValues.offlineModeStoredTransactionLimit}
           onChangeText={(value) =>
-            setInputValues((state) => ({ ...state, offlineModeStoredTransactionLimit: value }))
+            setInputValues((state) => ({
+              ...state,
+              offlineModeStoredTransactionLimit: value,
+            }))
           }
           placeholder="amount"
         />

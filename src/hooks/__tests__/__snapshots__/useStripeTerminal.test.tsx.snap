@@ -31,6 +31,7 @@ Object {
     "discoveredReaders": Array [],
     "emitter": undefined,
     "getLocations": [Function],
+    "getOfflineStatus": [Function],
     "initialize": [Function],
     "installAvailableUpdate": [Function],
     "isInitialized": false,

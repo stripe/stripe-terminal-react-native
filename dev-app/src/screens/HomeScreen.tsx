@@ -32,8 +32,9 @@ export default function HomeScreen() {
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal({
-    onDidOfflineStatusChange(status?: OfflineStatus) {
-      setOnline(status?.networkStatus === 'online' ? true : false);
+    onDidOfflineStatusChange(status: OfflineStatus) {
+      console.log('offline status = ' + status.networkStatus);
+      setOnline(status.networkStatus == 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
       let toast = Toast.show(error?.message ? error.message : 'unknown error', {
