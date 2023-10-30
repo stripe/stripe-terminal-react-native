@@ -32,7 +32,7 @@ export default function HomeScreen() {
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal({
-    onDidOfflineStatusChange(status: OfflineStatus) {
+    onDidChangeOfflineStatus(status: OfflineStatus) {
       console.log('offline status = ' + status.networkStatus);
       setOnline(status.networkStatus == 'online' ? true : false);
     },
@@ -50,7 +50,7 @@ export default function HomeScreen() {
         Toast.hide(toast);
       }, 500);
     },
-    onDidPaymentIntentForwarded(paymentIntent) {
+    onDidForwardPaymentIntent(paymentIntent) {
       let toast = Toast.show(
         'Payment Intent ' + paymentIntent.id + ' forwarded',
         {

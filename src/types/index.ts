@@ -312,8 +312,8 @@ export type UserCallbacks = {
   onDidSucceedReaderReconnect?(): void;
   onDidFailReaderReconnect?(): void;
 
-  onDidOfflineStatusChange?(status: OfflineStatus): void;
-  onDidPaymentIntentForwarded?(paymentIntent: PaymentIntent.Type): void;
+  onDidChangeOfflineStatus?(status: OfflineStatus): void;
+  onDidForwardPaymentIntent?(paymentIntent: PaymentIntent.Type): void;
   onDidForwardingFailure?(error?: StripeError): void;
 };
 

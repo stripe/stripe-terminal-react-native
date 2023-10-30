@@ -503,21 +503,5 @@ internal fun mapFromNetworkStatus(status: NetworkStatus): String {
 fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap =
     nativeMapOf {
         putString("networkStatus", mapFromNetworkStatus(offlineStatus.sdk.networkStatus))
-//        putInt("offlinePaymentsCount", offlineStatus.sdk.offlinePaymentsCount)
-//        val readableMap = nativeMapOf {offlineStatus.sdk.offlinePaymentAmountsByCurrency.forEach {
-//            (key, value) -> putInt(key, value.toInt())
-//        }}
-//        putMap("offlinePaymentsCount", readableMap)
     }
 
-@OptIn(OfflineMode::class, InternalApi::class)
-fun mapFromForwardedPaymentIntent(paymentIntent: PaymentIntent): ReadableMap =
-    nativeMapOf {
-        putInt("amount", paymentIntent.amount.toInt())
-        putString("currency", paymentIntent.currency)
-        putString("id", paymentIntent.id?:paymentIntent.offlineDetails?.id)
-        putString("description", paymentIntent.description)
-        putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
-        putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
-        putString("created", convertToUnixTimestamp(paymentIntent.created))
-    }

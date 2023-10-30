@@ -139,8 +139,8 @@ export function useStripeTerminal(props?: Props) {
     onDidStartReaderReconnect,
     onDidSucceedReaderReconnect,
     onDidFailReaderReconnect,
-    onDidOfflineStatusChange,
-    onDidPaymentIntentForwarded,
+    onDidChangeOfflineStatus,
+    onDidForwardPaymentIntent,
     onDidForwardingFailure,
   } = props || {};
 
@@ -273,24 +273,24 @@ export function useStripeTerminal(props?: Props) {
     setConnectedReader(null);
   }, [onDidFailReaderReconnect, setConnectedReader]);
 
+  const didChangeOfflineStatus = useCallback(
+    ({ result }: { result: OfflineStatus }) => {
+      onDidChangeOfflineStatus?.(result);
+    },
+    [onDidChangeOfflineStatus]
+  );
+
+  const didForwardPaymentIntent = useCallback(() => {
+    ({ result }: EventResult<PaymentIntent.Type>) => {
+      onDidForwardPaymentIntent?.(result);
+    };
+  }, [onDidForwardPaymentIntent]);
+
   const didForwardingFailure = useCallback(() => {
     ({ error }: { error?: StripeError }) => {
       onDidForwardingFailure?.(error);
     };
   }, [onDidForwardingFailure]);
-
-  const didOfflineStatusChange = useCallback(
-    ({ result }: { result: OfflineStatus }) => {
-      onDidOfflineStatusChange?.(result);
-    },
-    [onDidOfflineStatusChange]
-  );
-
-  const didPaymentIntentForwarded = useCallback(() => {
-    ({ result }: EventResult<PaymentIntent.Type>) => {
-      onDidPaymentIntentForwarded?.(result);
-    };
-  }, [onDidPaymentIntentForwarded]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
@@ -312,9 +312,9 @@ export function useStripeTerminal(props?: Props) {
   useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
   useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
 
+  useListener(OFFLINE_STATUS_CHANGE, didChangeOfflineStatus);
+  useListener(PAYMENT_INTENT_FORWARDED, didForwardPaymentIntent);
   useListener(FORWARDING_FAILURE, didForwardingFailure);
-  useListener(OFFLINE_STATUS_CHANGE, didOfflineStatusChange);
-  useListener(PAYMENT_INTENT_FORWARDED, didPaymentIntentForwarded);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {

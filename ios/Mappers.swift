@@ -522,19 +522,6 @@ class Mappers {
        ]
         return result
     }
-    
-    class func mapFromForwaredePaymentIntent(_ paymentIntent: PaymentIntent) -> NSDictionary {
-        let result: NSDictionary = [
-            "amount": paymentIntent.amount,
-            "currency": paymentIntent.currency,
-            "id": paymentIntent.stripeId,
-            "description": paymentIntent.description,
-            "status": mapFromPaymentIntentStatus(paymentIntent.status),
-            "charges": mapFromCharges(paymentIntent.charges),
-            "created": convertDateToUnixTimestamp(date: paymentIntent.created) ?? NSNull(),
-        ]
-        return result
-    }
 }
 
 extension UInt {
