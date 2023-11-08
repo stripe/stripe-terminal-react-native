@@ -48,7 +48,7 @@ export default function HomeScreen() {
 
       setTimeout(function () {
         Toast.hide(toast);
-      }, 500);
+      }, 3000);
     },
     onDidForwardPaymentIntent(paymentIntent) {
       let toast = Toast.show(
@@ -65,7 +65,7 @@ export default function HomeScreen() {
 
       setTimeout(function () {
         Toast.hide(toast);
-      }, 500);
+      }, 3000);
     },
   });
   const batteryPercentage =

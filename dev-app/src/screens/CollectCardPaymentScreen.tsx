@@ -66,7 +66,7 @@ export default function CollectCardPaymentScreen() {
     captureMethod: 'manual',
     requestedPriority: '',
     offlineBehavior: 'prefer_online',
-    offlineModeTransactionLimit: '10000',
+    offlineModeTransactionLimit: '20000',
     offlineModeStoredTransactionLimit: '50000',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
@@ -245,7 +245,7 @@ export default function CollectCardPaymentScreen() {
       return;
     }
 
-    if (!paymentIntent?.id) {
+    if (!paymentIntent) {
       addLogs({
         name: 'Create Payment Intent',
         events: [
@@ -255,7 +255,7 @@ export default function CollectCardPaymentScreen() {
             onBack: cancelCollectPaymentMethod,
             metadata: {
               errorCode: 'no_code',
-              errorMessage: 'No payment id returned!',
+              errorMessage: 'PaymentIntent is null!',
             },
           },
         ],

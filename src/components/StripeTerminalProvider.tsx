@@ -210,7 +210,7 @@ export function StripeTerminalProvider({
 
   const didChangeOfflineStatus = useCallback(
     ({ result }: { result?: OfflineStatus }) => {
-      log('didOfflineStatusChange');
+      log('didChangeOfflineStatus');
       emitter?.emit(OFFLINE_STATUS_CHANGE, result);
     },
     [log]
@@ -218,15 +218,15 @@ export function StripeTerminalProvider({
 
   const didForwardPaymentIntent = useCallback(
     ({ result }: EventResult<PaymentIntent.Type>) => {
-      log('didPaymentIntentForwarded');
+      log('didForwardPaymentIntent');
       emitter?.emit(PAYMENT_INTENT_FORWARDED, result);
     },
     [log]
   );
 
-  const didForwardingFailure = useCallback(
+  const didReportForwardingError = useCallback(
     ({ error }: { error?: StripeError }) => {
-      log('didForwardingFailure');
+      log('didReportForwardingError');
       emitter?.emit(FORWARDING_FAILURE, error);
     },
     [log]
@@ -254,7 +254,7 @@ export function StripeTerminalProvider({
 
   useListener(OFFLINE_STATUS_CHANGE, didChangeOfflineStatus);
   useListener(PAYMENT_INTENT_FORWARDED, didForwardPaymentIntent);
-  useListener(FORWARDING_FAILURE, didForwardingFailure);
+  useListener(FORWARDING_FAILURE, didReportForwardingError);
 
   const tokenProviderHandler = async () => {
     try {

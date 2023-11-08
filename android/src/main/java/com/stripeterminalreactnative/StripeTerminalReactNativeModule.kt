@@ -329,8 +329,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
-        val offlineModeTransactionLimit = params.getInt("offlineModeTransactionLimit")
-        val offlineModeStoredTransactionLimit = params.getInt("offlineModeStoredTransactionLimit")
+        val offlineModeTransactionLimit = params.getInt("offlineModeTransactionLimit") ?: 0
+        val offlineModeStoredTransactionLimit = params.getInt("offlineModeStoredTransactionLimit") ?: 0
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -405,15 +405,15 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        val offlineBehaviorParam = if (amount > offlineModeTransactionLimit || (terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency]?.toInt()
-                ?: 0) > offlineModeStoredTransactionLimit) { OfflineBehavior.REQUIRE_ONLINE }
-            else {
-                offlineBehavior.let {
-                    when (it) {
-                        "prefer_online" -> OfflineBehavior.PREFER_ONLINE
-                        "require_online" -> OfflineBehavior.REQUIRE_ONLINE
-                        "force_offline" -> OfflineBehavior.FORCE_OFFLINE
-                        else -> OfflineBehavior.PREFER_ONLINE
+        val offlineBehaviorParam = if (amount > offlineModeTransactionLimit
+            || (terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency]?.toInt() ?: 0) > offlineModeStoredTransactionLimit
+        ) { OfflineBehavior.REQUIRE_ONLINE } else {
+            offlineBehavior.let {
+                when (it) {
+                    "prefer_online" -> OfflineBehavior.PREFER_ONLINE
+                    "require_online" -> OfflineBehavior.REQUIRE_ONLINE
+                    "force_offline" -> OfflineBehavior.FORCE_OFFLINE
+                    else -> OfflineBehavior.PREFER_ONLINE
                 }
             }
         }
