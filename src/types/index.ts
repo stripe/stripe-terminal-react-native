@@ -167,8 +167,6 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   paymentMethodOptions?: PaymentMethodOptions;
   captureMethod?: 'automatic' | 'manual';
   offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
-  offlineModeTransactionLimit: number;
-  offlineModeStoredTransactionLimit: number;
 };
 
 export type CreatePaymentIntentIOSParams = {
@@ -273,8 +271,25 @@ export type ConfirmRefundResultType = {
   error?: StripeError;
 };
 
+export type OfflinePaymentAmountByCurrency = {
+  currency: string;
+  amount: number;
+};
+
 export type OfflineStatus = {
   networkStatus: 'online' | 'offline' | 'unknown';
+  offlinePaymentsCount: number;
+  offlinePaymentAmountsByCurrency: OfflinePaymentAmountByCurrency[];
+};
+
+export type OfflinePaymentStatus = {
+  offlinePaymentsCount: number;
+  offlinePaymentAmountsByCurrency: OfflinePaymentAmountByCurrency[];
+};
+
+export type OfflineStatusEx = {
+  sdk: OfflinePaymentStatus;
+  reader: OfflinePaymentStatus;
 };
 
 type CardDetails = {

@@ -17,19 +17,19 @@ class RNOfflineListener(
     private val context: ReactApplicationContext,
 ): OfflineListener {
     override fun onOfflineStatusChange(offlineStatus: OfflineStatus) {
-        context.sendEvent(ReactNativeConstants.OFFLINE_STATUS_CHANGE.listenerName) {
-            putMap("result" ,mapFromOfflineStatus(offlineStatus))
+        context.sendEvent(ReactNativeConstants.CHANGE_OFFLINE_STATUS.listenerName) {
+            putMap("result", mapFromOfflineStatus(offlineStatus))
         }
     }
 
     override fun onPaymentIntentForwarded(paymentIntent: PaymentIntent, e: TerminalException?) {
-        context.sendEvent(ReactNativeConstants.PAYMENT_INTENT_FORWARDED.listenerName) {
+        context.sendEvent(ReactNativeConstants.FORWARD_PAYMENT_INTENT.listenerName) {
             putMap("result", mapFromPaymentIntent(paymentIntent, ""))
         }
     }
 
     override fun onForwardingFailure(e: TerminalException) {
-        context.sendEvent(ReactNativeConstants.FORWARDING_FAILURE.listenerName) {
+        context.sendEvent(ReactNativeConstants.REPORT_FORWARDING_ERROR.listenerName) {
             putMap("result", createError(e))
         }
     }

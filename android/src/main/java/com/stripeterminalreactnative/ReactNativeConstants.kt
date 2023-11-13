@@ -16,7 +16,7 @@ enum class ReactNativeConstants(val listenerName: String) {
     START_READER_RECONNECT("didStartReaderReconnect"),
     READER_RECONNECT_SUCCEED("didSucceedReaderReconnect"),
     READER_RECONNECT_FAIL("didFailReaderReconnect"),
-    OFFLINE_STATUS_CHANGE("didChangeOfflineStatus"),
-    PAYMENT_INTENT_FORWARDED("didForwardPaymentIntent"),
-    FORWARDING_FAILURE("didReportForwardingError"),
+    CHANGE_OFFLINE_STATUS("didChangeOfflineStatus"),
+    FORWARD_PAYMENT_INTENT("didForwardPaymentIntent"),
+    REPORT_FORWARDING_ERROR("didReportForwardingError"),
 }

@@ -17,9 +17,9 @@ enum ReactNativeConstants: String, CaseIterable {
     case START_READER_RECONNECT = "didStartReaderReconnect"
     case READER_RECONNECT_SUCCEED = "didSucceedReaderReconnect"
     case READER_RECONNECT_FAIL = "didFailReaderReconnect"
-    case OFFLINE_STATUS_CHANGE = "didOfflineStatusChange"
-    case PAYMENT_INTENT_FORWARDED = "didPaymentIntentForwarded"
-    case FORWARDING_FAILURE = "didReportForwardingError"
+    case CHANGE_OFFLINE_STATUS = "didChangeOfflineStatus"
+    case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
+    case REPORT_FORWARDING_ERROR = "didReportForwardingError"
 }
 
 @objc(StripeTerminalReactNative)
@@ -52,7 +52,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var readReusableCardCancelable: Cancelable? = nil
     var cancelReaderConnectionCancellable: Cancelable? = nil
     var loggingToken: String? = nil
-    var terminal: Terminal? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -343,7 +342,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(Errors.createError(nsError: error))
             } else {
                 self.paymentIntents = [:]
-                self.terminal = nil
                 resolve([:])
             }
         }
@@ -428,23 +426,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let offlineBehavior = params["offlineBehavior"] as? String
-        let offlineModeTransactionLimit = params["offlineModeTransactionLimit"] as? NSNumber ?? 0
-        let offlineModeStoredTransactionLimit = params["offlineModeStoredTransactionLimit"] as? NSNumber ?? 0
-        
-        var isOverOfflineTransactionLimit = amount.intValue >= offlineModeTransactionLimit.intValue
-        if let offlinePaymentTotalByCurrency = Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency[paymentParams.currency]?.intValue {
-            isOverOfflineTransactionLimit = isOverOfflineTransactionLimit || (offlinePaymentTotalByCurrency >= offlineModeStoredTransactionLimit.intValue)
-        }
         let offlineBehaviorFromTransactionLimit: OfflineBehavior = {
-            if isOverOfflineTransactionLimit {
-                return .requireOnline
-            } else {
-                switch offlineBehavior {
-                case "prefer_online": return OfflineBehavior.preferOnline
-                case "require_online": return OfflineBehavior.requireOnline
-                case "force_offline": return OfflineBehavior.forceOffline
-                default: return OfflineBehavior.preferOnline
-                }
+            switch offlineBehavior {
+            case "prefer_online": return OfflineBehavior.preferOnline
+            case "require_online": return OfflineBehavior.requireOnline
+            case "force_offline": return OfflineBehavior.forceOffline
+            default: return OfflineBehavior.preferOnline
             }
         }()
         
@@ -999,31 +986,32 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func terminal(_ terminal: Terminal, didChange offlineStatus: OfflineStatus) {
-        self.terminal = terminal
         let offlineStatus = Mappers.mapFromOfflineStatus(offlineStatus)
-        sendEvent(withName: ReactNativeConstants.OFFLINE_STATUS_CHANGE.rawValue, body: ["result": offlineStatus])
+        sendEvent(withName: ReactNativeConstants.CHANGE_OFFLINE_STATUS.rawValue, body: ["result": offlineStatus])
     }
     
     func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
-        self.terminal = terminal
         let result = Mappers.mapFromPaymentIntent(intent, uuid: "")
-        sendEvent(withName: ReactNativeConstants.PAYMENT_INTENT_FORWARDED.rawValue, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: ["result": result])
     }
     
     func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {
-        self.terminal = terminal
         let result = Errors.createError(nsError: error as NSError)
-        sendEvent(withName: ReactNativeConstants.FORWARDING_FAILURE.rawValue, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.REPORT_FORWARDING_ERROR.rawValue, body: ["result": result])
     }
 
     @objc(getOfflineStatus:rejecter:)
     func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let offlinePaymentAmountsByCurrencyDic = self.terminal?.offlineStatus.sdk.paymentAmountsByCurrency
         let sdkDic: NSDictionary = [
-            "offlinePaymentsCount": self.terminal?.offlineStatus.sdk.paymentsCount,
-            "offlinePaymentAmountsByCurrency": offlinePaymentAmountsByCurrencyDic
+            "offlinePaymentsCount": Terminal.shared.offlineStatus.sdk.paymentsCount,
+            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency
         ]
         
-        resolve(["sdk": sdkDic])
+        let readDic: NSDictionary = [
+            "offlinePaymentsCount": Terminal.shared.offlineStatus.reader?.paymentsCount,
+            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.reader?.paymentAmountsByCurrency
+        ]
+        
+        resolve(["sdk": sdkDic, "reader": readDic])
     }
 }

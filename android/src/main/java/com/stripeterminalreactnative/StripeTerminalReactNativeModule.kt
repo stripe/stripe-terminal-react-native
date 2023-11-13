@@ -329,8 +329,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
-        val offlineModeTransactionLimit = params.getInt("offlineModeTransactionLimit") ?: 0
-        val offlineModeStoredTransactionLimit = params.getInt("offlineModeStoredTransactionLimit") ?: 0
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -405,16 +403,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        val offlineBehaviorParam = if (amount > offlineModeTransactionLimit
-            || (terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency]?.toInt() ?: 0) > offlineModeStoredTransactionLimit
-        ) { OfflineBehavior.REQUIRE_ONLINE } else {
-            offlineBehavior.let {
-                when (it) {
-                    "prefer_online" -> OfflineBehavior.PREFER_ONLINE
-                    "require_online" -> OfflineBehavior.REQUIRE_ONLINE
-                    "force_offline" -> OfflineBehavior.FORCE_OFFLINE
-                    else -> OfflineBehavior.PREFER_ONLINE
-                }
+        val offlineBehaviorParam = offlineBehavior.let {
+            when (it) {
+                "prefer_online" -> OfflineBehavior.PREFER_ONLINE
+                "require_online" -> OfflineBehavior.REQUIRE_ONLINE
+                "force_offline" -> OfflineBehavior.FORCE_OFFLINE
+                else -> OfflineBehavior.PREFER_ONLINE
             }
         }
 
@@ -695,11 +689,24 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @OptIn(OfflineMode::class)
-    fun getOfflineStatus(): ReadableMap = nativeMapOf {
-        val mutableMap = terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency.toMutableMap()
-        val sdkMap = mutableMapOf("offlinePaymentsCount" to terminal.offlineStatus.sdk.offlinePaymentsCount,
-            "offlinePaymentAmountsByCurrency" to mutableMap)
-        putString("sdk", sdkMap.toString())
+    fun getOfflineStatus(promise: Promise) {
+        promise.resolve(
+            nativeMapOf {
+                var mutableMap = terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency.toMutableMap()
+                val sdkMap = mutableMapOf(
+                    "offlinePaymentsCount" to terminal.offlineStatus.sdk.offlinePaymentsCount,
+                    "offlinePaymentAmountsByCurrency" to mutableMap
+                )
+                putString("sdk", sdkMap.toString())
+
+                mutableMap = terminal.offlineStatus.reader?.offlinePaymentAmountsByCurrency?.toMutableMap()!!
+                val readerMap = mutableMapOf(
+                    "offlinePaymentsCount" to terminal.offlineStatus.sdk.offlinePaymentsCount,
+                    "offlinePaymentAmountsByCurrency" to mutableMap
+                )
+                putString("reader", readerMap.toString())
+            }
+        )
     }
 
     private fun cancelOperation(

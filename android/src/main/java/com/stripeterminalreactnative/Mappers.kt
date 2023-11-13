@@ -4,8 +4,6 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
-import com.stripe.stripeterminal.external.InternalApi
-import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.Address
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
@@ -503,5 +501,13 @@ internal fun mapFromNetworkStatus(status: NetworkStatus): String {
 fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap =
     nativeMapOf {
         putString("networkStatus", mapFromNetworkStatus(offlineStatus.sdk.networkStatus))
+        putInt("offlinePaymentsCount", offlineStatus.sdk.offlinePaymentsCount)
+
+        val map = nativeMapOf {
+            offlineStatus.sdk.offlinePaymentAmountsByCurrency.forEach {
+                putInt(it.key, it.value.toInt())
+            }
+        }
+        putMap("offlinePaymentAmountsByCurrency", map)
     }
 

@@ -31,9 +31,9 @@ const {
   START_READER_RECONNECT,
   READER_RECONNECT_SUCCEED,
   READER_RECONNECT_FAIL,
-  OFFLINE_STATUS_CHANGE,
-  PAYMENT_INTENT_FORWARDED,
-  FORWARDING_FAILURE,
+  CHANGE_OFFLINE_STATUS,
+  FORWARD_PAYMENT_INTENT,
+  REPORT_FORWARDING_ERROR,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -211,7 +211,7 @@ export function StripeTerminalProvider({
   const didChangeOfflineStatus = useCallback(
     ({ result }: { result?: OfflineStatus }) => {
       log('didChangeOfflineStatus');
-      emitter?.emit(OFFLINE_STATUS_CHANGE, result);
+      emitter?.emit(CHANGE_OFFLINE_STATUS, result);
     },
     [log]
   );
@@ -219,7 +219,7 @@ export function StripeTerminalProvider({
   const didForwardPaymentIntent = useCallback(
     ({ result }: EventResult<PaymentIntent.Type>) => {
       log('didForwardPaymentIntent');
-      emitter?.emit(PAYMENT_INTENT_FORWARDED, result);
+      emitter?.emit(FORWARD_PAYMENT_INTENT, result);
     },
     [log]
   );
@@ -227,7 +227,7 @@ export function StripeTerminalProvider({
   const didReportForwardingError = useCallback(
     ({ error }: { error?: StripeError }) => {
       log('didReportForwardingError');
-      emitter?.emit(FORWARDING_FAILURE, error);
+      emitter?.emit(REPORT_FORWARDING_ERROR, error);
     },
     [log]
   );
@@ -252,9 +252,9 @@ export function StripeTerminalProvider({
   useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
   useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
 
-  useListener(OFFLINE_STATUS_CHANGE, didChangeOfflineStatus);
-  useListener(PAYMENT_INTENT_FORWARDED, didForwardPaymentIntent);
-  useListener(FORWARDING_FAILURE, didReportForwardingError);
+  useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
+  useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
+  useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
 
   const tokenProviderHandler = async () => {
     try {
