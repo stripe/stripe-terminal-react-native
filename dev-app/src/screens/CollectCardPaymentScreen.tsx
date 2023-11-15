@@ -7,7 +7,6 @@ import {
   PaymentIntent,
   StripeError,
   CommonError,
-  OfflineStatus,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -84,7 +83,6 @@ export default function CollectCardPaymentScreen() {
   const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
-  let offlineStatus: OfflineStatus | undefined;
 
   const {
     createPaymentIntent,
@@ -93,6 +91,7 @@ export default function CollectCardPaymentScreen() {
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
     setSimulatedCard,
+    getOfflineStatus,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       // @ts-ignore
@@ -118,9 +117,6 @@ export default function CollectCardPaymentScreen() {
           },
         ],
       });
-    },
-    onDidChangeOfflineStatus: (status: OfflineStatus) => {
-      offlineStatus = status;
     },
   });
 
@@ -203,12 +199,25 @@ export default function CollectCardPaymentScreen() {
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
     } else {
+      const offlineStatus = await getOfflineStatus();
+      let paymentAmountsByCurrency = 0;
+      for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
+        if (currency === inputValues.currency) {
+          paymentAmountsByCurrency =
+            offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
+        }
+      }
+      console.log(
+        'currency = ' +
+          inputValues.currency +
+          '  paymentAmountsByCurrency = ' +
+          paymentAmountsByCurrency
+      );
       if (
         Number(inputValues.amount) >
           Number(inputValues.offlineModeTransactionLimit) ||
-        (offlineStatus
-          ? offlineStatus.offlinePaymentAmountsByCurrency[0].amount
-          : 0) > Number(inputValues.offlineModeStoredTransactionLimit)
+        paymentAmountsByCurrency >
+          Number(inputValues.offlineModeStoredTransactionLimit)
       ) {
         inputValues.offlineBehavior = 'require_online';
       }
