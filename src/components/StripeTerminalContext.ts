@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import type { EventEmitter } from 'react-native';
+import type EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
 import type { Reader, InitializeResultType } from '../types';
 
 type ContextType = {
