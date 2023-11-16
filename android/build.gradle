@@ -33,6 +33,7 @@ def reactNativeSdkVersion = getVersionFromNpm()
 
 android {
     compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+    namespace 'com.stripeterminalreactnative'
     defaultConfig {
         manifestPlaceholders = [REACT_NATIVE_SDK_VERSION: reactNativeSdkVersion]
         minSdkVersion 26
