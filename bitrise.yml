@@ -56,7 +56,6 @@ workflows:
           title: fastlane distribute app
     before_run:
       - prep_all
-      - prep_android
     after_run:
       - complete_all
   e2e-android:
@@ -84,7 +83,6 @@ workflows:
           title: test detox
     before_run:
       - prep_all
-      - prep_android
     after_run:
       - complete_all
     meta:
@@ -134,7 +132,6 @@ workflows:
           title: yarn build:android
     before_run:
       - prep_all
-      - prep_android
     after_run:
       - complete_all
     meta:
@@ -174,11 +171,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
-  prep_android:
-    steps:
-      - set-java-version@1:
-          inputs:
-            - set_java_version: '17'
   prep_all:
     steps:
       - activate-ssh-key@4: {}
@@ -219,6 +211,10 @@ workflows:
                 echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
                 git diff --exit-code
           title: Check for diffs in yarn lockfile
+      - set-java-version@1:
+          inputs:
+            - set_java_version: '17'
+          title: Set Java to 17
   typescript:
     steps:
       - yarn@0:
