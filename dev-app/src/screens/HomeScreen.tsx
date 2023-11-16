@@ -37,6 +37,7 @@ export default function HomeScreen() {
       setOnline(status.networkStatus == 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
+      console.log('onDidForwardingFailure ' + error?.message);
       let toast = Toast.show(error?.message ? error.message : 'unknown error', {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
@@ -51,6 +52,7 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidForwardPaymentIntent(paymentIntent) {
+      console.log('onDidForwardPaymentIntent = ' + paymentIntent.id);
       let toast = Toast.show(
         'Payment Intent ' + paymentIntent.id + ' forwarded',
         {
@@ -135,6 +137,14 @@ export default function HomeScreen() {
           }}
         />
       </List>
+      <List title="DATABASE">
+        <ListItem
+          title="Database"
+          onPress={async () => {
+            navigation.navigate('DatabaseScreen');
+          }}
+        />
+      </List>
     </>
   );
 
@@ -177,7 +187,7 @@ export default function HomeScreen() {
         renderConnectedContent
       ) : (
         <>
-          <List title="MERCHANT SELECTION">
+          <List topSpacing={false} title="MERCHANT SELECTION">
             <ListItem
               title="Set Merchant"
               color={colors.blue}
@@ -207,7 +217,18 @@ export default function HomeScreen() {
             />
           </List>
 
-          <List title="DISCOVERY METHOD">
+          <List topSpacing={false} title="DATABASE">
+            <ListItem
+              title="Database"
+              testID="database"
+              color={colors.blue}
+              onPress={async () => {
+                navigation.navigate('DatabaseScreen');
+              }}
+            />
+          </List>
+
+          <List topSpacing={false} title="DISCOVERY METHOD">
             <ListItem
               title={mapFromDiscoveryMethod(discoveryMethod)}
               testID="discovery-method-button"
@@ -301,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.gray,
-    marginVertical: 30,
+    marginVertical: 10,
   },
   infoText: {
     paddingHorizontal: 16,
@@ -312,7 +333,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   accountContainer: {
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'center',
     flex: 1,
     flexDirection: 'row',
@@ -331,6 +352,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 20,
-    backgroundColor: colors.green,
+    backgroundColor: colors.red,
   },
 });
