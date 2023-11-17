@@ -87,6 +87,14 @@
       "default",
       "jest-junit"
     ],
+    "testEnvironment": "jsdom",
+    "testEnvironmentOptions": {
+      "browsers": [
+        "chrome",
+        "firefox",
+        "safari"
+      ]
+    },
     "modulePathIgnorePatterns": [
       "<rootDir>/dev-app/node_modules",
       "<rootDir>/lib/"
