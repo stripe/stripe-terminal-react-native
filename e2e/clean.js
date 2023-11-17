@@ -8,6 +8,7 @@ const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY, {
 
 export const cleanPaymentMethods = async () => {
   await stripe.paymentMethods.list(
+    // TODO (nazli): update customer id
     { customer: 'cus_KZXZYmu4lAIE94', type: 'card', limit: 100 },
     (err, cards) => {
       if (err) {
