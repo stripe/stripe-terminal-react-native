@@ -431,8 +431,8 @@ export default function CollectCardPaymentScreen() {
             name: 'Processed',
             description: 'terminal.confirmPaymentIntent',
             metadata: {
-              paymententIntentId: "",
-              chargeId: "",
+              paymententIntentId: '',
+              chargeId: '',
             },
           },
         ],
@@ -443,7 +443,7 @@ export default function CollectCardPaymentScreen() {
     if (paymentIntent?.charges[0]?.id) {
       setLastSuccessfulChargeId(paymentIntent.charges[0].id);
     }
-    
+
     if (paymentIntent?.status === 'succeeded') {
       return;
     }
