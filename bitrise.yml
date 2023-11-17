@@ -184,6 +184,7 @@ workflows:
           inputs:
             - content: |-
                 asdf install nodejs 20.9.0
+                asdf global nodejs 20.9.0
                 echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
                 source $BASH_ENV
                 brew update >/dev/null
