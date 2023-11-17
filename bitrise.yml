@@ -173,6 +173,9 @@ workflows:
         machine_type_id: standard
   prep_all:
     steps:
+      - set-java-version@1:
+          inputs:
+            - set_java_version: '17'
       - activate-ssh-key@4: {}
       - git-clone@6: {}
       - restore-npm-cache@1: {}
