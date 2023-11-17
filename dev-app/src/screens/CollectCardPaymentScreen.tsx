@@ -409,28 +409,48 @@ export default function CollectCardPaymentScreen() {
       return;
     }
 
-    addLogs({
-      name: 'Confirm Payment Intent',
-      events: [
-        {
-          name: 'Processed',
-          description: 'terminal.confirmPaymentIntent',
-          metadata: {
-            paymententIntentId: paymentIntent.id,
-            chargeId: paymentIntent.charges[0].id,
+    if (paymentIntent.id) {
+      addLogs({
+        name: 'Confirm Payment Intent',
+        events: [
+          {
+            name: 'Processed',
+            description: 'terminal.confirmPaymentIntent',
+            metadata: {
+              paymententIntentId: paymentIntent.id,
+              chargeId: paymentIntent.charges[0].id,
+            },
           },
-        },
-      ],
-    });
+        ],
+      });
+    } else {
+      addLogs({
+        name: 'Confirm Payment Intent',
+        events: [
+          {
+            name: 'Processed',
+            description: 'terminal.confirmPaymentIntent',
+            metadata: {
+              paymententIntentId: "",
+              chargeId: "",
+            },
+          },
+        ],
+      });
+    }
 
     // Set last successful charge Id in context for refunding later
-    setLastSuccessfulChargeId(paymentIntent.charges[0].id);
-
+    if (paymentIntent?.charges[0]?.id) {
+      setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+    }
+    
     if (paymentIntent?.status === 'succeeded') {
       return;
     }
 
-    _capturePayment(paymentIntent.id);
+    if (paymentIntent.id) {
+      _capturePayment(paymentIntent.id);
+    }
   };
 
   const _capturePayment = async (paymentIntentId: string) => {

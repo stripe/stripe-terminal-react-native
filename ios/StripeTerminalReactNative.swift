@@ -911,6 +911,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         resolve(["token": self.loggingToken])
     }
 
+    @objc(getOfflineStatus:rejecter:)
+    func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let sdkDic: NSDictionary = [
+            "offlinePaymentsCount": Terminal.shared.offlineStatus.sdk.paymentsCount ?? 0,
+            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency
+        ]
+        
+        let readDic: NSDictionary = [
+            "offlinePaymentsCount": Terminal.shared.offlineStatus.reader?.paymentsCount ?? 0,
+            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.reader?.paymentAmountsByCurrency ?? {}
+        ]
+        
+        resolve(["sdk": sdkDic, "reader": readDic])
+    }
+
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
         sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
@@ -998,20 +1013,5 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {
         let result = Errors.createError(nsError: error as NSError)
         sendEvent(withName: ReactNativeConstants.REPORT_FORWARDING_ERROR.rawValue, body: ["result": result])
-    }
-
-    @objc(getOfflineStatus:rejecter:)
-    func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let sdkDic: NSDictionary = [
-            "offlinePaymentsCount": Terminal.shared.offlineStatus.sdk.paymentsCount,
-            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency
-        ]
-        
-        let readDic: NSDictionary = [
-            "offlinePaymentsCount": Terminal.shared.offlineStatus.reader?.paymentsCount,
-            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.reader?.paymentAmountsByCurrency
-        ]
-        
-        resolve(["sdk": sdkDic, "reader": readDic])
     }
 }

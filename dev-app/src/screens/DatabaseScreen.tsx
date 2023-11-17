@@ -54,7 +54,13 @@ export default function DatabaseScreen() {
               title={
                 getCurrencySymbols(key) +
                 ' ' +
-                (Number(offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency[key]) / 100).toFixed(2)
+                (
+                  Number(
+                    offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency[
+                      key
+                    ]
+                  ) / 100
+                ).toFixed(2)
               }
             />
           ))
