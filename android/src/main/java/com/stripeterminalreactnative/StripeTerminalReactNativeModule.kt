@@ -91,8 +91,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     override fun getName(): String = "StripeTerminalReactNative"
 
-    override fun hasConstants(): Boolean = true
-
     @ReactMethod
     @Suppress("unused")
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
