@@ -69,7 +69,7 @@ repositories {
     } else {
         defaultDir = new File(
                 projectDir,
-                '/../node_modules/react-native/android'
+                '/../../../node_modules/react-native/android'
         )
     }
 
