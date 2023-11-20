@@ -3,6 +3,7 @@
 exports[`index.ts Public API snapshot ensure there are no unexpected changes to our public exports 1`] = `
 Object {
   "CHANGE_CONNECTION_STATUS": "CHANGE_CONNECTION_STATUS",
+  "CHANGE_OFFLINE_STATUS": undefined,
   "CHANGE_PAYMENT_STATUS": "CHANGE_PAYMENT_STATUS",
   "CommonError": Object {
     "Canceled": "Canceled",
@@ -12,12 +13,16 @@ Object {
   "FETCH_TOKEN_PROVIDER": "FETCH_TOKEN_PROVIDER",
   "FINISH_DISCOVERING_READERS": "FINISH_DISCOVERING_READERS",
   "FINISH_INSTALLING_UPDATE": "FINISH_INSTALLING_UPDATE",
+  "FORWARD_PAYMENT_INTENT": undefined,
   "PaymentIntent": Object {},
   "PaymentMethod": Object {
     "Android": Object {},
     "IOS": Object {},
   },
+  "READER_RECONNECT_FAIL": undefined,
+  "READER_RECONNECT_SUCCEED": undefined,
   "REPORT_AVAILABLE_UPDATE": "REPORT_AVAILABLE_UPDATE",
+  "REPORT_FORWARDING_ERROR": undefined,
   "REPORT_UNEXPECTED_READER_DISCONNECT": "REPORT_UNEXPECTED_READER_DISCONNECT",
   "REPORT_UPDATE_PROGRESS": "REPORT_UPDATE_PROGRESS",
   "REQUEST_READER_DISPLAY_MESSAGE": "REQUEST_READER_DISPLAY_MESSAGE",
@@ -31,6 +36,7 @@ Object {
     "IOS": Object {},
   },
   "START_INSTALLING_UPDATE": "START_INSTALLING_UPDATE",
+  "START_READER_RECONNECT": undefined,
   "SetupIntent": Object {
     "Android": Object {},
     "IOS": Object {},

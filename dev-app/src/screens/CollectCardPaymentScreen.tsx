@@ -200,23 +200,17 @@ export default function CollectCardPaymentScreen() {
       paymentIntentError = response.error;
     } else {
       const offlineStatus = await getOfflineStatus();
-      let paymentAmountsByCurrency = 0;
+      let storedPaymentAmount = 0;
       for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
         if (currency === inputValues.currency) {
-          paymentAmountsByCurrency =
+          storedPaymentAmount =
             offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
         }
       }
-      console.log(
-        'currency = ' +
-          inputValues.currency +
-          '  paymentAmountsByCurrency = ' +
-          paymentAmountsByCurrency
-      );
       if (
         Number(inputValues.amount) >
           Number(inputValues.offlineModeTransactionLimit) ||
-        paymentAmountsByCurrency >
+        storedPaymentAmount >
           Number(inputValues.offlineModeStoredTransactionLimit)
       ) {
         inputValues.offlineBehavior = 'require_online';
@@ -392,52 +386,21 @@ export default function CollectCardPaymentScreen() {
       return;
     }
 
-    if (!paymentIntent) {
-      addLogs({
-        name: 'Confirm Payment Intent',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              errorCode: 'no_code',
-              errorMessage: 'no payment intent id returned!',
-            },
+    addLogs({
+      name: 'Confirm Payment Intent',
+      events: [
+        {
+          name: 'Confirmed',
+          description: 'terminal.confirmPaymentIntent',
+          metadata: {
+            paymententIntentId: paymentIntent.id ? paymentIntent.id : 'null',
+            chargeId: paymentIntent?.charges[0]?.id
+              ? paymentIntent.charges[0].id
+              : 'null',
           },
-        ],
-      });
-      return;
-    }
-
-    if (paymentIntent.id) {
-      addLogs({
-        name: 'Confirm Payment Intent',
-        events: [
-          {
-            name: 'Processed',
-            description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              paymententIntentId: paymentIntent.id,
-              chargeId: paymentIntent.charges[0].id,
-            },
-          },
-        ],
-      });
-    } else {
-      addLogs({
-        name: 'Confirm Payment Intent',
-        events: [
-          {
-            name: 'Processed',
-            description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              paymententIntentId: '',
-              chargeId: '',
-            },
-          },
-        ],
-      });
-    }
+        },
+      ],
+    });
 
     // Set last successful charge Id in context for refunding later
     if (paymentIntent?.charges[0]?.id) {

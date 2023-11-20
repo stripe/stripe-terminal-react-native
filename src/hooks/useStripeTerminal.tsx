@@ -281,8 +281,8 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const didForwardPaymentIntent = useCallback(
-    ({ result }: EventResult<PaymentIntent.Type>) => {
-      onDidForwardPaymentIntent?.(result);
+    ({ result, error }: { result: PaymentIntent.Type; error: StripeError }) => {
+      onDidForwardPaymentIntent?.(result, error);
     },
     [onDidForwardPaymentIntent]
   );

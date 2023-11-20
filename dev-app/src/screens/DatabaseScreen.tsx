@@ -24,7 +24,6 @@ export default function DatabaseScreen() {
   ];
   const { getOfflineStatus } = useStripeTerminal();
   function getCurrencySymbols(currency: string): string {
-    console.log('getCurrencySymbols = ' + currency);
     let currencySymbol = '$';
     currencySymbols.map((a) => {
       if (currency === a.value) {

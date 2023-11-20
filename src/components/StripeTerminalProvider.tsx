@@ -217,9 +217,9 @@ export function StripeTerminalProvider({
   );
 
   const didForwardPaymentIntent = useCallback(
-    ({ result }: EventResult<PaymentIntent.Type>) => {
+    ({ result, error }: { result: PaymentIntent.Type; error: StripeError }) => {
       log('didForwardPaymentIntent');
-      emitter?.emit(FORWARD_PAYMENT_INTENT, result);
+      emitter?.emit(FORWARD_PAYMENT_INTENT, result, error);
     },
     [log]
   );

@@ -51,19 +51,22 @@ export default function HomeScreen() {
         Toast.hide(toast);
       }, 3000);
     },
-    onDidForwardPaymentIntent(paymentIntent) {
-      console.log('onDidForwardPaymentIntent = ' + paymentIntent.id);
-      let toast = Toast.show(
-        'Payment Intent ' + paymentIntent.id + ' forwarded',
-        {
-          duration: Toast.durations.LONG,
-          position: Toast.positions.BOTTOM,
-          shadow: true,
-          animation: true,
-          hideOnPress: true,
-          delay: 0,
-        }
-      );
+    onDidForwardPaymentIntent(paymentIntent, error) {
+      let toastMsg =
+        'Payment Intent ' +
+        paymentIntent.id +
+        ' forwarded. ErrorCode' +
+        error.code +
+        '. ErrorMsg = ' +
+        error.message;
+      let toast = Toast.show(toastMsg, {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
 
       setTimeout(function () {
         Toast.hide(toast);
