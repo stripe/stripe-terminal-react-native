@@ -110,6 +110,7 @@ dependencies {
         exclude group: 'com.google.android.material'
         exclude group: 'androidx.appcompat'
     }
+    androidTestImplementation "androidx.test:core:1.4.0"
 
     androidTestUtil 'com.linkedin.testbutler:test-butler-app:2.2.1'
 
