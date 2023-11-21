@@ -70,7 +70,7 @@ describe('Internet reader', () => {
     await checkIfLogExist('Collect');
     await checkIfLogExist('Collected');
     await checkIfLogExist('Process');
-    await checkIfLogExist('Processed');
+    await checkIfLogExist('Confirmed');
     await checkIfLogExist('Capture');
     await checkIfLogExist('Captured');
   });

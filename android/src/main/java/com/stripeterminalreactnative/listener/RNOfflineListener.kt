@@ -28,7 +28,7 @@ class RNOfflineListener(
             putMap("result", mapFromPaymentIntent(paymentIntent, ""))
             putMap("error", nativeMapOf {
                 putString("code", e?.errorCode.toString())
-                putString("message", "hahahaha")
+                putString("message", e?.errorMessage)
             })
         }
     }

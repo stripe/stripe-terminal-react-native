@@ -115,7 +115,7 @@ describe('Basic funtionalities', () => {
     await checkIfLogExist('removeCard');
     await checkIfLogExist('Collected');
     await checkIfLogExist('Process');
-    await checkIfLogExist('Processed');
+    await checkIfLogExist('Confirmed');
     await checkIfLogExist('Capture');
     await checkIfLogExist('Captured');
   });
