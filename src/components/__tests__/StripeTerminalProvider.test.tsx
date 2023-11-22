@@ -21,7 +21,7 @@ describe('StripeTerminalProvider.tsx', () => {
     expect(childText).toBeTruthy();
   });
 
-  it('ensure if tokenProvider is not called on render', () => {
+  it('ensure tokenProvider is not called on render', () => {
     const tokenProvider = jest.fn();
     render(
       <StripeTerminalProvider
@@ -33,7 +33,7 @@ describe('StripeTerminalProvider.tsx', () => {
     expect(tokenProvider).not.toBeCalled();
   });
 
-  it('trigger tokenProvider on init', () => {
+  it('trigger tokenProvider on init', async () => {
     const tokenProvider = jest.fn().mockReturnValue('_token');
 
     const ChildImpl = () => {
@@ -46,13 +46,14 @@ describe('StripeTerminalProvider.tsx', () => {
       );
     };
 
-    const { getByText } = render(
+    const { findByText } = render(
       <StripeTerminalProvider tokenProvider={tokenProvider} logLevel="error">
         <ChildImpl />
       </StripeTerminalProvider>
     );
 
-    fireEvent.press(getByText('init'));
+    fireEvent.press(await findByText('init'));
+
     expect(tokenProvider).toBeCalled();
     expect(tokenProvider).toReturnWith('_token');
   });

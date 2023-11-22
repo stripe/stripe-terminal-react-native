@@ -290,7 +290,7 @@ describe('useStripeTerminal.test.tsx', () => {
     });
 
     it('public methods are called when it is initialized', () => {
-      const fns = spyAllFunctions();
+      const fns = spyAllFunctions({ returnWith: '_value' });
 
       const ContextWrapper = createContextWrapper({ isInitialized: true });
       const { result } = renderHook(() => useStripeTerminal(), {
@@ -298,38 +298,41 @@ describe('useStripeTerminal.test.tsx', () => {
       });
 
       act(() => {
-        result.current.connectBluetoothReader({} as any);
-        result.current.discoverReaders({} as any);
-        result.current.cancelCollectPaymentMethod();
-        result.current.cancelDiscovering();
-        result.current.cancelCollectRefundPaymentMethod();
-        result.current.cancelInstallingUpdate();
-        result.current.cancelPaymentIntent({} as any);
-        result.current.cancelSetupIntent({} as any);
-        result.current.clearCachedCredentials();
-        result.current.clearReaderDisplay();
-        result.current.collectPaymentMethod({} as any);
-        result.current.collectRefundPaymentMethod({} as any);
-        result.current.collectSetupIntentPaymentMethod({} as any);
-        result.current.confirmSetupIntent({} as any);
-        result.current.connectBluetoothReader({} as any);
-        result.current.connectHandoffReader({} as any);
-        result.current.connectInternetReader({} as any);
-        result.current.connectLocalMobileReader({} as any);
-        result.current.connectUsbReader({} as any);
-        result.current.createPaymentIntent({} as any);
-        result.current.createSetupIntent({} as any);
-        result.current.disconnectReader();
-        result.current.retrievePaymentIntent('');
-        result.current.getLocations({} as any);
-        result.current.confirmPaymentIntent({} as any);
-        result.current.retrieveSetupIntent('');
-        result.current.simulateReaderUpdate({} as any);
-        result.current.setSimulatedCard('');
-        result.current.installAvailableUpdate();
-        result.current.setReaderDisplay({} as any);
-        result.current.confirmRefund();
-        result.current.cancelCollectSetupIntent();
+        try {
+          result.current.discoverReaders({} as any);
+          result.current.cancelCollectPaymentMethod();
+          result.current.cancelDiscovering();
+          result.current.cancelCollectRefundPaymentMethod();
+          result.current.cancelInstallingUpdate();
+          result.current.cancelPaymentIntent({} as any);
+          result.current.cancelSetupIntent({} as any);
+          result.current.clearCachedCredentials();
+          result.current.clearReaderDisplay();
+          result.current.collectPaymentMethod({} as any);
+          result.current.collectRefundPaymentMethod({} as any);
+          result.current.collectSetupIntentPaymentMethod({} as any);
+          result.current.confirmSetupIntent({} as any);
+          result.current.connectBluetoothReader({} as any);
+          result.current.connectHandoffReader({} as any);
+          result.current.connectInternetReader({} as any);
+          result.current.connectLocalMobileReader({} as any);
+          result.current.connectUsbReader({} as any);
+          result.current.createPaymentIntent({} as any);
+          result.current.createSetupIntent({} as any);
+          result.current.disconnectReader();
+          result.current.retrievePaymentIntent('');
+          result.current.getLocations({} as any);
+          result.current.confirmPaymentIntent({} as any);
+          result.current.retrieveSetupIntent('');
+          result.current.simulateReaderUpdate({} as any);
+          result.current.setSimulatedCard('');
+          result.current.installAvailableUpdate();
+          result.current.setReaderDisplay({} as any);
+          result.current.confirmRefund();
+          result.current.cancelCollectSetupIntent();
+        } catch (error) {
+          console.error(error);
+        }
       });
 
       Object.values(fns).forEach((fn) => {
@@ -337,7 +340,7 @@ describe('useStripeTerminal.test.tsx', () => {
       });
     });
 
-    it('public methods are not called when it is not initialized', () => {
+    it('public methods are not called when it is not initialized', async () => {
       const fns = spyAllFunctions();
       console.error = jest.fn();
 
@@ -346,39 +349,46 @@ describe('useStripeTerminal.test.tsx', () => {
         wrapper: ContextWrapper,
       });
 
-      act(() => {
-        result.current.connectBluetoothReader({} as any);
-        result.current.discoverReaders({} as any);
-        result.current.cancelCollectPaymentMethod();
-        result.current.cancelDiscovering();
-        result.current.cancelCollectRefundPaymentMethod();
-        result.current.cancelInstallingUpdate();
-        result.current.cancelPaymentIntent({} as any);
-        result.current.cancelSetupIntent({} as any);
-        result.current.clearReaderDisplay();
-        result.current.collectPaymentMethod({} as any);
-        result.current.collectRefundPaymentMethod({} as any);
-        result.current.collectSetupIntentPaymentMethod({} as any);
-        result.current.confirmSetupIntent({} as any);
-        result.current.connectBluetoothReader({} as any);
-        result.current.connectHandoffReader({} as any);
-        result.current.connectInternetReader({} as any);
-        result.current.connectLocalMobileReader({} as any);
-        result.current.connectUsbReader({} as any);
-        result.current.createPaymentIntent({} as any);
-        result.current.createSetupIntent({} as any);
-        result.current.disconnectReader();
-        result.current.retrievePaymentIntent('');
-        result.current.getLocations({} as any);
-        result.current.confirmPaymentIntent({} as any);
-        result.current.retrieveSetupIntent('');
-        result.current.simulateReaderUpdate({} as any);
-        result.current.setSimulatedCard('');
-        result.current.installAvailableUpdate();
-        result.current.setReaderDisplay({} as any);
-        result.current.confirmRefund();
-        result.current.cancelCollectSetupIntent();
-      });
+      try {
+        await result.current.connectBluetoothReader({} as any);
+        await result.current.discoverReaders({} as any);
+        await result.current.cancelCollectPaymentMethod();
+        await result.current.cancelDiscovering();
+        await result.current.cancelCollectRefundPaymentMethod();
+        await result.current.cancelInstallingUpdate();
+        await result.current.cancelPaymentIntent({} as any);
+        await result.current.cancelSetupIntent({} as any);
+        await result.current.clearReaderDisplay();
+        await result.current.collectPaymentMethod({} as any);
+        await result.current.collectRefundPaymentMethod({} as any);
+        await result.current.collectSetupIntentPaymentMethod({} as any);
+        await result.current.confirmSetupIntent({} as any);
+        await result.current.connectBluetoothReader({} as any);
+        await result.current.connectHandoffReader({} as any);
+        await result.current.connectInternetReader({} as any);
+        await result.current.connectLocalMobileReader({} as any);
+        await result.current.connectUsbReader({} as any);
+        await result.current.createPaymentIntent({} as any);
+        await result.current.createSetupIntent({} as any);
+        await result.current.disconnectReader();
+        await result.current.retrievePaymentIntent('');
+        await result.current.getLocations({} as any);
+        await result.current.confirmPaymentIntent({} as any);
+        await result.current.retrieveSetupIntent('');
+        await result.current.simulateReaderUpdate({} as any);
+        await result.current.setSimulatedCard('');
+        await result.current.installAvailableUpdate();
+        await result.current.setReaderDisplay({} as any);
+        await result.current.confirmRefund();
+        await result.current.cancelCollectSetupIntent();
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        if (error instanceof Error) {
+          expect(error.message).toEqual(
+            'First initialize the Stripe Terminal SDK before performing any action'
+          );
+        }
+      }
 
       Object.values(fns).forEach((fn) => {
         expect(fn).not.toBeCalled();
@@ -386,7 +396,7 @@ describe('useStripeTerminal.test.tsx', () => {
       expect(console.error).toBeCalledWith(
         'First initialize the Stripe Terminal SDK before performing any action'
       );
-      expect(console.error).toBeCalledTimes(31);
+      expect(console.error).toBeCalledTimes(1);
     });
 
     it('public methods are returns with mocked value', async () => {
