@@ -157,6 +157,7 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
     putString("created", convertToUnixTimestamp(paymentIntent.created))
     putString("sdk_uuid", uuid)
+    putString("paymentMethodId", paymentIntent.paymentMethodId)
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {

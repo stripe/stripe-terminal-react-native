@@ -146,6 +146,7 @@ class Mappers {
             "status": mapFromPaymentIntentStatus(paymentIntent.status),
             "id": paymentIntent.stripeId,
             "sdk_uuid": uuid,
+            "paymentMethodId": paymentIntent.paymentMethodId,
         ]
         return result
     }
@@ -515,7 +516,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> NSDictionary {
        let result: NSDictionary = [
            "networkStatus": mapFromNetworkStatus(offlineStatus.sdk.networkStatus)
