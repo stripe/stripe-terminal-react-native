@@ -39,6 +39,12 @@ const ROUTING_PRIORITY = [
   { value: 'international', label: 'international' },
 ];
 
+const OFFLINE_BEHAVIOR = [
+  { value: 'prefer_online', label: 'prefer_online' },
+  { value: 'require_online', label: 'require_online' },
+  { value: 'force_offline', label: 'force_offline' },
+];
+
 export default function CollectCardPaymentScreen() {
   const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
 
@@ -51,11 +57,17 @@ export default function CollectCardPaymentScreen() {
     requestIncrementalAuthorizationSupport?: boolean;
     captureMethod: 'automatic' | 'manual';
     requestedPriority: 'domestic' | 'international' | '';
+    offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
+    offlineModeTransactionLimit: string;
+    offlineModeStoredTransactionLimit: string;
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
     captureMethod: 'manual',
     requestedPriority: '',
+    offlineBehavior: 'prefer_online',
+    offlineModeTransactionLimit: '20000',
+    offlineModeStoredTransactionLimit: '50000',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
@@ -79,6 +91,7 @@ export default function CollectCardPaymentScreen() {
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
     setSimulatedCard,
+    getOfflineStatus,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       // @ts-ignore
@@ -186,6 +199,22 @@ export default function CollectCardPaymentScreen() {
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
     } else {
+      const offlineStatus = await getOfflineStatus();
+      let storedPaymentAmount = 0;
+      for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
+        if (currency === inputValues.currency) {
+          storedPaymentAmount =
+            offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
+        }
+      }
+      if (
+        Number(inputValues.amount) >
+          Number(inputValues.offlineModeTransactionLimit) ||
+        storedPaymentAmount >
+          Number(inputValues.offlineModeStoredTransactionLimit)
+      ) {
+        inputValues.offlineBehavior = 'require_online';
+      }
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
@@ -203,6 +232,7 @@ export default function CollectCardPaymentScreen() {
           requestedPriority: inputValues.requestedPriority,
         },
         captureMethod: inputValues?.captureMethod,
+        offlineBehavior: inputValues?.offlineBehavior,
       });
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
@@ -226,7 +256,7 @@ export default function CollectCardPaymentScreen() {
       return;
     }
 
-    if (!paymentIntent?.id) {
+    if (!paymentIntent) {
       addLogs({
         name: 'Create Payment Intent',
         events: [
@@ -236,7 +266,7 @@ export default function CollectCardPaymentScreen() {
             onBack: cancelCollectPaymentMethod,
             metadata: {
               errorCode: 'no_code',
-              errorMessage: 'No payment id returned!',
+              errorMessage: 'PaymentIntent is null!',
             },
           },
         ],
@@ -356,45 +386,34 @@ export default function CollectCardPaymentScreen() {
       return;
     }
 
-    if (!paymentIntent) {
-      addLogs({
-        name: 'Confirm Payment Intent',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              errorCode: 'no_code',
-              errorMessage: 'no payment intent id returned!',
-            },
-          },
-        ],
-      });
-      return;
-    }
-
     addLogs({
       name: 'Confirm Payment Intent',
       events: [
         {
-          name: 'Processed',
+          name: 'Confirmed',
           description: 'terminal.confirmPaymentIntent',
           metadata: {
-            paymententIntentId: paymentIntent.id,
-            chargeId: paymentIntent.charges[0].id,
+            paymententIntentId: paymentIntent.id ? paymentIntent.id : 'null',
+            chargeId: paymentIntent?.charges[0]?.id
+              ? paymentIntent.charges[0].id
+              : 'null',
           },
         },
       ],
     });
 
     // Set last successful charge Id in context for refunding later
-    setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+    if (paymentIntent?.charges[0]?.id) {
+      setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+    }
 
     if (paymentIntent?.status === 'succeeded') {
       return;
     }
 
-    _capturePayment(paymentIntent.id);
+    if (paymentIntent.id) {
+      _capturePayment(paymentIntent.id);
+    }
   };
 
   const _capturePayment = async (paymentIntentId: string) => {
@@ -687,6 +706,67 @@ export default function CollectCardPaymentScreen() {
           />
         </List>
       )}
+
+      <List
+        bolded={false}
+        topSpacing={false}
+        title="OFFLINE MODE TRANSACTION LIMIT"
+      >
+        <TextInput
+          testID="limit-text-field"
+          keyboardType="numeric"
+          style={styles.input}
+          value={inputValues.offlineModeTransactionLimit}
+          onChangeText={(value) =>
+            setInputValues((state) => ({
+              ...state,
+              offlineModeTransactionLimit: value,
+            }))
+          }
+          placeholder="amount"
+        />
+      </List>
+
+      <List
+        bolded={false}
+        topSpacing={false}
+        title="OFFLINE MODE STORED TRANSACTION LIMIT"
+      >
+        <TextInput
+          testID="store-limit-text-field"
+          keyboardType="numeric"
+          style={styles.input}
+          value={inputValues.offlineModeStoredTransactionLimit}
+          onChangeText={(value) =>
+            setInputValues((state) => ({
+              ...state,
+              offlineModeStoredTransactionLimit: value,
+            }))
+          }
+          placeholder="amount"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="OFFLINE BEHAVIOR">
+        <Picker
+          selectedValue={inputValues?.offlineBehavior}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-offline-behavior-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, offlineBehavior: value }))
+          }
+        >
+          {OFFLINE_BEHAVIOR.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
 
       <List
         bolded={false}

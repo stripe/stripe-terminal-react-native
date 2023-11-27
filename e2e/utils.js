@@ -181,7 +181,7 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
   await checkIfLogExist('Collect');
   await checkIfLogExist('Collected');
   await checkIfLogExist('Process');
-  await checkIfLogExist('Processed');
+  await checkIfLogExist('Confirmed');
 };
 
 export const collectInteracRefund = async () => {

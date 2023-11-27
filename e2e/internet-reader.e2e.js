@@ -50,6 +50,10 @@ describe('Internet reader', () => {
     await amountInput.replaceText('20000');
     await amountInput.tapReturnKey();
 
+    if (device.getPlatform() === 'ios') {
+      await element(by.id('collect-scroll-view')).scroll(1000, 'down');
+    }
+
     await element(by.id('collect-scroll-view')).scrollTo('bottom');
 
     const button = element(by.text('Collect payment'));
@@ -66,7 +70,7 @@ describe('Internet reader', () => {
     await checkIfLogExist('Collect');
     await checkIfLogExist('Collected');
     await checkIfLogExist('Process');
-    await checkIfLogExist('Processed');
+    await checkIfLogExist('Confirmed');
     await checkIfLogExist('Capture');
     await checkIfLogExist('Captured');
   });

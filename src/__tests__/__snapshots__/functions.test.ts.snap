@@ -27,6 +27,7 @@ Object {
   "disconnectReader": [Function],
   "discoverReaders": [Function],
   "getLocations": [Function],
+  "getOfflineStatus": [Function],
   "initialize": [Function],
   "installAvailableUpdate": [Function],
   "retrievePaymentIntent": [Function],

@@ -6,6 +6,8 @@ import {
   StripeError,
   EventResult,
   PaymentStatus,
+  OfflineStatus,
+  PaymentIntent,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -29,6 +31,9 @@ const {
   START_READER_RECONNECT,
   READER_RECONNECT_SUCCEED,
   READER_RECONNECT_FAIL,
+  CHANGE_OFFLINE_STATUS,
+  FORWARD_PAYMENT_INTENT,
+  REPORT_FORWARDING_ERROR,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -203,6 +208,30 @@ export function StripeTerminalProvider({
     [log]
   );
 
+  const didChangeOfflineStatus = useCallback(
+    ({ result }: { result?: OfflineStatus }) => {
+      log('didChangeOfflineStatus');
+      emitter?.emit(CHANGE_OFFLINE_STATUS, result);
+    },
+    [log]
+  );
+
+  const didForwardPaymentIntent = useCallback(
+    ({ result, error }: { result: PaymentIntent.Type; error: StripeError }) => {
+      log('didForwardPaymentIntent');
+      emitter?.emit(FORWARD_PAYMENT_INTENT, result, error);
+    },
+    [log]
+  );
+
+  const didReportForwardingError = useCallback(
+    ({ error }: { error?: StripeError }) => {
+      log('didReportForwardingError');
+      emitter?.emit(REPORT_FORWARDING_ERROR, error);
+    },
+    [log]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -222,6 +251,10 @@ export function StripeTerminalProvider({
   useListener(START_READER_RECONNECT, didStartReaderReconnect);
   useListener(READER_RECONNECT_SUCCEED, didSucceedReaderReconnect);
   useListener(READER_RECONNECT_FAIL, didFailReaderReconnect);
+
+  useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
+  useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
+  useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
 
   const tokenProviderHandler = async () => {
     try {

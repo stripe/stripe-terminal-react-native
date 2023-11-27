@@ -17,10 +17,13 @@ enum ReactNativeConstants: String, CaseIterable {
     case START_READER_RECONNECT = "didStartReaderReconnect"
     case READER_RECONNECT_SUCCEED = "didSucceedReaderReconnect"
     case READER_RECONNECT_FAIL = "didFailReaderReconnect"
+    case CHANGE_OFFLINE_STATUS = "didChangeOfflineStatus"
+    case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
+    case REPORT_FORWARDING_ERROR = "didReportForwardingError"
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate, OfflineDelegate {
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
@@ -74,6 +77,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             Terminal.setTokenProvider(TokenProvider.shared)
             Terminal.shared.logLevel = logLevel
         }
+        
+        Terminal.shared.offlineDelegate = self
 
         if Terminal.shared.responds(to: NSSelectorFromString("setReactNativeSdkVersion:")) && params["reactNativeVersion"] != nil {
             Terminal.shared.performSelector(
@@ -420,7 +425,25 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        Terminal.shared.createPaymentIntent(paymentParams) { pi, error in
+        let offlineBehavior = params["offlineBehavior"] as? String
+        let offlineBehaviorFromTransactionLimit: OfflineBehavior = {
+            switch offlineBehavior {
+            case "prefer_online": return OfflineBehavior.preferOnline
+            case "require_online": return OfflineBehavior.requireOnline
+            case "force_offline": return OfflineBehavior.forceOffline
+            default: return OfflineBehavior.preferOnline
+            }
+        }()
+        
+        let offlineCreateConfig: CreateConfiguration
+        do {
+            offlineCreateConfig = try CreateConfigurationBuilder().setOfflineBehavior(offlineBehaviorFromTransactionLimit).build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        
+        Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let pi = pi {
@@ -888,6 +911,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         resolve(["token": self.loggingToken])
     }
 
+    @objc(getOfflineStatus:rejecter:)
+    func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let sdkDic: NSDictionary = [
+            "offlinePaymentsCount": Terminal.shared.offlineStatus.sdk.paymentsCount ?? 0,
+            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency
+        ]
+        
+        let readDic: NSDictionary = [
+            "offlinePaymentsCount": Terminal.shared.offlineStatus.reader?.paymentsCount ?? 0,
+            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.reader?.paymentAmountsByCurrency ?? {}
+        ]
+        
+        resolve(["sdk": sdkDic, "reader": readDic])
+    }
+
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
         sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
@@ -960,5 +998,20 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func localMobileReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
+    }
+
+    func terminal(_ terminal: Terminal, didChange offlineStatus: OfflineStatus) {
+        let offlineStatus = Mappers.mapFromOfflineStatus(offlineStatus)
+        sendEvent(withName: ReactNativeConstants.CHANGE_OFFLINE_STATUS.rawValue, body: ["result": offlineStatus])
+    }
+    
+    func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
+        let result = Mappers.mapFromPaymentIntent(intent, uuid: "")
+        sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: ["result": result])
+    }
+    
+    func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {
+        let result = Errors.createError(nsError: error as NSError)
+        sendEvent(withName: ReactNativeConstants.REPORT_FORWARDING_ERROR.rawValue, body: ["result": result])
     }
 }

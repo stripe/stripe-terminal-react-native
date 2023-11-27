@@ -36,6 +36,7 @@ import {
 import { Alert, LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
+import DatabaseScreen from './screens/DatabaseScreen';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -213,6 +214,11 @@ export default function App() {
               name="MerchantSelectScreen"
               options={{ headerTitle: 'Merchant Select' }}
               component={MerchantSelectScreen}
+            />
+            <Stack.Screen
+              name="DatabaseScreen"
+              options={{ headerTitle: 'DatabaseScreen' }}
+              component={DatabaseScreen}
             />
             <Stack.Screen
               name="DiscoverReadersScreen"

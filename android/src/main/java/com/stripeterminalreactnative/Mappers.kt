@@ -13,6 +13,8 @@ import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
+import com.stripe.stripeterminal.external.models.NetworkStatus
+import com.stripe.stripeterminal.external.models.OfflineStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
 import com.stripe.stripeterminal.external.models.PaymentMethod
@@ -487,3 +489,25 @@ fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
         putString("tsi", receiptDetails?.tsi)
         putString("tvr", receiptDetails?.tvr)
     }
+
+internal fun mapFromNetworkStatus(status: NetworkStatus): String {
+    return when (status) {
+        NetworkStatus.ONLINE -> "online"
+        NetworkStatus.OFFLINE -> "offline"
+        NetworkStatus.UNKNOWN -> "unknown"
+    }
+}
+
+fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap =
+    nativeMapOf {
+        putString("networkStatus", mapFromNetworkStatus(offlineStatus.sdk.networkStatus))
+        putInt("offlinePaymentsCount", offlineStatus.sdk.offlinePaymentsCount)
+
+        val map = nativeMapOf {
+            offlineStatus.sdk.offlinePaymentAmountsByCurrency.forEach {
+                putInt(it.key, it.value.toInt())
+            }
+        }
+        putMap("offlinePaymentAmountsByCurrency", map)
+    }
+

@@ -506,6 +506,22 @@ class Mappers {
         default: return LogLevel.none
         }
     }
+
+    class func mapFromNetworkStatus(_ status: NetworkStatus) -> String {
+        switch status {
+        case NetworkStatus.online: return "online"
+        case NetworkStatus.offline: return "offline"
+        case NetworkStatus.unknown: return "unknown"
+        default: return "unknown"
+        }
+    }
+    
+    class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> NSDictionary {
+       let result: NSDictionary = [
+           "networkStatus": mapFromNetworkStatus(offlineStatus.sdk.networkStatus)
+       ]
+        return result
+    }
 }
 
 extension UInt {

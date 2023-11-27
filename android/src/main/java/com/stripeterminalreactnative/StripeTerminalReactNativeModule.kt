@@ -20,8 +20,10 @@ import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
+import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.OfflineBehavior
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentParameters
 import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
@@ -46,6 +48,7 @@ import com.stripeterminalreactnative.ktx.connectReader
 import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
 import com.stripeterminalreactnative.listener.RNHandoffReaderListener
+import com.stripeterminalreactnative.listener.RNOfflineListener
 import com.stripeterminalreactnative.listener.RNReaderReconnectionListener
 import com.stripeterminalreactnative.listener.RNTerminalListener
 import com.stripeterminalreactnative.listener.RNUsbReaderListener
@@ -91,6 +94,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     override fun getName(): String = "StripeTerminalReactNative"
 
+    @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
@@ -101,7 +105,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 this.context.applicationContext,
                 mapToLogLevel(params.getString("logLevel")),
                 tokenProvider,
-                RNTerminalListener(context)
+                RNTerminalListener(context),
+                RNOfflineListener(context),
             )
             NativeTypeFactory.writableNativeMap()
         } else {
@@ -323,6 +328,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
         val captureMethod = params.getString("captureMethod")
+        val offlineBehavior = params.getString("offlineBehavior")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             if (it is String) PaymentMethodType.valueOf(it.uppercase())
@@ -397,11 +403,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
+        val offlineBehaviorParam = offlineBehavior.let {
+            when (it) {
+                "prefer_online" -> OfflineBehavior.PREFER_ONLINE
+                "require_online" -> OfflineBehavior.REQUIRE_ONLINE
+                "force_offline" -> OfflineBehavior.FORCE_OFFLINE
+                else -> OfflineBehavior.PREFER_ONLINE
+            }
+        }
+
         val uuid = UUID.randomUUID().toString()
 
         terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise, uuid) { pi ->
             paymentIntents[uuid] = pi
-        })
+        }, CreateConfiguration(offlineBehaviorParam))
     }
 
     @OptIn(OfflineMode::class)
@@ -671,6 +686,40 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun confirmRefund(promise: Promise) {
         terminal.confirmRefund(RNRefundCallback(promise))
+    }
+
+    @OptIn(OfflineMode::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun getOfflineStatus(promise: Promise) {
+        promise.resolve(
+            nativeMapOf {
+                val sdkMap = nativeMapOf {
+                    putInt("offlinePaymentsCount", terminal.offlineStatus.sdk.offlinePaymentsCount)
+
+                    val map = nativeMapOf {
+                        terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency.forEach {
+                            putInt(it.key, it.value.toInt())
+                        }
+                    }
+                    putMap("offlinePaymentAmountsByCurrency", map)
+                }
+
+                val readerMap = nativeMapOf {
+                    putInt("offlinePaymentsCount", terminal.offlineStatus.reader?.offlinePaymentsCount?:0)
+
+                    val map = nativeMapOf {
+                        terminal.offlineStatus.reader?.offlinePaymentAmountsByCurrency?.forEach {
+                            putInt(it.key, it.value.toInt())
+                        }
+                    }
+                    putMap("offlinePaymentAmountsByCurrency", map)
+                }
+
+                putMap("sdk", sdkMap)
+                putMap("reader", readerMap)
+            }
+        )
     }
 
     private fun cancelOperation(

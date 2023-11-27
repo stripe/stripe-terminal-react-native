@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
   View,
@@ -18,6 +19,7 @@ import {
   setDiscoveryMethod as setStoredDiscoveryMethod,
 } from '../util/merchantStorage';
 import {
+  OfflineStatus,
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
@@ -26,9 +28,51 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
+  const [online, setOnline] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
-  const { disconnectReader, connectedReader } = useStripeTerminal();
+  const { disconnectReader, connectedReader } = useStripeTerminal({
+    onDidChangeOfflineStatus(status: OfflineStatus) {
+      console.log('offline status = ' + status.networkStatus);
+      setOnline(status.networkStatus == 'online' ? true : false);
+    },
+    onDidForwardingFailure(error) {
+      console.log('onDidForwardingFailure ' + error?.message);
+      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
+    onDidForwardPaymentIntent(paymentIntent, error) {
+      let toastMsg =
+        'Payment Intent ' +
+        paymentIntent.id +
+        ' forwarded. ErrorCode' +
+        error.code +
+        '. ErrorMsg = ' +
+        error.message;
+      let toast = Toast.show(toastMsg, {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
+  });
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -96,6 +140,14 @@ export default function HomeScreen() {
           }}
         />
       </List>
+      <List title="DATABASE">
+        <ListItem
+          title="Database"
+          onPress={async () => {
+            navigation.navigate('DatabaseScreen');
+          }}
+        />
+      </List>
     </>
   );
 
@@ -105,6 +157,14 @@ export default function HomeScreen() {
         <Text style={styles.readerName}>
           {account?.settings?.dashboard?.display_name} ({account?.id})
         </Text>
+        {account && (
+          <View
+            style={[
+              styles.indicator,
+              { backgroundColor: online ? colors.green : colors.red },
+            ]}
+          />
+        )}
       </View>
       {connectedReader ? (
         <View style={styles.connectedReaderContainer}>
@@ -130,7 +190,7 @@ export default function HomeScreen() {
         renderConnectedContent
       ) : (
         <>
-          <List title="MERCHANT SELECTION">
+          <List topSpacing={false} title="MERCHANT SELECTION">
             <ListItem
               title="Set Merchant"
               color={colors.blue}
@@ -160,7 +220,18 @@ export default function HomeScreen() {
             />
           </List>
 
-          <List title="DISCOVERY METHOD">
+          <List topSpacing={false} title="DATABASE">
+            <ListItem
+              title="Database"
+              testID="database"
+              color={colors.blue}
+              onPress={async () => {
+                navigation.navigate('DatabaseScreen');
+              }}
+            />
+          </List>
+
+          <List topSpacing={false} title="DISCOVERY METHOD">
             <ListItem
               title={mapFromDiscoveryMethod(discoveryMethod)}
               testID="discovery-method-button"
@@ -254,7 +325,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.gray,
-    marginVertical: 30,
+    marginVertical: 10,
   },
   infoText: {
     paddingHorizontal: 16,
@@ -265,8 +336,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   accountContainer: {
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   readerName: {
     width: '60%',
@@ -276,5 +350,11 @@ const styles = StyleSheet.create({
   },
   connectionStatus: {
     color: colors.dark_gray,
+  },
+  indicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 20,
+    backgroundColor: colors.red,
   },
 });
