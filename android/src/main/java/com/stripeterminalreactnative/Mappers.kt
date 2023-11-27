@@ -156,7 +156,7 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
     putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
     putString("created", convertToUnixTimestamp(paymentIntent.created))
-    putString("sdk_uuid", uuid)
+    putString("sdkUuid", uuid)
     putString("paymentMethodId", paymentIntent.paymentMethodId)
 }
 
@@ -173,7 +173,7 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): Readabl
     putString("onBehalfOfId", setupIntent.onBehalfOfId)
     putString("paymentMethodId", setupIntent.paymentMethodId)
     putString("singleUseMandateId", setupIntent.singleUseMandateId)
-    putString("sdk_uuid", uuid)
+    putString("sdkUuid", uuid)
 }
 
 internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt?.let {

@@ -145,8 +145,8 @@ class Mappers {
             "currency": paymentIntent.currency,
             "status": mapFromPaymentIntentStatus(paymentIntent.status),
             "id": paymentIntent.stripeId,
-            "sdk_uuid": uuid,
-            "paymentMethodId": paymentIntent.paymentMethodId,
+            "sdkUuid": uuid,
+            "sdkUuid": paymentIntent.paymentMethodId,
         ]
         return result
     }
@@ -154,7 +154,7 @@ class Mappers {
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         let result: NSDictionary = [
             "id": setupIntent.stripeId,
-            "sdk_uuid": uuid,
+            "sdkUUID": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "status": mapFromSetupIntentStatus(setupIntent.status),
             "latestAttempt": mapFromSetupAttempt(setupIntent.latestAttempt) ?? NSNull(),
