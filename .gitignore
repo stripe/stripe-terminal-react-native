@@ -28,6 +28,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
+ios/.xcode.env.local
 
 # Android/IJ
 #
@@ -40,6 +41,9 @@ project.xcworkspace
 local.properties
 android.iml
 *.hprof
+.cxx/
+*.keystore
+!debug.keystore
 
 # Ruby / CocoaPods
 #
@@ -57,12 +61,6 @@ yarn-error.log
 junit.xml
 coverage/
 
-# BUCK
-buck-out/
-\.buckd/
-android/app/libs
-android/keystores/debug.keystore
-
 # Expo
 .expo/*
 
@@ -79,3 +77,9 @@ test-butler-app.apk
 /fastlane/README.md
 /fastlane/report.xml
 /fastlane/.env.default
+/fastlane/test_output
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
+# testing
+/coverage

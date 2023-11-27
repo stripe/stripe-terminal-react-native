@@ -57,6 +57,9 @@ import {
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
 import { NativeModules } from 'react-native';
+//@ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
 
 export const {
   FETCH_TOKEN_PROVIDER,

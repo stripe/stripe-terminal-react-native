@@ -53,7 +53,6 @@
     "@expo/config-plugins": "^4.0.18",
     "@react-native-community/bob": "^0.16.2",
     "@react-native-community/eslint-config": "^2.0.0",
-    "@testing-library/react-native": "^10.0.0",
     "@types/base-64": "^1.0.0",
     "@types/jest": "^27.0.2",
     "@types/react": "^16.9.19",
@@ -71,9 +70,9 @@
     "metro-react-native-babel-preset": "^0.67.0",
     "pod-install": "^0.1.0",
     "prettier": "^2.0.5",
-    "react": "17.0.2",
-    "react-native": "0.68.2",
-    "react-test-renderer": "17.0.2",
+    "react": "18.2.0",
+    "react-native": "0.72.7",
+    "react-test-renderer": "^18.2.0",
     "stripe": "^7.14.0",
     "typedoc": "^0.22.15",
     "typescript": "^4.6.2"
@@ -87,6 +86,14 @@
       "default",
       "jest-junit"
     ],
+    "testEnvironment": "jsdom",
+    "testEnvironmentOptions": {
+      "browsers": [
+        "chrome",
+        "firefox",
+        "safari"
+      ]
+    },
     "modulePathIgnorePatterns": [
       "<rootDir>/dev-app/node_modules",
       "<rootDir>/lib/"
@@ -162,6 +169,8 @@
     ]
   },
   "dependencies": {
-    "base-64": "^1.0.0"
+    "@testing-library/react-native": "^12.4.0",
+    "base-64": "^1.0.0",
+    "react-native-gradle-plugin": "^0.71.19"
   }
 }

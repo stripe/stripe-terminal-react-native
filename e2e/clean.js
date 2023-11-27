@@ -8,7 +8,7 @@ const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY, {
 
 export const cleanPaymentMethods = async () => {
   await stripe.paymentMethods.list(
-    { customer: 'cus_KZXZYmu4lAIE94', type: 'card', limit: 100 },
+    { customer: 'cus_OXIcxa1cyMcDWD', type: 'card', limit: 100 },
     (err, cards) => {
       if (err) {
         console.error(err);
