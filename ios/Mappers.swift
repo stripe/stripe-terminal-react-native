@@ -145,7 +145,8 @@ class Mappers {
             "currency": paymentIntent.currency,
             "status": mapFromPaymentIntentStatus(paymentIntent.status),
             "id": paymentIntent.stripeId,
-            "sdk_uuid": uuid,
+            "sdkUuid": uuid,
+            "paymentMethodId": paymentIntent.paymentMethodId,
         ]
         return result
     }
@@ -153,7 +154,7 @@ class Mappers {
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         let result: NSDictionary = [
             "id": setupIntent.stripeId,
-            "sdk_uuid": uuid,
+            "sdkUuid": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "status": mapFromSetupIntentStatus(setupIntent.status),
             "latestAttempt": mapFromSetupAttempt(setupIntent.latestAttempt) ?? NSNull(),
@@ -515,7 +516,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> NSDictionary {
        let result: NSDictionary = [
            "networkStatus": mapFromNetworkStatus(offlineStatus.sdk.networkStatus)

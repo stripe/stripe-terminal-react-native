@@ -318,6 +318,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val applicationFeeAmount = getInt(params, "applicationFeeAmount")
         val stripeDescription = params.getString("stripeDescription")
         val statementDescriptor = params.getString("statementDescriptor")
+        val statementDescriptorSuffix = params.getString("statementDescriptorSuffix")
         val receiptEmail = params.getString("receiptEmail")
         val customer = params.getString("customer")
         val transferGroup = params.getString("transferGroup")
@@ -348,6 +349,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
         statementDescriptor?.let {
             intentParams.setStatementDescriptor(it)
+        }
+        statementDescriptorSuffix?.let {
+            intentParams.setStatementDescriptorSuffix(it)
         }
         receiptEmail?.let {
             intentParams.setReceiptEmail(it)
@@ -427,11 +431,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
                 "You must provide a paymentIntent"
             }
-            val uuid = requireParam(paymentIntentJson.getString("sdk_uuid")) {
-                "The PaymentIntent is missing sdk_uuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            val uuid = requireParam(paymentIntentJson.getString("sdkUuid")) {
+                "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val paymentIntent = requireParam(paymentIntents[uuid]) {
-                "No PaymentIntent was found with the sdk_uuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
+                "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
             val configBuilder = CollectConfiguration.Builder()
@@ -476,11 +480,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun confirmPaymentIntent(paymentIntent: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
-            "The PaymentIntent is missing sdk_uuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+        val uuid = requireParam(paymentIntent.getString("sdkUuid")) {
+            "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
         }
         val paymentIntent = requireParam(paymentIntents[uuid]) {
-            "No PaymentIntent was found with the sdk_uuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
+            "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
 
         terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
@@ -526,11 +530,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelPaymentIntent(paymentIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val uuid = requireParam(paymentIntent.getString("sdk_uuid")) {
-                "The PaymentIntent is missing sdk_uuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            val uuid = requireParam(paymentIntent.getString("sdkUuid")) {
+                "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val paymentIntent = requireParam(paymentIntents[uuid]) {
-                "No PaymentIntent was found with the sdk_uuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
+                "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
             terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
@@ -545,11 +549,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val setupIntentJson = requireParam(params.getMap("setupIntent")) {
                 "You must provide a setupIntent"
             }
-            val uuid = requireParam(setupIntentJson.getString("sdk_uuid")) {
-                "The SetupIntent is missing sdk_uuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            val uuid = requireParam(setupIntentJson.getString("sdkUuid")) {
+                "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {
-                "No SetupIntent was found with the sdk_uuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
+                "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             val customerConsentCollected = getBoolean(params, "customerConsentCollected")
@@ -608,11 +612,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
-                "The SetupIntent is missing sdk_uuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            val uuid = requireParam(setupIntent.getString("sdkUuid")) {
+                "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {
-                "No SetupIntent was found with the sdk_uuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
+                "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             val params = SetupIntentCancellationParameters.Builder().build()
@@ -626,11 +630,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun confirmSetupIntent(setupIntent: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val uuid = requireParam(setupIntent.getString("sdk_uuid")) {
-                "The SetupIntent is missing sdk_uuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            val uuid = requireParam(setupIntent.getString("sdkUuid")) {
+                "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {
-                "No SetupIntent was found with the sdk_uuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
+                "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
             terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise, uuid) {
