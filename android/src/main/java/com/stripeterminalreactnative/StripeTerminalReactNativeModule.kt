@@ -318,6 +318,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val applicationFeeAmount = getInt(params, "applicationFeeAmount")
         val stripeDescription = params.getString("stripeDescription")
         val statementDescriptor = params.getString("statementDescriptor")
+        val statementDescriptorSuffix = params.getString("statementDescriptorSuffix")
         val receiptEmail = params.getString("receiptEmail")
         val customer = params.getString("customer")
         val transferGroup = params.getString("transferGroup")
@@ -348,6 +349,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
         statementDescriptor?.let {
             intentParams.setStatementDescriptor(it)
+        }
+        statementDescriptorSuffix?.let {
+            intentParams.setStatementDescriptorSuffix(it)
         }
         receiptEmail?.let {
             intentParams.setReceiptEmail(it)

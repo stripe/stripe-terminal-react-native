@@ -160,6 +160,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   applicationFeeAmount?: number;
   stripeDescription?: string;
   statementDescriptor?: string;
+  statementDescriptorSuffix?: string;
   receiptEmail?: string;
   customer?: string;
   transferGroup?: string;
