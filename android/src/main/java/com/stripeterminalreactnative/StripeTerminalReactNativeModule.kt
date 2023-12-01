@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
+import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -81,6 +82,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         get() = reactApplicationContext
 
     init {
+        Log.d(null, "init")
         context.registerComponentCallbacks(
             object : ComponentCallbacks2 {
                 override fun onTrimMemory(level: Int) {}
@@ -94,12 +96,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     override fun getName(): String = "StripeTerminalReactNative"
 
+
+
     @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
+        Log.d("package name", context.applicationContext.packageName)
+        Log.d("application context", context.applicationContext.toString())
+        Log.d("current activity", this.context.currentActivity.toString())
         val result = if (!Terminal.isInitialized()) {
             Terminal.initTerminal(
                 this.context.applicationContext,
@@ -117,6 +123,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
         promise.resolve(result)
+
     }
 
     @ReactMethod
