@@ -1001,7 +1001,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
         let result = Mappers.mapFromPaymentIntent(intent, uuid: "")
-        sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: ["result": result])
+        var errorAsDictionary: [String: Any?] = [:]
+        if let nsError = error as NSError? {
+            errorAsDictionary = Errors.createError(nsError: nsError)
+        }
+        sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: ["result": result, "error": errorAsDictionary])
     }
 
     func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {

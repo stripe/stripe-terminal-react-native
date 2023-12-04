@@ -53,6 +53,7 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidForwardPaymentIntent(paymentIntent, error) {
+      console.log(error);
       let toastMsg =
         'Payment Intent ' +
         paymentIntent.id +

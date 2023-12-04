@@ -210,7 +210,7 @@ export function StripeTerminalProvider({
 
   const didChangeOfflineStatus = useCallback(
     ({ result }: { result?: OfflineStatus }) => {
-      log('didChangeOfflineStatus');
+      log('didChangeOfflineStatus', result);
       emitter?.emit(CHANGE_OFFLINE_STATUS, result);
     },
     [log]
@@ -218,7 +218,7 @@ export function StripeTerminalProvider({
 
   const didForwardPaymentIntent = useCallback(
     ({ result, error }: { result: PaymentIntent.Type; error: StripeError }) => {
-      log('didForwardPaymentIntent');
+      log('didForwardPaymentIntent', { ...result, ...error });
       emitter?.emit(FORWARD_PAYMENT_INTENT, result, error);
     },
     [log]
@@ -226,7 +226,7 @@ export function StripeTerminalProvider({
 
   const didReportForwardingError = useCallback(
     ({ error }: { error?: StripeError }) => {
-      log('didReportForwardingError');
+      log('didReportForwardingError', error);
       emitter?.emit(REPORT_FORWARDING_ERROR, error);
     },
     [log]
