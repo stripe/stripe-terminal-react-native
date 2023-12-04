@@ -499,8 +499,8 @@ internal fun mapFromNetworkStatus(status: NetworkStatus): String {
     }
 }
 
-fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap =
-    nativeMapOf {
+fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
+    val sdkMap = nativeMapOf {
         putString("networkStatus", mapFromNetworkStatus(offlineStatus.sdk.networkStatus))
         putInt("offlinePaymentsCount", offlineStatus.sdk.offlinePaymentsCount)
 
@@ -511,4 +511,27 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap =
         }
         putMap("offlinePaymentAmountsByCurrency", map)
     }
+
+    val readerMap = nativeMapOf {
+        offlineStatus.reader?.also { reader ->
+            putString("networkStatus", mapFromNetworkStatus(reader.networkStatus))
+            putInt("offlinePaymentsCount", reader.offlinePaymentsCount)
+
+            val map = nativeMapOf {
+                reader.offlinePaymentAmountsByCurrency.forEach {
+                    putInt(it.key, it.value.toInt())
+                }
+            }
+            putMap("offlinePaymentAmountsByCurrency", map)
+        }
+
+    }
+
+    return nativeMapOf {
+        putMap("sdk", sdkMap)
+        putMap("reader", readerMap)
+    }
+}
+
+
 
