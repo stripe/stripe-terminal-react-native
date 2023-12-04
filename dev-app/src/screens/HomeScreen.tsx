@@ -33,8 +33,9 @@ export default function HomeScreen() {
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal({
     onDidChangeOfflineStatus(status: OfflineStatus) {
-      console.log('offline status = ' + status.networkStatus);
-      setOnline(status.networkStatus == 'online' ? true : false);
+      console.log('offline status = ' + status.sdk.networkStatus);
+      console.log(status);
+      setOnline(status.sdk.networkStatus === 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
       console.log('onDidForwardingFailure ' + error?.message);
@@ -56,9 +57,9 @@ export default function HomeScreen() {
         'Payment Intent ' +
         paymentIntent.id +
         ' forwarded. ErrorCode' +
-        error.code +
+        error?.code +
         '. ErrorMsg = ' +
-        error.message;
+        error?.message;
       let toast = Toast.show(toastMsg, {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,

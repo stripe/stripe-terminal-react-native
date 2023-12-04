@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
-import type { OfflinePaymentStatus } from 'src/types';
+import type { OfflineStatus } from 'src/types';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
@@ -10,7 +10,7 @@ import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 export default function DatabaseScreen() {
   const { account } = useContext(AppContext);
   const [offlinePaymentStatus, setOfflinePaymentStatus] =
-    useState<OfflinePaymentStatus | null>(null);
+    useState<OfflineStatus | null>(null);
   const currencySymbols = [
     { value: 'usd', label: '$' },
     { value: 'gbp', label: '￡' },

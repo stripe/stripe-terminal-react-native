@@ -518,10 +518,19 @@ class Mappers {
     }
 
     class func mapFromOfflineStatus(_ offlineStatus: OfflineStatus) -> NSDictionary {
-       let result: NSDictionary = [
-           "networkStatus": mapFromNetworkStatus(offlineStatus.sdk.networkStatus)
-       ]
-        return result
+        let sdkDic: NSDictionary = [
+            "networkStatus": Mappers.mapFromNetworkStatus(offlineStatus.sdk.networkStatus),
+            "offlinePaymentsCount": offlineStatus.sdk.paymentsCount ?? 0,
+            "offlinePaymentAmountsByCurrency": offlineStatus.sdk.paymentAmountsByCurrency
+        ]
+
+        let readDic: NSDictionary = [
+            "networkStatus": Mappers.mapFromNetworkStatus(offlineStatus.reader?.networkStatus ?? NetworkStatus.unknown),
+            "offlinePaymentsCount": offlineStatus.reader?.paymentsCount ?? 0,
+            "offlinePaymentAmountsByCurrency": offlineStatus.reader?.paymentAmountsByCurrency ?? {}
+        ]
+
+       return(["sdk": sdkDic, "reader": readDic])
     }
 }
 

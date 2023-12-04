@@ -915,17 +915,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(getOfflineStatus:rejecter:)
     func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let sdkDic: NSDictionary = [
-            "offlinePaymentsCount": Terminal.shared.offlineStatus.sdk.paymentsCount ?? 0,
-            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency
-        ]
+        let result = Mappers.mapFromOfflineStatus(Terminal.shared.offlineStatus)
 
-        let readDic: NSDictionary = [
-            "offlinePaymentsCount": Terminal.shared.offlineStatus.reader?.paymentsCount ?? 0,
-            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.reader?.paymentAmountsByCurrency ?? {}
-        ]
-
-        resolve(["sdk": sdkDic, "reader": readDic])
+        resolve(result)
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
@@ -1003,8 +995,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func terminal(_ terminal: Terminal, didChange offlineStatus: OfflineStatus) {
-        let offlineStatus = Mappers.mapFromOfflineStatus(offlineStatus)
-        sendEvent(withName: ReactNativeConstants.CHANGE_OFFLINE_STATUS.rawValue, body: ["result": offlineStatus])
+        let result = Mappers.mapFromOfflineStatus(offlineStatus)
+        sendEvent(withName: ReactNativeConstants.CHANGE_OFFLINE_STATUS.rawValue, body: ["result": result])
     }
 
     func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
