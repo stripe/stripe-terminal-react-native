@@ -280,7 +280,7 @@ export type OfflineStatusDetails = {
 
 export type OfflineStatus = {
   sdk: OfflineStatusDetails;
-  reader: OfflineStatusDetails;
+  reader?: OfflineStatusDetails;
 };
 
 type CardDetails = {

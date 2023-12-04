@@ -524,11 +524,14 @@ class Mappers {
             "offlinePaymentAmountsByCurrency": offlineStatus.sdk.paymentAmountsByCurrency
         ]
 
-        let readDic: NSDictionary = [
-            "networkStatus": Mappers.mapFromNetworkStatus(offlineStatus.reader?.networkStatus ?? NetworkStatus.unknown),
-            "offlinePaymentsCount": offlineStatus.reader?.paymentsCount ?? 0,
-            "offlinePaymentAmountsByCurrency": offlineStatus.reader?.paymentAmountsByCurrency ?? {}
-        ]
+        var readDic: NSDictionary = [:]
+        if let reader = offlineStatus.reader {
+            readDic = [
+                "networkStatus": Mappers.mapFromNetworkStatus(reader.networkStatus),
+                "offlinePaymentsCount": reader.paymentsCount ?? 0,
+                "offlinePaymentAmountsByCurrency": reader.paymentAmountsByCurrency
+            ]
+        }
 
        return(["sdk": sdkDic, "reader": readDic])
     }
