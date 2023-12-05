@@ -33,7 +33,6 @@ export default function HomeScreen() {
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal({
     onDidChangeOfflineStatus(status: OfflineStatus) {
-      console.log('offline status = ' + status.sdk.networkStatus);
       console.log(status);
       setOnline(status.sdk.networkStatus === 'online' ? true : false);
     },
@@ -53,7 +52,6 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidForwardPaymentIntent(paymentIntent, error) {
-      console.log(error);
       let toastMsg =
         'Payment Intent ' +
         paymentIntent.id +

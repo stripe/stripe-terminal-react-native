@@ -532,6 +532,3 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
         putMap("reader", readerMap)
     }
 }
-
-
-
