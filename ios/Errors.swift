@@ -26,7 +26,7 @@ class Errors {
         return createError(errorCode: code.rawValue, message: message)
     }
 
-    class func createError(nsError: NSError) -> [String: Any?] {
+    class func createError(nsError: NSError) -> [String: Any] {
         return createError(code: ErrorCode.Code.init(rawValue: nsError.code) ?? ErrorCode.unexpectedSdkError, message: nsError.localizedDescription)
     }
 
