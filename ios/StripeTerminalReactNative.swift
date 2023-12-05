@@ -1012,8 +1012,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             })
         }
         
-
-        
         sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: body)
     }
 
