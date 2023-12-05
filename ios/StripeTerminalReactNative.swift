@@ -915,17 +915,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(getOfflineStatus:rejecter:)
     func getOfflineStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let sdkDic: NSDictionary = [
-            "offlinePaymentsCount": Terminal.shared.offlineStatus.sdk.paymentsCount ?? 0,
-            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.sdk.paymentAmountsByCurrency
-        ]
+        let result = Mappers.mapFromOfflineStatus(Terminal.shared.offlineStatus)
 
-        let readDic: NSDictionary = [
-            "offlinePaymentsCount": Terminal.shared.offlineStatus.reader?.paymentsCount ?? 0,
-            "offlinePaymentAmountsByCurrency": Terminal.shared.offlineStatus.reader?.paymentAmountsByCurrency ?? {}
-        ]
-
-        resolve(["sdk": sdkDic, "reader": readDic])
+        resolve(result)
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
@@ -1003,13 +995,24 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func terminal(_ terminal: Terminal, didChange offlineStatus: OfflineStatus) {
-        let offlineStatus = Mappers.mapFromOfflineStatus(offlineStatus)
-        sendEvent(withName: ReactNativeConstants.CHANGE_OFFLINE_STATUS.rawValue, body: ["result": offlineStatus])
+        let result = Mappers.mapFromOfflineStatus(offlineStatus)
+        sendEvent(withName: ReactNativeConstants.CHANGE_OFFLINE_STATUS.rawValue, body: ["result": result])
     }
 
     func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
         let result = Mappers.mapFromPaymentIntent(intent, uuid: "")
-        sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: ["result": result])
+        var body: [String: Any] = ["result": result]
+        
+        if let nsError = error as NSError? {
+           let errorAsDictionary = Errors.createError(nsError: nsError)
+            // createError will return a dictionary of ["error": {the error}]
+            // so merge that with the result so we have [result:, error:]
+            body = body.merging(errorAsDictionary, uniquingKeysWith: { _, error in
+                error
+            })
+        }
+        
+        sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: body)
     }
 
     func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {

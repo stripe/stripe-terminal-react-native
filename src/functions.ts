@@ -30,7 +30,7 @@ import type {
   CollectPaymentMethodParams,
   PaymentIntent,
   SetupIntent,
-  OfflinePaymentStatus,
+  OfflineStatus,
 } from './types';
 
 export async function initialize(
@@ -742,7 +742,7 @@ export async function cancelCollectSetupIntent(): Promise<{
   }, 'cancelCollectSetupIntent')();
 }
 
-export async function getOfflineStatus(): Promise<OfflinePaymentStatus> {
+export async function getOfflineStatus(): Promise<OfflineStatus> {
   return Logger.traceSdkMethod(async () => {
     try {
       const offlineStatus = await StripeTerminalSdk.getOfflineStatus();

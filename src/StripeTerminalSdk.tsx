@@ -29,7 +29,7 @@ import type {
   CollectPaymentMethodParams,
   PaymentIntent,
   SetupIntent,
-  OfflinePaymentStatus,
+  OfflineStatus,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -139,7 +139,7 @@ export interface StripeTerminalSdkType {
   setSimulatedCard(cardNumber: string): Promise<{
     error?: StripeError;
   }>;
-  getOfflineStatus(): Promise<OfflinePaymentStatus>;
+  getOfflineStatus(): Promise<OfflineStatus>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

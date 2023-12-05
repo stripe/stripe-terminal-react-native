@@ -696,34 +696,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getOfflineStatus(promise: Promise) {
-        promise.resolve(
-            nativeMapOf {
-                val sdkMap = nativeMapOf {
-                    putInt("offlinePaymentsCount", terminal.offlineStatus.sdk.offlinePaymentsCount)
-
-                    val map = nativeMapOf {
-                        terminal.offlineStatus.sdk.offlinePaymentAmountsByCurrency.forEach {
-                            putInt(it.key, it.value.toInt())
-                        }
-                    }
-                    putMap("offlinePaymentAmountsByCurrency", map)
-                }
-
-                val readerMap = nativeMapOf {
-                    putInt("offlinePaymentsCount", terminal.offlineStatus.reader?.offlinePaymentsCount?:0)
-
-                    val map = nativeMapOf {
-                        terminal.offlineStatus.reader?.offlinePaymentAmountsByCurrency?.forEach {
-                            putInt(it.key, it.value.toInt())
-                        }
-                    }
-                    putMap("offlinePaymentAmountsByCurrency", map)
-                }
-
-                putMap("sdk", sdkMap)
-                putMap("reader", readerMap)
-            }
-        )
+        promise.resolve(mapFromOfflineStatus(terminal.offlineStatus))
     }
 
     private fun cancelOperation(

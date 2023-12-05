@@ -26,10 +26,12 @@ class RNOfflineListener(
     override fun onPaymentIntentForwarded(paymentIntent: PaymentIntent, e: TerminalException?) {
         context.sendEvent(ReactNativeConstants.FORWARD_PAYMENT_INTENT.listenerName) {
             putMap("result", mapFromPaymentIntent(paymentIntent, ""))
-            putMap("error", nativeMapOf {
-                putString("code", e?.errorCode.toString())
-                putString("message", e?.errorMessage)
-            })
+            if (e != null) {
+                putMap("error", nativeMapOf {
+                    putString("code", e.errorCode.toString())
+                    putString("message", e.errorMessage)
+                })
+            }
         }
     }
 

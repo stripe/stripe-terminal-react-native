@@ -272,21 +272,15 @@ export type ConfirmRefundResultType = {
   error?: StripeError;
 };
 
-export type OfflineStatus = {
+export type OfflineStatusDetails = {
   networkStatus: 'online' | 'offline' | 'unknown';
   offlinePaymentsCount: number;
   offlinePaymentAmountsByCurrency: { [key: string]: number };
 };
 
-export type OfflinePaymentStatus = {
-  sdk: {
-    offlinePaymentsCount: number;
-    offlinePaymentAmountsByCurrency: { [key: string]: number };
-  };
-  reader: {
-    offlinePaymentsCount: number;
-    offlinePaymentAmountsByCurrency: { [key: string]: number };
-  };
+export type OfflineStatus = {
+  sdk: OfflineStatusDetails;
+  reader?: OfflineStatusDetails;
 };
 
 type CardDetails = {

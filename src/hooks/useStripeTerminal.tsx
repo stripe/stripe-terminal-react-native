@@ -275,6 +275,9 @@ export function useStripeTerminal(props?: Props) {
 
   const didChangeOfflineStatus = useCallback(
     ({ result }: { result: OfflineStatus }) => {
+      if (!result.reader?.networkStatus) {
+        result.reader = undefined;
+      }
       onDidChangeOfflineStatus?.(result);
     },
     [onDidChangeOfflineStatus]
@@ -835,6 +838,9 @@ export function useStripeTerminal(props?: Props) {
       throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
     }
     const response = await getOfflineStatus();
+    if (response.reader?.networkStatus) {
+      response.reader = undefined;
+    }
     return response;
   }, [_isInitialized]);
 
