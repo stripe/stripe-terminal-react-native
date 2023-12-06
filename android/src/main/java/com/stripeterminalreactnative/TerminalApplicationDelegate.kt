@@ -10,6 +10,6 @@ object TerminalApplicationDelegate {
     @JvmStatic
     fun onCreate(application: Application) {
         Log.d("onCreate", application.toString())
-        UiThreadUtil.runOnUiThread { TerminalApplicationDelegate.onCreate(application)}
+        TerminalApplicationDelegate.onCreate(application)
     }
 }
