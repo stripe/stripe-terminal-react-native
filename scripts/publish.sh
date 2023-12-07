@@ -48,7 +48,7 @@ EOF
 create_github_release_fallback() {
   cat << EOF
 Remember to create a release on GitHub with a changelog notes:
-    https://github.com/stripe/stripe-react-native/releases/new
+    https://github.com/stripe/stripe-terminal-react-native/releases/new
 EOF
 }
 
