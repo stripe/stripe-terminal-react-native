@@ -129,7 +129,6 @@ workflows:
           inputs:
             - command: e2e:build:example:android
             - cache_local_deps: 'yes'
-            - workdir: example-app
           title: yarn e2e:build:example:android
     before_run:
       - prep_all
