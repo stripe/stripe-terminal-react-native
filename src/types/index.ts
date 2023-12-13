@@ -195,7 +195,7 @@ export type CollectSetupIntentPaymentMethodParams = {
 };
 
 export type CreateSetupIntentParams = {
-  customerId?: string;
+  customer?: string;
 };
 
 export type PaymentIntentResultType =
