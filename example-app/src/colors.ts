@@ -8,4 +8,5 @@ export const colors = {
   slate: '#0A2540',
   gray: '#A3B3C1',
   red: '#ff3a30',
+  green: '#00FF00',
 };

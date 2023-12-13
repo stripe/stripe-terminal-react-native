@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
   View,
@@ -17,6 +18,7 @@ import {
   setDiscoveryMethod as setStoredDiscoveryMethod,
 } from '../util/merchantStorage';
 import {
+  OfflineStatus,
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
@@ -24,9 +26,51 @@ import {
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [simulated, setSimulated] = useState<boolean>(true);
+  const [online, setOnline] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
-  const { disconnectReader, connectedReader } = useStripeTerminal();
+  const { disconnectReader, connectedReader } = useStripeTerminal({
+    onDidChangeOfflineStatus(status: OfflineStatus) {
+      console.log(status);
+      setOnline(status.sdk.networkStatus === 'online' ? true : false);
+    },
+    onDidForwardingFailure(error) {
+      console.log('onDidForwardingFailure ' + error?.message);
+      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
+    onDidForwardPaymentIntent(paymentIntent, error) {
+      let toastMsg =
+        'Payment Intent ' +
+        paymentIntent.id +
+        ' forwarded. ErrorCode' +
+        error?.code +
+        '. ErrorMsg = ' +
+        error?.message;
+      let toast = Toast.show(toastMsg, {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
+  });
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -51,7 +95,7 @@ export default function HomeScreen() {
 
   const renderConnectedContent = (
     <>
-      <List title="READER CONNECTION">
+      <List topSpacing={false} title="READER CONNECTION">
         <ListItem
           title="Disconnect"
           testID="disconnect-button"
@@ -89,7 +133,16 @@ export default function HomeScreen() {
           onPress={() => {
             navigation.navigate('RefundPaymentScreen', {
               simulated,
+              discoveryMethod,
             });
+          }}
+        />
+      </List>
+      <List title="DATABASE">
+        <ListItem
+          title="Database"
+          onPress={async () => {
+            navigation.navigate('DatabaseScreen');
           }}
         />
       </List>
@@ -98,6 +151,14 @@ export default function HomeScreen() {
 
   return (
     <ScrollView testID="home-screen" style={styles.container}>
+      <View style={styles.accountContainer}>
+        <View
+          style={[
+            styles.indicator,
+            { backgroundColor: online ? colors.green : colors.red },
+          ]}
+        />
+      </View>
       {connectedReader ? (
         <View style={styles.connectedReaderContainer}>
           <View style={styles.imageContainer}>
@@ -122,7 +183,7 @@ export default function HomeScreen() {
         renderConnectedContent
       ) : (
         <>
-          <List title="READER">
+          <List topSpacing={false} title="READER">
             <ListItem
               title="Discover Readers"
               color={colors.blue}
@@ -139,6 +200,17 @@ export default function HomeScreen() {
               color={colors.blue}
               onPress={() => {
                 navigation.navigate('RegisterInternetReader');
+              }}
+            />
+          </List>
+
+          <List topSpacing={false} title="DATABASE">
+            <ListItem
+              title="Database"
+              testID="database"
+              color={colors.blue}
+              onPress={async () => {
+                navigation.navigate('DatabaseScreen');
               }}
             />
           </List>
@@ -237,7 +309,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.gray,
-    marginVertical: 30,
+    marginVertical: 20,
   },
   infoText: {
     paddingHorizontal: 16,
@@ -259,5 +331,11 @@ const styles = StyleSheet.create({
   },
   connectionStatus: {
     color: colors.dark_gray,
+  },
+  indicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 20,
+    backgroundColor: colors.red,
   },
 });
