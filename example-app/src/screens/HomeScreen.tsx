@@ -26,7 +26,7 @@ import {
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [simulated, setSimulated] = useState<boolean>(true);
-  const [online, setOnline] = useState<boolean>(true);
+  const [online, setOnline] = useState<boolean>(false);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const { disconnectReader, connectedReader } = useStripeTerminal({

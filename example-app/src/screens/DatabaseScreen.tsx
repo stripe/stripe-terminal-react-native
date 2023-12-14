@@ -73,7 +73,7 @@ export default function DatabaseScreen() {
           offlinePaymentStatus
             ? offlinePaymentStatus.sdk.offlinePaymentsCount
             : 0
-        ) + ' payment intent(s) for '}{' '}
+        ) + ' payment intent(s)'}
       </Text>
     </ScrollView>
   );
