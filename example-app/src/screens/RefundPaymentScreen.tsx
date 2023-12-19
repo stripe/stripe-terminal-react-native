@@ -1,6 +1,6 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useContext, useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput } from 'react-native';
+import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -16,22 +16,28 @@ export default function RefundPaymentScreen() {
     chargeId: string;
     amount: string;
     currency: string;
+    refundApplicationFee?: boolean;
+    reverseTransfer?: boolean;
+    enableCustomerCancellation?: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
     amount: '100',
     currency: 'CAD',
+    refundApplicationFee: false,
+    reverseTransfer: false,
+    enableCustomerCancellation: false,
   });
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
 
-  const { simulated } = params;
+  const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs } = useContext(LogContext);
 
   const {
     collectRefundPaymentMethod,
     cancelCollectRefundPaymentMethod,
-    processRefund,
+    confirmRefund,
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
@@ -109,29 +115,29 @@ export default function RefundPaymentScreen() {
           },
         ],
       });
-      _processRefund();
+      _confirmRefund();
     }
   };
 
-  const _processRefund = async () => {
+  const _confirmRefund = async () => {
     addLogs({
-      name: 'Process Refund',
+      name: 'Confirm Refund',
       events: [
         {
           name: 'Processing',
-          description: 'terminal.processRefund',
+          description: 'terminal.confirmRefund',
           metadata: _refundMetadata,
         },
       ],
     });
-    const { error, refund } = await processRefund();
+    const { error, refund } = await confirmRefund();
     if (error) {
       addLogs({
-        name: 'Process Refund',
+        name: 'Confirm Refund',
         events: [
           {
             name: 'Failed',
-            description: 'terminal.processRefund',
+            description: 'terminal.confirmRefund',
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
@@ -141,22 +147,22 @@ export default function RefundPaymentScreen() {
       });
     } else if (refund && refund.status === 'succeeded') {
       addLogs({
-        name: 'Process Refund',
+        name: 'Confirm Refund',
         events: [
           {
             name: 'Succeeded',
-            description: 'terminal.processRefund',
+            description: 'terminal.confirmRefund',
             metadata: _refundMetadata,
           },
         ],
       });
     } else {
       addLogs({
-        name: 'Process Refund',
+        name: 'Confirm Refund',
         events: [
           {
             name: 'Pending or unsuccessful',
-            description: 'terminal.processRefund',
+            description: 'terminal.confirmRefund',
             metadata: _refundMetadata,
           },
         ],
@@ -222,6 +228,62 @@ export default function RefundPaymentScreen() {
           placeholder="currency"
         />
       </List>
+
+      <List bolded={false} topSpacing={false} title="REFUND APPLICATION FEE">
+        <ListItem
+          title="Refund Application Fee"
+          rightElement={
+            <Switch
+              testID="refund-application-fee"
+              value={inputValues.refundApplicationFee}
+              onValueChange={(value) => {
+                setInputValues((state) => ({
+                  ...state,
+                  refundApplicationFee: value,
+                }));
+              }}
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="REVERSE TRANSFER">
+        <ListItem
+          title="Reverse Transfer"
+          rightElement={
+            <Switch
+              testID="reverse-transfer"
+              value={inputValues.reverseTransfer}
+              onValueChange={(value) =>
+                setInputValues((state) => ({
+                  ...state,
+                  reverseTransfer: value,
+                }))
+              }
+            />
+          }
+        />
+      </List>
+
+      {discoveryMethod === 'internet' && (
+        <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
+          <ListItem
+            title="Customer cancellation"
+            rightElement={
+              <Switch
+                testID="enable-cancellation"
+                value={inputValues.enableCustomerCancellation}
+                onValueChange={(value) =>
+                  setInputValues((state) => ({
+                    ...state,
+                    enableCustomerCancellation: value,
+                  }))
+                }
+              />
+            }
+          />
+        </List>
+      )}
 
       <List
         bolded={false}

@@ -7,6 +7,11 @@
       "binaryPath": "example-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeExampleApp.app",
       "build": "xcodebuild -workspace example-app/ios/exampleapp.xcworkspace -configuration Debug -scheme exampleapp -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation)' -derivedDataPath example-app/ios/build"
     },
+    "android.example.debug": {
+      "type": "android.apk",
+      "binaryPath": "example-app/android/app/build/outputs/apk/debug/app-debug.apk",
+      "build": "cd example-app/android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug ; cd -"
+    },
     "ios.debug": {
       "type": "ios.app",
       "binaryPath": "dev-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeDevApp.app",
@@ -55,6 +60,10 @@
     "ios.example": {
       "device": "simulator",
       "app": "ios.example.debug"
+    },
+    "android.example": {
+      "device": "ci-emulator",
+      "app": "android.example.debug"
     },
     "ios": {
       "device": "simulator",

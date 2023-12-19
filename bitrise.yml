@@ -127,10 +127,9 @@ workflows:
             - api_level: '30'
       - yarn@0:
           inputs:
-            - command: build:android:ci
+            - command: e2e:build:example:android
             - cache_local_deps: 'yes'
-            - workdir: example-app
-          title: yarn build:android
+          title: yarn e2e:build:example:android
     before_run:
       - prep_all
     after_run:

@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
-import React, { useCallback, useContext, useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useContext, useState } from 'react';
+import { StyleSheet, Switch } from 'react-native';
 import {
   SetupIntent,
   useStripeTerminal,
@@ -12,6 +12,9 @@ import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 
 import type { RouteParamList } from '../App';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import List from '../components/List';
+import ListItem from '../components/ListItem';
 
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
@@ -19,6 +22,8 @@ export default function SetupIntentScreen() {
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
   const { discoveryMethod } = params;
+  const [enableCustomerCancellation, setEnableCustomerCancellation] =
+    useState(false);
 
   const {
     createSetupIntent,
@@ -52,19 +57,19 @@ export default function SetupIntentScreen() {
     },
   });
 
-  const _processPayment = useCallback(
-    async (setupIntentId: string) => {
+  const _confirmSetupIntent = useCallback(
+    async (si: SetupIntent.Type) => {
       addLogs({
         name: 'Process Payment',
         events: [
           {
             name: 'Process',
             description: 'terminal.confirmSetupIntent',
-            metadata: { setupIntentId },
+            metadata: { setupIntentId: si.id },
           },
         ],
       });
-      const { setupIntent, error } = await confirmSetupIntent(setupIntentId);
+      const { setupIntent, error } = await confirmSetupIntent(si);
       if (error) {
         addLogs({
           name: 'Process Payment',
@@ -114,21 +119,22 @@ export default function SetupIntentScreen() {
   );
 
   const _collectPaymentMethod = useCallback(
-    async (setupIntentId: string) => {
+    async (si: SetupIntent.Type) => {
       addLogs({
         name: 'Collect Setup Intent',
         events: [
           {
             name: 'Collect',
             description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: { setupIntentId },
+            metadata: { setupIntentId: si.id },
             onBack: cancelCollectSetupIntent,
           },
         ],
       });
       const { setupIntent, error } = await collectSetupIntentPaymentMethod({
-        setupIntentId: setupIntentId,
+        setupIntent: si,
         customerConsentCollected: true,
+        enableCustomerCancellation: enableCustomerCancellation,
       });
       if (error) {
         addLogs({
@@ -155,11 +161,12 @@ export default function SetupIntentScreen() {
             },
           ],
         });
-        await _processPayment(setupIntentId);
+        await _confirmSetupIntent(setupIntent);
       }
     },
     [
-      _processPayment,
+      enableCustomerCancellation,
+      _confirmSetupIntent,
       addLogs,
       cancelCollectSetupIntent,
       collectSetupIntentPaymentMethod,
@@ -247,7 +254,7 @@ export default function SetupIntentScreen() {
         ],
       });
     } else if (setupIntent) {
-      await _collectPaymentMethod(setupIntent.id);
+      await _collectPaymentMethod(setupIntent);
     }
   }, [
     api,
@@ -260,11 +267,35 @@ export default function SetupIntentScreen() {
     retrieveSetupIntent,
   ]);
 
-  useEffect(() => {
-    _createSetupIntent();
-  }, [_createSetupIntent]);
-
-  return <ScrollView contentContainerStyle={styles.container} />;
+  return (
+    <KeyboardAwareScrollView
+      style={styles.container}
+      keyboardShouldPersistTaps="always"
+      testID="setup-intent-scroll-view"
+    >
+      {discoveryMethod === 'internet' && (
+        <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
+          <ListItem
+            title="Customer cancellation"
+            rightElement={
+              <Switch
+                testID="enable-cancellation"
+                value={enableCustomerCancellation}
+                onValueChange={(value) => setEnableCustomerCancellation(value)}
+              />
+            }
+          />
+        </List>
+      )}
+      <List bolded={false} topSpacing={false} title=" ">
+        <ListItem
+          color={colors.blue}
+          title="Collect setupIntent"
+          onPress={_createSetupIntent}
+        />
+      </List>
+    </KeyboardAwareScrollView>
+  );
 }
 
 const styles = StyleSheet.create({

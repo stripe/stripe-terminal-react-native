@@ -17,7 +17,6 @@ import RefundPaymentScreen from './screens/RefundPaymentScreen';
 import DiscoveryMethodScreen from './screens/DiscoveryMethodScreen';
 import CollectCardPaymentScreen from './screens/CollectCardPaymentScreen';
 import SetupIntentScreen from './screens/SetupIntentScreen';
-import ReadReusableCardScreen from './screens/ReadReusableCardScreen';
 import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
@@ -28,6 +27,7 @@ import {
   requestNeededAndroidPermissions,
 } from '@stripe/stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
+import DatabaseScreen from './screens/DatabaseScreen';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -54,6 +54,7 @@ export type RouteParamList = {
   };
   RefundPayment: {
     simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
   };
   Log: {
     event: Event;
@@ -189,6 +190,11 @@ export default function App() {
           <Stack.Navigator screenOptions={screenOptions} mode="modal">
             <Stack.Screen name="Terminal" component={HomeScreen} />
             <Stack.Screen
+              name="DatabaseScreen"
+              options={{ headerTitle: 'DatabaseScreen' }}
+              component={DatabaseScreen}
+            />
+            <Stack.Screen
               name="DiscoverReadersScreen"
               options={{ headerTitle: 'Discovery' }}
               component={DiscoverReadersScreen}
@@ -241,14 +247,6 @@ export default function App() {
                 headerBackAccessibilityLabel: 'payment-back',
               }}
               component={SetupIntentScreen}
-            />
-            <Stack.Screen
-              name="ReadReusableCardScreen"
-              options={{
-                headerTitle: 'Read reusable card',
-                headerBackAccessibilityLabel: 'payment-back',
-              }}
-              component={ReadReusableCardScreen}
             />
             <Stack.Screen
               name="LogListScreen"

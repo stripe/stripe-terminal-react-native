@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { colors } from '../colors';
 
 interface Props {
+  children?: React.ReactNode;
   title: string;
 }
 
