@@ -98,28 +98,25 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
-        UiThreadUtil.runOnUiThread {
-            onCreate(context.currentActivity?.application as Application)
-
-            val result = if (!Terminal.isInitialized()) {
-                Terminal.initTerminal(
-                    this.context.applicationContext,
-                    mapToLogLevel(params.getString("logLevel")),
-                    tokenProvider,
-                    RNTerminalListener(context),
-                    RNOfflineListener(context),
-                )
-                NativeTypeFactory.writableNativeMap()
-            } else {
-                nativeMapOf {
-                    terminal.connectedReader?.let {
-                        putMap("reader", mapFromReader(it))
-                    }
+        val result = if (!Terminal.isInitialized()) {
+            Terminal.initTerminal(
+                this.context.applicationContext,
+                mapToLogLevel(params.getString("logLevel")),
+                tokenProvider,
+                RNTerminalListener(context),
+                RNOfflineListener(context),
+            )
+            NativeTypeFactory.writableNativeMap()
+        } else {
+            nativeMapOf {
+                terminal.connectedReader?.let {
+                    putMap("reader", mapFromReader(it))
                 }
             }
-            promise.resolve(result)
         }
+        promise.resolve(result)
     }
 
     @ReactMethod
