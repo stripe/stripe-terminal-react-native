@@ -498,7 +498,7 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - SocketRocket (0.6.1)
-  - stripe-terminal-react-native (0.0.1-beta.14):
+  - stripe-terminal-react-native (0.0.1-beta.15):
     - React-Core
     - StripeTerminal (~> 3.2.1)
   - StripeTerminal (3.2.1)
