@@ -152,7 +152,7 @@ dependencies {
 
 // Read package.json and return `version` field
 def getVersionFromNpm() {
-    def inputFile = new File("$rootDir/../package.json")
+    def inputFile = new File("$projectDir/../package.json")
     def packageJson = new JsonSlurper().parseText(inputFile.text)
 
     println ("RN SDK package.json version: " +  packageJson["version"])
