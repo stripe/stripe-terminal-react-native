@@ -29,7 +29,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 def terminalAndroidSdkVersion = '3.2.1'
-def reactNativeSdkVersion = '0.0.1-beta.15'
+def reactNativeSdkVersion = getVersionFromNpm()
 
 android {
     compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
@@ -148,4 +148,13 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testImplementation 'io.mockk:mockk:1.12.3'
+}
+
+// Read package.json and return `version` field
+def getVersionFromNpm() {
+    def inputFile = new File("$projectDir/../package.json")
+    def packageJson = new JsonSlurper().parseText(inputFile.text)
+
+    println ("RN SDK package.json version: " +  packageJson["version"])
+    return packageJson["version"]
 }
