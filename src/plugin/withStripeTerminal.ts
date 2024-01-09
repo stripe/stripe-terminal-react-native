@@ -26,6 +26,7 @@ type StripeTerminalPluginProps = {
   locationWhenInUsePermission?: string;
   bluetoothPeripheralPermission?: string;
   bluetoothAlwaysUsagePermission?: string;
+  localNetworkUsagePermission?: string;
 };
 
 const withStripeTerminal: ConfigPlugin<StripeTerminalPluginProps> = (
@@ -139,6 +140,10 @@ const withStripeTerminalIos: ConfigPlugin<StripeTerminalPluginProps> = (
     config.modResults.NSBluetoothAlwaysUsageDescription =
       props.bluetoothAlwaysUsagePermission ||
       'This app uses Bluetooth to connect to supported card readers.';
+
+    config.modResults.NSLocalNetworkUsageDescription =
+      props.localNetworkUsagePermission ||
+      'This app uses the local WiFi network to connect to supported card readers.';
     return config;
   });
 };
