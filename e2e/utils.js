@@ -6,10 +6,10 @@ export const navigateTo = async (buttonText) => {
   await button.tap();
 };
 
-export const connectReader = async (name = 'chipper2X') => {
+export const connectReader = async (name = 'stripeM2') => {
   await waitFor(element(by.text(`SimulatorID - ${name}`)))
     .toBeVisible()
-    .withTimeout(16000);
+    .withTimeout(32000);
   const button = element(by.text(`SimulatorID - ${name}`));
   await button.tap();
 };
