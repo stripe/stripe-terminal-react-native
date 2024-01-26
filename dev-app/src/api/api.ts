@@ -127,6 +127,7 @@ export class Api {
     capture_method,
     on_behalf_of,
     application_fee_amount,
+    metadata,
   }: NewPaymentIntentCreateParams): Promise<
     Stripe.PaymentIntent | { error: Stripe.StripeRawError }
   > {
@@ -179,6 +180,15 @@ export class Api {
 
     if (application_fee_amount) {
       formData.append('application_fee_amount', String(application_fee_amount));
+    }
+
+    if (metadata) {
+      Object.keys(metadata).forEach((k) => {
+        formData.append(
+          `metadata[${k.toString()}]`,
+          JSON.stringify(metadata[k]).replaceAll('"', '')
+        );
+      });
     }
 
     formData.append('payment_method_types[]', 'card_present');
