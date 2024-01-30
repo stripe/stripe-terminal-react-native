@@ -38,7 +38,7 @@ workflows:
       - deploy-to-bitrise-io@2:
           inputs:
             - is_compress: 'true'
-            - deploy_path: /data/local/tmp/detox
+            - deploy_path: ./artifacts
   deploy-firebase-android:
     steps:
       - fastlane@3:
