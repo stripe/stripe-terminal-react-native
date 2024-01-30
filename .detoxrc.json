@@ -1,6 +1,10 @@
 {
-  "testRunner": "jest",
-  "runnerConfig": "e2e/config.json",
+  "testRunner": {
+    "$0": "jest",
+    "args": {
+      "config": "e2e/jest.config.js"
+    }
+  },
   "apps": {
     "ios.example.debug": {
       "type": "ios.app",

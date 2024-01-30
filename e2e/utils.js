@@ -50,12 +50,12 @@ export const setSelectedCurrency = async (currency = 'USD') => {
 
 export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
   const picker = element(by.id('update-plan-picker'));
-
+  const touchable = element(by.id('close-picker'));
   await picker.tap();
 
   if (device.getPlatform() === 'ios') {
     await element(by.type('UIPickerView')).setColumnToValue(0, plan);
-    await picker.tap();
+    await touchable.tap();
   } else {
     await element(by.text(plan)).tap();
   }
