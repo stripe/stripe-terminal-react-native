@@ -35,10 +35,6 @@ workflows:
     steps:
       - save-npm-cache@1: {}
       - save-cocoapods-cache@1: {}
-      - deploy-to-bitrise-io@2:
-          inputs:
-            - is_compress: 'true'
-            - deploy_path: ./artifacts
   deploy-firebase-android:
     steps:
       - fastlane@3:
@@ -83,6 +79,10 @@ workflows:
             - command: e2e:test:android:release
             - cache_local_deps: 'yes'
           title: test detox
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - is_compress: 'true'
+            - deploy_path: ./artifacts
     before_run:
       - prep_all
     after_run:
