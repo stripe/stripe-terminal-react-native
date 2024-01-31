@@ -50,12 +50,12 @@ export const setSelectedCurrency = async (currency = 'USD') => {
 
 export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
   const picker = element(by.id('update-plan-picker'));
-
+  const touchable = element(by.id('close-picker'));
   await picker.tap();
 
   if (device.getPlatform() === 'ios') {
     await element(by.type('UIPickerView')).setColumnToValue(0, plan);
-    await picker.tap();
+    await touchable.tap();
   } else {
     await element(by.text(plan)).tap();
   }
@@ -97,6 +97,10 @@ const discBtnMap = {
 };
 
 export const changeDiscoveryMethod = async (method) => {
+  await waitFor(element(by.id('online-indicator')))
+    .toBeVisible()
+    .withTimeout(10000);
+
   const btnId = discBtnMap[method];
   const button = element(by.id('discovery-method-button'));
   await waitFor(button).toBeVisible().withTimeout(10000);
