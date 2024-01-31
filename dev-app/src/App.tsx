@@ -144,7 +144,9 @@ export default function App() {
 
       console.log('StripeTerminal has been initialized properly');
     };
-    if (account?.secretKey && hasPerms) {
+    // TODO(nazli): uncomment next line
+    // if (account?.secretKey && hasPerms) {
+    if (account?.secretKey) {
       initAndClear();
     }
   }, [account, initStripe, clearCachedCredentials, hasPerms]);
