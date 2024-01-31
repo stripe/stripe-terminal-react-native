@@ -177,7 +177,9 @@ export default function App() {
       }
     }
     if (Platform.OS === 'android') {
-      handlePermissions();
+      setTimeout(() => {
+        handlePermissions();
+      }, 1000); // delay of 1 second
     } else {
       handlePermissionsSuccess();
     }
