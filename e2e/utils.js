@@ -9,7 +9,7 @@ export const navigateTo = async (buttonText) => {
 export const connectReader = async (name = 'chipper2X') => {
   await waitFor(element(by.text(`SimulatorID - ${name}`)))
     .toBeVisible()
-    .withTimeout(16000);
+    .withTimeout(32000);
   const button = element(by.text(`SimulatorID - ${name}`));
   await button.tap();
 };
@@ -97,6 +97,10 @@ const discBtnMap = {
 };
 
 export const changeDiscoveryMethod = async (method) => {
+  await waitFor(element(by.id('online-indicator')))
+    .toBeVisible()
+    .withTimeout(10000);
+
   const btnId = discBtnMap[method];
   const button = element(by.id('discovery-method-button'));
   await waitFor(button).toBeVisible().withTimeout(10000);

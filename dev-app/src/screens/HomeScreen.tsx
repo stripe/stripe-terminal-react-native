@@ -158,7 +158,7 @@ export default function HomeScreen() {
           {account?.settings?.dashboard?.display_name} ({account?.id})
         </Text>
         {account && (
-          <View
+          <View testID="online-indicator"
             style={[
               styles.indicator,
               { backgroundColor: online ? colors.green : colors.red },
