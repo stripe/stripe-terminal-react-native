@@ -277,11 +277,11 @@ export type ReceiptDetails = {
   dedicatedFileName: string;
   tsi: string;
   tvr: string;
-}
+};
 
 export type Wallet = {
-  type: string
-}
+  type: string;
+};
 
 export type PaymentMethodDetails = {
   type: string;
