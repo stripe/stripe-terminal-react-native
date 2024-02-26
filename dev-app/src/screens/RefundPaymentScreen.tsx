@@ -1,6 +1,15 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
-import React, { useContext, useState } from 'react';
-import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
+import React, { useContext, useRef, useState } from 'react';
+import {
+  Modal,
+  Platform,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -9,11 +18,14 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 import type { RouteParamList } from '../App';
+import { Picker } from '@react-native-picker/picker';
 
 export default function RefundPaymentScreen() {
-  const { lastSuccessfulChargeId } = useContext(AppContext);
+  const { lastSuccessfulChargeId, lastSuccessfulPaymentIntentId } =
+    useContext(AppContext);
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
+    paymentIntentId: string;
     amount: string;
     currency: string;
     refundApplicationFee?: boolean;
@@ -21,6 +33,7 @@ export default function RefundPaymentScreen() {
     enableCustomerCancellation?: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
+    paymentIntentId: lastSuccessfulPaymentIntentId || '',
     amount: '100',
     currency: 'CAD',
     refundApplicationFee: false,
@@ -173,8 +186,30 @@ export default function RefundPaymentScreen() {
   const _refundMetadata = {
     amount: inputValues.amount,
     chargeId: inputValues.chargeId,
+    paymentIntentId: inputValues.paymentIntentId,
     currency: inputValues.currency,
   };
+
+  const [showPicker, setShowPicker] = useState(false);
+  const pickerRef = useRef<Picker<string>>();
+  const REFUND_ID_TYPE = ['chargeId', 'paymentIntentId'];
+  const [selectedRefundIdType, setSelectedRefundIdType] =
+    useState<string>('chargeId');
+
+  const handleChangeRefundIdType = async (type: string) => {
+    setSelectedRefundIdType(type);
+  };
+
+  function mapToDisplayName(type: string) {
+    switch (type) {
+      case 'chargeId':
+        return 'Charge ID';
+      case 'paymentIntentId':
+        return 'PaymentIntent ID';
+      default:
+        return '';
+    }
+  }
 
   return (
     <KeyboardAwareScrollView
@@ -194,15 +229,38 @@ export default function RefundPaymentScreen() {
           />
         </List>
       )}
-      <List bolded={false} topSpacing={false} title="CHARGE ID">
+      <List bolded={false} topSpacing={false} title="REFUND ID">
+        <ListItem
+          testID="refund-id-type-picker"
+          onPress={() => {
+            setShowPicker(true);
+            // Android workaround for instant diplaying options list
+            setTimeout(() => {
+              pickerRef.current?.focus();
+            }, 100);
+          }}
+          title={mapToDisplayName(selectedRefundIdType)}
+        />
         <TextInput
           style={styles.input}
-          value={inputValues.chargeId}
-          testID="charge-id-text-field"
-          onChangeText={(value: string) =>
-            setInputValues((state) => ({ ...state, chargeId: value }))
+          value={
+            selectedRefundIdType === 'chargeId'
+              ? inputValues.chargeId
+              : inputValues.paymentIntentId
           }
-          placeholder="Charge ID"
+          testID="charge-id-text-field"
+          onChangeText={(value: string) => {
+            if (selectedRefundIdType === 'chargeId') {
+              setInputValues((state) => ({ ...state, chargeId: value }));
+            } else {
+              setInputValues((state) => ({ ...state, paymentIntentId: value }));
+            }
+          }}
+          placeholder={
+            selectedRefundIdType === 'chargeId'
+              ? 'Charge ID'
+              : 'PaymentIntent ID'
+          }
         />
       </List>
       <List bolded={false} topSpacing={false} title="AMOUNT">
@@ -305,6 +363,41 @@ export default function RefundPaymentScreen() {
           in-person refund; if not, use the Stripe API.
         </Text>
       </List>
+
+      <Modal visible={showPicker} transparent>
+        <TouchableWithoutFeedback
+          testID="close-picker"
+          onPress={() => {
+            setShowPicker(false);
+          }}
+        >
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.pickerContainer} testID="picker-container">
+          <Picker
+            selectedValue={selectedRefundIdType}
+            ref={pickerRef as any}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            onValueChange={(itemValue: string) => {
+              handleChangeRefundIdType(itemValue);
+              if (Platform.OS === 'android') {
+                setShowPicker(false);
+              }
+            }}
+          >
+            {REFUND_ID_TYPE.map((type) => (
+              <Picker.Item
+                key={type}
+                label={mapToDisplayName(type)}
+                testID={type}
+                value={type}
+              />
+            ))}
+          </Picker>
+        </View>
+      </Modal>
     </KeyboardAwareScrollView>
   );
 }
@@ -340,5 +433,39 @@ const styles = StyleSheet.create({
     color: colors.dark_gray,
     paddingHorizontal: 16,
     marginVertical: 16,
+  },
+  picker: {
+    width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+        fontSize: 13,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.white,
+      },
+    }),
+  },
+  pickerItem: {
+    fontSize: 16,
+  },
+  pickerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: colors.white,
+    left: 0,
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        height: 200,
+      },
+    }),
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
 });

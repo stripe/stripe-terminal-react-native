@@ -46,7 +46,12 @@ const OFFLINE_BEHAVIOR = [
 ];
 
 export default function CollectCardPaymentScreen() {
-  const { api, setLastSuccessfulChargeId, account } = useContext(AppContext);
+  const {
+    api,
+    setLastSuccessfulChargeId,
+    setLastSuccessfulPaymentIntentId,
+    account,
+  } = useContext(AppContext);
 
   const [inputValues, setInputValues] = useState<{
     amount: string;
@@ -405,6 +410,7 @@ export default function CollectCardPaymentScreen() {
     // Set last successful charge Id in context for refunding later
     if (paymentIntent?.charges[0]?.id) {
       setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+      setLastSuccessfulPaymentIntentId(paymentIntent.id);
     }
 
     if (paymentIntent?.status === 'succeeded') {

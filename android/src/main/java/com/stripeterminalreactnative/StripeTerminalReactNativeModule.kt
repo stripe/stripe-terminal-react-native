@@ -38,6 +38,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SetupIntentParameters
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
@@ -652,8 +653,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectRefundPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val chargeId = requireParam(params.getString("chargeId")) {
-                "You must provide a chargeId"
+            val chargeId = params.getString("chargeId")
+            val paymentIntentId = params.getString("paymentIntentId")
+
+            if (chargeId.isNullOrBlank() && paymentIntentId.isNullOrBlank()) {
+                throw TerminalException(
+                    TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                    "You must provide a refund Id."
+                )
             }
             val amount = requireParam(getInt(params, "amount")?.toLong()) {
                 "You must provide an amount"
@@ -664,7 +671,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val refundApplicationFee = params.getBoolean("refundApplicationFee")
             val reverseTransfer = params.getBoolean("reverseTransfer")
 
-            val intentParamsBuild = RefundParameters.Builder(chargeId, amount, currency)
+            var intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
+                RefundParameters.Builder(RefundParameters.Id.PaymentIntent(paymentIntentId), amount, currency)
+            } else {
+                RefundParameters.Builder(RefundParameters.Id.Charge(chargeId!!), amount, currency)
+            }
+
             intentParamsBuild.setRefundApplicationFee(refundApplicationFee)
                 .setReverseTransfer(reverseTransfer)
             val intentParams = intentParamsBuild.build()

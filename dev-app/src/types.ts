@@ -13,6 +13,8 @@ export type IAppContext = {
   }) => void;
   lastSuccessfulChargeId: string | null;
   setLastSuccessfulChargeId: (id: string) => void;
+  lastSuccessfulPaymentIntentId: string | null;
+  setLastSuccessfulPaymentIntentId: (id: string) => void;
   autoReconnectOnUnexpectedDisconnect: boolean | false;
   setAutoReconnectOnUnexpectedDisconnect: (b: boolean) => void;
 };
