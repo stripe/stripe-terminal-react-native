@@ -149,6 +149,7 @@ export interface Charge {
   description: string;
   currency: string;
   status: string;
+  paymentMethodDetails: PaymentMethodDetails;
 }
 
 export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
@@ -247,7 +248,7 @@ export type RefundParams = {
   enableCustomerCancellation?: boolean;
 };
 
-export type CardPresent = {
+export type CardPresentDetails = {
   last4: string;
   expMonth: string;
   expYear: string;
@@ -258,13 +259,34 @@ export type CardPresent = {
   receipt?: string;
   emvAuthData?: string;
   country?: string;
-  preferredLocales?: string;
+  preferredLocales: string[];
+  issuer: string;
+  iin: string;
+  network: string;
+  description: string;
+  wallet: Wallet;
 };
+
+export type ReceiptDetails = {
+  accountType: string;
+  applicationCryptogram: string;
+  applicationPreferredName: string;
+  authorizationCode: string;
+  authorizationResponseCode: string;
+  cvm: string;
+  dedicatedFileName: string;
+  tsi: string;
+  tvr: string;
+}
+
+export type Wallet = {
+  type: string
+}
 
 export type PaymentMethodDetails = {
   type: string;
-  cardPresent?: CardPresent;
-  interacPresent?: string;
+  cardPresentDetails?: CardPresentDetails;
+  interacPresentDetails?: CardPresentDetails;
 };
 
 export type ConfirmRefundResultType = {
@@ -332,6 +354,7 @@ export namespace PaymentMethod {
       id: string;
       customer: string;
       cardDetails: CardDetails;
+      cardPresentDetails: CardPresentDetails;
     };
 
   export namespace IOS {

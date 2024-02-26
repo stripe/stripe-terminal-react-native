@@ -355,12 +355,19 @@ class Mappers {
     }
 
     class func mapFromCharge(_ charge: Charge) -> NSDictionary {
+        var paymentMethodDetailsMap: NSDictionary?
+        if let paymentMethodDetails = charge.paymentMethodDetails {
+            paymentMethodDetailsMap = mapFromPaymentMethodDetails(paymentMethodDetails)
+        }
+
         let result: NSDictionary = [
             "amount": charge.amount,
             "description": charge.stripeDescription ?? NSNull(),
             "currency": charge.currency,
             "status": mapFromChargeStatus(charge.status),
             "id": charge.stripeId,
+            "authorizationCode": charge.authorizationCode,
+            "paymentMethodDetails": paymentMethodDetailsMap
         ]
         return result
     }
@@ -385,18 +392,76 @@ class Mappers {
     }
 
     class func mapFromCardPresent(_ cardPresent: CardPresentDetails) -> NSDictionary {
+        var receiptDetailsMap: NSDictionary?
+        if let receiptDetails = cardPresent.receipt {
+            receiptDetailsMap = mapFromReceiptDetails(receiptDetails)
+        }
+        var walletMap: NSDictionary?
+        if let wallet = cardPresent.wallet {
+            walletMap = mapFromCardPresentDetailsWallet(wallet)
+        }
         let result: NSDictionary = [
             "last4": cardPresent.last4,
             "expMonth": cardPresent.expMonth,
             "expYear": cardPresent.expYear,
             "cardholderName": cardPresent.cardholderName ?? NSNull(),
-            "funding": cardPresent.funding,
-            "brand": cardPresent.brand,
+            "funding": mapFromCardPresentDetailsFunding(cardPresent.funding),
+            "brand": mapFromCardPresentDetailsBrand(cardPresent.brand),
             "generatedCard": cardPresent.generatedCard ?? NSNull(),
-            "receipt": cardPresent.receipt ?? NSNull(),
+            "receipt": receiptDetailsMap,
             "emvAuthData": cardPresent.emvAuthData ?? NSNull(),
             "country": cardPresent.country ?? NSNull(),
             "preferredLocales": cardPresent.preferredLocales ?? NSNull(),
+            "issuer": cardPresent.issuer,
+            "iin": cardPresent.iin,
+            "description": cardPresent.stripeDescription,
+            "network": cardPresent.network,
+            "wallet": walletMap
+        ]
+        return result
+    }
+
+    class func mapFromCardPresentDetailsWallet(_ wallet: SCPWallet) -> NSDictionary {
+        let result: NSDictionary = [
+            "type": wallet.type
+        ]
+        return result
+    }
+
+    class func mapFromCardPresentDetailsFunding(_ type: CardFundingType) -> String {
+        switch type {
+        case CardFundingType.debit: return "debit"
+        case CardFundingType.credit: return "credit"
+        case CardFundingType.prepaid: return "prepaid"
+        default: return "other"
+        }
+    }
+
+    class func mapFromCardPresentDetailsBrand(_ type: CardBrand) -> String {
+        switch type {
+        case CardBrand.visa: return "visa"
+        case CardBrand.amex: return "amex"
+        case CardBrand.masterCard: return "masterCard"
+        case CardBrand.discover: return "discover"
+        case CardBrand.JCB: return "JCB"
+        case CardBrand.dinersClub: return "dinersClub"
+        case CardBrand.interac: return "interac"
+        case CardBrand.unionPay: return "unionPay"
+        case CardBrand.eftposAu: return "eftposAu"
+        default: return "unknown"
+        }
+    }
+
+    class func mapFromReceiptDetails(_ receiptDetails: ReceiptDetails) -> NSDictionary {
+        let result: NSDictionary = [
+            "accountType": receiptDetails.accountType,
+            "applicationCryptogram": receiptDetails.applicationCryptogram,
+            "applicationPreferredName": receiptDetails.applicationPreferredName,
+            "authorizationCode": receiptDetails.authorizationCode,
+            "authorizationResponseCode": receiptDetails.authorizationResponseCode,
+            "dedicatedFileName": receiptDetails.dedicatedFileName,
+            "terminalVerificationResults": receiptDetails.terminalVerificationResults,
+            "transactionStatusInformation": receiptDetails.transactionStatusInformation
         ]
         return result
     }
@@ -422,8 +487,8 @@ class Mappers {
 
         let result: NSDictionary = [
             "type": mapFromPaymentMethodDetailsType(paymentMethodDetails.type),
-            "cardPresent": cardPresentMapped ?? NSNull(),
-            "interacPresent": interacPresentMapped ?? NSNull(),
+            "cardPresentDetails": cardPresentMapped ?? NSNull(),
+            "interacPresentDetails": interacPresentMapped ?? NSNull(),
         ]
         return result
     }

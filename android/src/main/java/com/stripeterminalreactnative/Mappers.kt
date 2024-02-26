@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.models.Address
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
@@ -19,6 +20,7 @@ import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
 import com.stripe.stripeterminal.external.models.PaymentMethod
 import com.stripe.stripeterminal.external.models.PaymentMethodDetails
+import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PaymentStatus
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
@@ -36,6 +38,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
 import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
+import com.stripe.stripeterminal.external.models.Wallet
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -276,6 +279,8 @@ internal fun mapFromCharge(reader: Charge): ReadableMap = nativeMapOf {
     putString("currency", reader.currency)
     putInt("amount", reader.amount.toInt())
     putString("description", reader.description)
+    putString("authorizationCode", reader.authorizationCode)
+    putMap("paymentMethodDetails", mapFromPaymentMethodDetails(reader.paymentMethodDetails))
 }
 
 internal fun mapFromLocation(location: Location?): ReadableMap? = location?.let {
@@ -461,7 +466,17 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "interacPresentDetails",
             mapFromCardPresentDetails(paymentMethodDetails?.interacPresentDetails)
         )
+        putString("type", mapFromPaymentMethodDetailsType(paymentMethodDetails?.type))
     }
+
+internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
+    return when (type) {
+        PaymentMethodType.CARD -> "card"
+        PaymentMethodType.CARD_PRESENT -> "cardPresent"
+        PaymentMethodType.INTERAC_PRESENT -> "interacPresent"
+        else -> "unknown"
+    }
+}
 
 private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap =
     nativeMapOf {
@@ -476,7 +491,22 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
         putString("last4", cardPresentDetails?.last4)
         putString("readMethod", cardPresentDetails?.readMethod)
         putMap("receiptDetails", mapFromReceiptDetails(cardPresentDetails?.receiptDetails))
+        putString("issuer", cardPresentDetails?.issuer)
+        putString("iin", cardPresentDetails?.iin)
+        putString("network", cardPresentDetails?.network)
+        putString("description", cardPresentDetails?.description)
+        putMap("wallet", mapFromWallet(cardPresentDetails?.wallet))
+        putArray("preferredLocales", convertListToReadableArray(cardPresentDetails?.preferredLocales))
     }
+
+internal fun mapFromWallet(wallet: Wallet?): ReadableMap =
+    nativeMapOf {
+        putString("type", wallet?.type)
+    }
+
+private fun convertListToReadableArray(list: List<String>?): ReadableArray? {
+    return list?.let { WritableNativeArray().apply { for (item in list) { pushString(item) } } } ?: null
+}
 
 fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
     nativeMapOf {
