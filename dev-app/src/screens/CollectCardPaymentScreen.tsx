@@ -397,6 +397,7 @@ export default function CollectCardPaymentScreen() {
             chargeId: paymentIntent?.charges[0]?.id
               ? paymentIntent.charges[0].id
               : 'null',
+            pi: JSON.stringify(paymentIntent, undefined, 2),
           },
         },
       ],

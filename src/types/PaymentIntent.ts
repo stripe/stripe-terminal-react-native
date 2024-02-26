@@ -1,4 +1,4 @@
-import type { Charge } from './';
+import type { Charge, PaymentMethod } from './';
 
 export namespace PaymentIntent {
   export interface Type {
@@ -10,6 +10,7 @@ export namespace PaymentIntent {
     status: Status;
     sdkUuid: string;
     paymentMethodId: string;
+    paymentMethod: PaymentMethod.Type;
   }
 
   export type Status =
