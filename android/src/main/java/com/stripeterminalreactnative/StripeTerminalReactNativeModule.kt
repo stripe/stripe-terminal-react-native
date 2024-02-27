@@ -656,10 +656,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val chargeId = params.getString("chargeId")
             val paymentIntentId = params.getString("paymentIntentId")
 
-            if (chargeId.isNullOrBlank() && paymentIntentId.isNullOrBlank()) {
+            if (chargeId.isNullOrBlank() == paymentIntentId.isNullOrBlank()) {
                 throw TerminalException(
                     TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                    "You must provide a refund Id."
+                    "You must provide either a charge ID or a payment intent ID."
                 )
             }
             val amount = requireParam(getInt(params, "amount")?.toLong()) {

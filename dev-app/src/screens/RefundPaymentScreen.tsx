@@ -101,6 +101,9 @@ export default function RefundPaymentScreen() {
     const { error } = await collectRefundPaymentMethod({
       ...inputValues,
       amount: parseInt(inputValues.amount || '0', 10),
+      chargeId: selectedRefundIdType === 'chargeId' ? inputValues.chargeId : '',
+      paymentIntentId:
+        selectedRefundIdType === 'chargeId' ? '' : inputValues.paymentIntentId,
     });
 
     if (error) {
