@@ -845,13 +845,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectRefundPaymentMethod:resolver:rejecter:)
     func collectRefundPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["chargeId", "amount", "currency"])
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["amount", "currency"])
 
         guard invalidParams == nil else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
             return
         }
         let chargeId = params["chargeId"] as? String
+        let paymentIntentId = params["paymentIntentId"] as? String
+        if ((chargeId==nil||chargeId!.isEmpty) == (paymentIntentId==nil||paymentIntentId!.isEmpty)) {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide either a charge ID or a payment intent ID."))
+            return
+        }
         let amount = params["amount"] as? NSNumber
         let currency = params["currency"] as? String
         let intAmount = UInt(truncating: amount!);
@@ -861,10 +866,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         let refundParams: RefundParameters
         do {
-            refundParams = try RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
-                .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
-                .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
-                .build()
+            if (!paymentIntentId!.isEmpty) {
+                refundParams = try RefundParametersBuilder(paymentIntentId: paymentIntentId!,amount: intAmount, currency: currency!)
+                    .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
+                    .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
+                    .build()
+            } else {
+                refundParams = try RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
+                    .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
+                    .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
+                    .build()
+            }
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return

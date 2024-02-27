@@ -241,6 +241,7 @@ export type CollectRefundPaymentMethodType = {
 
 export type RefundParams = {
   chargeId: string;
+  paymentIntentId: string;
   amount: number;
   currency: string;
   refundApplicationFee?: boolean;
