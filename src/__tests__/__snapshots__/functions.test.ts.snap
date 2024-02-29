@@ -30,6 +30,7 @@ Object {
   "getOfflineStatus": [Function],
   "initialize": [Function],
   "installAvailableUpdate": [Function],
+  "rebootReader": [Function],
   "retrievePaymentIntent": [Function],
   "retrieveSetupIntent": [Function],
   "setConnectionToken": [Function],

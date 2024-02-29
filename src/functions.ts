@@ -9,6 +9,7 @@ import type {
   ConnectBluetoothReaderParams,
   CancelDiscoveringResultType,
   DisconnectReaderResultType,
+  RebootReaderResultType,
   ConnectInternetReaderParams,
   ConnectUsbReaderParams,
   CreatePaymentIntentParams,
@@ -253,6 +254,22 @@ export async function disconnectReader(): Promise<DisconnectReaderResultType> {
       };
     }
   }, 'disconnectReader')();
+}
+
+export async function rebootReader(): Promise<RebootReaderResultType> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error } = await StripeTerminalSdk.rebootReader();
+
+      return {
+        error: error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'rebootReader')();
 }
 
 export async function createPaymentIntent(

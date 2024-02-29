@@ -114,6 +114,10 @@ export type DisconnectReaderResultType = {
   error: StripeError;
 };
 
+export type RebootReaderResultType = {
+  error: StripeError;
+};
+
 export type UpdateSoftwareResultType = {
   update?: Reader.SoftwareUpdate;
   error?: StripeError;
