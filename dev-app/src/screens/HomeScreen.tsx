@@ -8,6 +8,7 @@ import {
   Text,
   Image,
   Switch,
+  Alert,
 } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
@@ -71,6 +72,12 @@ export default function HomeScreen() {
       setTimeout(function () {
         Toast.hide(toast);
       }, 3000);
+    },
+    onDidDisconnect(reason) {
+      Alert.alert(
+        'Reader disconnected!',
+        'Reader disconnected with reason ' + reason
+      );
     },
   });
   const batteryPercentage =

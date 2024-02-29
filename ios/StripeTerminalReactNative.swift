@@ -20,6 +20,7 @@ enum ReactNativeConstants: String, CaseIterable {
     case CHANGE_OFFLINE_STATUS = "didChangeOfflineStatus"
     case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
     case REPORT_FORWARDING_ERROR = "didReportForwardingError"
+    case DISCONNECT = "didDisconnect"
 }
 
 @objc(StripeTerminalReactNative)
@@ -969,6 +970,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
+    }
+    
+    func reader(_ reader: Reader, didDisconnect reason: DisconnectReason) {
+        let result = Mappers.mapFromReaderDisconnectReason(reason)
+        sendEvent(withName: ReactNativeConstants.DISCONNECT.rawValue, body: ["reason": result])
     }
 
     func localMobileReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {

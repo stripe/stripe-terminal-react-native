@@ -108,4 +108,13 @@ export namespace Reader {
     | 'cardRemovedTooEarly';
 
   export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
+
+  export type DisconnectReason =
+    | 'disconnectRequested'
+    | 'rebootRequested'
+    | 'securityReboot'
+    | 'criticallyLowBattery'
+    | 'poweredOff'
+    | 'bluetoothDisabled'
+    | 'unknown';
 }

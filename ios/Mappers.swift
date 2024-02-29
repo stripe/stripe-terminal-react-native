@@ -600,6 +600,18 @@ class Mappers {
 
        return(["sdk": sdkDict, "reader": readerDict])
     }
+    
+    class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {
+        switch reason {
+        case DisconnectReason.disconnectRequested: return "disconnect requested"
+        case DisconnectReason.rebootRequested: return "reboot requested"
+        case DisconnectReason.securityReboot: return "security reboot"
+        case DisconnectReason.criticallyLowBattery: return "critically low battery"
+        case DisconnectReason.poweredOff: return "powered off"
+        case DisconnectReason.bluetoothDisabled: return "bluetooth disabled"
+        default: return "unknown"
+        }
+    }
 }
 
 extension UInt {

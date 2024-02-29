@@ -34,6 +34,7 @@ const {
   CHANGE_OFFLINE_STATUS,
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
+  DISCONNECT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -232,6 +233,14 @@ export function StripeTerminalProvider({
     [log]
   );
 
+  const didDisconnect = useCallback(
+    ({ reason }: { reason?: Reader.DisconnectReason }) => {
+      log('didDisconnect', reason);
+      emitter?.emit(DISCONNECT, reason);
+    },
+    [log]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -255,6 +264,8 @@ export function StripeTerminalProvider({
   useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
   useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
+
+  useListener(DISCONNECT, didDisconnect);
 
   const tokenProviderHandler = async () => {
     try {
