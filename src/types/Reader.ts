@@ -110,11 +110,11 @@ export namespace Reader {
   export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
 
   export type DisconnectReason =
-    | 'disconnectRequested'
-    | 'rebootRequested'
-    | 'securityReboot'
-    | 'criticallyLowBattery'
-    | 'poweredOff'
-    | 'bluetoothDisabled'
+    | 'disconnect requested'
+    | 'reboot requested'
+    | 'security reboot'
+    | 'critically low battery'
+    | 'powered off'
+    | 'bluetooth disabled'
     | 'unknown';
 }
