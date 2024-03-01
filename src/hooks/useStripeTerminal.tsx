@@ -484,15 +484,10 @@ export function useStripeTerminal(props?: Props) {
 
     const response = await rebootReader();
 
-    if (!response.error) {
-      setConnectedReader(null);
-      setDiscoveredReaders([]);
-    }
-
     setLoading(false);
 
     return response;
-  }, [setLoading, setConnectedReader, setDiscoveredReaders, _isInitialized]);
+  }, [setLoading, _isInitialized]);
 
   const _createPaymentIntent = useCallback(
     async (params: CreatePaymentIntentParams) => {
