@@ -16,6 +16,7 @@ type Props = {
   onPress?(): void;
   color?: string;
   testID?: string;
+  visible?: boolean;
 };
 
 export default function ListItem({
@@ -26,8 +27,9 @@ export default function ListItem({
   onPress,
   testID,
   disabled,
+  visible = true,
 }: Props) {
-  return (
+  return visible ? (
     <TouchableOpacity
       testID={testID}
       activeOpacity={onPress ? 0.5 : 1}
@@ -50,7 +52,7 @@ export default function ListItem({
       </View>
       {rightElement && rightElement}
     </TouchableOpacity>
-  );
+  ) : null;
 }
 
 const styles = StyleSheet.create({

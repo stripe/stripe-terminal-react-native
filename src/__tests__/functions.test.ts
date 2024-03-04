@@ -59,6 +59,7 @@ describe('functions.test.ts', () => {
         setConnectionToken: jest.fn(),
         simulateReaderUpdate: jest.fn(),
         disconnectReader: jest.fn(),
+        rebootReader: jest.fn(),
         clearCachedCredentials: jest.fn(),
 
         discoverReaders: jest.fn().mockImplementation(() => ({})),
@@ -389,6 +390,7 @@ describe('functions.test.ts', () => {
         disconnectReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
+        rebootReader: jest.fn().mockImplementation(() => ({ error: '_error' })),
         connectInternetReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),

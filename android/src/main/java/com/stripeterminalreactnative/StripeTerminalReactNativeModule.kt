@@ -302,6 +302,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
+    fun rebootReader(promise: Promise) {
+        paymentIntents.clear()
+        terminal.rebootReader(NoOpCallback(promise))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
     fun cancelReaderReconnection(promise: Promise) {
         cancelOperation(promise, cancelReaderConnectionCancellable, "readerReconnection")
     }
