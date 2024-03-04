@@ -1,4 +1,4 @@
-import type { Location, LocationStatus } from './';
+import type { Location, LocationStatus, StripeError } from './';
 
 export namespace Reader {
   export type DiscoveryMethod = IOS.DiscoveryMethod | Android.DiscoveryMethod;
@@ -108,4 +108,24 @@ export namespace Reader {
     | 'cardRemovedTooEarly';
 
   export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
+
+  export type ReaderSettings = 
+    | {
+        accessibility?: Accessibility,
+        error?: undefined
+      }
+    | { 
+        accessibility?: undefined,
+        error?: StripeError
+      };
+
+  export type Accessibility = {
+    readerTextToSpeechStatus: ReaderTextToSpeechStatus
+  }
+
+  export type ReaderTextToSpeechStatus = 'off' | 'headphones' | 'speakers';
+
+  export type ReaderSettingsParameters = {
+    textToSpeechViaSpeakers: boolean
+  };
 }

@@ -140,6 +140,8 @@ export interface StripeTerminalSdkType {
     error?: StripeError;
   }>;
   getOfflineStatus(): Promise<OfflineStatus>;
+  getReaderSettings(): Promise<Reader.ReaderSettings>
+  setReaderSettings(params: Reader.ReaderSettingsParameters): Promise<Reader.ReaderSettings>
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
