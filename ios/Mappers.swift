@@ -603,12 +603,12 @@ class Mappers {
     
     class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {
         switch reason {
-        case DisconnectReason.disconnectRequested: return "disconnect requested"
-        case DisconnectReason.rebootRequested: return "reboot requested"
-        case DisconnectReason.securityReboot: return "security reboot"
-        case DisconnectReason.criticallyLowBattery: return "critically low battery"
-        case DisconnectReason.poweredOff: return "powered off"
-        case DisconnectReason.bluetoothDisabled: return "bluetooth disabled"
+        case DisconnectReason.disconnectRequested: return "disconnectRequested"
+        case DisconnectReason.rebootRequested: return "rebootRequested"
+        case DisconnectReason.securityReboot: return "securityReboot"
+        case DisconnectReason.criticallyLowBattery: return "criticallyLowBattery"
+        case DisconnectReason.poweredOff: return "poweredOff"
+        case DisconnectReason.bluetoothDisabled: return "bluetoothDisabled"
         default: return "unknown"
         }
     }

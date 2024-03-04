@@ -566,12 +566,12 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
 
 fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
     return when (reason) {
-        DisconnectReason.DISCONNECT_REQUESTED -> "disconnect requested"
-        DisconnectReason.REBOOT_REQUESTED -> "reboot requested"
-        DisconnectReason.SECURITY_REBOOT -> "security reboot"
-        DisconnectReason.CRITICALLY_LOW_BATTERY -> "critically low battery"
-        DisconnectReason.POWERED_OFF -> "powered off"
-        DisconnectReason.BLUETOOTH_DISABLED -> "bluetooth disabled"
+        DisconnectReason.DISCONNECT_REQUESTED -> "disconnectRequested"
+        DisconnectReason.REBOOT_REQUESTED -> "rebootRequested"
+        DisconnectReason.SECURITY_REBOOT -> "securityReboot"
+        DisconnectReason.CRITICALLY_LOW_BATTERY -> "criticallyLowBattery"
+        DisconnectReason.POWERED_OFF -> "poweredOff"
+        DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
         else -> { "unknown" }
     }
 }
