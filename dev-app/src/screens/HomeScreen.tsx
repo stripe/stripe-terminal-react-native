@@ -31,48 +31,53 @@ export default function HomeScreen() {
   const [online, setOnline] = useState<boolean>(true);
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
-  const { disconnectReader, connectedReader } = useStripeTerminal({
-    onDidChangeOfflineStatus(status: OfflineStatus) {
-      console.log(status);
-      setOnline(status.sdk.networkStatus === 'online' ? true : false);
-    },
-    onDidForwardingFailure(error) {
-      console.log('onDidForwardingFailure ' + error?.message);
-      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
-      });
+  const { disconnectReader, connectedReader, rebootReader } = useStripeTerminal(
+    {
+      onDidChangeOfflineStatus(status: OfflineStatus) {
+        console.log(status);
+        setOnline(status.sdk.networkStatus === 'online' ? true : false);
+      },
+      onDidForwardingFailure(error) {
+        console.log('onDidForwardingFailure ' + error?.message);
+        let toast = Toast.show(
+          error?.message ? error.message : 'unknown error',
+          {
+            duration: Toast.durations.LONG,
+            position: Toast.positions.BOTTOM,
+            shadow: true,
+            animation: true,
+            hideOnPress: true,
+            delay: 0,
+          }
+        );
 
-      setTimeout(function () {
-        Toast.hide(toast);
-      }, 3000);
-    },
-    onDidForwardPaymentIntent(paymentIntent, error) {
-      let toastMsg =
-        'Payment Intent ' +
-        paymentIntent.id +
-        ' forwarded. ErrorCode' +
-        error?.code +
-        '. ErrorMsg = ' +
-        error?.message;
-      let toast = Toast.show(toastMsg, {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
-      });
+        setTimeout(function () {
+          Toast.hide(toast);
+        }, 3000);
+      },
+      onDidForwardPaymentIntent(paymentIntent, error) {
+        let toastMsg =
+          'Payment Intent ' +
+          paymentIntent.id +
+          ' forwarded. ErrorCode' +
+          error?.code +
+          '. ErrorMsg = ' +
+          error?.message;
+        let toast = Toast.show(toastMsg, {
+          duration: Toast.durations.LONG,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        });
 
-      setTimeout(function () {
-        Toast.hide(toast);
-      }, 3000);
-    },
-  });
+        setTimeout(function () {
+          Toast.hide(toast);
+        }, 3000);
+      },
+    }
+  );
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -105,6 +110,19 @@ export default function HomeScreen() {
           onPress={async () => {
             await disconnectReader();
           }}
+        />
+        <ListItem
+          title="Reboot Reader"
+          testID="reboot-reader-button"
+          color={colors.blue}
+          onPress={async () => {
+            await rebootReader();
+          }}
+          visible={
+            discoveryMethod === 'bluetoothScan' ||
+            discoveryMethod === 'bluetoothProximity' ||
+            discoveryMethod === 'usb'
+          }
         />
       </List>
 

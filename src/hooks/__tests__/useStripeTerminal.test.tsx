@@ -70,7 +70,9 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .spyOn(functions, 'disconnectReader')
     .mockImplementation(disconnectReader);
   //
-
+  const rebootReader = jest.fn(() => returnWith);
+  jest.spyOn(functions, 'rebootReader').mockImplementation(rebootReader);
+  //
   const installAvailableUpdate = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'installAvailableUpdate')
@@ -173,6 +175,7 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     cancelDiscovering,
     connectBluetoothReader,
     disconnectReader,
+    rebootReader,
     connectInternetReader,
     connectUsbReader,
     createPaymentIntent,
@@ -320,6 +323,7 @@ describe('useStripeTerminal.test.tsx', () => {
           result.current.createPaymentIntent({} as any);
           result.current.createSetupIntent({} as any);
           result.current.disconnectReader();
+          result.current.rebootReader();
           result.current.retrievePaymentIntent('');
           result.current.getLocations({} as any);
           result.current.confirmPaymentIntent({} as any);
@@ -371,6 +375,7 @@ describe('useStripeTerminal.test.tsx', () => {
         await result.current.createPaymentIntent({} as any);
         await result.current.createSetupIntent({} as any);
         await result.current.disconnectReader();
+        await result.current.rebootReader();
         await result.current.retrievePaymentIntent('');
         await result.current.getLocations({} as any);
         await result.current.confirmPaymentIntent({} as any);
@@ -467,6 +472,7 @@ describe('useStripeTerminal.test.tsx', () => {
       await expect(result.current.disconnectReader()).resolves.toEqual(
         '_value'
       );
+      await expect(result.current.rebootReader()).resolves.toEqual('_value');
       await expect(
         result.current.retrievePaymentIntent({} as any)
       ).resolves.toEqual('_value');

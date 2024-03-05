@@ -27,6 +27,7 @@ import {
   cancelDiscovering,
   connectBluetoothReader,
   disconnectReader,
+  rebootReader,
   connectInternetReader,
   connectUsbReader,
   createPaymentIntent,
@@ -476,6 +477,20 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [setLoading, setConnectedReader, setDiscoveredReaders, _isInitialized]);
 
+  const _rebootReader = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      return;
+    }
+    setLoading(true);
+
+    const response = await rebootReader();
+
+    setLoading(false);
+
+    return response;
+  }, [setLoading, _isInitialized]);
+
   const _createPaymentIntent = useCallback(
     async (params: CreatePaymentIntentParams) => {
       if (!_isInitialized()) {
@@ -872,6 +887,7 @@ export function useStripeTerminal(props?: Props) {
     cancelDiscovering: _cancelDiscovering,
     connectBluetoothReader: _connectBluetoothReader,
     disconnectReader: _disconnectReader,
+    rebootReader: _rebootReader,
     connectInternetReader: _connectInternetReader,
     connectUsbReader: _connectUsbReader,
     createPaymentIntent: _createPaymentIntent,

@@ -36,6 +36,7 @@ Object {
     "installAvailableUpdate": [Function],
     "isInitialized": false,
     "loading": false,
+    "rebootReader": [Function],
     "retrievePaymentIntent": [Function],
     "retrieveSetupIntent": [Function],
     "setReaderDisplay": [Function],
