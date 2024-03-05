@@ -57,7 +57,7 @@ import {
   cancelCollectRefundPaymentMethod,
   getOfflineStatus,
   getReaderSettings,
-  setReaderSettings
+  setReaderSettings,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -867,19 +867,22 @@ export function useStripeTerminal(props?: Props) {
       throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
     }
     const response = await getReaderSettings();
-    
+
     return response;
   }, [_isInitialized]);
 
-  const _setReaderSettings = useCallback(async (params: Reader.ReaderSettingsParameters) => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
-    const response = await setReaderSettings(params);
-    
-    return response;
-  }, [_isInitialized]);
+  const _setReaderSettings = useCallback(
+    async (params: Reader.ReaderSettingsParameters) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      const response = await setReaderSettings(params);
+
+      return response;
+    },
+    [_isInitialized]
+  );
 
   return {
     initialize: _initialize,

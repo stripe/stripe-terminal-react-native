@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Switch,
-} from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
@@ -12,7 +7,8 @@ import { colors } from '../colors';
 
 export default function ReaderDisplayScreen() {
   const { setReaderSettings, getReaderSettings } = useStripeTerminal();
-  const [enableTextToSpeechViaSpeakers, setEnableTextToSpeechViaSpeakers] = useState(false);
+  const [enableTextToSpeechViaSpeakers, setEnableTextToSpeechViaSpeakers] =
+    useState(false);
 
   const _getReaderSettings = async () => {
     const response = await getReaderSettings();
@@ -29,14 +25,16 @@ export default function ReaderDisplayScreen() {
     }
 
     if (response.accessibility?.readerTextToSpeechStatus === 'speakers') {
-      setEnableTextToSpeechViaSpeakers(true)
+      setEnableTextToSpeechViaSpeakers(true);
     } else {
-      setEnableTextToSpeechViaSpeakers(false)
+      setEnableTextToSpeechViaSpeakers(false);
     }
   };
 
   const _setReaderSettings = async () => {
-    const response = await setReaderSettings({textToSpeechViaSpeakers: enableTextToSpeechViaSpeakers});
+    const response = await setReaderSettings({
+      textToSpeechViaSpeakers: enableTextToSpeechViaSpeakers,
+    });
 
     if (!response) {
       console.log('error', response);
@@ -50,15 +48,15 @@ export default function ReaderDisplayScreen() {
     }
 
     if (response.accessibility?.readerTextToSpeechStatus === 'speakers') {
-      setEnableTextToSpeechViaSpeakers(true)
+      setEnableTextToSpeechViaSpeakers(true);
     } else {
-      setEnableTextToSpeechViaSpeakers(false)
+      setEnableTextToSpeechViaSpeakers(false);
     }
   };
 
   useEffect(() => {
     _getReaderSettings();
-  }, []); 
+  });
 
   return (
     <ScrollView
@@ -81,7 +79,7 @@ export default function ReaderDisplayScreen() {
           testID="save-reader-settings-button"
           color={colors.blue}
           onPress={async () => {
-            _setReaderSettings()
+            _setReaderSettings();
           }}
         />
       </List>

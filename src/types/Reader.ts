@@ -109,23 +109,23 @@ export namespace Reader {
 
   export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
 
-  export type ReaderSettings = 
+  export type ReaderSettings =
     | {
-        accessibility?: Accessibility,
-        error?: undefined
+        accessibility?: Accessibility;
+        error?: undefined;
       }
-    | { 
-        accessibility?: undefined,
-        error?: StripeError
+    | {
+        accessibility?: undefined;
+        error?: StripeError;
       };
 
   export type Accessibility = {
-    readerTextToSpeechStatus: ReaderTextToSpeechStatus
-  }
+    readerTextToSpeechStatus: ReaderTextToSpeechStatus;
+  };
 
   export type ReaderTextToSpeechStatus = 'off' | 'headphones' | 'speakers';
 
   export type ReaderSettingsParameters = {
-    textToSpeechViaSpeakers: boolean
+    textToSpeechViaSpeakers: boolean;
   };
 }
