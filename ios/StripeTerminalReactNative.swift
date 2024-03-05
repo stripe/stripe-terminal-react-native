@@ -348,6 +348,18 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
+    @objc(rebootReader:rejecter:)
+    func rebootReader(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        Terminal.shared.rebootReader() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else {
+                self.paymentIntents = [:]
+                resolve([:])
+            }
+        }
+    }
+
     func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
         let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
         sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)

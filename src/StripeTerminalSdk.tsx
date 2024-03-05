@@ -7,6 +7,7 @@ import type {
   CancelDiscoveringResultType,
   ConnectBluetoothReaderParams,
   DisconnectReaderResultType,
+  RebootReaderResultType,
   Reader,
   ConnectInternetReaderParams,
   ConnectUsbReaderParams,
@@ -72,6 +73,8 @@ export interface StripeTerminalSdkType {
   ): Promise<ConnectReaderResultType>;
   // Disconnect reader
   disconnectReader(): Promise<DisconnectReaderResultType>;
+  // Reboot reader
+  rebootReader(): Promise<RebootReaderResultType>;
   // Create a payment intent
   createPaymentIntent(
     params: CreatePaymentIntentParams
