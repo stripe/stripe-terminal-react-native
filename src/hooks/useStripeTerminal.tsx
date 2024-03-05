@@ -83,6 +83,7 @@ export const {
   CHANGE_OFFLINE_STATUS,
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
+  DISCONNECT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -143,6 +144,7 @@ export function useStripeTerminal(props?: Props) {
     onDidChangeOfflineStatus,
     onDidForwardPaymentIntent,
     onDidForwardingFailure,
+    onDidDisconnect,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -298,6 +300,13 @@ export function useStripeTerminal(props?: Props) {
     [onDidForwardingFailure]
   );
 
+  const didDisconnect = useCallback(
+    ({ reason }: { reason?: Reader.DisconnectReason }) => {
+      onDidDisconnect?.(reason);
+    },
+    [onDidDisconnect]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -321,6 +330,8 @@ export function useStripeTerminal(props?: Props) {
   useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
   useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
+
+  useListener(DISCONNECT, didDisconnect);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {

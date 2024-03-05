@@ -12,6 +12,7 @@ import com.stripe.stripeterminal.external.models.CartLineItem
 import com.stripe.stripeterminal.external.models.Charge
 import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
+import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.NetworkStatus
@@ -560,5 +561,17 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
     return nativeMapOf {
         putMap("sdk", sdkMap)
         putMap("reader", readerMap)
+    }
+}
+
+fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
+    return when (reason) {
+        DisconnectReason.DISCONNECT_REQUESTED -> "disconnectRequested"
+        DisconnectReason.REBOOT_REQUESTED -> "rebootRequested"
+        DisconnectReason.SECURITY_REBOOT -> "securityReboot"
+        DisconnectReason.CRITICALLY_LOW_BATTERY -> "criticallyLowBattery"
+        DisconnectReason.POWERED_OFF -> "poweredOff"
+        DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
+        else -> { "unknown" }
     }
 }
