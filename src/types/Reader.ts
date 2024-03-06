@@ -109,6 +109,15 @@ export namespace Reader {
 
   export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
 
+  export type DisconnectReason =
+    | 'disconnectRequested'
+    | 'rebootRequested'
+    | 'securityReboot'
+    | 'criticallyLowBattery'
+    | 'poweredOff'
+    | 'bluetoothDisabled'
+    | 'unknown';
+
   export type ReaderSettings =
     | {
         accessibility?: Accessibility;
