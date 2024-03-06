@@ -28,6 +28,21 @@ import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
+import com.stripe.stripeterminal.external.models.ReaderAccessibility
+import com.stripe.stripeterminal.external.models.ReaderSettings
+import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
+import com.stripe.stripeterminal.external.models.ReceiptDetails
+import com.stripe.stripeterminal.external.models.Refund
+import com.stripe.stripeterminal.external.models.SetupAttempt
+import com.stripe.stripeterminal.external.models.SetupAttemptStatus
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
+import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
+import com.stripe.stripeterminal.external.models.SetupIntentStatus
+import com.stripe.stripeterminal.external.models.SetupIntentUsage
+import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
+import com.stripe.stripeterminal.external.models.Wallet
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -543,7 +558,6 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
             }
             putMap("offlinePaymentAmountsByCurrency", map)
         }
-
     }
 
     return nativeMapOf {
@@ -565,7 +579,7 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
 }
 
 internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
-    return nativeMapOf() {
+    return nativeMapOf {
         var ra = settings.readerAccessibility
         if (ra is ReaderAccessibility.Accessibility) {
             val accessibility = nativeMapOf {
