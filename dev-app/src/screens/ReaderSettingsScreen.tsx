@@ -10,27 +10,6 @@ export default function ReaderDisplayScreen() {
   const [enableTextToSpeechViaSpeakers, setEnableTextToSpeechViaSpeakers] =
     useState(false);
 
-  const _getReaderSettings = async () => {
-    const response = await getReaderSettings();
-
-    if (!response) {
-      console.log('error', response);
-      return;
-    }
-
-    if (response.error) {
-      console.log('error', response.error.code);
-      Alert.alert('getReaderSettings error', response.error.message);
-      return;
-    }
-
-    if (response.accessibility?.readerTextToSpeechStatus === 'speakers') {
-      setEnableTextToSpeechViaSpeakers(true);
-    } else {
-      setEnableTextToSpeechViaSpeakers(false);
-    }
-  };
-
   const _setReaderSettings = async () => {
     const response = await setReaderSettings({
       textToSpeechViaSpeakers: enableTextToSpeechViaSpeakers,
@@ -46,17 +25,31 @@ export default function ReaderDisplayScreen() {
       Alert.alert('setReaderSettings error', response.error.code);
       return;
     }
-
-    if (response.accessibility?.readerTextToSpeechStatus === 'speakers') {
-      setEnableTextToSpeechViaSpeakers(true);
-    } else {
-      setEnableTextToSpeechViaSpeakers(false);
-    }
   };
 
   useEffect(() => {
-    _getReaderSettings();
-  });
+    async function init() {
+      const response = await getReaderSettings();
+
+      if (!response) {
+        console.log('error', response);
+        return;
+      }
+
+      if (response.error) {
+        console.log('error', response.error.code);
+        Alert.alert('getReaderSettings error', response.error.message);
+        return;
+      }
+
+      if (response.accessibility?.readerTextToSpeechStatus === 'speakers') {
+        setEnableTextToSpeechViaSpeakers(true);
+      } else {
+        setEnableTextToSpeechViaSpeakers(false);
+      }
+    }
+    init();
+  }, [getReaderSettings]);
 
   return (
     <ScrollView
