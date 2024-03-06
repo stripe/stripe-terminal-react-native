@@ -5,40 +5,9 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
-import com.stripe.stripeterminal.external.models.Address
-import com.stripe.stripeterminal.external.models.CardDetails
-import com.stripe.stripeterminal.external.models.CardPresentDetails
-import com.stripe.stripeterminal.external.models.CartLineItem
-import com.stripe.stripeterminal.external.models.Charge
-import com.stripe.stripeterminal.external.models.ConnectionStatus
-import com.stripe.stripeterminal.external.models.DeviceType
-import com.stripe.stripeterminal.external.models.Location
-import com.stripe.stripeterminal.external.models.LocationStatus
-import com.stripe.stripeterminal.external.models.NetworkStatus
-import com.stripe.stripeterminal.external.models.OfflineStatus
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentStatus
-import com.stripe.stripeterminal.external.models.PaymentMethod
-import com.stripe.stripeterminal.external.models.PaymentMethodDetails
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.PaymentStatus
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
-import com.stripe.stripeterminal.external.models.ReaderEvent
-import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.CollectInputs
+import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
-import com.stripe.stripeterminal.external.models.ReceiptDetails
-import com.stripe.stripeterminal.external.models.Refund
-import com.stripe.stripeterminal.external.models.SetupAttempt
-import com.stripe.stripeterminal.external.models.SetupAttemptStatus
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
-import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
-import com.stripe.stripeterminal.external.models.SetupIntentStatus
-import com.stripe.stripeterminal.external.models.SetupIntentUsage
-import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
-import com.stripe.stripeterminal.external.models.Wallet
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -554,11 +523,56 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
             }
             putMap("offlinePaymentAmountsByCurrency", map)
         }
-
     }
 
     return nativeMapOf {
         putMap("sdk", sdkMap)
         putMap("reader", readerMap)
+    }
+}
+
+@OptIn(CollectInputs::class)
+fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArray {
+    return nativeArrayOf {
+        results.forEach {
+            when (it) {
+                is EmailResult -> pushMap(
+                    nativeMapOf {
+                        putBoolean("skipped", it.skipped)
+                        putString("email", it.email)
+                    }
+                )
+                is NumericResult -> pushMap(
+                    nativeMapOf {
+                        putBoolean("skipped", it.skipped)
+                        putString("numericString", it.numericString)
+                    }
+                )
+                is PhoneResult -> pushMap(
+                    nativeMapOf {
+                        putBoolean("skipped", it.skipped)
+                        putString("phone", it.phone)
+                    }
+                )
+                is SelectionResult -> pushMap(
+                    nativeMapOf {
+                        putBoolean("skipped", it.skipped)
+                        putString("selection", it.selection)
+                    }
+                )
+                is SignatureResult -> pushMap(
+                    nativeMapOf {
+                        putBoolean("skipped", it.skipped)
+                        putString("signatureSvg", it.signatureSvg)
+                    }
+                )
+                is TextResult -> pushMap(
+                    nativeMapOf {
+                        putBoolean("skipped", it.skipped)
+                        putString("text", it.text)
+                    }
+                )
+            }
+        }
     }
 }

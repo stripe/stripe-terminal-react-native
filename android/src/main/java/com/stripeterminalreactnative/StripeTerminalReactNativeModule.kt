@@ -12,35 +12,13 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
-import com.stripe.stripeterminal.external.models.CaptureMethod
-import com.stripe.stripeterminal.external.models.CardPresentParameters
-import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
-import com.stripe.stripeterminal.external.models.Cart
-import com.stripe.stripeterminal.external.models.CollectConfiguration
-import com.stripe.stripeterminal.external.models.CreateConfiguration
-import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
-import com.stripe.stripeterminal.external.models.ListLocationsParameters
-import com.stripe.stripeterminal.external.models.OfflineBehavior
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.RefundConfiguration
-import com.stripe.stripeterminal.external.models.RefundParameters
-import com.stripe.stripeterminal.external.models.RoutingPriority
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
-import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
-import com.stripe.stripeterminal.external.models.SetupIntentParameters
-import com.stripe.stripeterminal.external.models.SimulatedCard
-import com.stripe.stripeterminal.external.models.SimulatorConfiguration
-import com.stripe.stripeterminal.external.models.TerminalException
-import com.stripe.stripeterminal.external.models.TippingConfiguration
+import com.stripe.stripeterminal.external.models.*
 import com.stripeterminalreactnative.callback.NoOpCallback
+import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
 import com.stripeterminalreactnative.callback.RNRefundCallback
@@ -69,6 +47,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
+    private var collectInputsCancelable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -716,6 +695,122 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun getOfflineStatus(promise: Promise) {
         promise.resolve(mapFromOfflineStatus(terminal.offlineStatus))
+    }
+
+    @OptIn(CollectInputs::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val collectInputs = requireParam(params.getArray("collectInputs")) {
+            "You must provide a collectInputs"
+        }
+        val listInput = ArrayList<Input>()
+        for (i in 0 until collectInputs.size()) {
+            val collectInput = collectInputs.getMap(i)
+            when (collectInput.getString("inputType")) {
+                "TEXT" -> {
+                    collectInput.let {
+                        listInput.add(
+                            TextInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description") ?: "")
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "NUMERIC" -> {
+                    collectInput.let {
+                        listInput.add(
+                            NumericInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "EMAIL" -> {
+                    collectInput.let {
+                        listInput.add(
+                            EmailInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "PHONE" -> {
+                    collectInput.let {
+                        listInput.add(
+                            PhoneInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "SIGNATURE" -> {
+                    collectInput.let {
+                        listInput.add(
+                            SignatureInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "SELECTION" -> {
+                    collectInput.let {
+                        val selectionButtons = it.getArray("selectionButtons")
+                        val listSelectionButtons = ArrayList<SelectionButton>()
+                        selectionButtons?.let { array ->
+                            for (i in 0 until array.size()) {
+                                val button = array.getMap(i)
+                                listSelectionButtons.add(
+                                    SelectionButton(
+                                        if (button.getString("style") == "PRIMARY") {
+                                            SelectionButtonStyle.PRIMARY
+                                        } else {
+                                            SelectionButtonStyle.SECONDARY
+                                        },
+                                        button.getString("text") ?: ""
+                                    )
+                                )
+                            }
+                        }
+                        listInput.add(
+                            SelectionInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description") ?: "")
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText") ?: "")
+                                .setSelectionButtons(listSelectionButtons)
+                                .build()
+                        )
+                    }
+                }
+            }
+        }
+
+        val collectInputsParameters = CollectInputsParameters(listInput)
+        collectInputsCancelable = terminal.collectInputs(
+            collectInputsParameters,
+            RNCollectInputResultCallback(promise)
+        )
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun cancelCollectInputs(promise: Promise) {
+        cancelOperation(promise, collectInputsCancelable, "collectInputs")
     }
 
     private fun cancelOperation(

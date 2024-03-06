@@ -27,6 +27,8 @@ import MerchantSelectScreen from './screens/MerchantSelectScreen';
 import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
+import DatabaseScreen from './screens/DatabaseScreen';
+import CollectInputsScreen from './screens/CollectInputsScreen';
 import {
   Reader,
   Location,
@@ -36,7 +38,6 @@ import {
 import { Alert, LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
-import DatabaseScreen from './screens/DatabaseScreen';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -275,6 +276,13 @@ export default function App() {
                 headerBackAccessibilityLabel: 'payment-back',
               }}
               component={SetupIntentScreen}
+            />
+            <Stack.Screen
+              name="CollectInputsScreen"
+              options={{
+                headerTitle: 'Collect Inputs',
+              }}
+              component={CollectInputsScreen}
             />
             <Stack.Screen
               name="LogListScreen"

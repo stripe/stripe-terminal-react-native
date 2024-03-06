@@ -600,6 +600,39 @@ class Mappers {
 
        return(["sdk": sdkDict, "reader": readerDict])
     }
+    
+    class func mapFromCollectInputs(_ results: [CollectInputsResult]) -> NSDictionary {
+        var collectInputResults: [String : Any] = [:]
+        for result in results {
+            if result is EmailResult {
+                let result = result as! EmailResult
+                var emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? ""]
+                collectInputResults["emailResult"] = emailResult
+            } else if result is PhoneResult {
+                let result = result as! PhoneResult
+                var phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? ""]
+                collectInputResults["phoneResult"] = phoneResult
+            } else if result is TextResult {
+                let result = result as! TextResult
+                var textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? ""]
+                collectInputResults["textResult"] = textResult
+            } else if result is NumericResult {
+                let result = result as! NumericResult
+                var numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? ""]
+                collectInputResults["numericResult"] = numericResult
+            } else if result is SignatureResult {
+                let result = result as! SignatureResult
+                var signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? ""]
+                collectInputResults["signatureResult"] = signatureResult
+            } else if result is SelectionResult {
+                let result = result as! SelectionResult
+                var selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? ""]
+                collectInputResults["selectionResult"] = selectionResult
+            }
+        }
+        
+        return (["collectInputResults": collectInputResults])
+    }
 }
 
 extension UInt {

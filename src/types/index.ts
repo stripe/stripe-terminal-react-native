@@ -385,3 +385,47 @@ export type PaymentMethodResultType =
       paymentMethod: undefined;
       error: StripeError;
     };
+
+export type CollectInputsParameters = {
+  collectInputs: Input[];
+}
+
+export type CollectInputsResults = {
+  collectInputResults?: CollectInputResult[];
+  error: StripeError;
+}
+
+export type Input = {
+  inputType: "EMAIL" | "NUMERIC" | "PHONE" | "TEXT" | "SELECTION" | "SIGNATURE";
+  description?: string;
+  required: boolean;
+  skipButtonText?: string;
+  submitButtonText?: string;
+  title: string;
+  toggles?: Toggle[];
+  selectionButtons?: SelectionButton[];
+}
+
+export type CollectInputResult = {
+  skipped: boolean;
+  email?: string;
+  numericString?: string;
+  phone?: string;
+  selection?: string;
+  signatureSvg?: string;
+  text?: string;
+  toggles?: ToggleResult[];
+}
+
+export type Toggle = {
+  title: string;
+  description: string;
+  defaltValue: "ENABLED" | "DISABLED";
+}
+
+export type ToggleResult = "ENABLED" | "DISABLED" | "SKIPPED"
+
+export type SelectionButton = {
+  style: "PRIMARY" | "SECONDARY";
+  text: string
+}
