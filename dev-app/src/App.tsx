@@ -37,6 +37,7 @@ import { Alert, LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
 import DatabaseScreen from './screens/DatabaseScreen';
+import ReaderSettingsScreen from './screens/ReaderSettingsScreen';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -237,6 +238,11 @@ export default function App() {
             <Stack.Screen
               name="ReaderDisplayScreen"
               component={ReaderDisplayScreen}
+            />
+            <Stack.Screen
+              name="ReaderSettingsScreen"
+              options={{ headerTitle: 'Reader Settings' }}
+              component={ReaderSettingsScreen}
             />
             <Stack.Screen
               name="LocationListScreen"

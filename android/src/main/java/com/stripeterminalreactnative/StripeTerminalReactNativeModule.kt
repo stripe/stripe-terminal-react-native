@@ -1,5 +1,5 @@
 package com.stripeterminalreactnative
-
+import android.util.Log
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ComponentCallbacks2
@@ -15,36 +15,9 @@ import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
-import com.stripe.stripeterminal.external.models.CaptureMethod
-import com.stripe.stripeterminal.external.models.CardPresentParameters
-import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
-import com.stripe.stripeterminal.external.models.Cart
-import com.stripe.stripeterminal.external.models.CollectConfiguration
-import com.stripe.stripeterminal.external.models.CreateConfiguration
-import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
-import com.stripe.stripeterminal.external.models.ListLocationsParameters
-import com.stripe.stripeterminal.external.models.OfflineBehavior
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.RefundConfiguration
-import com.stripe.stripeterminal.external.models.RefundParameters
-import com.stripe.stripeterminal.external.models.RoutingPriority
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
-import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
-import com.stripe.stripeterminal.external.models.SetupIntentParameters
-import com.stripe.stripeterminal.external.models.SimulatedCard
-import com.stripe.stripeterminal.external.models.SimulatorConfiguration
-import com.stripe.stripeterminal.external.models.TerminalException
-import com.stripe.stripeterminal.external.models.TippingConfiguration
+import com.stripe.stripeterminal.external.models.*
+import com.stripeterminalreactnative.callback.*
 import com.stripeterminalreactnative.callback.NoOpCallback
-import com.stripeterminalreactnative.callback.RNLocationListCallback
-import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
-import com.stripeterminalreactnative.callback.RNRefundCallback
-import com.stripeterminalreactnative.callback.RNSetupIntentCallback
 import com.stripeterminalreactnative.ktx.connectReader
 import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
@@ -716,6 +689,25 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun getOfflineStatus(promise: Promise) {
         promise.resolve(mapFromOfflineStatus(terminal.offlineStatus))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun getReaderSettings(promise: Promise) {
+        Log.e("ianTest", "getReaderSettings")
+        terminal.getReaderSettings(RNReadSettingsCallback(promise))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun setReaderSettings(params: ReadableMap, promise: Promise) {
+        val textToSpeechViaSpeakers = requireParam(getBoolean(params, "textToSpeechViaSpeakers")) {
+            "You must provide textToSpeechViaSpeakers parameters."
+        }
+        var readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
+            textToSpeechViaSpeakers
+        )
+        terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
     }
 
     private fun cancelOperation(

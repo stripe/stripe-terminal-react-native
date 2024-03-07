@@ -945,6 +945,39 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         resolve(result)
     }
 
+    @objc(getReaderSettings:rejecter:)
+    func getReaderSettings(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                let result = try await Terminal.shared.retrieveReaderSettings()
+                resolve(Mappers.mapFromReaderSettings(result))
+            } catch {
+                resolve(Errors.createError(nsError: error as NSError))
+            }
+        }
+    }
+
+    @objc(setReaderSettings:resolver:rejecter:)
+    func setReaderSettings(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["textToSpeechViaSpeakers"])
+
+        guard invalidParams == nil else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            return
+        }
+        
+        let textToSpeechViaSpeakers = params["textToSpeechViaSpeakers"] as? Bool ?? false
+        Task {
+            do {
+                let readerSettingsParameters = try ReaderAccessibilityParametersBuilder().setTextToSpeechViaSpeakers(textToSpeechViaSpeakers).build()
+                let result = try await Terminal.shared.setReaderSettings(readerSettingsParameters)
+                resolve(Mappers.mapFromReaderSettings(result))
+            } catch {
+                resolve(Errors.createError(nsError: error as NSError))
+            }
+        }
+    }
+
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
         sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }

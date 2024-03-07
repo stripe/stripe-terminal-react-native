@@ -150,6 +150,12 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
+          title="Reader settings"
+          onPress={() => {
+            navigation.navigate('ReaderSettingsScreen');
+          }}
+        />
+        <ListItem
           title="Store card via Setup Intents"
           onPress={() => {
             navigation.navigate('SetupIntentScreen', { discoveryMethod });

@@ -28,7 +28,10 @@ import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
+import com.stripe.stripeterminal.external.models.ReaderAccessibility
+import com.stripe.stripeterminal.external.models.ReaderSettings
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
 import com.stripe.stripeterminal.external.models.ReceiptDetails
 import com.stripe.stripeterminal.external.models.Refund
 import com.stripe.stripeterminal.external.models.SetupAttempt
@@ -555,7 +558,6 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
             }
             putMap("offlinePaymentAmountsByCurrency", map)
         }
-
     }
 
     return nativeMapOf {
@@ -573,5 +575,26 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
         DisconnectReason.POWERED_OFF -> "poweredOff"
         DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
         else -> { "unknown" }
+    }
+}
+
+internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
+    return nativeMapOf {
+        var ra = settings.readerAccessibility
+        if (ra is ReaderAccessibility.Accessibility) {
+            val accessibility = nativeMapOf {
+                putString(
+                    "textToSpeechStatus",
+                    when (ra.textToSpeechStatus) {
+                        ReaderTextToSpeechStatus.OFF -> "off"
+                        ReaderTextToSpeechStatus.HEADPHONES -> "headphones"
+                        ReaderTextToSpeechStatus.SPEAKERS -> "speakers"
+                    }
+                )
+            }
+            putMap("accessibility", accessibility)
+        } else if (ra is ReaderAccessibility.Error) {
+            putError(ra.error)
+        }
     }
 }
