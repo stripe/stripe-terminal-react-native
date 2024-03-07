@@ -25,6 +25,15 @@ export default function ReaderDisplayScreen() {
       Alert.alert('setReaderSettings error', response.error.code);
       return;
     }
+
+    if (response.accessibility?.error) {
+      console.log('error', response.accessibility?.error);
+      Alert.alert(
+        'getReaderSettings error',
+        response.accessibility?.error.message
+      );
+      return;
+    }
   };
 
   useEffect(() => {
@@ -42,7 +51,16 @@ export default function ReaderDisplayScreen() {
         return;
       }
 
-      if (response.accessibility?.readerTextToSpeechStatus === 'speakers') {
+      if (response.accessibility?.error) {
+        console.log('error', response.accessibility?.error);
+        Alert.alert(
+          'getReaderSettings error',
+          response.accessibility?.error.message
+        );
+        return;
+      }
+
+      if (response.accessibility?.textToSpeechStatus === 'speakers') {
         setEnableTextToSpeechViaSpeakers(true);
       } else {
         setEnableTextToSpeechViaSpeakers(false);

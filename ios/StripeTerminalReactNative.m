@@ -206,7 +206,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   setReaderSettings:(NSDictionary *)params
-                  resolve: (RCTPromiseResolveBlock)resolve
+                  resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 

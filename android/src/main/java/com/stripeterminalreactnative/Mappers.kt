@@ -584,7 +584,7 @@ internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
         if (ra is ReaderAccessibility.Accessibility) {
             val accessibility = nativeMapOf {
                 putString(
-                    "readerTextToSpeechStatus",
+                    "textToSpeechStatus",
                     when (ra.textToSpeechStatus) {
                         ReaderTextToSpeechStatus.OFF -> "off"
                         ReaderTextToSpeechStatus.HEADPHONES -> "headphones"

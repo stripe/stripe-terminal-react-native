@@ -776,7 +776,6 @@ export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
     try {
       const readerSettings = await StripeTerminalSdk.getReaderSettings();
-      console.log('getReaderSettings', readerSettings);
       return readerSettings;
     } catch (error) {
       return {

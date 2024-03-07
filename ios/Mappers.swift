@@ -611,19 +611,20 @@ class Mappers {
     }
     
     class func mapFromReaderSettings(_ readerSettings: ReaderSettings) -> NSDictionary {
-        let errorDic: [String : Any]
-        if let error = readerSettings.accessibility.error as NSError? {
-            errorDic = Errors.createError(nsError: error)
-        } else {
-            errorDic = [:]
-        }
-        
-        let accessibility: NSDictionary = [
+        var accessibility: [String : Any] = [
             "textToSpeechStatus": mapFromReaderTextToSpeechStatus(readerSettings.accessibility.textToSpeechStatus),
-            "error": errorDic
         ]
+        
+        let errorDic: NSDictionary
+        if let error = readerSettings.accessibility.error as NSError? {
+            errorDic = [
+                "code": ErrorCode.Code.init(rawValue: error.code) ?? ErrorCode.unexpectedSdkError,
+                "message": error.localizedDescription,
+            ]
+            accessibility["error"] = errorDic
+        }
 
-        return(["readerAccessibility": accessibility])
+        return(["accessibility": accessibility])
     }
     
     class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {

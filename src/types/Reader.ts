@@ -129,7 +129,8 @@ export namespace Reader {
       };
 
   export type Accessibility = {
-    readerTextToSpeechStatus: ReaderTextToSpeechStatus;
+    textToSpeechStatus: ReaderTextToSpeechStatus;
+    error?: StripeError;
   };
 
   export type ReaderTextToSpeechStatus = 'off' | 'headphones' | 'speakers';

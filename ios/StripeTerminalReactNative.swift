@@ -965,9 +965,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
             return
         }
+        
+        let textToSpeechViaSpeakers = params["textToSpeechViaSpeakers"] as? Bool ?? false
         Task {
             do {
-                let readerSettingsParameters = try ReaderAccessibilityParametersBuilder().setTextToSpeechViaSpeakers(false).build()
+                let readerSettingsParameters = try ReaderAccessibilityParametersBuilder().setTextToSpeechViaSpeakers(textToSpeechViaSpeakers).build()
                 let result = try await Terminal.shared.setReaderSettings(readerSettingsParameters)
                 resolve(Mappers.mapFromReaderSettings(result))
             } catch {
