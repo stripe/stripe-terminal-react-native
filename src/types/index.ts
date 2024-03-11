@@ -388,15 +388,15 @@ export type PaymentMethodResultType =
 
 export type CollectInputsParameters = {
   collectInputs: Input[];
-}
+};
 
 export type CollectInputsResults = {
   collectInputResults?: CollectInputResult[];
   error: StripeError;
-}
+};
 
 export type Input = {
-  inputType: "EMAIL" | "NUMERIC" | "PHONE" | "TEXT" | "SELECTION" | "SIGNATURE";
+  inputType: 'EMAIL' | 'NUMERIC' | 'PHONE' | 'TEXT' | 'SELECTION' | 'SIGNATURE';
   description?: string;
   required: boolean;
   skipButtonText?: string;
@@ -404,7 +404,7 @@ export type Input = {
   title: string;
   toggles?: Toggle[];
   selectionButtons?: SelectionButton[];
-}
+};
 
 export type CollectInputResult = {
   skipped: boolean;
@@ -415,17 +415,17 @@ export type CollectInputResult = {
   signatureSvg?: string;
   text?: string;
   toggles?: ToggleResult[];
-}
+};
 
 export type Toggle = {
   title: string;
   description: string;
-  defaltValue: "ENABLED" | "DISABLED";
-}
+  defaltValue: 'ENABLED' | 'DISABLED';
+};
 
-export type ToggleResult = "ENABLED" | "DISABLED" | "SKIPPED"
+export type ToggleResult = 'ENABLED' | 'DISABLED' | 'SKIPPED';
 
 export type SelectionButton = {
-  style: "PRIMARY" | "SECONDARY";
-  text: string
-}
+  style: 'PRIMARY' | 'SECONDARY';
+  text: string;
+};

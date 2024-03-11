@@ -862,19 +862,22 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized]);
 
-  const _collectInputs = useCallback(async (params: CollectInputsParameters) => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
-    setLoading(true);
+  const _collectInputs = useCallback(
+    async (params: CollectInputsParameters) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
 
-    const response = await colletInputs(params);
+      const response = await colletInputs(params);
 
-    setLoading(false);
+      setLoading(false);
 
-    return response;
-  }, [_isInitialized, setLoading]);
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
 
   const _cancelCollectInputs = useCallback(async () => {
     if (!_isInitialized()) {

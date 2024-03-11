@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { CollectInputsParameters, useStripeTerminal } from '@stripe/stripe-terminal-react-native';
+import {
+  CollectInputsParameters,
+  useStripeTerminal,
+} from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { useNavigation } from '@react-navigation/native';
@@ -59,7 +59,9 @@ export default function CollectInputsScreen() {
         {
           name: 'Succeeded',
           description: 'terminal.collectInputs',
-          metadata: { COLLECTINPUTS: JSON.stringify(response.collectInputResults) },
+          metadata: {
+            COLLECTINPUTS: JSON.stringify(response.collectInputResults),
+          },
         },
       ],
     });
@@ -70,52 +72,74 @@ export default function CollectInputsScreen() {
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="always"
     >
-      <List topSpacing={false} >
+      <List topSpacing={false}>
         <ListItem
-            title="Signature and selection forms"
-            testID="collect-input-button-1"
-            color={colors.blue}
-            onPress={async () => {
-              _collectInputs({collectInputs: [
-                {inputType: "SIGNATURE",
-                  title: "Please sign", 
-                  required: false, 
-                  description: "Please sign if you agree to the terms and conditions",
-                  submitButtonText: "submit signature"},
-                {inputType: "SELECTION",
-                  title: "Choose an option",
+          title="Signature and selection forms"
+          testID="collect-input-button-1"
+          color={colors.blue}
+          onPress={async () => {
+            _collectInputs({
+              collectInputs: [
+                {
+                  inputType: 'SIGNATURE',
+                  title: 'Please sign',
                   required: false,
-                  description: "Were you happy with customer service?",
-                  selectionButtons: [{"style": "PRIMARY", text: "Yes"}, {"style": "SECONDARY", text: "No"}]}]})
-            }}
-          />
+                  description:
+                    'Please sign if you agree to the terms and conditions',
+                  submitButtonText: 'submit signature',
+                },
+                {
+                  inputType: 'SELECTION',
+                  title: 'Choose an option',
+                  required: false,
+                  description: 'Were you happy with customer service?',
+                  selectionButtons: [
+                    { style: 'PRIMARY', text: 'Yes' },
+                    { style: 'SECONDARY', text: 'No' },
+                  ],
+                },
+              ],
+            });
+          }}
+        />
         <ListItem
           title="Phone, email, numeric, and text forms"
           testID="collect-input-button-2"
           color={colors.blue}
           onPress={async () => {
-            _collectInputs({collectInputs: [
-              {inputType: "TEXT",
-                title: "Enter your name", 
-                required: false, 
-                description: "We'll need your name to look up your account",
-                submitButtonText: "Done"},
-              {inputType: "NUMERIC",
-                title: "Enter your zip code", 
-                required: false, 
-                description: "",
-                submitButtonText: "Done"},
-              {inputType: "EMAIL",
-                title: "Enter your email address", 
-                required: false, 
-                description: "We'll send you updates on your order and occasional deals",
-                submitButtonText: "Done"},
-              {inputType: "PHONE",
-                title: "Enter your phone number", 
-                required: false, 
-                description: "We'll text you when your order is ready",
-                submitButtonText: "Done"},
-            ]})
+            _collectInputs({
+              collectInputs: [
+                {
+                  inputType: 'TEXT',
+                  title: 'Enter your name',
+                  required: false,
+                  description: "We'll need your name to look up your account",
+                  submitButtonText: 'Done',
+                },
+                {
+                  inputType: 'NUMERIC',
+                  title: 'Enter your zip code',
+                  required: false,
+                  description: '',
+                  submitButtonText: 'Done',
+                },
+                {
+                  inputType: 'EMAIL',
+                  title: 'Enter your email address',
+                  required: false,
+                  description:
+                    "We'll send you updates on your order and occasional deals",
+                  submitButtonText: 'Done',
+                },
+                {
+                  inputType: 'PHONE',
+                  title: 'Enter your phone number',
+                  required: false,
+                  description: "We'll text you when your order is ready",
+                  submitButtonText: 'Done',
+                },
+              ],
+            });
           }}
         />
       </List>

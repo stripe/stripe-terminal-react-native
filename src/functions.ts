@@ -774,13 +774,13 @@ export async function getOfflineStatus(): Promise<OfflineStatus> {
   }, 'getOfflineStatus')();
 }
 
-export async function colletInputs(params: CollectInputsParameters): Promise<CollectInputsResults> {
+export async function colletInputs(
+  params: CollectInputsParameters
+): Promise<CollectInputsResults> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const response = await StripeTerminalSdk.collectInputs(
-        params
-      );
-      return response
+      const response = await StripeTerminalSdk.collectInputs(params);
+      return response;
     } catch (error) {
       return {
         error: error as any,
