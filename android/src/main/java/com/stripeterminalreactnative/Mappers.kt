@@ -390,11 +390,14 @@ internal fun mapFromRefund(refund: Refund): ReadableMap = nativeMapOf {
     putString("failureBalanceTransaction", refund.failureBalanceTransaction)
     putString("failureReason", refund.failureReason)
     putString("id", refund.id)
-    putMap("metadata", nativeMapOf {
-        refund.metadata?.map {
-            putString(it.key, it.value)
+    putMap(
+        "metadata",
+        nativeMapOf {
+            refund.metadata?.map {
+                putString(it.key, it.value)
+            }
         }
-    })
+    )
     putString("paymentIntentId", refund.paymentIntentId)
     putMap("paymentMethodDetails", mapFromPaymentMethodDetails(refund.paymentMethodDetails))
     putString("reason", refund.reason)
@@ -465,7 +468,10 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
         putString("network", cardPresentDetails?.network)
         putString("description", cardPresentDetails?.description)
         putMap("wallet", mapFromWallet(cardPresentDetails?.wallet))
-        putArray("preferredLocales", convertListToReadableArray(cardPresentDetails?.preferredLocales))
+        putArray(
+            "preferredLocales",
+            convertListToReadableArray(cardPresentDetails?.preferredLocales)
+        )
     }
 
 internal fun mapFromWallet(wallet: Wallet?): ReadableMap =
@@ -474,7 +480,9 @@ internal fun mapFromWallet(wallet: Wallet?): ReadableMap =
     }
 
 private fun convertListToReadableArray(list: List<String>?): ReadableArray? {
-    return list?.let { WritableNativeArray().apply { for (item in list) { pushString(item) } } } ?: null
+    return list?.let {
+        WritableNativeArray().apply { for (item in list) { pushString(item) } }
+    } ?: null
 }
 
 fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
@@ -528,6 +536,39 @@ fun mapFromOfflineStatus(offlineStatus: OfflineStatus): ReadableMap {
     return nativeMapOf {
         putMap("sdk", sdkMap)
         putMap("reader", readerMap)
+    }
+}
+
+fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
+    return when (reason) {
+        DisconnectReason.DISCONNECT_REQUESTED -> "disconnectRequested"
+        DisconnectReason.REBOOT_REQUESTED -> "rebootRequested"
+        DisconnectReason.SECURITY_REBOOT -> "securityReboot"
+        DisconnectReason.CRITICALLY_LOW_BATTERY -> "criticallyLowBattery"
+        DisconnectReason.POWERED_OFF -> "poweredOff"
+        DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
+        else -> { "unknown" }
+    }
+}
+
+internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
+    return nativeMapOf {
+        var ra = settings.readerAccessibility
+        if (ra is ReaderAccessibility.Accessibility) {
+            val accessibility = nativeMapOf {
+                putString(
+                    "textToSpeechStatus",
+                    when (ra.textToSpeechStatus) {
+                        ReaderTextToSpeechStatus.OFF -> "off"
+                        ReaderTextToSpeechStatus.HEADPHONES -> "headphones"
+                        ReaderTextToSpeechStatus.SPEAKERS -> "speakers"
+                    }
+                )
+            }
+            putMap("accessibility", accessibility)
+        } else if (ra is ReaderAccessibility.Error) {
+            putError(ra.error)
+        }
     }
 }
 

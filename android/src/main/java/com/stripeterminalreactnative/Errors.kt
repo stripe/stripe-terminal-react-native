@@ -11,9 +11,12 @@ import kotlin.jvm.Throws
 internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
 
 internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
-    putMap("error", nativeMapOf {
-        putErrorContents(throwable)
-    })
+    putMap(
+        "error",
+        nativeMapOf {
+            putErrorContents(throwable)
+        }
+    )
 }
 
 private fun WritableMap.putErrorContents(throwable: Throwable?) {

@@ -20,6 +20,7 @@ enum ReactNativeConstants: String, CaseIterable {
     case CHANGE_OFFLINE_STATUS = "didChangeOfflineStatus"
     case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
     case REPORT_FORWARDING_ERROR = "didReportForwardingError"
+    case DISCONNECT = "didDisconnect"
 }
 
 @objc(StripeTerminalReactNative)
@@ -1102,6 +1103,39 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
+    @objc(getReaderSettings:rejecter:)
+    func getReaderSettings(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        Task {
+            do {
+                let result = try await Terminal.shared.retrieveReaderSettings()
+                resolve(Mappers.mapFromReaderSettings(result))
+            } catch {
+                resolve(Errors.createError(nsError: error as NSError))
+            }
+        }
+    }
+
+    @objc(setReaderSettings:resolver:rejecter:)
+    func setReaderSettings(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["textToSpeechViaSpeakers"])
+
+        guard invalidParams == nil else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            return
+        }
+        
+        let textToSpeechViaSpeakers = params["textToSpeechViaSpeakers"] as? Bool ?? false
+        Task {
+            do {
+                let readerSettingsParameters = try ReaderAccessibilityParametersBuilder().setTextToSpeechViaSpeakers(textToSpeechViaSpeakers).build()
+                let result = try await Terminal.shared.setReaderSettings(readerSettingsParameters)
+                resolve(Mappers.mapFromReaderSettings(result))
+            } catch {
+                resolve(Errors.createError(nsError: error as NSError))
+            }
+        }
+    }
+
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
         sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
@@ -1139,6 +1173,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
+    }
+    
+    func reader(_ reader: Reader, didDisconnect reason: DisconnectReason) {
+        let result = Mappers.mapFromReaderDisconnectReason(reason)
+        sendEvent(withName: ReactNativeConstants.DISCONNECT.rawValue, body: ["reason": result])
     }
 
     func localMobileReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {

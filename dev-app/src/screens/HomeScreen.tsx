@@ -8,6 +8,7 @@ import {
   Text,
   Image,
   Switch,
+  Alert,
 } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
@@ -76,6 +77,12 @@ export default function HomeScreen() {
           Toast.hide(toast);
         }, 3000);
       },
+      onDidDisconnect(reason) {
+        Alert.alert(
+          'Reader disconnected!',
+          'Reader disconnected with reason ' + reason
+        );
+      },
     }
   );
   const batteryPercentage =
@@ -140,6 +147,12 @@ export default function HomeScreen() {
           title="Set reader display"
           onPress={() => {
             navigation.navigate('ReaderDisplayScreen');
+          }}
+        />
+        <ListItem
+          title="Reader settings"
+          onPress={() => {
+            navigation.navigate('ReaderSettingsScreen');
           }}
         />
         <ListItem

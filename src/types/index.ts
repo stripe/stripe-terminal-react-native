@@ -351,6 +351,8 @@ export type UserCallbacks = {
     error: StripeError
   ): void;
   onDidForwardingFailure?(error?: StripeError): void;
+
+  onDidDisconnect?(reason?: Reader.DisconnectReason): void;
 };
 
 export namespace PaymentMethod {

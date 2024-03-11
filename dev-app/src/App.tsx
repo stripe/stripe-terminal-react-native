@@ -28,6 +28,7 @@ import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import DatabaseScreen from './screens/DatabaseScreen';
+import ReaderSettingsScreen from './screens/ReaderSettingsScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import {
   Reader,
@@ -238,6 +239,11 @@ export default function App() {
             <Stack.Screen
               name="ReaderDisplayScreen"
               component={ReaderDisplayScreen}
+            />
+            <Stack.Screen
+              name="ReaderSettingsScreen"
+              options={{ headerTitle: 'Reader Settings' }}
+              component={ReaderSettingsScreen}
             />
             <Stack.Screen
               name="LocationListScreen"

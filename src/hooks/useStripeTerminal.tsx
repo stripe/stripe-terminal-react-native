@@ -57,6 +57,8 @@ import {
   setSimulatedCard,
   cancelCollectRefundPaymentMethod,
   getOfflineStatus,
+  getReaderSettings,
+  setReaderSettings,
   colletInputs,
   cancelCollectInputs,
 } from '../functions';
@@ -86,6 +88,7 @@ export const {
   CHANGE_OFFLINE_STATUS,
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
+  DISCONNECT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -146,6 +149,7 @@ export function useStripeTerminal(props?: Props) {
     onDidChangeOfflineStatus,
     onDidForwardPaymentIntent,
     onDidForwardingFailure,
+    onDidDisconnect,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -301,6 +305,13 @@ export function useStripeTerminal(props?: Props) {
     [onDidForwardingFailure]
   );
 
+  const didDisconnect = useCallback(
+    ({ reason }: { reason?: Reader.DisconnectReason }) => {
+      onDidDisconnect?.(reason);
+    },
+    [onDidDisconnect]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -324,6 +335,8 @@ export function useStripeTerminal(props?: Props) {
   useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
   useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
+
+  useListener(DISCONNECT, didDisconnect);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {
@@ -862,6 +875,29 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized]);
 
+  const _getReaderSettings = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    const response = await getReaderSettings();
+
+    return response;
+  }, [_isInitialized]);
+
+  const _setReaderSettings = useCallback(
+    async (params: Reader.ReaderSettingsParameters) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      const response = await setReaderSettings(params);
+
+      return response;
+    },
+    [_isInitialized]
+  );
+
   const _collectInputs = useCallback(
     async (params: CollectInputsParameters) => {
       if (!_isInitialized()) {
@@ -928,6 +964,8 @@ export function useStripeTerminal(props?: Props) {
     connectLocalMobileReader: _connectLocalMobileReader,
     setSimulatedCard: _setSimulatedCard,
     getOfflineStatus: _getOfflineStatus,
+    getReaderSettings: _getReaderSettings,
+    setReaderSettings: _setReaderSettings,
     collectInputs: _collectInputs,
     cancelCollectInputs: _cancelCollectInputs,
     emitter: emitter,

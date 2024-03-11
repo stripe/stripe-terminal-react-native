@@ -3,17 +3,20 @@ package com.stripeterminalreactnative.listener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListener
+import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
+import com.stripeterminalreactnative.ReactNativeConstants.DISCONNECT
 import com.stripeterminalreactnative.ReactNativeConstants.FINISH_INSTALLING_UPDATE
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_AVAILABLE_UPDATE
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
+import com.stripeterminalreactnative.mapFromReaderDisconnectReason
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
@@ -22,7 +25,7 @@ import com.stripeterminalreactnative.putError
 
 class RNBluetoothReaderListener(
     private val context: ReactApplicationContext,
-    private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit,
+    private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
 ) : ReaderListener {
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
@@ -42,9 +45,12 @@ class RNBluetoothReaderListener(
 
     override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
         context.sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
-            putMap("result", nativeMapOf {
-                putString("progress", progress.toString())
-            })
+            putMap(
+                "result",
+                nativeMapOf {
+                    putString("progress", progress.toString())
+                }
+            )
         }
     }
 
@@ -70,6 +76,12 @@ class RNBluetoothReaderListener(
     override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
         context.sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
             putString("result", mapFromReaderDisplayMessage(message))
+        }
+    }
+
+    override fun onDisconnect(reason: DisconnectReason) {
+        context.sendEvent(DISCONNECT.listenerName) {
+            putString("reason", mapFromReaderDisconnectReason(reason))
         }
     }
 }

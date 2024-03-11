@@ -30,6 +30,7 @@ Object {
   "discoverReaders": [Function],
   "getLocations": [Function],
   "getOfflineStatus": [Function],
+  "getReaderSettings": [Function],
   "initialize": [Function],
   "installAvailableUpdate": [Function],
   "rebootReader": [Function],
@@ -37,6 +38,7 @@ Object {
   "retrieveSetupIntent": [Function],
   "setConnectionToken": [Function],
   "setReaderDisplay": [Function],
+  "setReaderSettings": [Function],
   "setSimulatedCard": [Function],
   "simulateReaderUpdate": [Function],
 }

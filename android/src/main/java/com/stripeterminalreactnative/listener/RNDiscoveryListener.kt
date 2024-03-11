@@ -17,7 +17,7 @@ internal class RNDiscoveryListener(
     private val context: ReactApplicationContext,
     promise: Promise,
     private val onDiscoveredReaders: (readers: List<Reader>) -> Unit,
-    private val onComplete: () -> Unit,
+    private val onComplete: () -> Unit
 ) : DiscoveryListener, Callback {
 
     // Our no-op callback handles resolving the promise.

@@ -774,6 +774,34 @@ export async function getOfflineStatus(): Promise<OfflineStatus> {
   }, 'getOfflineStatus')();
 }
 
+export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const readerSettings = await StripeTerminalSdk.getReaderSettings();
+      return readerSettings;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'getReaderSettings')();
+}
+
+export async function setReaderSettings(
+  params: Reader.ReaderSettingsParameters
+): Promise<Reader.ReaderSettings> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const readerSettings = await StripeTerminalSdk.setReaderSettings(params);
+      return readerSettings;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'setReaderSettings')();
+}
+
 export async function colletInputs(
   params: CollectInputsParameters
 ): Promise<CollectInputsResults> {

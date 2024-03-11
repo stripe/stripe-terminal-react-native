@@ -598,7 +598,45 @@ class Mappers {
             ]
         }
 
-       return(["sdk": sdkDict, "reader": readerDict])
+        return(["sdk": sdkDict, "reader": readerDict])
+    }
+    
+    class func mapFromReaderTextToSpeechStatus(_ status: ReaderTextToSpeechStatus) -> String {
+        switch status {
+        case ReaderTextToSpeechStatus.off: return "off"
+        case ReaderTextToSpeechStatus.headphones: return "headphones"
+        case ReaderTextToSpeechStatus.speakers: return "speakers"
+        default: return "unknown"
+        }
+    }
+    
+    class func mapFromReaderSettings(_ readerSettings: ReaderSettings) -> NSDictionary {
+        var accessibility: [String : Any] = [
+            "textToSpeechStatus": mapFromReaderTextToSpeechStatus(readerSettings.accessibility.textToSpeechStatus),
+        ]
+        
+        let errorDic: NSDictionary
+        if let error = readerSettings.accessibility.error as NSError? {
+            errorDic = [
+                "code": ErrorCode.Code.init(rawValue: error.code) ?? ErrorCode.unexpectedSdkError,
+                "message": error.localizedDescription,
+            ]
+            accessibility["error"] = errorDic
+        }
+
+        return(["accessibility": accessibility])
+    }
+    
+    class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {
+        switch reason {
+        case DisconnectReason.disconnectRequested: return "disconnectRequested"
+        case DisconnectReason.rebootRequested: return "rebootRequested"
+        case DisconnectReason.securityReboot: return "securityReboot"
+        case DisconnectReason.criticallyLowBattery: return "criticallyLowBattery"
+        case DisconnectReason.poweredOff: return "poweredOff"
+        case DisconnectReason.bluetoothDisabled: return "bluetoothDisabled"
+        default: return "unknown"
+        }
     }
     
     class func mapFromCollectInputs(_ results: [CollectInputsResult]) -> NSDictionary {

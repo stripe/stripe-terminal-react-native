@@ -17,10 +17,13 @@ import com.stripeterminalreactnative.nativeMapOf
 class RNTerminalListener(private val context: ReactApplicationContext) : TerminalListener {
     override fun onUnexpectedReaderDisconnect(reader: Reader) {
         context.sendEvent(REPORT_UNEXPECTED_READER_DISCONNECT.listenerName) {
-            putMap("error", nativeMapOf {
-                putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
-                putString("message", "Reader has been disconnected unexpectedly")
-            })
+            putMap(
+                "error",
+                nativeMapOf {
+                    putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
+                    putString("message", "Reader has been disconnected unexpectedly")
+                }
+            )
         }
     }
 
