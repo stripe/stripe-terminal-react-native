@@ -255,7 +255,7 @@ workflows:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-14.0.x-ventura
+    stack: osx-xcode-15.2.x
     machine_type_id: g2-m1.8core
 app:
   envs:
