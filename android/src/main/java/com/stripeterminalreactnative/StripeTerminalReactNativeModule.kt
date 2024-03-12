@@ -709,6 +709,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
         terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
     }
+    
+    @ReactMethod
+    fun addListener(eventName: String?) {
+        // Set up any upstream listeners or background tasks as necessary
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int?) {
+        // Remove upstream listeners, stop unnecessary background tasks
+    }
 
     private fun cancelOperation(
         promise: Promise,
