@@ -41,8 +41,7 @@
     "simulator": {
       "type": "ios.simulator",
       "device": {
-        "type": "iPhone 13",
-        "os": "iOS 15.4"
+        "type": "iPhone 14"
       }
     },
     "emulator": {
