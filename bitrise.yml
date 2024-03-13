@@ -188,10 +188,10 @@ workflows:
                 source $BASH_ENV
                 brew update >/dev/null
                 brew bundle install >/dev/null
+                brew upgrade
+                brew update
                 touch .watchmanconfig
                 npm install --global expo-cli
-                applesimutils --list | grep "iPhone"
-                xcrun simctl list | grep "iPhone"
           title: Misc prep steps
       - yarn@0:
           inputs:
