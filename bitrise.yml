@@ -190,7 +190,6 @@ workflows:
                 brew bundle install >/dev/null
                 touch .watchmanconfig
                 npm install --global expo-cli
-                applesimutils --list
           title: Misc prep steps
       - yarn@0:
           inputs:
