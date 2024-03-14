@@ -4,6 +4,7 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import {
   CollectInputsParameters,
+  SelectionButtonStyle,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -94,8 +95,8 @@ export default function CollectInputsScreen() {
                   required: false,
                   description: 'Were you happy with customer service?',
                   selectionButtons: [
-                    { style: 'PRIMARY', text: 'Yes' },
-                    { style: 'SECONDARY', text: 'No' },
+                    { style: SelectionButtonStyle.PRIMARY, text: 'Yes' },
+                    { style: SelectionButtonStyle.SECONDARY, text: 'No' },
                   ],
                 },
               ],

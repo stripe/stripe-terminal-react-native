@@ -422,12 +422,26 @@ export type CollectInputResult = {
 export type Toggle = {
   title: string;
   description: string;
-  defaltValue: 'ENABLED' | 'DISABLED';
+  defaultValue: ToggleValue;
 };
 
-export type ToggleResult = 'ENABLED' | 'DISABLED' | 'SKIPPED';
+export enum ToggleValue {
+  ENABLED = 'ENABLED',
+  DISABLED = 'DISABLED',
+}
+
+export enum ToggleResult {
+  ENABLED = 'ENABLED',
+  DISABLED = 'DISABLED',
+  SKIPPED = 'SKIPPED',
+}
 
 export type SelectionButton = {
-  style: 'PRIMARY' | 'SECONDARY';
+  style: SelectionButtonStyle;
   text: string;
 };
+
+export enum SelectionButtonStyle {
+  PRIMARY = 'PRIMARY',
+  SECONDARY = 'CanSECONDARYceled',
+}

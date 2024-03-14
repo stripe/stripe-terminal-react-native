@@ -37,12 +37,25 @@ Object {
   },
   "START_INSTALLING_UPDATE": "START_INSTALLING_UPDATE",
   "START_READER_RECONNECT": undefined,
+  "SelectionButtonStyle": Object {
+    "PRIMARY": "PRIMARY",
+    "SECONDARY": "CanSECONDARYceled",
+  },
   "SetupIntent": Object {
     "Android": Object {},
     "IOS": Object {},
   },
   "StripeTerminalProvider": [Function],
   "StripeTerminalProviderProps": undefined,
+  "ToggleResult": Object {
+    "DISABLED": "DISABLED",
+    "ENABLED": "ENABLED",
+    "SKIPPED": "SKIPPED",
+  },
+  "ToggleValue": Object {
+    "DISABLED": "DISABLED",
+    "ENABLED": "ENABLED",
+  },
   "UPDATE_DISCOVERED_READERS": "UPDATE_DISCOVERED_READERS",
   "UseStripeTerminalProps": undefined,
   "WithStripeTerminalProps": undefined,

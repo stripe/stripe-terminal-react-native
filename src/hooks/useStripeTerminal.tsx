@@ -59,7 +59,7 @@ import {
   getOfflineStatus,
   getReaderSettings,
   setReaderSettings,
-  colletInputs,
+  collectInputs,
   cancelCollectInputs,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
@@ -906,7 +906,7 @@ export function useStripeTerminal(props?: Props) {
       }
       setLoading(true);
 
-      const response = await colletInputs(params);
+      const response = await collectInputs(params);
 
       setLoading(false);
 

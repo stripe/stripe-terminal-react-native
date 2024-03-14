@@ -802,7 +802,7 @@ export async function setReaderSettings(
   }, 'setReaderSettings')();
 }
 
-export async function colletInputs(
+export async function collectInputs(
   params: CollectInputsParameters
 ): Promise<CollectInputsResults> {
   return Logger.traceSdkMethod(async () => {
@@ -814,7 +814,7 @@ export async function colletInputs(
         error: error as any,
       };
     }
-  }, 'colletInputs')();
+  }, 'collectInputs')();
 }
 
 export async function cancelCollectInputs(): Promise<{
