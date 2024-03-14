@@ -26,7 +26,7 @@ import kotlin.coroutines.resumeWithException
 suspend fun Terminal.connectBluetoothReader(
     reader: Reader,
     config: BluetoothConnectionConfiguration,
-    listener: ReaderListener = object : ReaderListener {},
+    listener: ReaderListener = object : ReaderListener {}
 ): Reader {
     return readerCallbackCoroutine {
         connectBluetoothReader(reader, config, listener, it)
@@ -39,7 +39,7 @@ suspend fun Terminal.connectBluetoothReader(
 suspend fun Terminal.connectHandoffReader(
     reader: Reader,
     config: HandoffConnectionConfiguration,
-    listener: HandoffReaderListener = object : HandoffReaderListener {},
+    listener: HandoffReaderListener = object : HandoffReaderListener {}
 ): Reader {
     return readerCallbackCoroutine {
         connectHandoffReader(reader, config, listener, it)
@@ -72,7 +72,7 @@ suspend fun Terminal.connectLocalMobileReader(
 suspend fun Terminal.connectUsbReader(
     reader: Reader,
     config: UsbConnectionConfiguration,
-    listener: ReaderListener = object : ReaderListener {},
+    listener: ReaderListener = object : ReaderListener {}
 ): Reader {
     return readerCallbackCoroutine {
         connectUsbReader(reader, config, listener, it)
@@ -102,22 +102,35 @@ suspend fun Terminal.connectReader(
     reconnectionListener: ReaderReconnectionListener
 ): Reader = when (discoveryMethod) {
     DiscoveryMethod.BLUETOOTH_SCAN -> {
-        val connConfig = BluetoothConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
+        val connConfig = BluetoothConnectionConfiguration(
+            locationId,
+            autoReconnectOnUnexpectedDisconnect,
+            reconnectionListener
+        )
         if (listener is ReaderListener) {
             connectBluetoothReader(reader, connConfig, listener)
         } else {
             connectBluetoothReader(reader, connConfig)
         }
     }
-    DiscoveryMethod.LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
+    DiscoveryMethod.LOCAL_MOBILE -> connectLocalMobileReader(
+        reader,
+        LocalMobileConnectionConfiguration(locationId)
+    )
     DiscoveryMethod.INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
     DiscoveryMethod.HANDOFF -> {
-        if (listener is HandoffReaderListener)
+        if (listener is HandoffReaderListener) {
             connectHandoffReader(reader, HandoffConnectionConfiguration(), listener)
-        else connectHandoffReader(reader, HandoffConnectionConfiguration())
+        } else {
+            connectHandoffReader(reader, HandoffConnectionConfiguration())
+        }
     }
     DiscoveryMethod.USB -> {
-        val connConfig = UsbConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener)
+        val connConfig = UsbConnectionConfiguration(
+            locationId,
+            autoReconnectOnUnexpectedDisconnect,
+            reconnectionListener
+        )
         if (listener is ReaderListener) {
             connectUsbReader(reader, connConfig, listener)
         } else {
@@ -125,6 +138,6 @@ suspend fun Terminal.connectReader(
         }
     }
     else -> {
-        throw IllegalArgumentException("Unsupported discovery method: ${discoveryMethod}")
+        throw IllegalArgumentException("Unsupported discovery method: $discoveryMethod")
     }
 }

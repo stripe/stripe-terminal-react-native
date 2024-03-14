@@ -12,13 +12,15 @@ class RNSetupIntentCallback(
     private val promise: Promise,
     private val uuid: String,
     private val onSetupIntentSuccess: (SetupIntent) -> Unit = {}
-    ): SetupIntentCallback {
+) : SetupIntentCallback {
 
     override fun onSuccess(setupIntent: SetupIntent) {
         onSetupIntentSuccess(setupIntent)
-        promise.resolve(nativeMapOf {
-            putMap("setupIntent", mapFromSetupIntent(setupIntent, uuid))
-        })
+        promise.resolve(
+            nativeMapOf {
+                putMap("setupIntent", mapFromSetupIntent(setupIntent, uuid))
+            }
+        )
     }
 
     override fun onFailure(e: TerminalException) {

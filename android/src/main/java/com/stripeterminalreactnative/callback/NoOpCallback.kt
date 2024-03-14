@@ -1,7 +1,6 @@
 package com.stripeterminalreactnative.callback
 
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.NativeTypeFactory
