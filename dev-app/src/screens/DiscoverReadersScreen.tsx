@@ -220,6 +220,7 @@ export default function DiscoverReadersScreen() {
     const { reader: connectedReader, error } = await connectLocalMobileReader({
       reader,
       locationId: selectedLocation?.id,
+      autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     });
 
     if (error) {

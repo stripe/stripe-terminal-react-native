@@ -109,7 +109,7 @@ suspend fun Terminal.connectReader(
             connectBluetoothReader(reader, connConfig)
         }
     }
-    DiscoveryMethod.LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId))
+    DiscoveryMethod.LOCAL_MOBILE -> connectLocalMobileReader(reader, LocalMobileConnectionConfiguration(locationId, autoReconnectOnUnexpectedDisconnect, reconnectionListener))
     DiscoveryMethod.INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
     DiscoveryMethod.HANDOFF -> {
         if (listener is HandoffReaderListener)
