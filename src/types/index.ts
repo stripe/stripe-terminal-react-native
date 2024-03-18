@@ -50,6 +50,7 @@ export type ConnectLocalMobileParams = {
   onBehalfOf?: string;
   merchantDisplayName?: string;
   tosAcceptancePermitted?: boolean;
+  autoReconnectOnUnexpectedDisconnect?: boolean;
 };
 
 export type ConnectHandoffParams = {
