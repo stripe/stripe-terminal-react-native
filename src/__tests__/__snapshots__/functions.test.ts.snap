@@ -2,6 +2,7 @@
 
 exports[`functions.test.ts Functions snapshot ensure there are no unexpected changes to the functions exports 1`] = `
 Object {
+  "cancelCollectInputs": [Function],
   "cancelCollectPaymentMethod": [Function],
   "cancelCollectRefundPaymentMethod": [Function],
   "cancelCollectSetupIntent": [Function],
@@ -11,6 +12,7 @@ Object {
   "cancelSetupIntent": [Function],
   "clearCachedCredentials": [Function],
   "clearReaderDisplay": [Function],
+  "collectInputs": [Function],
   "collectPaymentMethod": [Function],
   "collectRefundPaymentMethod": [Function],
   "collectSetupIntentPaymentMethod": [Function],

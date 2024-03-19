@@ -9,13 +9,15 @@ import com.stripeterminalreactnative.mapFromListLocations
 import com.stripeterminalreactnative.nativeMapOf
 
 class RNLocationListCallback(
-    private val promise: Promise,
+    private val promise: Promise
 ) : LocationListCallback {
     override fun onSuccess(locations: List<Location>, hasMore: Boolean) {
-        promise.resolve(nativeMapOf {
-            putArray("locations", mapFromListLocations(locations))
-            putBoolean("hasMore", hasMore)
-        })
+        promise.resolve(
+            nativeMapOf {
+                putArray("locations", mapFromListLocations(locations))
+                putBoolean("hasMore", hasMore)
+            }
+        )
     }
 
     override fun onFailure(e: TerminalException) {

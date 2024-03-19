@@ -25,8 +25,8 @@ import com.stripeterminalreactnative.putError
 
 class RNUsbReaderListener(
     private val context: ReactApplicationContext,
-    private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit,
-): ReaderListener {
+    private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
+) : ReaderListener {
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
             putMap("result", mapFromReaderSoftwareUpdate(update))
@@ -45,9 +45,12 @@ class RNUsbReaderListener(
 
     override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
         context.sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
-            putMap("result", nativeMapOf {
-                putString("progress", progress.toString())
-            })
+            putMap(
+                "result",
+                nativeMapOf {
+                    putString("progress", progress.toString())
+                }
+            )
         }
     }
 

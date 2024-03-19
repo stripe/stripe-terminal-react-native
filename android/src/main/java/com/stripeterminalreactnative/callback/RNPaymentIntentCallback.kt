@@ -12,13 +12,15 @@ class RNPaymentIntentCallback(
     private val promise: Promise,
     private val uuid: String,
     private val onPaymentIntentSuccess: (PaymentIntent) -> Unit = {}
-    ): PaymentIntentCallback {
+) : PaymentIntentCallback {
 
     override fun onSuccess(paymentIntent: PaymentIntent) {
         onPaymentIntentSuccess(paymentIntent)
-        promise.resolve(nativeMapOf {
-            putMap("paymentIntent", mapFromPaymentIntent(paymentIntent, uuid))
-        })
+        promise.resolve(
+            nativeMapOf {
+                putMap("paymentIntent", mapFromPaymentIntent(paymentIntent, uuid))
+            }
+        )
     }
 
     override fun onFailure(e: TerminalException) {

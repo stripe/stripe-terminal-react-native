@@ -25,7 +25,7 @@ import com.stripeterminalreactnative.putError
 
 class RNBluetoothReaderListener(
     private val context: ReactApplicationContext,
-    private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit,
+    private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
 ) : ReaderListener {
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
@@ -45,9 +45,12 @@ class RNBluetoothReaderListener(
 
     override fun onReportReaderSoftwareUpdateProgress(progress: Float) {
         context.sendEvent(REPORT_UPDATE_PROGRESS.listenerName) {
-            putMap("result", nativeMapOf {
-                putString("progress", progress.toString())
-            })
+            putMap(
+                "result",
+                nativeMapOf {
+                    putString("progress", progress.toString())
+                }
+            )
         }
     }
 

@@ -9,12 +9,14 @@ import com.stripeterminalreactnative.mapFromPaymentMethod
 import com.stripeterminalreactnative.nativeMapOf
 
 class RNPaymentMethodCallback(
-    private val promise: Promise,
+    private val promise: Promise
 ) : PaymentMethodCallback {
     override fun onSuccess(paymentMethod: PaymentMethod) {
-        promise.resolve(nativeMapOf {
-            putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
-        })
+        promise.resolve(
+            nativeMapOf {
+                putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+            }
+        )
     }
 
     override fun onFailure(e: TerminalException) {

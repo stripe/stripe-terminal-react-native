@@ -15,8 +15,8 @@ import com.stripeterminalreactnative.nativeMapOf
 
 @OptIn(OfflineMode::class)
 class RNOfflineListener(
-    private val context: ReactApplicationContext,
-): OfflineListener {
+    private val context: ReactApplicationContext
+) : OfflineListener {
     override fun onOfflineStatusChange(offlineStatus: OfflineStatus) {
         context.sendEvent(ReactNativeConstants.CHANGE_OFFLINE_STATUS.listenerName) {
             putMap("result", mapFromOfflineStatus(offlineStatus))
@@ -27,10 +27,13 @@ class RNOfflineListener(
         context.sendEvent(ReactNativeConstants.FORWARD_PAYMENT_INTENT.listenerName) {
             putMap("result", mapFromPaymentIntent(paymentIntent, ""))
             if (e != null) {
-                putMap("error", nativeMapOf {
-                    putString("code", e.errorCode.toString())
-                    putString("message", e.errorMessage)
-                })
+                putMap(
+                    "error",
+                    nativeMapOf {
+                        putString("code", e.errorCode.toString())
+                        putString("message", e.errorMessage)
+                    }
+                )
             }
         }
     }

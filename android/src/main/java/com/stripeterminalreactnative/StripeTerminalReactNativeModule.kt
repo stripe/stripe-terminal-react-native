@@ -1,5 +1,5 @@
 package com.stripeterminalreactnative
-import android.util.Log
+
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ComponentCallbacks2
@@ -12,12 +12,53 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
-import com.stripe.stripeterminal.external.models.*
-import com.stripeterminalreactnative.callback.*
+import com.stripe.stripeterminal.external.models.CaptureMethod
+import com.stripe.stripeterminal.external.models.CardPresentParameters
+import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
+import com.stripe.stripeterminal.external.models.Cart
+import com.stripe.stripeterminal.external.models.CollectConfiguration
+import com.stripe.stripeterminal.external.models.CollectInputsParameters
+import com.stripe.stripeterminal.external.models.CreateConfiguration
+import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
+import com.stripe.stripeterminal.external.models.EmailInput
+import com.stripe.stripeterminal.external.models.Input
+import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.NumericInput
+import com.stripe.stripeterminal.external.models.OfflineBehavior
+import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentIntentParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.PhoneInput
+import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
+import com.stripe.stripeterminal.external.models.RefundConfiguration
+import com.stripe.stripeterminal.external.models.RefundParameters
+import com.stripe.stripeterminal.external.models.RoutingPriority
+import com.stripe.stripeterminal.external.models.SelectionButton
+import com.stripe.stripeterminal.external.models.SelectionButtonStyle
+import com.stripe.stripeterminal.external.models.SelectionInput
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
+import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
+import com.stripe.stripeterminal.external.models.SetupIntentParameters
+import com.stripe.stripeterminal.external.models.SignatureInput
+import com.stripe.stripeterminal.external.models.SimulatedCard
+import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripe.stripeterminal.external.models.TextInput
+import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripeterminalreactnative.callback.NoOpCallback
+import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
+import com.stripeterminalreactnative.callback.RNLocationListCallback
+import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
+import com.stripeterminalreactnative.callback.RNReadSettingsCallback
+import com.stripeterminalreactnative.callback.RNRefundCallback
+import com.stripeterminalreactnative.callback.RNSetupIntentCallback
 import com.stripeterminalreactnative.ktx.connectReader
 import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
@@ -32,7 +73,6 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.collections.HashMap
 
-
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
     private var discoveredReadersList: List<Reader> = listOf()
@@ -42,6 +82,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
+    private var collectInputsCancelable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -60,7 +101,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 override fun onTrimMemory(level: Int) {}
                 override fun onLowMemory() {}
                 override fun onConfigurationChanged(p0: Configuration) {}
-            })
+            }
+        )
     }
 
     override fun getConstants(): MutableMap<String, Any> =
@@ -80,7 +122,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 mapToLogLevel(params.getString("logLevel")),
                 tokenProvider,
                 RNTerminalListener(context),
-                RNOfflineListener(context),
+                RNOfflineListener(context)
             )
             NativeTypeFactory.writableNativeMap()
         } else {
@@ -134,7 +176,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
         tokenProvider.setConnectionToken(
             token = params.getString("token"),
-            error = params.getString("error"),
+            error = params.getString("error")
         )
         promise.resolve(null)
     }
@@ -162,12 +204,22 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         discoverCancelable = terminal.discoverReaders(
-            config = when(discoveryMethod) {
-                DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(0, getBoolean(params, "simulated"))
-                DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(isSimulated = getBoolean(params, "simulated"))
-                DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(0, getBoolean(params, "simulated"))
+            config = when (discoveryMethod) {
+                DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(
+                    0,
+                    getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
+                    isSimulated = getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
+                    0,
+                    getBoolean(params, "simulated")
+                )
                 DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
-                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(getBoolean(params, "simulated")) },
+                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(
+                    getBoolean(params, "simulated")
+                ) },
             listener,
             listener
         )
@@ -195,9 +247,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
                 val serialNumber = reader.getString("serialNumber")
 
-                val selectedReader = requireParam(discoveredReadersList.find {
-                    it.serialNumber == serialNumber
-                }) {
+                val selectedReader = requireParam(
+                    discoveredReadersList.find {
+                        it.serialNumber == serialNumber
+                    }
+                ) {
                     "Could not find a reader with serialNumber $serialNumber"
                 }
 
@@ -205,8 +259,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
                 val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.LOCAL_MOBILE) {
-                    getBoolean(params,"autoReconnectOnUnexpectedDisconnect")
-                } else false
+                    getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
+                } else {
+                    false
+                }
 
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
@@ -313,8 +369,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val offlineBehavior = params.getString("offlineBehavior")
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
-            if (it is String) PaymentMethodType.valueOf(it.uppercase())
-            else null
+            if (it is String) {
+                PaymentMethodType.valueOf(it.uppercase())
+            } else {
+                null
+            }
         }
 
         val intentParams = paymentMethodTypes?.let {
@@ -399,9 +458,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         val uuid = UUID.randomUUID().toString()
 
-        terminal.createPaymentIntent(intentParams.build(), RNPaymentIntentCallback(promise, uuid) { pi ->
-            paymentIntents[uuid] = pi
-        }, CreateConfiguration(offlineBehaviorParam))
+        terminal.createPaymentIntent(
+            intentParams.build(),
+            RNPaymentIntentCallback(promise, uuid) { pi ->
+                paymentIntents[uuid] = pi
+            },
+            CreateConfiguration(offlineBehaviorParam)
+        )
     }
 
     @OptIn(OfflineMode::class)
@@ -435,7 +498,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 configBuilder.updatePaymentIntent(getBoolean(params, "updatePaymentIntent"))
             }
             if (params.hasKey("enableCustomerCancellation")) {
-                configBuilder.setEnableCustomerCancellation(getBoolean(params, "enableCustomerCancellation"))
+                configBuilder.setEnableCustomerCancellation(
+                    getBoolean(params, "enableCustomerCancellation")
+                )
             }
             val config = configBuilder.build()
 
@@ -453,14 +518,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
         val uuid = UUID.randomUUID().toString()
-        terminal.retrievePaymentIntent(clientSecret, RNPaymentIntentCallback(promise, uuid) { pi ->
-            paymentIntents[uuid] = pi
-        })
+        terminal.retrievePaymentIntent(
+            clientSecret,
+            RNPaymentIntentCallback(promise, uuid) { pi ->
+                paymentIntents[uuid] = pi
+            }
+        )
     }
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmPaymentIntent(paymentIntent: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+    fun confirmPaymentIntent(paymentIntent: ReadableMap, promise: Promise) = withExceptionResolver(
+        promise
+    ) {
         val uuid = requireParam(paymentIntent.getString("sdkUuid")) {
             "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
         }
@@ -468,9 +538,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
 
-        terminal.confirmPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
-            paymentIntents.clear()
-        })
+        terminal.confirmPaymentIntent(
+            paymentIntent,
+            RNPaymentIntentCallback(promise, uuid) {
+                paymentIntents.clear()
+            }
+        )
     }
 
     @ReactMethod
@@ -492,18 +565,24 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         } ?: SetupIntentParameters.NULL
 
         val uuid = UUID.randomUUID().toString()
-        terminal.createSetupIntent(intentParams, RNSetupIntentCallback(promise, uuid) {
-            setupIntents[uuid] = it
-        })
+        terminal.createSetupIntent(
+            intentParams,
+            RNSetupIntentCallback(promise, uuid) {
+                setupIntents[uuid] = it
+            }
+        )
     }
 
     @ReactMethod
     @Suppress("unused")
     fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
         val uuid = UUID.randomUUID().toString()
-        terminal.retrieveSetupIntent(clientSecret, RNSetupIntentCallback(promise, uuid) {
-            setupIntents[uuid] = it
-        })
+        terminal.retrieveSetupIntent(
+            clientSecret,
+            RNSetupIntentCallback(promise, uuid) {
+                setupIntents[uuid] = it
+            }
+        )
     }
 
     @OptIn(OfflineMode::class)
@@ -518,9 +597,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
-            terminal.cancelPaymentIntent(paymentIntent, RNPaymentIntentCallback(promise, uuid) {
-                paymentIntents[uuid] = null
-            })
+            terminal.cancelPaymentIntent(
+                paymentIntent,
+                RNPaymentIntentCallback(promise, uuid) {
+                    paymentIntents[uuid] = null
+                }
+            )
         }
 
     @ReactMethod
@@ -577,7 +659,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         val cartLineItems =
-            mapToCartLineItems(params.getArray("lineItems") ?: NativeTypeFactory.writableNativeArray())
+            mapToCartLineItems(
+                params.getArray("lineItems") ?: NativeTypeFactory.writableNativeArray()
+            )
 
         val cart = Cart.Builder(
             currency = currency,
@@ -602,9 +686,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             val params = SetupIntentCancellationParameters.Builder().build()
 
-            terminal.cancelSetupIntent(setupIntent, params, RNSetupIntentCallback(promise, uuid) {
-                setupIntents[setupIntent.id] = null
-            })
+            terminal.cancelSetupIntent(
+                setupIntent,
+                params,
+                RNSetupIntentCallback(promise, uuid) {
+                    setupIntents[setupIntent.id] = null
+                }
+            )
         }
 
     @ReactMethod
@@ -618,9 +706,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
-            terminal.confirmSetupIntent(setupIntent, RNSetupIntentCallback(promise, uuid) {
-                setupIntents[it.id] = null
-            })
+            terminal.confirmSetupIntent(
+                setupIntent,
+                RNSetupIntentCallback(promise, uuid) {
+                    setupIntents[it.id] = null
+                }
+            )
         }
 
     @ReactMethod
@@ -652,7 +743,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val reverseTransfer = params.getBoolean("reverseTransfer")
 
             var intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
-                RefundParameters.Builder(RefundParameters.Id.PaymentIntent(paymentIntentId), amount, currency)
+                RefundParameters.Builder(
+                    RefundParameters.Id.PaymentIntent(paymentIntentId),
+                    amount,
+                    currency
+                )
             } else {
                 RefundParameters.Builder(RefundParameters.Id.Charge(chargeId!!), amount, currency)
             }
@@ -665,7 +760,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
                 intentParams,
-                RefundConfiguration.Builder().setEnableCustomerCancellation(enableCustomerCancellation).build(),
+                RefundConfiguration.Builder().setEnableCustomerCancellation(
+                    enableCustomerCancellation
+                ).build(),
                 NoOpCallback(promise)
             )
         }
@@ -694,7 +791,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getReaderSettings(promise: Promise) {
-        Log.e("ianTest", "getReaderSettings")
         terminal.getReaderSettings(RNReadSettingsCallback(promise))
     }
 
@@ -708,6 +804,122 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             textToSpeechViaSpeakers
         )
         terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
+    }
+
+    @OptIn(CollectInputs::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val collectInputs = requireParam(params.getArray("collectInputs")) {
+            "You must provide a collectInputs"
+        }
+        val listInput = ArrayList<Input>()
+        for (i in 0 until collectInputs.size()) {
+            val collectInput = collectInputs.getMap(i)
+            when (collectInput.getString("inputType")) {
+                "TEXT" -> {
+                    collectInput.let {
+                        listInput.add(
+                            TextInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description") ?: "")
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "NUMERIC" -> {
+                    collectInput.let {
+                        listInput.add(
+                            NumericInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "EMAIL" -> {
+                    collectInput.let {
+                        listInput.add(
+                            EmailInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "PHONE" -> {
+                    collectInput.let {
+                        listInput.add(
+                            PhoneInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "SIGNATURE" -> {
+                    collectInput.let {
+                        listInput.add(
+                            SignatureInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description"))
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText"))
+                                .setSubmitButtonText(it.getString("submitButtonText"))
+                                .build()
+                        )
+                    }
+                }
+                "SELECTION" -> {
+                    collectInput.let {
+                        val selectionButtons = it.getArray("selectionButtons")
+                        val listSelectionButtons = ArrayList<SelectionButton>()
+                        selectionButtons?.let { array ->
+                            for (i in 0 until array.size()) {
+                                val button = array.getMap(i)
+                                listSelectionButtons.add(
+                                    SelectionButton(
+                                        if (button.getString("style") == "PRIMARY") {
+                                            SelectionButtonStyle.PRIMARY
+                                        } else {
+                                            SelectionButtonStyle.SECONDARY
+                                        },
+                                        button.getString("text") ?: ""
+                                    )
+                                )
+                            }
+                        }
+                        listInput.add(
+                            SelectionInput.Builder(it.getString("title") ?: "")
+                                .setDescription(it.getString("description") ?: "")
+                                .setRequired(it.getBoolean("required"))
+                                .setSkipButtonText(it.getString("skipButtonText") ?: "")
+                                .setSelectionButtons(listSelectionButtons)
+                                .build()
+                        )
+                    }
+                }
+            }
+        }
+
+        val collectInputsParameters = CollectInputsParameters(listInput)
+        collectInputsCancelable = terminal.collectInputs(
+            collectInputsParameters,
+            RNCollectInputResultCallback(promise)
+        )
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun cancelCollectInputs(promise: Promise) {
+        cancelOperation(promise, collectInputsCancelable, "collectInputs")
     }
 
     @ReactMethod
@@ -734,6 +946,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     private fun busyMessage(command: String, busyBy: String): String {
-        return  "Could not execute $command because the SDK is busy with another command: $busyBy."
+        return "Could not execute $command because the SDK is busy with another command: $busyBy."
     }
 }

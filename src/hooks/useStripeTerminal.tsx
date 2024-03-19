@@ -21,6 +21,7 @@ import type {
   PaymentIntent,
   SetupIntent,
   OfflineStatus,
+  CollectInputsParameters,
 } from '../types';
 import {
   discoverReaders,
@@ -58,6 +59,8 @@ import {
   getOfflineStatus,
   getReaderSettings,
   setReaderSettings,
+  collectInputs,
+  cancelCollectInputs,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -895,6 +898,37 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized]
   );
 
+  const _collectInputs = useCallback(
+    async (params: CollectInputsParameters) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await collectInputs(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
+  const _cancelCollectInputs = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelCollectInputs();
+
+    setLoading(false);
+
+    return response;
+  }, [_isInitialized, setLoading]);
+
   return {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
@@ -932,6 +966,8 @@ export function useStripeTerminal(props?: Props) {
     getOfflineStatus: _getOfflineStatus,
     getReaderSettings: _getReaderSettings,
     setReaderSettings: _setReaderSettings,
+    collectInputs: _collectInputs,
+    cancelCollectInputs: _cancelCollectInputs,
     emitter: emitter,
     discoveredReaders,
     connectedReader,

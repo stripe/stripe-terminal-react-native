@@ -32,6 +32,8 @@ import type {
   PaymentIntent,
   SetupIntent,
   OfflineStatus,
+  CollectInputsParameters,
+  CollectInputsResults,
 } from './types';
 
 export async function initialize(
@@ -798,4 +800,34 @@ export async function setReaderSettings(
       };
     }
   }, 'setReaderSettings')();
+}
+
+export async function collectInputs(
+  params: CollectInputsParameters
+): Promise<CollectInputsResults> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const response = await StripeTerminalSdk.collectInputs(params);
+      return response;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'collectInputs')();
+}
+
+export async function cancelCollectInputs(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelCollectInputs();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelCollectInputs')();
 }

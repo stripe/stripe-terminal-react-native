@@ -52,6 +52,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
     var cancelReaderConnectionCancellable: Cancelable? = nil
+    var collectInputsCancellable: Cancelable? = nil
     var loggingToken: String? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
@@ -946,6 +947,163 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let result = Mappers.mapFromOfflineStatus(Terminal.shared.offlineStatus)
 
         resolve(result)
+    }
+    
+    @objc(collectInputs:resolver:rejecter:)
+    func collectInputs(_ params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["collectInputs"])
+
+        guard invalidParams == nil else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            return
+        }
+        
+        let collectInputsParameters: CollectInputsParameters
+        
+        var inputs: [Input] = []
+        let collectInputs = params["collectInputs"] as? [NSDictionary]
+        if let collectInputs = collectInputs {
+            for collectInput in collectInputs {
+                let inputType = collectInput["inputType"] as? String ?? ""
+                switch (inputType) {
+                case "EMAIL":
+                    do {
+                        let input = try EmailInputBuilder(title: collectInput["title"] as! String)
+                            .setRequired(collectInput["required"] as? Bool ?? false)
+                            .setStripeDescription(collectInput["description"] as? String ?? "")
+                            .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
+                            .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .build()
+                        inputs.append(input)
+                    } catch {
+                        resolve(Errors.createError(nsError: error as NSError))
+                        return
+                    }
+                    break
+                case "NUMERIC":
+                    do {
+                        let input = try NumericInputBuilder(title: collectInput["title"] as! String)
+                            .setRequired(collectInput["required"] as? Bool ?? false)
+                            .setStripeDescription(collectInput["description"] as? String ?? "")
+                            .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
+                            .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .build()
+                        inputs.append(input)
+                    } catch {
+                        resolve(Errors.createError(nsError: error as NSError))
+                        return
+                    }
+                    break
+                case "PHONE":
+                    do {
+                        let input = try PhoneInputBuilder(title: collectInput["title"] as! String)
+                            .setRequired(collectInput["required"] as? Bool ?? false)
+                            .setStripeDescription(collectInput["description"] as? String ?? "")
+                            .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
+                            .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .build()
+                        inputs.append(input)
+                    } catch {
+                       resolve(Errors.createError(nsError: error as NSError))
+                       return
+                    }
+                    break
+                case "TEXT":
+                    do {
+                        let input = try TextInputBuilder(title: collectInput["title"] as! String)
+                            .setRequired(collectInput["required"] as? Bool ?? false)
+                            .setStripeDescription(collectInput["description"] as? String ?? "")
+                            .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
+                            .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .build()
+                        inputs.append(input)
+                    } catch {
+                        resolve(Errors.createError(nsError: error as NSError))
+                        return
+                    }
+                    break
+                case "SELECTION":
+                    var selectionButtons: [SelectionButton] = []
+                    let selections = collectInput["selectionButtons"] as? [NSDictionary]
+                    if let selections = selections {
+                        for it in selections {
+                            do {
+                                let style = it["style"] as! String
+                                let text = it["text"] as! String
+                                let button = try SelectionButtonBuilder(style: (style == "PRIMARY") ? .primary : .secondary,
+                                                                        text: text).build()
+                                selectionButtons.append(button)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
+                    do {
+                        let input = try SelectionInputBuilder(title: collectInput["title"] as! String)
+                            .setRequired(collectInput["required"] as? Bool ?? false)
+                            .setStripeDescription(collectInput["description"] as? String ?? "")
+                            .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
+                            .setSelectionButtons(selectionButtons)
+                            .build()
+                        inputs.append(input)
+                    } catch {
+                        resolve(Errors.createError(nsError: error as NSError))
+                        return
+                    }
+                    break
+                case "SIGNATURE":
+                    do {
+                        let input = try SignatureInputBuilder(title: collectInput["title"] as! String)
+                            .setRequired(collectInput["required"] as? Bool ?? false)
+                            .setStripeDescription(collectInput["description"] as? String ?? "")
+                            .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
+                            .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .build()
+                        inputs.append(input)
+                    } catch {
+                        resolve(Errors.createError(nsError: error as NSError))
+                        return
+                    }
+                    break
+                default: break
+                }
+            }
+        }
+            
+        do {
+            collectInputsParameters = try CollectInputsParametersBuilder(inputs: inputs).build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        
+        DispatchQueue.main.async {
+            self.collectInputsCancellable = Terminal.shared.collectInputs(collectInputsParameters) { collectInputResults, error in
+                if let error = error as NSError? {
+                    resolve(Errors.createError(nsError: error))
+                } else {
+                    resolve(Mappers.mapFromCollectInputs(collectInputResults ?? []))
+                }
+            }
+        }
+    }
+    
+    @objc(cancelCollectInputs:rejecter:)
+    func cancelCollectInputs(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = collectInputsCancellable else {
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectInputsCancellable could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            }
+            else {
+                resolve([:])
+            }
+            self.collectInputsCancellable = nil
+        }
     }
 
     @objc(getReaderSettings:rejecter:)

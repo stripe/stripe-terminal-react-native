@@ -9,12 +9,14 @@ import com.stripeterminalreactnative.mapFromRefund
 import com.stripeterminalreactnative.nativeMapOf
 
 class RNRefundCallback(
-    private val promise: Promise,
+    private val promise: Promise
 ) : RefundCallback {
     override fun onSuccess(refund: Refund) {
-        promise.resolve(nativeMapOf {
-            putMap("refund", mapFromRefund(refund))
-        })
+        promise.resolve(
+            nativeMapOf {
+                putMap("refund", mapFromRefund(refund))
+            }
+        )
     }
 
     override fun onFailure(e: TerminalException) {

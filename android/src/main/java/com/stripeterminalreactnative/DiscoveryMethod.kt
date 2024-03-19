@@ -5,5 +5,5 @@ enum class DiscoveryMethod {
     INTERNET,
     LOCAL_MOBILE,
     HANDOFF,
-    USB,
+    USB
 }

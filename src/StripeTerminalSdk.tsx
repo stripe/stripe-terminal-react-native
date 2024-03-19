@@ -31,6 +31,8 @@ import type {
   PaymentIntent,
   SetupIntent,
   OfflineStatus,
+  CollectInputsParameters,
+  CollectInputsResults,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -147,6 +149,10 @@ export interface StripeTerminalSdkType {
   setReaderSettings(
     params: Reader.ReaderSettingsParameters
   ): Promise<Reader.ReaderSettings>;
+  collectInputs(params: CollectInputsParameters): Promise<CollectInputsResults>;
+  cancelCollectInputs(): Promise<{
+    error?: StripeError;
+  }>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

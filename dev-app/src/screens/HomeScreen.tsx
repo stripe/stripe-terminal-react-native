@@ -170,6 +170,15 @@ export default function HomeScreen() {
             });
           }}
         />
+        <ListItem
+          title="Collect Inputs"
+          onPress={() => {
+            navigation.navigate('CollectInputsScreen', {
+              simulated,
+              discoveryMethod,
+            });
+          }}
+        />
       </List>
       <List title="DATABASE">
         <ListItem

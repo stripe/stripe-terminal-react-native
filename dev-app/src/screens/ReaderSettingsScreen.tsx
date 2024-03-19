@@ -5,7 +5,7 @@ import ListItem from '../components/ListItem';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 
-export default function ReaderDisplayScreen() {
+export default function ReaderSettingsScreen() {
   const { setReaderSettings, getReaderSettings } = useStripeTerminal();
   const [enableTextToSpeechViaSpeakers, setEnableTextToSpeechViaSpeakers] =
     useState(false);
