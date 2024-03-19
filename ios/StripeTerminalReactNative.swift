@@ -313,6 +313,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let onBehalfOf: String? = params["onBehalfOf"] as? String
         let merchantDisplayName: String? = params["merchantDisplayName"] as? String
         let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
 
         let connectionConfig: LocalMobileConnectionConfiguration
         do {
@@ -320,6 +321,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 .setMerchantDisplayName(merchantDisplayName ?? nil)
                 .setOnBehalfOf(onBehalfOf ?? nil)
                 .setTosAcceptancePermitted(tosAcceptancePermitted)
+                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
+                .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
                 .build()
         }  catch {
             resolve(Errors.createError(nsError: error as NSError))
@@ -1123,7 +1126,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
             return
         }
-        
+
         let textToSpeechViaSpeakers = params["textToSpeechViaSpeakers"] as? Bool ?? false
         Task {
             do {
@@ -1174,7 +1177,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
     }
-    
+
     func reader(_ reader: Reader, didDisconnect reason: DisconnectReason) {
         let result = Mappers.mapFromReaderDisconnectReason(reason)
         sendEvent(withName: ReactNativeConstants.DISCONNECT.rawValue, body: ["reason": result])
@@ -1223,7 +1226,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didForwardPaymentIntent intent: PaymentIntent, error: Error?) {
         let result = Mappers.mapFromPaymentIntent(intent, uuid: "")
         var body: [String: Any] = ["result": result]
-        
+
         if let nsError = error as NSError? {
            let errorAsDictionary = Errors.createError(nsError: nsError)
             // createError will return a dictionary of ["error": {the error}]
@@ -1232,7 +1235,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 error
             })
         }
-        
+
         sendEvent(withName: ReactNativeConstants.FORWARD_PAYMENT_INTENT.rawValue, body: body)
     }
 

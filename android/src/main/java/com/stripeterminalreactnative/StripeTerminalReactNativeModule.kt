@@ -258,7 +258,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
-                val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB) {
+                val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.LOCAL_MOBILE) {
                     getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
                 } else {
                     false
@@ -920,6 +920,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelCollectInputs(promise: Promise) {
         cancelOperation(promise, collectInputsCancelable, "collectInputs")
+    }
+
+    @ReactMethod
+    fun addListener(eventName: String?) {
+        // Set up any upstream listeners or background tasks as necessary
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int?) {
+        // Remove upstream listeners, stop unnecessary background tasks
     }
 
     private fun cancelOperation(

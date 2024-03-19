@@ -115,7 +115,11 @@ suspend fun Terminal.connectReader(
     }
     DiscoveryMethod.LOCAL_MOBILE -> connectLocalMobileReader(
         reader,
-        LocalMobileConnectionConfiguration(locationId)
+        LocalMobileConnectionConfiguration(
+            locationId,
+            autoReconnectOnUnexpectedDisconnect,
+            reconnectionListener
+        )
     )
     DiscoveryMethod.INTERNET -> connectInternetReader(reader, InternetConnectionConfiguration())
     DiscoveryMethod.HANDOFF -> {
