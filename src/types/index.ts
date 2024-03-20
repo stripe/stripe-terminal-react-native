@@ -405,7 +405,6 @@ export type Input = {
   skipButtonText?: string;
   submitButtonText?: string;
   title: string;
-  toggles?: Toggle[];
   selectionButtons?: SelectionButton[];
 };
 
@@ -417,25 +416,7 @@ export type CollectInputResult = {
   selection?: string;
   signatureSvg?: string;
   text?: string;
-  toggles?: ToggleResult[];
 };
-
-export type Toggle = {
-  title: string;
-  description: string;
-  defaultValue: ToggleValue;
-};
-
-export enum ToggleValue {
-  ENABLED = 'ENABLED',
-  DISABLED = 'DISABLED',
-}
-
-export enum ToggleResult {
-  ENABLED = 'ENABLED',
-  DISABLED = 'DISABLED',
-  SKIPPED = 'SKIPPED',
-}
 
 export type SelectionButton = {
   style: SelectionButtonStyle;
