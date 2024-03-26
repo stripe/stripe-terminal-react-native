@@ -6,6 +6,7 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.CollectInputs
+import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.Address
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
@@ -33,6 +34,9 @@ import com.stripe.stripeterminal.external.models.ReaderAccessibility
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
+import com.stripe.stripeterminal.external.models.OfflineDetails
+import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.external.models.ReaderSettings
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
@@ -163,6 +167,7 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
     }
 }
 
+@OptIn(OfflineMode::class)
 internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap = nativeMapOf {
     putInt("amount", paymentIntent.amount.toInt())
     putString("currency", paymentIntent.currency)
@@ -173,6 +178,7 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putString("created", convertToUnixTimestamp(paymentIntent.created))
     putString("sdkUuid", uuid)
     putString("paymentMethodId", paymentIntent.paymentMethodId)
+    putMap("offlineDetails", mapFromOfflineDetails(paymentIntent?.offlineDetails))
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
@@ -515,6 +521,40 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             "preferredLocales",
             convertListToReadableArray(cardPresentDetails?.preferredLocales)
         )
+    }
+
+private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap? =
+    offlineDetails?.let {
+        nativeMapOf {
+            putString("storedAt", offlineDetails.storedAt.toString())
+            putBoolean("requiresUpload", offlineDetails.requiresUpload)
+            putMap("cardPresentDetails", mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails))
+            putMap("amountDetails", mapFromAmountDetails(offlineDetails.amountDetails))
+        }
+    }
+
+private fun mapFromAmountDetails(amountDetails: AmountDetails?): ReadableMap? =
+    amountDetails?.let {
+        nativeMapOf {
+            putMap("tip", nativeMapOf{ putInt("amount", amountDetails.tip?.amount?.toInt() ?: 0) })
+        }
+    }
+
+
+private fun mapFromOfflineCardPresentDetails(offlineCardPresentDetails: OfflineCardPresentDetails?): ReadableMap? =
+    offlineCardPresentDetails?.let {
+        nativeMapOf {
+            putString("brand", offlineCardPresentDetails?.brand)
+            putString("cardholderName", offlineCardPresentDetails?.cardholderName)
+            putIntOrNull(this, "expMonth", offlineCardPresentDetails?.expMonth)
+            putIntOrNull(this, "expYear", offlineCardPresentDetails?.expYear)
+            putString("last4", offlineCardPresentDetails?.last4)
+            putString("readMethod", offlineCardPresentDetails?.readMethod)
+            putMap(
+                "receiptDetails",
+                mapFromReceiptDetails(offlineCardPresentDetails?.receiptDetails)
+            )
+        }
     }
 
 internal fun mapFromWallet(wallet: Wallet?): ReadableMap =
