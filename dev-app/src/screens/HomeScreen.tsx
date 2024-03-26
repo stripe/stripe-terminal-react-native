@@ -57,13 +57,14 @@ export default function HomeScreen() {
         }, 3000);
       },
       onDidForwardPaymentIntent(paymentIntent, error) {
-        let toastMsg =
-          'Payment Intent ' +
-          paymentIntent.id +
-          ' forwarded. ErrorCode' +
-          error?.code +
-          '. ErrorMsg = ' +
-          error?.message;
+        let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
+        if (error) {
+          toastMsg +
+            'ErrorCode = ' +
+            error.code +
+            '. ErrorMsg = ' +
+            error.message;
+        }
         let toast = Toast.show(toastMsg, {
           duration: Toast.durations.LONG,
           position: Toast.positions.BOTTOM,
