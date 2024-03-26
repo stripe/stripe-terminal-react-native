@@ -41,13 +41,16 @@ export default function DatabaseScreen() {
     getOfflinePaymentStatus();
   }, [getOfflineStatus]);
 
+  console.log(offlinePaymentStatus);
+
   return (
     <ScrollView style={styles.container}>
       <List bolded={false} topSpacing={false} title="PUBLIC INTERFACE SUMMARY">
         {offlinePaymentStatus &&
-        offlinePaymentStatus.sdk.offlinePaymentsCount > 0 ? (
+        offlinePaymentStatus.reader &&
+        offlinePaymentStatus.reader.offlinePaymentsCount > 0 ? (
           Object.keys(
-            offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency
+            offlinePaymentStatus.reader.offlinePaymentAmountsByCurrency
           ).map((key) => (
             <ListItem
               title={
@@ -55,9 +58,8 @@ export default function DatabaseScreen() {
                 ' ' +
                 (
                   Number(
-                    offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency[
-                      key
-                    ]
+                    offlinePaymentStatus.reader!
+                      .offlinePaymentAmountsByCurrency[key]
                   ) / 100
                 ).toFixed(2)
               }
@@ -70,8 +72,8 @@ export default function DatabaseScreen() {
       <Text style={styles.infoText}>
         {' '}
         {String(
-          offlinePaymentStatus
-            ? offlinePaymentStatus.sdk.offlinePaymentsCount
+          offlinePaymentStatus && offlinePaymentStatus.reader
+            ? offlinePaymentStatus.reader.offlinePaymentsCount
             : 0
         ) +
           ' payment intent(s) for ' +

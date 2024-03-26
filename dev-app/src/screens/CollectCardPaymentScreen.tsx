@@ -85,7 +85,7 @@ export default function CollectCardPaymentScreen() {
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
-  const { simulated, discoveryMethod } = params;
+  const { simulated, discoveryMethod, online } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
@@ -165,7 +165,8 @@ export default function CollectCardPaymentScreen() {
     };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
-    if (discoveryMethod === 'internet') {
+    if (discoveryMethod === 'internet' && online) {
+      console.log('api.createPaymentIntent');
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
