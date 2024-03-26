@@ -41,8 +41,6 @@ export default function DatabaseScreen() {
     getOfflinePaymentStatus();
   }, [getOfflineStatus]);
 
-  console.log(offlinePaymentStatus);
-
   return (
     <ScrollView style={styles.container}>
       <List bolded={false} topSpacing={false} title="READER SUMMARY">

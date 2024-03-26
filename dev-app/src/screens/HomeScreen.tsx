@@ -65,6 +65,7 @@ export default function HomeScreen() {
             '. ErrorMsg = ' +
             error.message;
         }
+        console.log(toastMsg);
         let toast = Toast.show(toastMsg, {
           duration: Toast.durations.LONG,
           position: Toast.positions.BOTTOM,

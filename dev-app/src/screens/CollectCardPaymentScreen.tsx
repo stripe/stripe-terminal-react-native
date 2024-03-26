@@ -96,7 +96,6 @@ export default function CollectCardPaymentScreen() {
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
     setSimulatedCard,
-    getOfflineStatus,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       // @ts-ignore
@@ -204,36 +203,6 @@ export default function CollectCardPaymentScreen() {
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
     } else {
-      const offlineStatus = await getOfflineStatus();
-      let sdkStoredPaymentAmount = 0;
-      for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
-        if (currency === inputValues.currency) {
-          sdkStoredPaymentAmount =
-            offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
-        }
-      }
-
-      let readerStoredPaymentAmount = 0;
-      if (offlineStatus.reader) {
-        for (let currency in offlineStatus.reader
-          .offlinePaymentAmountsByCurrency) {
-          if (currency === inputValues.currency) {
-            readerStoredPaymentAmount =
-              offlineStatus.reader.offlinePaymentAmountsByCurrency[currency];
-          }
-        }
-      }
-
-      if (
-        Number(inputValues.amount) >
-          Number(inputValues.offlineModeTransactionLimit) ||
-        sdkStoredPaymentAmount >
-          Number(inputValues.offlineModeStoredTransactionLimit) ||
-        readerStoredPaymentAmount >
-          Number(inputValues.offlineModeStoredTransactionLimit)
-      ) {
-        inputValues.offlineBehavior = 'require_online';
-      }
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
