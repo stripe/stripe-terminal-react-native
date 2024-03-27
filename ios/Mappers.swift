@@ -415,7 +415,7 @@ class Mappers {
             "issuer": cardPresent.issuer,
             "iin": cardPresent.iin,
             "description": cardPresent.stripeDescription,
-            "network": cardPresent.network,
+            "network": mapFromCardPresentDetailsNetwork(cardPresent.network ?? NSNumber(-1)),
             "wallet": walletMap
         ]
         return result
@@ -448,6 +448,21 @@ class Mappers {
         case CardBrand.interac: return "interac"
         case CardBrand.unionPay: return "unionPay"
         case CardBrand.eftposAu: return "eftposAu"
+        default: return "unknown"
+        }
+    }
+    
+    class func mapFromCardPresentDetailsNetwork(_ type: NSNumber) -> String {
+        switch type {
+        case 0: return "visa"
+        case 1: return "amex"
+        case 2: return "masterCard"
+        case 3: return "discover"
+        case 4: return "JCB"
+        case 5: return "dinersClub"
+        case 6: return "interac"
+        case 7: return "unionPay"
+        case 8: return "eftposAu"
         default: return "unknown"
         }
     }
