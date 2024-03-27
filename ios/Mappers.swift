@@ -438,7 +438,7 @@ class Mappers {
         }
         
         let result: NSDictionary = [
-            "storedAt": offlineDetails.collectedAt ?? NSNull(),
+            "storedAt": convertDateToUnixTimestamp(date: offlineDetails.collectedAt) ?? NSNull(),
             "requiresUpload": offlineDetails.requiresUpload,
             "cardPresentDetails": offlineCardPresentDetails ?? NSNull(),
             "amountDetails": amountDetails ?? NSNull()
