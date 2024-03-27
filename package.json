@@ -50,8 +50,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-        "@commitlint/config-conventional": "^11.0.0",
-    "@expo/config-plugins": "^4.0.18",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@expo/config-plugins": "^7.8.4",
     "@react-native-community/bob": "^0.16.2",
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/base-64": "^1.0.0",
