@@ -432,11 +432,16 @@ class Mappers {
             offlineCardPresentDetails = mapFromOfflineCardPresentDetails(cardPresentDetails)
         }
         
+        var amountDetails: NSDictionary?
+        if let offlineAmountDetails = offlineDetails.amountDetails {
+            amountDetails = mapFromAmountDetails(offlineAmountDetails)
+        }
+        
         let result: NSDictionary = [
             "storedAt": offlineDetails.collectedAt ?? NSNull(),
             "requiresUpload": offlineDetails.requiresUpload,
             "cardPresentDetails": offlineCardPresentDetails ?? NSNull(),
-            "amountDetails": offlineDetails.amountDetails ?? NSNull()
+            "amountDetails": amountDetails ?? NSNull()
         ]
         
         return result
