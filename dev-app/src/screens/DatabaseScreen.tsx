@@ -43,11 +43,12 @@ export default function DatabaseScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <List bolded={false} topSpacing={false} title="PUBLIC INTERFACE SUMMARY">
+      <List bolded={false} topSpacing={false} title="READER SUMMARY">
         {offlinePaymentStatus &&
-        offlinePaymentStatus.sdk.offlinePaymentsCount > 0 ? (
+        offlinePaymentStatus.reader &&
+        offlinePaymentStatus.reader.offlinePaymentsCount > 0 ? (
           Object.keys(
-            offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency
+            offlinePaymentStatus.reader.offlinePaymentAmountsByCurrency
           ).map((key) => (
             <ListItem
               title={
@@ -55,9 +56,8 @@ export default function DatabaseScreen() {
                 ' ' +
                 (
                   Number(
-                    offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency[
-                      key
-                    ]
+                    offlinePaymentStatus.reader!
+                      .offlinePaymentAmountsByCurrency[key]
                   ) / 100
                 ).toFixed(2)
               }
@@ -70,7 +70,42 @@ export default function DatabaseScreen() {
       <Text style={styles.infoText}>
         {' '}
         {String(
-          offlinePaymentStatus
+          offlinePaymentStatus &&
+            offlinePaymentStatus.reader &&
+            offlinePaymentStatus.reader.offlinePaymentsCount
+            ? offlinePaymentStatus.reader.offlinePaymentsCount
+            : 0
+        ) +
+          ' payment intent(s) for ' +
+          account?.settings?.dashboard.display_name}{' '}
+      </Text>
+      <List bolded={false} topSpacing={false} title="SDK SUMMARY">
+        {offlinePaymentStatus &&
+        offlinePaymentStatus.sdk.offlinePaymentsCount > 0 ? (
+          Object.keys(
+            offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency
+          ).map((key) => (
+            <ListItem
+              title={
+                getCurrencySymbols(key) +
+                ' ' +
+                (
+                  Number(
+                    offlinePaymentStatus.reader!
+                      .offlinePaymentAmountsByCurrency[key]
+                  ) / 100
+                ).toFixed(2)
+              }
+            />
+          ))
+        ) : (
+          <></>
+        )}
+      </List>
+      <Text style={styles.infoText}>
+        {' '}
+        {String(
+          offlinePaymentStatus && offlinePaymentStatus.sdk
             ? offlinePaymentStatus.sdk.offlinePaymentsCount
             : 0
         ) +

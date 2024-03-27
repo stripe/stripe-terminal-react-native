@@ -869,7 +869,7 @@ export function useStripeTerminal(props?: Props) {
       throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
     }
     const response = await getOfflineStatus();
-    if (response.reader?.networkStatus) {
+    if (!response.reader?.networkStatus) {
       response.reader = undefined;
     }
     return response;

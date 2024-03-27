@@ -85,7 +85,7 @@ export default function CollectCardPaymentScreen() {
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
-  const { simulated, discoveryMethod } = params;
+  const { simulated, discoveryMethod, online } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
@@ -96,7 +96,6 @@ export default function CollectCardPaymentScreen() {
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
     setSimulatedCard,
-    getOfflineStatus,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       // @ts-ignore
@@ -165,7 +164,7 @@ export default function CollectCardPaymentScreen() {
     };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
-    if (discoveryMethod === 'internet') {
+    if (discoveryMethod === 'internet' && online) {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
@@ -204,22 +203,6 @@ export default function CollectCardPaymentScreen() {
       paymentIntent = response.paymentIntent;
       paymentIntentError = response.error;
     } else {
-      const offlineStatus = await getOfflineStatus();
-      let storedPaymentAmount = 0;
-      for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
-        if (currency === inputValues.currency) {
-          storedPaymentAmount =
-            offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
-        }
-      }
-      if (
-        Number(inputValues.amount) >
-          Number(inputValues.offlineModeTransactionLimit) ||
-        storedPaymentAmount >
-          Number(inputValues.offlineModeStoredTransactionLimit)
-      ) {
-        inputValues.offlineBehavior = 'require_online';
-      }
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
