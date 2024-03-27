@@ -431,7 +431,7 @@ export enum SelectionButtonStyle {
 export type OfflineDetails = {
   storedAt: string;
   requiresUpload: boolean;
-  cardPresentDetails: CardPresentDetails;
+  cardPresentDetails: OfflineCardPresentDetails;
   amountDetails: AmountDetails;
 };
 
