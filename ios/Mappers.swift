@@ -138,6 +138,10 @@ class Mappers {
 
 
     class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent, uuid: String) -> NSDictionary {
+        var offlineDetailsMap: NSDictionary?
+        if let offlineDetails = paymentIntent.offlineDetails {
+            offlineDetailsMap = mapFromOfflineDetails(offlineDetails)
+        }
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
             "charges": mapFromCharges(paymentIntent.charges),
@@ -147,6 +151,7 @@ class Mappers {
             "id": paymentIntent.stripeId,
             "sdkUuid": uuid,
             "paymentMethodId": paymentIntent.paymentMethodId,
+            "offlineDetails": offlineDetailsMap ?? NSNull()
         ]
         return result
     }
@@ -418,6 +423,53 @@ class Mappers {
             "network": cardPresent.network,
             "wallet": walletMap
         ]
+        return result
+    }
+    
+    class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
+        var offlineCardPresentDetails: NSDictionary?
+        if let cardPresentDetails = offlineDetails.cardPresentDetails {
+            offlineCardPresentDetails = mapFromOfflineCardPresentDetails(cardPresentDetails)
+        }
+        
+        let result: NSDictionary = [
+            "storedAt": offlineDetails.collectedAt ?? NSNull(),
+            "requiresUpload": offlineDetails.requiresUpload,
+            "cardPresentDetails": offlineCardPresentDetails ?? NSNull(),
+            "amountDetails": offlineDetails.amountDetails ?? NSNull()
+        ]
+        
+        return result
+    }
+    
+    class func mapFromAmountDetails(_ amountDetails: SCPAmountDetails?) -> NSDictionary {
+        let amount: NSDictionary = [
+            "amount": amountDetails?.tip ?? NSNull(),
+        ]
+        
+        let result: NSDictionary = [
+            "tip": amount
+        ]
+        
+        return result
+    }
+    
+    class func mapFromOfflineCardPresentDetails(_ offlineCardPresentDetails: OfflineCardPresentDetails) -> NSDictionary {
+        var receiptDetailsMap: NSDictionary?
+        if let receiptDetails = offlineCardPresentDetails.receiptDetails {
+            receiptDetailsMap = mapFromReceiptDetails(receiptDetails)
+        }
+        
+        let result: NSDictionary = [
+            "brand": offlineCardPresentDetails.brand,
+            "cardholderName": offlineCardPresentDetails.cardholderName ?? NSNull(),
+            "expMonth": offlineCardPresentDetails.expMonth,
+            "expYear": offlineCardPresentDetails.expYear,
+            "last4": offlineCardPresentDetails.last4 ?? NSNull(),
+            "readMethod": offlineCardPresentDetails.readMethod,
+            "receiptDetails": receiptDetailsMap ?? NSNull()
+        ]
+        
         return result
     }
 

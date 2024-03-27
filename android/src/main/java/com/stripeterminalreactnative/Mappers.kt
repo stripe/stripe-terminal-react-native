@@ -6,8 +6,9 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.CollectInputs
-import com.stripe.stripeterminal.external.models.AmountDetails
+import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.Address
+import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.CartLineItem
@@ -21,6 +22,8 @@ import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.NetworkStatus
 import com.stripe.stripeterminal.external.models.NumericResult
+import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
+import com.stripe.stripeterminal.external.models.OfflineDetails
 import com.stripe.stripeterminal.external.models.OfflineStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
@@ -34,9 +37,6 @@ import com.stripe.stripeterminal.external.models.ReaderAccessibility
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
-import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
-import com.stripe.stripeterminal.external.models.OfflineDetails
-import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.external.models.ReaderSettings
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
@@ -528,7 +528,10 @@ private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap?
         nativeMapOf {
             putString("storedAt", offlineDetails.storedAt.toString())
             putBoolean("requiresUpload", offlineDetails.requiresUpload)
-            putMap("cardPresentDetails", mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails))
+            putMap(
+                "cardPresentDetails",
+                mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails)
+            )
             putMap("amountDetails", mapFromAmountDetails(offlineDetails.amountDetails))
         }
     }
@@ -536,10 +539,9 @@ private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap?
 private fun mapFromAmountDetails(amountDetails: AmountDetails?): ReadableMap? =
     amountDetails?.let {
         nativeMapOf {
-            putMap("tip", nativeMapOf{ putInt("amount", amountDetails.tip?.amount?.toInt() ?: 0) })
+            putMap("tip", nativeMapOf { putInt("amount", amountDetails.tip?.amount?.toInt() ?: 0) })
         }
     }
-
 
 private fun mapFromOfflineCardPresentDetails(offlineCardPresentDetails: OfflineCardPresentDetails?): ReadableMap? =
     offlineCardPresentDetails?.let {

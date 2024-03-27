@@ -427,3 +427,28 @@ export enum SelectionButtonStyle {
   PRIMARY = 'PRIMARY',
   SECONDARY = 'CanSECONDARYceled',
 }
+
+export type OfflineDetails = {
+  storedAt: string;
+  requiresUpload: boolean;
+  cardPresentDetails: CardPresentDetails;
+  amountDetails: AmountDetails;
+} 
+
+export type OfflineCardPresentDetails = {
+  brand: string;
+  cardholderName: string;
+  expMonth: number;
+  expYear: number;
+  last4: string;
+  readMethod: string;
+  receiptDetails: ReceiptDetails;
+}
+
+export type AmountDetails = {
+  tip: Amount;
+}
+
+export type Amount = {
+  amount: number;
+}
