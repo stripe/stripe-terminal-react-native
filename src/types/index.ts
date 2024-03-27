@@ -433,7 +433,7 @@ export type OfflineDetails = {
   requiresUpload: boolean;
   cardPresentDetails: CardPresentDetails;
   amountDetails: AmountDetails;
-} 
+};
 
 export type OfflineCardPresentDetails = {
   brand: string;
@@ -443,12 +443,12 @@ export type OfflineCardPresentDetails = {
   last4: string;
   readMethod: string;
   receiptDetails: ReceiptDetails;
-}
+};
 
 export type AmountDetails = {
   tip: Amount;
-}
+};
 
 export type Amount = {
   amount: number;
-}
+};
