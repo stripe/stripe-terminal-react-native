@@ -85,7 +85,7 @@ export default function CollectCardPaymentScreen() {
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
-  const { simulated, discoveryMethod, online } = params;
+  const { simulated, discoveryMethod, deviceType } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
@@ -164,11 +164,7 @@ export default function CollectCardPaymentScreen() {
     };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
-    if (
-      discoveryMethod === 'internet' &&
-      online &&
-      inputValues?.offlineBehavior === 'require_online'
-    ) {
+    if (deviceType === 'verifoneP400') {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,

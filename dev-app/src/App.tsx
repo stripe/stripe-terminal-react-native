@@ -70,7 +70,7 @@ export type RouteParamList = {
   CollectCardPayment: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
-    online: boolean;
+    deviceType: Reader.DeviceType;
   };
   RefundPayment: {
     simulated: boolean;
