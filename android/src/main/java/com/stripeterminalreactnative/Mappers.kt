@@ -136,17 +136,16 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.COTS_DEVICE -> "cotsDevice"
         DeviceType.ETNA -> "etna"
         DeviceType.STRIPE_M2 -> "stripeM2"
+        DeviceType.STRIPE_S700 -> "stripeS700"
+        DeviceType.STRIPE_S700_DEVKIT -> "stripeS700Devkit"
         DeviceType.UNKNOWN -> "unknown"
         DeviceType.VERIFONE_P400 -> "verifoneP400"
-        DeviceType.WISEPAD_3 -> "wisePad3"
-        DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISECUBE -> "wisecube"
-        DeviceType.STRIPE_S700 -> "stripeS700"
+        DeviceType.WISEPAD_3 -> "wisePad3"
         DeviceType.WISEPAD_3S -> "wisePad3s"
+        DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISEPOS_E_DEVKIT -> "wisePosEDevkit"
-        DeviceType.STRIPE_S700_DEVKIT -> "stripeS700Devkit"
-        DeviceType.STRIPE_S700 -> "stripeS700"
-        DeviceType.ETNA -> "etna"
+
     }
 }
 
