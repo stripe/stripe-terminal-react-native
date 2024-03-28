@@ -540,7 +540,7 @@ private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap?
 private fun mapFromAmountDetails(amountDetails: AmountDetails?): ReadableMap? =
     amountDetails?.let {
         nativeMapOf {
-            putMap("tip", nativeMapOf { putInt("amount", amountDetails.tip?.amount?.toInt() ?: 0) })
+            putMap("tip", nativeMapOf { putIntOrNull(this, "amount", amountDetails.tip?.amount?.toInt())})
         }
     }
 

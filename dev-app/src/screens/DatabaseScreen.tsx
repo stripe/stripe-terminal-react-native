@@ -91,8 +91,9 @@ export default function DatabaseScreen() {
                 ' ' +
                 (
                   Number(
-                    offlinePaymentStatus.reader!
-                      .offlinePaymentAmountsByCurrency[key]
+                    offlinePaymentStatus.sdk.offlinePaymentAmountsByCurrency[
+                      key
+                    ]
                   ) / 100
                 ).toFixed(2)
               }
