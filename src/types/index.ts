@@ -281,8 +281,8 @@ export type ReceiptDetails = {
   authorizationResponseCode: string;
   cvm: string;
   dedicatedFileName: string;
-  tsi: string;
-  tvr: string;
+  terminalVerificationResult: string;
+  transactionStatusInformation: string;
 };
 
 export type Wallet = {

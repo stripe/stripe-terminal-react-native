@@ -579,8 +579,8 @@ fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
         putString("authorizationResponseCode", receiptDetails?.authorizationResponseCode)
         putString("cvm", receiptDetails?.cvm)
         putString("dedicatedFileName", receiptDetails?.dedicatedFileName)
-        putString("tsi", receiptDetails?.tsi)
-        putString("tvr", receiptDetails?.tvr)
+        putString("transactionStatusInformation", receiptDetails?.tsi)
+        putString("terminalVerificationResult", receiptDetails?.tvr)
     }
 
 internal fun mapFromNetworkStatus(status: NetworkStatus): String {

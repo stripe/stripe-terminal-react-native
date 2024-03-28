@@ -164,7 +164,11 @@ export default function CollectCardPaymentScreen() {
     };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
-    if (discoveryMethod === 'internet' && online) {
+    if (
+      discoveryMethod === 'internet' &&
+      online &&
+      inputValues?.offlineBehavior === 'require_online'
+    ) {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,

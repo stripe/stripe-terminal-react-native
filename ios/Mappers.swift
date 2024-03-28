@@ -471,7 +471,7 @@ class Mappers {
             "expMonth": offlineCardPresentDetails.expMonth,
             "expYear": offlineCardPresentDetails.expYear,
             "last4": offlineCardPresentDetails.last4 ?? NSNull(),
-            "readMethod": offlineCardPresentDetails.readMethod,
+            "readMethod": mapFromReadMethod(offlineCardPresentDetails.readMethod),
             "receiptDetails": receiptDetailsMap ?? NSNull()
         ]
         
@@ -692,6 +692,17 @@ class Mappers {
         case DisconnectReason.criticallyLowBattery: return "criticallyLowBattery"
         case DisconnectReason.poweredOff: return "poweredOff"
         case DisconnectReason.bluetoothDisabled: return "bluetoothDisabled"
+        default: return "unknown"
+        }
+    }
+    
+    class func mapFromReadMethod(_ readMethod: SCPReadMethod) -> String {
+        switch readMethod {
+        case SCPReadMethod.contactEMV: return "contactEMV"
+        case SCPReadMethod.contactlessEMV: return "contactlessEMV"
+        case SCPReadMethod.contactlessMagstripeMode: return "contactlessMagstripeMode"
+        case SCPReadMethod.magneticStripeFallback: return "magneticStripeFallback"
+        case SCPReadMethod.magneticStripeTrack2: return "magneticStripeTrack2"
         default: return "unknown"
         }
     }
