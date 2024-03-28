@@ -71,7 +71,9 @@ class Mappers {
         case DeviceType.wisePosE: return "wisePosE"
         case DeviceType.wisePosEDevKit: return "wisePosEDevkit"
         case DeviceType.stripeS700DevKit: return "stripeS700Devkit"
+        case DeviceType.stripeS700: return "stripeS700"
         case DeviceType.appleBuiltIn: return "appleBuiltIn"
+        case DeviceType.etna: return "etna"
         default: return "unknown"
         }
     }
