@@ -62,16 +62,18 @@ class Mappers {
 
     class func mapFromDeviceType(_ type: DeviceType) -> String {
         switch type {
+        case DeviceType.appleBuiltIn: return "appleBuiltIn"
         case DeviceType.chipper1X: return "chipper1X"
         case DeviceType.chipper2X: return "chipper2X"
+        case DeviceType.etna: return "etna"
         case DeviceType.stripeM2: return "stripeM2"
+        case DeviceType.stripeS700: return "stripeS700"
+        case DeviceType.stripeS700DevKit: return "stripeS700Devkit"
         case DeviceType.verifoneP400: return "verifoneP400"
         case DeviceType.wiseCube: return "wiseCube"
         case DeviceType.wisePad3: return "wisePad3"
         case DeviceType.wisePosE: return "wisePosE"
         case DeviceType.wisePosEDevKit: return "wisePosEDevkit"
-        case DeviceType.stripeS700DevKit: return "stripeS700Devkit"
-        case DeviceType.appleBuiltIn: return "appleBuiltIn"
         default: return "unknown"
         }
     }
@@ -138,6 +140,10 @@ class Mappers {
 
 
     class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent, uuid: String) -> NSDictionary {
+        var offlineDetailsMap: NSDictionary?
+        if let offlineDetails = paymentIntent.offlineDetails {
+            offlineDetailsMap = mapFromOfflineDetails(offlineDetails)
+        }
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
             "charges": mapFromCharges(paymentIntent.charges),
@@ -147,6 +153,7 @@ class Mappers {
             "id": paymentIntent.stripeId,
             "sdkUuid": uuid,
             "paymentMethodId": paymentIntent.paymentMethodId,
+            "offlineDetails": offlineDetailsMap ?? NSNull()
         ]
         return result
     }
@@ -421,6 +428,58 @@ class Mappers {
         return result
     }
 
+    class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
+        var offlineCardPresentDetails: NSDictionary?
+        if let cardPresentDetails = offlineDetails.cardPresentDetails {
+            offlineCardPresentDetails = mapFromOfflineCardPresentDetails(cardPresentDetails)
+        }
+
+        var amountDetails: NSDictionary?
+        if let offlineAmountDetails = offlineDetails.amountDetails {
+            amountDetails = mapFromAmountDetails(offlineAmountDetails)
+        }
+
+        let result: NSDictionary = [
+            "storedAt": convertDateToUnixTimestamp(date: offlineDetails.collectedAt) ?? NSNull(),
+            "requiresUpload": offlineDetails.requiresUpload,
+            "cardPresentDetails": offlineCardPresentDetails ?? NSNull(),
+            "amountDetails": amountDetails ?? NSNull()
+        ]
+
+        return result
+    }
+
+    class func mapFromAmountDetails(_ amountDetails: SCPAmountDetails?) -> NSDictionary {
+        let amount: NSDictionary = [
+            "amount": amountDetails?.tip ?? NSNull(),
+        ]
+
+        let result: NSDictionary = [
+            "tip": amount
+        ]
+
+        return result
+    }
+
+    class func mapFromOfflineCardPresentDetails(_ offlineCardPresentDetails: OfflineCardPresentDetails) -> NSDictionary {
+        var receiptDetailsMap: NSDictionary?
+        if let receiptDetails = offlineCardPresentDetails.receiptDetails {
+            receiptDetailsMap = mapFromReceiptDetails(receiptDetails)
+        }
+
+        let result: NSDictionary = [
+            "brand": offlineCardPresentDetails.brand,
+            "cardholderName": offlineCardPresentDetails.cardholderName ?? NSNull(),
+            "expMonth": offlineCardPresentDetails.expMonth,
+            "expYear": offlineCardPresentDetails.expYear,
+            "last4": offlineCardPresentDetails.last4 ?? NSNull(),
+            "readMethod": mapFromReadMethod(offlineCardPresentDetails.readMethod),
+            "receiptDetails": receiptDetailsMap ?? NSNull()
+        ]
+
+        return result
+    }
+
     class func mapFromCardPresentDetailsWallet(_ wallet: SCPWallet) -> NSDictionary {
         let result: NSDictionary = [
             "type": wallet.type
@@ -615,7 +674,7 @@ class Mappers {
 
         return(["sdk": sdkDict, "reader": readerDict])
     }
-    
+
     class func mapFromReaderTextToSpeechStatus(_ status: ReaderTextToSpeechStatus) -> String {
         switch status {
         case ReaderTextToSpeechStatus.off: return "off"
@@ -624,12 +683,12 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromReaderSettings(_ readerSettings: ReaderSettings) -> NSDictionary {
         var accessibility: [String : Any] = [
             "textToSpeechStatus": mapFromReaderTextToSpeechStatus(readerSettings.accessibility.textToSpeechStatus),
         ]
-        
+
         let errorDic: NSDictionary
         if let error = readerSettings.accessibility.error as NSError? {
             errorDic = [
@@ -641,7 +700,7 @@ class Mappers {
 
         return(["accessibility": accessibility])
     }
-    
+
     class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {
         switch reason {
         case DisconnectReason.disconnectRequested: return "disconnectRequested"
@@ -653,7 +712,18 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
+    class func mapFromReadMethod(_ readMethod: SCPReadMethod) -> String {
+        switch readMethod {
+        case SCPReadMethod.contactEMV: return "contactEMV"
+        case SCPReadMethod.contactlessEMV: return "contactlessEMV"
+        case SCPReadMethod.contactlessMagstripeMode: return "contactlessMagstripeMode"
+        case SCPReadMethod.magneticStripeFallback: return "magneticStripeFallback"
+        case SCPReadMethod.magneticStripeTrack2: return "magneticStripeTrack2"
+        default: return "unknown"
+        }
+    }
+
     class func mapFromCollectInputs(_ results: [CollectInputsResult]) -> NSDictionary {
         var collectInputResults: [String : Any] = [:]
         for result in results {
@@ -683,7 +753,7 @@ class Mappers {
                 collectInputResults["selectionResult"] = selectionResult
             }
         }
-        
+
         return (["collectInputResults": collectInputResults])
     }
 }

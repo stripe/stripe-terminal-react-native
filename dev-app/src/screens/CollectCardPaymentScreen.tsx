@@ -85,7 +85,7 @@ export default function CollectCardPaymentScreen() {
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
-  const { simulated, discoveryMethod } = params;
+  const { simulated, discoveryMethod, deviceType } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
@@ -165,7 +165,8 @@ export default function CollectCardPaymentScreen() {
     };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
-    if (discoveryMethod === 'internet') {
+
+    if (deviceType === 'verifoneP400') {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
@@ -205,21 +206,34 @@ export default function CollectCardPaymentScreen() {
       paymentIntentError = response.error;
     } else {
       const offlineStatus = await getOfflineStatus();
-      let storedPaymentAmount = 0;
+      let sdkStoredPaymentAmount = 0;
       for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
         if (currency === inputValues.currency) {
-          storedPaymentAmount =
+          sdkStoredPaymentAmount =
             offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
+        }
+      }
+      let readerStoredPaymentAmount = 0;
+      if (offlineStatus.reader) {
+        for (let currency in offlineStatus.reader
+          .offlinePaymentAmountsByCurrency) {
+          if (currency === inputValues.currency) {
+            readerStoredPaymentAmount =
+              offlineStatus.reader.offlinePaymentAmountsByCurrency[currency];
+          }
         }
       }
       if (
         Number(inputValues.amount) >
           Number(inputValues.offlineModeTransactionLimit) ||
-        storedPaymentAmount >
+        sdkStoredPaymentAmount >
+          Number(inputValues.offlineModeStoredTransactionLimit) ||
+        readerStoredPaymentAmount >
           Number(inputValues.offlineModeStoredTransactionLimit)
       ) {
         inputValues.offlineBehavior = 'require_online';
       }
+
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,

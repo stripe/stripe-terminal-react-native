@@ -281,8 +281,8 @@ export type ReceiptDetails = {
   authorizationResponseCode: string;
   cvm: string;
   dedicatedFileName: string;
-  tsi: string;
-  tvr: string;
+  terminalVerificationResult: string;
+  transactionStatusInformation: string;
 };
 
 export type Wallet = {
@@ -427,3 +427,28 @@ export enum SelectionButtonStyle {
   PRIMARY = 'PRIMARY',
   SECONDARY = 'CanSECONDARYceled',
 }
+
+export type OfflineDetails = {
+  storedAt: string;
+  requiresUpload: boolean;
+  cardPresentDetails: OfflineCardPresentDetails;
+  amountDetails: AmountDetails;
+};
+
+export type OfflineCardPresentDetails = {
+  brand: string;
+  cardholderName: string;
+  expMonth: number;
+  expYear: number;
+  last4: string;
+  readMethod: string;
+  receiptDetails: ReceiptDetails;
+};
+
+export type AmountDetails = {
+  tip: Amount;
+};
+
+export type Amount = {
+  amount: number;
+};

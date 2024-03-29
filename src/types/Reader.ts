@@ -90,8 +90,10 @@ export namespace Reader {
     | 'wisePad3s'
     | 'wisePadEDevkit'
     | 'stripeS700Devkit'
+    | 'stripeS700'
     | 'cotsDevice'
-    | 'appleBuiltIn';
+    | 'appleBuiltIn'
+    | 'etna';
 
   export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
 

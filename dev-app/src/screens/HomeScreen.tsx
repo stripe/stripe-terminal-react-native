@@ -57,13 +57,15 @@ export default function HomeScreen() {
         }, 3000);
       },
       onDidForwardPaymentIntent(paymentIntent, error) {
-        let toastMsg =
-          'Payment Intent ' +
-          paymentIntent.id +
-          ' forwarded. ErrorCode' +
-          error?.code +
-          '. ErrorMsg = ' +
-          error?.message;
+        let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
+        if (error) {
+          toastMsg +
+            'ErrorCode = ' +
+            error.code +
+            '. ErrorMsg = ' +
+            error.message;
+        }
+        console.log(toastMsg);
         let toast = Toast.show(toastMsg, {
           duration: Toast.durations.LONG,
           position: Toast.positions.BOTTOM,
@@ -91,6 +93,7 @@ export default function HomeScreen() {
     ? '🔋' + batteryPercentage.toFixed(0) + '%'
     : '';
   const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
+  const deviceType = connectedReader?.deviceType;
 
   useEffect(() => {
     const loadDiscSettings = async () => {
@@ -140,6 +143,7 @@ export default function HomeScreen() {
             navigation.navigate('CollectCardPaymentScreen', {
               simulated,
               discoveryMethod,
+              deviceType,
             });
           }}
         />
@@ -213,7 +217,7 @@ export default function HomeScreen() {
             <Image source={icon} style={styles.image} />
           </View>
 
-          <Text style={styles.readerName}>{connectedReader.deviceType}</Text>
+          <Text style={styles.readerName}>{deviceType}</Text>
           <Text style={styles.connectionStatus}>
             Connected{simulated && <Text>, simulated</Text>}
           </Text>
