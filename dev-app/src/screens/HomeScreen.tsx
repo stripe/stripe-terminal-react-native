@@ -93,6 +93,7 @@ export default function HomeScreen() {
     ? '🔋' + batteryPercentage.toFixed(0) + '%'
     : '';
   const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
+  const deviceType = connectedReader?.deviceType;
 
   useEffect(() => {
     const loadDiscSettings = async () => {
@@ -142,7 +143,7 @@ export default function HomeScreen() {
             navigation.navigate('CollectCardPaymentScreen', {
               simulated,
               discoveryMethod,
-              online,
+              deviceType,
             });
           }}
         />
@@ -216,7 +217,7 @@ export default function HomeScreen() {
             <Image source={icon} style={styles.image} />
           </View>
 
-          <Text style={styles.readerName}>{connectedReader.deviceType}</Text>
+          <Text style={styles.readerName}>{deviceType}</Text>
           <Text style={styles.connectionStatus}>
             Connected{simulated && <Text>, simulated</Text>}
           </Text>
