@@ -144,6 +144,10 @@ class Mappers {
         if let offlineDetails = paymentIntent.offlineDetails {
             offlineDetailsMap = mapFromOfflineDetails(offlineDetails)
         }
+        var metadataMap: NSDictionary?
+        if let refundMetadata = paymentIntent.metadata {
+            metadataMap = NSDictionary(dictionary: refundMetadata)
+        }
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
             "charges": mapFromCharges(paymentIntent.charges),
@@ -153,7 +157,8 @@ class Mappers {
             "id": paymentIntent.stripeId,
             "sdkUuid": uuid,
             "paymentMethodId": paymentIntent.paymentMethodId,
-            "offlineDetails": offlineDetailsMap ?? NSNull()
+            "offlineDetails": offlineDetailsMap ?? NSNull(),
+            "metadata": metadataMap ?? NSNull(),
         ]
         return result
     }

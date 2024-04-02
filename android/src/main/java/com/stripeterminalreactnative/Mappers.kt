@@ -180,6 +180,14 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putString("sdkUuid", uuid)
     putString("paymentMethodId", paymentIntent.paymentMethodId)
     putMap("offlineDetails", mapFromOfflineDetails(paymentIntent?.offlineDetails))
+    putMap(
+        "metadata",
+        nativeMapOf {
+            paymentIntent.metadata?.map {
+                putString(it.key, it.value)
+            }
+        }
+    )
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
