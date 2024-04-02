@@ -145,8 +145,8 @@ class Mappers {
             offlineDetailsMap = mapFromOfflineDetails(offlineDetails)
         }
         var metadataMap: NSDictionary?
-        if let refundMetadata = paymentIntent.metadata {
-            metadataMap = NSDictionary(dictionary: refundMetadata)
+        if let paymentMetadata = paymentIntent.metadata {
+            metadataMap = NSDictionary(dictionary: paymentMetadata)
         }
         let result: NSDictionary = [
             "amount": paymentIntent.amount,
@@ -515,7 +515,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromCardPresentDetailsNetwork(_ type: NSNumber) -> String {
         switch type {
         case 0: return "visa"
