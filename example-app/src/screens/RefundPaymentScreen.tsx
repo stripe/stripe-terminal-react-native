@@ -14,6 +14,7 @@ export default function RefundPaymentScreen() {
   const { lastSuccessfulChargeId } = useContext(AppContext);
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
+    paymentIntentId: string;
     amount: string;
     currency: string;
     refundApplicationFee?: boolean;
@@ -21,6 +22,7 @@ export default function RefundPaymentScreen() {
     enableCustomerCancellation?: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
+    paymentIntentId: '',
     amount: '100',
     currency: 'CAD',
     refundApplicationFee: false,
