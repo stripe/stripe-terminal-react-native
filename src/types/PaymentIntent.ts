@@ -12,6 +12,7 @@ export namespace PaymentIntent {
     paymentMethodId: string;
     paymentMethod: PaymentMethod.Type;
     offlineDetails: OfflineDetails;
+    metadata: Record<string, string>;
   }
 
   export type Status =

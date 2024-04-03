@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '34.0.0'
+        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '33.0.1'
         minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '26')
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '34')
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
