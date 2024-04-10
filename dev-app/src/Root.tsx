@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
-import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
+import {
+  StripeTerminalProvider,
+  Location,
+} from '@stripe/stripe-terminal-react-native';
 import App from './App';
 import { AppContext, api } from './AppContext';
 import type { IAccount } from './types';
@@ -22,6 +25,9 @@ export default function Root() {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
   ] = useState<boolean | false>(false);
+
+  const [cachedLocations, setCachedLocations] = useState<Location[]>([]);
+
 
   useEffect(() => {
     // var is a string in CI
@@ -94,6 +100,8 @@ export default function Root() {
         autoReconnectOnUnexpectedDisconnect,
         setAutoReconnectOnUnexpectedDisconnect: (b) =>
           setAutoReconnectOnUnexpectedDisconnect(b),
+        cachedLocations,
+        setCachedLocations: (locations) => setCachedLocations(locations),
       }}
     >
       <StripeTerminalProvider

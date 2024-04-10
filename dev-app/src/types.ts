@@ -1,5 +1,6 @@
 import type { Stripe } from 'stripe';
 import type { Api as IApi } from './api/api';
+import type { Location } from '@stripe/stripe-terminal-react-native';
 
 export type IAccount = Stripe.Account & { secretKey: string };
 
@@ -17,6 +18,8 @@ export type IAppContext = {
   setLastSuccessfulPaymentIntentId: (id: string) => void;
   autoReconnectOnUnexpectedDisconnect: boolean | false;
   setAutoReconnectOnUnexpectedDisconnect: (b: boolean) => void;
+  cachedLocations: Array<Location>;
+  setCachedLocations: (locations: Array<Location>) => void;
 };
 
 export type IShortAccount = {
