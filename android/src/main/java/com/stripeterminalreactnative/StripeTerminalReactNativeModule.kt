@@ -206,14 +206,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         discoverCancelable = terminal.discoverReaders(
             config = when (discoveryMethod) {
                 DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(
-                    0,
+                    getInt(params, "timeout") ?: 0,
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
                     isSimulated = getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
-                    0,
+                    getInt(params, "timeout") ?: 0,
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()

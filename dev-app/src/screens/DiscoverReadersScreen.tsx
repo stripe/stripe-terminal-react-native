@@ -153,6 +153,7 @@ export default function DiscoverReadersScreen() {
     const { error: discoverReadersError } = await discoverReaders({
       discoveryMethod,
       simulated,
+      timeout: 0,
     });
 
     if (discoverReadersError) {
