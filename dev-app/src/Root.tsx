@@ -28,7 +28,6 @@ export default function Root() {
 
   const [cachedLocations, setCachedLocations] = useState<Location[]>([]);
 
-
   useEffect(() => {
     // var is a string in CI
     if (process.env.IS_CI === 'true') {

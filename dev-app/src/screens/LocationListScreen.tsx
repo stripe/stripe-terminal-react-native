@@ -18,10 +18,7 @@ import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 
 export default function LocationListScreen() {
-  const {
-    cachedLocations,
-    setCachedLocations
-  } = useContext(AppContext);
+  const { cachedLocations, setCachedLocations } = useContext(AppContext);
 
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'LocationList'>>();
@@ -44,12 +41,11 @@ export default function LocationListScreen() {
         setList(locations);
         setCachedLocations(locations);
       } else {
-        console.log("setting cached locations")
         setList(cachedLocations);
       }
     }
     init();
-  }, [getLocations]);
+  }, [getLocations, setCachedLocations, cachedLocations]);
 
   const renderItem = (item: Location) => (
     <ListItem
