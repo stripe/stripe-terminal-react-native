@@ -1,12 +1,17 @@
-import type { Charge, OfflineDetails, PaymentMethod } from './';
+import type { AmountDetails, Charge, OfflineDetails, PaymentMethod } from './';
 
 export namespace PaymentIntent {
   export interface Type {
     id: string;
     amount: number;
+    amountDetails: AmountDetails;
+    amountTip: number;
+    captureMethod: string;
     charges: Charge[];
     created: string;
     currency: string;
+    statementDescriptor: string;
+    statementDescriptorSuffix: string;
     status: Status;
     sdkUuid: string;
     paymentMethodId: string;
