@@ -1,5 +1,5 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -15,8 +15,11 @@ import { colors } from '../colors';
 import ListItem from '../components/ListItem';
 
 import type { RouteParamList } from '../App';
+import { AppContext } from '../AppContext';
 
 export default function LocationListScreen() {
+  const { cachedLocations, setCachedLocations } = useContext(AppContext);
+
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<RouteParamList, 'LocationList'>>();
 
@@ -36,10 +39,13 @@ export default function LocationListScreen() {
       const { locations } = await getLocations({ limit: 20 });
       if (locations) {
         setList(locations);
+        setCachedLocations(locations);
+      } else {
+        setList(cachedLocations);
       }
     }
     init();
-  }, [getLocations]);
+  }, [getLocations, setCachedLocations, cachedLocations]);
 
   const renderItem = (item: Location) => (
     <ListItem
