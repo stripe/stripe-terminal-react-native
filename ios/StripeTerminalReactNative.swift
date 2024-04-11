@@ -170,10 +170,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func discoverReaders(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let simulated = params["simulated"] as? Bool
         let discoveryMethod = params["discoveryMethod"] as? String
-
+        let timeout = params["timeout"] as? UInt ?? 0
+        
         let config: DiscoveryConfiguration
         do {
-            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false)
+            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false, timeout: timeout)
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return

@@ -122,10 +122,10 @@ class Mappers {
         return DiscoveryMethod.internet
     }
 
-    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool) throws-> DiscoveryConfiguration {
+    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool, timeout: UInt) throws-> DiscoveryConfiguration {
         switch discoveryMethod {
         case "bluetoothScan":
-            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         case "bluetoothProximity":
             return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "internet":
@@ -134,7 +134,7 @@ class Mappers {
             return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
-            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+            return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         }
     }
 
