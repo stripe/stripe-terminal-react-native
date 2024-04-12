@@ -169,7 +169,6 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
 
 @OptIn(OfflineMode::class)
 internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap = nativeMapOf {
-    android.util.Log.e("ianTest", "paymentIntent = $paymentIntent")
     putString("id", paymentIntent.id)
     putInt("amount", paymentIntent.amount.toInt())
     putString("captureMethod", paymentIntent.captureMethod)
