@@ -137,7 +137,14 @@ class Mappers {
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         }
     }
-
+    
+    class func mapFromCaptureMethod(_ captureMethod: CaptureMethod) -> String {
+        switch captureMethod {
+        case CaptureMethod.manual: return "manual"
+        case CaptureMethod.automatic: return "automatic"
+        default: return "unknown"
+        }
+    }
 
     class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent, uuid: String) -> NSDictionary {
         var offlineDetailsMap: NSDictionary?
@@ -148,17 +155,27 @@ class Mappers {
         if let paymentMetadata = paymentIntent.metadata {
             metadataMap = NSDictionary(dictionary: paymentMetadata)
         }
+        var paymentMethodMap: NSDictionary?
+        if let paymentMethod = paymentIntent.paymentMethod {
+            paymentMethodMap = mapFromPaymentMethod(paymentMethod)
+        }
         let result: NSDictionary = [
+            "id": paymentIntent.stripeId ?? NSNull(),
             "amount": paymentIntent.amount,
+            "captureMethod": mapFromCaptureMethod(paymentIntent.captureMethod),
             "charges": mapFromCharges(paymentIntent.charges),
             "created": convertDateToUnixTimestamp(date: paymentIntent.created) ?? NSNull(),
             "currency": paymentIntent.currency,
-            "status": mapFromPaymentIntentStatus(paymentIntent.status),
-            "id": paymentIntent.stripeId,
-            "sdkUuid": uuid,
-            "paymentMethodId": paymentIntent.paymentMethodId,
-            "offlineDetails": offlineDetailsMap ?? NSNull(),
             "metadata": metadataMap ?? NSNull(),
+            "statementDescriptor": paymentIntent.statementDescriptor ?? NSNull(),
+            "status": mapFromPaymentIntentStatus(paymentIntent.status),
+            "amountDetails": mapFromAmountDetails(paymentIntent.amountDetails),
+            "amountTip": paymentIntent.amountTip ?? 0,
+            "statementDescriptorSuffix": paymentIntent.statementDescriptorSuffix ?? NSNull(),
+            "sdkUuid": uuid,
+            "paymentMethodId": paymentIntent.paymentMethodId ?? NSNull(),
+            "paymentMethod": paymentMethodMap ?? NSNull(),
+            "offlineDetails": offlineDetailsMap ?? NSNull(),
         ]
         return result
     }

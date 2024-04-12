@@ -145,7 +145,6 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.WISEPAD_3S -> "wisePad3s"
         DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISEPOS_E_DEVKIT -> "wisePosEDevkit"
-
     }
 }
 
@@ -170,16 +169,12 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
 
 @OptIn(OfflineMode::class)
 internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap = nativeMapOf {
-    putInt("amount", paymentIntent.amount.toInt())
-    putString("currency", paymentIntent.currency)
     putString("id", paymentIntent.id)
-    putString("description", paymentIntent.description)
-    putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
+    putInt("amount", paymentIntent.amount.toInt())
+    putString("captureMethod", paymentIntent.captureMethod)
     putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
     putString("created", convertToUnixTimestamp(paymentIntent.created))
-    putString("sdkUuid", uuid)
-    putString("paymentMethodId", paymentIntent.paymentMethodId)
-    putMap("offlineDetails", mapFromOfflineDetails(paymentIntent?.offlineDetails))
+    putString("currency", paymentIntent.currency)
     putMap(
         "metadata",
         nativeMapOf {
@@ -188,6 +183,15 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
             }
         }
     )
+    putString("statementDescriptor", paymentIntent.statementDescriptor)
+    putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
+    putMap("amountDetails", mapFromAmountDetails(paymentIntent.amountDetails))
+    putInt("amountTip", paymentIntent.amountTip?.toInt() ?: 0)
+    putString("statementDescriptorSuffix", paymentIntent.statementDescriptorSuffix)
+    putString("sdkUuid", uuid)
+    putString("paymentMethodId", paymentIntent.paymentMethodId)
+    putMap("paymentMethod", paymentIntent.paymentMethod?.let { mapFromPaymentMethod(it) })
+    putMap("offlineDetails", mapFromOfflineDetails(paymentIntent.offlineDetails))
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
@@ -548,22 +552,27 @@ private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap?
 private fun mapFromAmountDetails(amountDetails: AmountDetails?): ReadableMap? =
     amountDetails?.let {
         nativeMapOf {
-            putMap("tip", nativeMapOf { putIntOrNull(this, "amount", amountDetails.tip?.amount?.toInt())})
+            putMap(
+                "tip",
+                nativeMapOf {
+                    putIntOrNull(this, "amount", amountDetails.tip?.amount?.toInt())
+                }
+            )
         }
     }
 
 private fun mapFromOfflineCardPresentDetails(offlineCardPresentDetails: OfflineCardPresentDetails?): ReadableMap? =
     offlineCardPresentDetails?.let {
         nativeMapOf {
-            putString("brand", offlineCardPresentDetails?.brand)
-            putString("cardholderName", offlineCardPresentDetails?.cardholderName)
-            putIntOrNull(this, "expMonth", offlineCardPresentDetails?.expMonth)
-            putIntOrNull(this, "expYear", offlineCardPresentDetails?.expYear)
-            putString("last4", offlineCardPresentDetails?.last4)
-            putString("readMethod", offlineCardPresentDetails?.readMethod)
+            putString("brand", offlineCardPresentDetails.brand)
+            putString("cardholderName", offlineCardPresentDetails.cardholderName)
+            putIntOrNull(this, "expMonth", offlineCardPresentDetails.expMonth)
+            putIntOrNull(this, "expYear", offlineCardPresentDetails.expYear)
+            putString("last4", offlineCardPresentDetails.last4)
+            putString("readMethod", offlineCardPresentDetails.readMethod)
             putMap(
                 "receiptDetails",
-                mapFromReceiptDetails(offlineCardPresentDetails?.receiptDetails)
+                mapFromReceiptDetails(offlineCardPresentDetails.receiptDetails)
             )
         }
     }
@@ -576,7 +585,7 @@ internal fun mapFromWallet(wallet: Wallet?): ReadableMap =
 private fun convertListToReadableArray(list: List<String>?): ReadableArray? {
     return list?.let {
         WritableNativeArray().apply { for (item in list) { pushString(item) } }
-    } ?: null
+    }
 }
 
 fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
@@ -647,7 +656,7 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
 
 internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
     return nativeMapOf {
-        var ra = settings.readerAccessibility
+        val ra = settings.readerAccessibility
         if (ra is ReaderAccessibility.Accessibility) {
             val accessibility = nativeMapOf {
                 putString(
