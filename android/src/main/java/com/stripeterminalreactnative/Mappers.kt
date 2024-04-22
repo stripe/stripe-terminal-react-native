@@ -7,54 +7,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
-import com.stripe.stripeterminal.external.models.Address
-import com.stripe.stripeterminal.external.models.AmountDetails
-import com.stripe.stripeterminal.external.models.CardDetails
-import com.stripe.stripeterminal.external.models.CardPresentDetails
-import com.stripe.stripeterminal.external.models.CartLineItem
-import com.stripe.stripeterminal.external.models.Charge
-import com.stripe.stripeterminal.external.models.CollectInputsResult
-import com.stripe.stripeterminal.external.models.ConnectionStatus
-import com.stripe.stripeterminal.external.models.DeviceType
-import com.stripe.stripeterminal.external.models.DisconnectReason
-import com.stripe.stripeterminal.external.models.EmailResult
-import com.stripe.stripeterminal.external.models.Location
-import com.stripe.stripeterminal.external.models.LocationStatus
-import com.stripe.stripeterminal.external.models.NetworkStatus
-import com.stripe.stripeterminal.external.models.NumericResult
-import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
-import com.stripe.stripeterminal.external.models.OfflineDetails
-import com.stripe.stripeterminal.external.models.OfflineStatus
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentStatus
-import com.stripe.stripeterminal.external.models.PaymentMethod
-import com.stripe.stripeterminal.external.models.PaymentMethodDetails
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.PaymentStatus
-import com.stripe.stripeterminal.external.models.PhoneResult
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.ReaderAccessibility
-import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
-import com.stripe.stripeterminal.external.models.ReaderEvent
-import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
-import com.stripe.stripeterminal.external.models.ReaderSettings
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
-import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
-import com.stripe.stripeterminal.external.models.ReceiptDetails
-import com.stripe.stripeterminal.external.models.Refund
-import com.stripe.stripeterminal.external.models.SelectionResult
-import com.stripe.stripeterminal.external.models.SetupAttempt
-import com.stripe.stripeterminal.external.models.SetupAttemptStatus
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
-import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
-import com.stripe.stripeterminal.external.models.SetupIntentStatus
-import com.stripe.stripeterminal.external.models.SetupIntentUsage
-import com.stripe.stripeterminal.external.models.SignatureResult
-import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
-import com.stripe.stripeterminal.external.models.TextResult
-import com.stripe.stripeterminal.external.models.Wallet
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -684,39 +638,55 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("email", it.email)
+                        putArray("toggles", nativeArrayOf { it.toggles.forEach { item -> pushString(mapFromToggleResult(item)) }})
                     }
                 )
                 is NumericResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("numericString", it.numericString)
+                        putArray("toggles", nativeArrayOf { it.toggles.forEach { item -> pushString(mapFromToggleResult(item)) }})
                     }
                 )
                 is PhoneResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("phone", it.phone)
+                        putArray("toggles", nativeArrayOf { it.toggles.forEach { item -> pushString(mapFromToggleResult(item)) }})
                     }
                 )
                 is SelectionResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("selection", it.selection)
+                        putArray("toggles", nativeArrayOf { it.toggles.forEach { item -> pushString(mapFromToggleResult(item)) }})
                     }
                 )
                 is SignatureResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("signatureSvg", it.signatureSvg)
+                        putArray("toggles", nativeArrayOf { it.toggles.forEach { item -> pushString(mapFromToggleResult(item)) }})
                     }
                 )
                 is TextResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("text", it.text)
+                        putArray("toggles", nativeArrayOf { it.toggles.forEach { item -> pushString(mapFromToggleResult(item)) }})
                     }
                 )
             }
         }
+    }
+}
+
+@OptIn(CollectInputs::class)
+fun mapFromToggleResult(toggleResult: ToggleResult): String {
+    return when (toggleResult) {
+        ToggleResult.ENABLED -> "ENABLED"
+        ToggleResult.DISABLED -> "DISABLED"
+        ToggleResult.SKIPPED -> "SKIPPED"
+        else -> { "UNKNOWN" }
     }
 }
