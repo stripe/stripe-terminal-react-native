@@ -195,7 +195,6 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
-    android.util.Log.e("ianTest", "setupIntent = $setupIntent")
     putString("created", convertToUnixTimestamp(setupIntent.created))
     putString("customer", setupIntent.customerId)
     putString("id", setupIntent.id)
