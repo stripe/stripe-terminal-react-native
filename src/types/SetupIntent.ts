@@ -5,10 +5,13 @@ export namespace SetupIntent {
     IOS.Type & {
       id: string;
       created: string;
+      customer?: string;
+      metadata?: Record<string, string>;
       status: Status;
       latestAttempt: SetupAttempt;
       usage: Usage;
       sdkUuid: string;
+      paymentMethodTypes?: string[];
     };
 
   export type Status =

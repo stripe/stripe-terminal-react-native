@@ -181,13 +181,20 @@ class Mappers {
     }
 
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
+        var metadataMap: NSDictionary?
+        if let metadata = setupIntent.metadata {
+            metadataMap = NSDictionary(dictionary: metadata)
+        }
         let result: NSDictionary = [
             "id": setupIntent.stripeId,
             "sdkUuid": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
+            "customer": setupIntent.customer ?? NSNull(),
+            "metadata": metadataMap ?? NSNull(),
             "status": mapFromSetupIntentStatus(setupIntent.status),
             "latestAttempt": mapFromSetupAttempt(setupIntent.latestAttempt) ?? NSNull(),
             "usage": mapFromSetupIntentUsage(setupIntent.usage),
+            "paymentMethodTypes": setupIntent.paymentMethodTypes,
         ]
         return result
     }

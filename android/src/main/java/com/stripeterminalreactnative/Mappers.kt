@@ -195,7 +195,9 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
+    android.util.Log.e("ianTest", "setupIntent = $setupIntent")
     putString("created", convertToUnixTimestamp(setupIntent.created))
+    putString("customer", setupIntent.customerId)
     putString("id", setupIntent.id)
     putString("status", mapFromSetupIntentStatus(setupIntent.status))
     putMap("latestAttempt", mapFromSetupAttempt(setupIntent.latestAttempt))
@@ -204,8 +206,17 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): Readabl
     putString("clientSecret", setupIntent.clientSecret)
     putString("description", setupIntent.description)
     putString("mandateId", setupIntent.mandateId)
+    putMap(
+        "metadata",
+        nativeMapOf {
+            setupIntent.metadata?.map {
+                putString(it.key, it.value)
+            }
+        }
+    )
     putString("onBehalfOfId", setupIntent.onBehalfOfId)
     putString("paymentMethodId", setupIntent.paymentMethodId)
+    putArray("paymentMethodTypes", convertListToReadableArray(setupIntent.paymentMethodTypes))
     putString("singleUseMandateId", setupIntent.singleUseMandateId)
     putString("sdkUuid", uuid)
 }
