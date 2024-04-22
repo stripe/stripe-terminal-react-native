@@ -8,6 +8,7 @@ export namespace Refund {
       chargeId: string;
       currency?: string;
       failureReason?: string;
+      metadata?: Record<string, string>;
       reason?: string;
       description?: string;
       status?: Status;

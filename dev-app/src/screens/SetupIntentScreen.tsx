@@ -91,7 +91,10 @@ export default function SetupIntentScreen() {
             {
               name: 'Finished',
               description: 'terminal.confirmSetupIntent',
-              metadata: { setupIntentId: setupIntent.id },
+              metadata: {
+                setupIntentId: setupIntent.id,
+                si: JSON.stringify(setupIntent, undefined, 2),
+              },
             },
           ],
         });
