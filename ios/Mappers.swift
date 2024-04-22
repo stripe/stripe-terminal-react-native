@@ -609,6 +609,7 @@ class Mappers {
             "currency": refund.currency,
             "description": refund.description,
             "failureReason": refund.failureReason ?? NSNull(),
+            "metadata": NSDictionary(dictionary: refund.metadata),
             "reason": refund.reason ?? NSNull(),
             "status": mapFromRefundStatus(refund.status),
             "paymentMethodDetails": paymentMethodDetailsMapped ?? NSNull(),
