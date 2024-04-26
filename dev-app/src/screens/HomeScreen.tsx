@@ -30,10 +30,14 @@ export default function HomeScreen() {
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
   const [online, setOnline] = useState<boolean>(true);
+  const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
-  const { disconnectReader, connectedReader, rebootReader } = useStripeTerminal(
+  const { disconnectReader, connectedReader, rebootReader,  } = useStripeTerminal(
     {
+      onDidChangeConnectionStatus(status) {
+        setConnectionStatus(status);
+      },
       onDidChangeOfflineStatus(status: OfflineStatus) {
         console.log(status);
         setOnline(status.sdk.networkStatus === 'online' ? true : false);
@@ -85,6 +89,27 @@ export default function HomeScreen() {
           'Reader disconnected with reason ' + reason
         );
       },
+      onDidStartReaderReconnect() {
+        Alert.alert(
+          'Reconnecting...',
+          'Reader has disconneted.',
+          [{text: 'Cancel', onPress: ()=>{
+            disconnectReader()
+          }}]
+        );
+      },
+      onDidSucceedReaderReconnect() {
+        Alert.alert(
+          'Reconnected!',
+          'We were able to reconnect to the reader.'
+        );
+      },
+      onDidFailReaderReconnect() {
+        Alert.alert(
+          'Reader Disconnected',
+          'Reader reconnection failed!'
+        );
+      }
     }
   );
   const batteryPercentage =
@@ -219,7 +244,7 @@ export default function HomeScreen() {
 
           <Text style={styles.readerName}>{deviceType}</Text>
           <Text style={styles.connectionStatus}>
-            Connected{simulated && <Text>, simulated</Text>}
+            {connectionStatus} {simulated && <Text>, simulated</Text>}
           </Text>
           <Text style={styles.connectionStatus}>
             {batteryStatus} {chargingStatus}
