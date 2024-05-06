@@ -153,6 +153,9 @@ export interface StripeTerminalSdkType {
   cancelCollectInputs(): Promise<{
     error?: StripeError;
   }>;
+  cancelReaderReconnection(): Promise<{
+    error?: StripeError;
+  }>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
