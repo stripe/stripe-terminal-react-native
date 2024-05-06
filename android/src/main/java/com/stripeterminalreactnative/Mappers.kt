@@ -40,6 +40,7 @@ import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.external.models.ReaderSettings
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReaderSupportResult
 import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
 import com.stripe.stripeterminal.external.models.ReceiptDetails
 import com.stripe.stripeterminal.external.models.Refund
@@ -145,6 +146,25 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.WISEPAD_3S -> "wisePad3s"
         DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISEPOS_E_DEVKIT -> "wisePosEDevkit"
+    }
+}
+
+internal fun mapToDeviceType(type: String): DeviceType? {
+    return when (type) {
+        "chipper1X" -> DeviceType.CHIPPER_1X
+        "chipper2X" -> DeviceType.CHIPPER_2X
+        "cotsDevice" -> DeviceType.COTS_DEVICE
+        "etna" -> DeviceType.ETNA
+        "stripeM2" -> DeviceType.STRIPE_M2
+        "stripeS700" -> DeviceType.STRIPE_S700
+        "stripeS700Devkit" -> DeviceType.STRIPE_S700_DEVKIT
+        "verifoneP400" -> DeviceType.VERIFONE_P400
+        "wiseCube" -> DeviceType.WISECUBE
+        "wisePad3" -> DeviceType.WISEPAD_3
+        "wisePad3s" -> DeviceType.WISEPAD_3S
+        "wisePosE" -> DeviceType.WISEPOS_E
+        "wisePosEDevkit" -> DeviceType.WISEPOS_E_DEVKIT
+        else -> null
     }
 }
 
@@ -728,5 +748,11 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 )
             }
         }
+    }
+}
+
+fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): ReadableMap {
+    return nativeMapOf {
+        putBoolean("readerSupportResult", readerSupportResult.isSupported)
     }
 }

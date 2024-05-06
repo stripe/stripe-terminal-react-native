@@ -61,6 +61,7 @@ import {
   setReaderSettings,
   collectInputs,
   cancelCollectInputs,
+  supportsReadersOfType,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -929,6 +930,23 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
+  const _supportsReadersOfType = useCallback(
+    async (params: Reader.ReaderSupportParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await supportsReadersOfType(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
   return {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
@@ -968,6 +986,7 @@ export function useStripeTerminal(props?: Props) {
     setReaderSettings: _setReaderSettings,
     collectInputs: _collectInputs,
     cancelCollectInputs: _cancelCollectInputs,
+    supportsReadersOfType: _supportsReadersOfType,
     emitter: emitter,
     discoveredReaders,
     connectedReader,

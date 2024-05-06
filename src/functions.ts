@@ -831,3 +831,20 @@ export async function cancelCollectInputs(): Promise<{
     }
   }, 'cancelCollectInputs')();
 }
+
+export async function supportsReadersOfType(
+  params: Reader.ReaderSupportParams
+): Promise<Reader.ReaderSupportResult> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const supportReaderResult = await StripeTerminalSdk.supportsReadersOfType(
+        params
+      );
+      return supportReaderResult;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'supportsReadersOfType')();
+}

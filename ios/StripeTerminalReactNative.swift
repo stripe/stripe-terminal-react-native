@@ -1139,6 +1139,39 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             }
         }
     }
+    
+    @objc(supportsReadersOfType:resolver:rejecter:)
+    func supportsReadersOfType(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["deviceType", "discoveryMethod"])
+
+        guard invalidParams == nil else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            return
+        }
+
+        let deviceTypeParam = params["deviceType"] as? String ?? ""
+        let simulated = params["simulated"] as? Bool ?? false
+        let discoveryMethod = params["discoveryMethod"] as? String
+        let deviceType = Mappers.mapToDeviceType(deviceTypeParam)
+        guard deviceType != nil else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide correct deviceType parameter."))
+            return
+        }
+        print("supportsReadersOfType")
+        let result = Terminal.shared.supportsReaders(of: deviceType!, discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod), simulated: simulated)
+        print("result = %s", result)
+        switch result {
+        case .success(_):
+            print("success")
+            resolve(["readerSupportResult": true])
+            break
+        case .failure(let error):
+            print("failure")
+            resolve(["readerSupportResult": false])
+            break
+        }
+        print("hhhh")
+    }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
         sendEvent(withName: ReactNativeConstants.REPORT_AVAILABLE_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
