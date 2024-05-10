@@ -30,63 +30,83 @@ export default function HomeScreen() {
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
   const [online, setOnline] = useState<boolean>(true);
+  const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
-  const { disconnectReader, connectedReader, rebootReader } = useStripeTerminal(
-    {
-      onDidChangeOfflineStatus(status: OfflineStatus) {
-        console.log(status);
-        setOnline(status.sdk.networkStatus === 'online' ? true : false);
-      },
-      onDidForwardingFailure(error) {
-        console.log('onDidForwardingFailure ' + error?.message);
-        let toast = Toast.show(
-          error?.message ? error.message : 'unknown error',
-          {
-            duration: Toast.durations.LONG,
-            position: Toast.positions.BOTTOM,
-            shadow: true,
-            animation: true,
-            hideOnPress: true,
-            delay: 0,
-          }
-        );
+  const {
+    disconnectReader,
+    connectedReader,
+    rebootReader,
+    cancelReaderReconnection,
+  } = useStripeTerminal({
+    onDidChangeConnectionStatus(status) {
+      setConnectionStatus(status);
+    },
+    onDidChangeOfflineStatus(status: OfflineStatus) {
+      console.log(status);
+      setOnline(status.sdk.networkStatus === 'online' ? true : false);
+    },
+    onDidForwardingFailure(error) {
+      console.log('onDidForwardingFailure ' + error?.message);
+      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
 
-        setTimeout(function () {
-          Toast.hide(toast);
-        }, 3000);
-      },
-      onDidForwardPaymentIntent(paymentIntent, error) {
-        let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
-        if (error) {
-          toastMsg +
-            'ErrorCode = ' +
-            error.code +
-            '. ErrorMsg = ' +
-            error.message;
-        }
-        console.log(toastMsg);
-        let toast = Toast.show(toastMsg, {
-          duration: Toast.durations.LONG,
-          position: Toast.positions.BOTTOM,
-          shadow: true,
-          animation: true,
-          hideOnPress: true,
-          delay: 0,
-        });
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
+    onDidForwardPaymentIntent(paymentIntent, error) {
+      let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
+      if (error) {
+        toastMsg +
+          'ErrorCode = ' +
+          error.code +
+          '. ErrorMsg = ' +
+          error.message;
+      }
+      console.log(toastMsg);
+      let toast = Toast.show(toastMsg, {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
 
-        setTimeout(function () {
-          Toast.hide(toast);
-        }, 3000);
-      },
-      onDidDisconnect(reason) {
-        Alert.alert(
-          'Reader disconnected!',
-          'Reader disconnected with reason ' + reason
-        );
-      },
-    }
-  );
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
+    onDidDisconnect(reason) {
+      Alert.alert(
+        'Reader disconnected!',
+        'Reader disconnected with reason ' + reason
+      );
+    },
+    onDidStartReaderReconnect() {
+      Alert.alert('Reconnecting...', 'Reader has disconneted.', [
+        {
+          text: 'Cancel',
+          onPress: async () => {
+            await cancelReaderReconnection();
+          },
+        },
+      ]);
+    },
+    onDidSucceedReaderReconnect() {
+      Alert.alert('Reconnected!', 'We were able to reconnect to the reader.');
+    },
+    onDidFailReaderReconnect() {
+      Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
+    },
+  });
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -219,7 +239,7 @@ export default function HomeScreen() {
 
           <Text style={styles.readerName}>{deviceType}</Text>
           <Text style={styles.connectionStatus}>
-            Connected{simulated && <Text>, simulated</Text>}
+            {connectionStatus} {simulated && <Text>, simulated</Text>}
           </Text>
           <Text style={styles.connectionStatus}>
             {batteryStatus} {chargingStatus}
