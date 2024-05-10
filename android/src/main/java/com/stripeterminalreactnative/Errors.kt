@@ -24,6 +24,9 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
         is TerminalException -> {
             putString("message", throwable.errorMessage)
             putString("code", throwable.errorCode.toString())
+            throwable.paymentIntent?.let {
+                putMap("paymentIntent", mapFromPaymentIntent(it, ""))
+            }
         }
         is CancellationException -> {
             putErrorContents(throwable.cause)

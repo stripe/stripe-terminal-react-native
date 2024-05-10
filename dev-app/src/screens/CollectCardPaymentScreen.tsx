@@ -343,6 +343,7 @@ export default function CollectCardPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              pi: JSON.stringify(error.paymentIntent, undefined, 2),
             },
           },
         ],

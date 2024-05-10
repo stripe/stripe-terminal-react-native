@@ -88,6 +88,7 @@ export type LocationStatus = 'notSet' | 'set' | 'unknown';
 export type StripeError<T = CommonError> = {
   code: T;
   message: string;
+  paymentIntent?: PaymentIntent.Type
 };
 
 export type InitializeResultType =
