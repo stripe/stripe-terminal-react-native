@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
@@ -809,6 +810,28 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @OptIn(CollectInputs::class)
+    private fun getTogglesFromParam(toggleList: ReadableArray): ArrayList<Toggle> {
+        val toggles = ArrayList<Toggle>()
+        toggleList.let { array ->
+            for (i in 0 until array.size()) {
+                val toggle = array.getMap(i)
+                toggles.add(
+                    Toggle(
+                        toggle.getString("title"),
+                        toggle.getString("description"),
+                        if (toggle.getString("defaultValue") == "ENABLED") {
+                            ToggleValue.ENABLED
+                        } else {
+                            ToggleValue.DISABLED
+                        }
+                    )
+                )
+            }
+        }
+        return toggles
+    }
+
+    @OptIn(CollectInputs::class)
     @ReactMethod
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
@@ -821,24 +844,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             when (collectInput.getString("inputType")) {
                 "TEXT" -> {
                     collectInput.let {
-                        val toggleList = it.getArray("toggles")
-                        val toggles = ArrayList<Toggle>()
-                        toggleList?.let { array ->
-                            for (i in 0 until array.size()) {
-                                val toggle = array.getMap(i)
-                                toggles.add(
-                                    Toggle(
-                                        toggle.getString("title"),
-                                        toggle.getString("description"),
-                                        if (toggle.getString("defaultValue") == "ENABLED") {
-                                            ToggleValue.ENABLED
-                                        } else {
-                                            ToggleValue.DISABLED
-                                        }
-                                    )
-                                )
-                            }
-                        }
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             TextInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description") ?: "")
@@ -852,24 +860,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 "NUMERIC" -> {
                     collectInput.let {
-                        val toggleList = it.getArray("toggles")
-                        val toggles = ArrayList<Toggle>()
-                        toggleList?.let { array ->
-                            for (i in 0 until array.size()) {
-                                val toggle = array.getMap(i)
-                                toggles.add(
-                                    Toggle(
-                                        toggle.getString("title"),
-                                        toggle.getString("description"),
-                                        if (toggle.getString("defaultValue") == "ENABLED") {
-                                            ToggleValue.ENABLED
-                                        } else {
-                                            ToggleValue.DISABLED
-                                        }
-                                    )
-                                )
-                            }
-                        }
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             NumericInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
@@ -883,24 +876,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 "EMAIL" -> {
                     collectInput.let {
-                        val toggleList = it.getArray("toggles")
-                        val toggles = ArrayList<Toggle>()
-                        toggleList?.let { array ->
-                            for (i in 0 until array.size()) {
-                                val toggle = array.getMap(i)
-                                toggles.add(
-                                    Toggle(
-                                        toggle.getString("title"),
-                                        toggle.getString("description"),
-                                        if (toggle.getString("defaultValue") == "ENABLED") {
-                                            ToggleValue.ENABLED
-                                        } else {
-                                            ToggleValue.DISABLED
-                                        }
-                                    )
-                                )
-                            }
-                        }
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             EmailInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
@@ -914,24 +892,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 "PHONE" -> {
                     collectInput.let {
-                        val toggleList = it.getArray("toggles")
-                        val toggles = ArrayList<Toggle>()
-                        toggleList?.let { array ->
-                            for (i in 0 until array.size()) {
-                                val toggle = array.getMap(i)
-                                toggles.add(
-                                    Toggle(
-                                        toggle.getString("title"),
-                                        toggle.getString("description"),
-                                        if (toggle.getString("defaultValue") == "ENABLED") {
-                                            ToggleValue.ENABLED
-                                        } else {
-                                            ToggleValue.DISABLED
-                                        }
-                                    )
-                                )
-                            }
-                        }
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             PhoneInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
@@ -945,24 +908,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 "SIGNATURE" -> {
                     collectInput.let {
-                        val toggleList = it.getArray("toggles")
-                        val toggles = ArrayList<Toggle>()
-                        toggleList?.let { array ->
-                            for (i in 0 until array.size()) {
-                                val toggle = array.getMap(i)
-                                toggles.add(
-                                    Toggle(
-                                        toggle.getString("title"),
-                                        toggle.getString("description"),
-                                        if (toggle.getString("defaultValue") == "ENABLED") {
-                                            ToggleValue.ENABLED
-                                        } else {
-                                            ToggleValue.DISABLED
-                                        }
-                                    )
-                                )
-                            }
-                        }
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             SignatureInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
@@ -976,24 +924,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 "SELECTION" -> {
                     collectInput.let {
-                        val toggleList = it.getArray("toggles")
-                        val toggles = ArrayList<Toggle>()
-                        toggleList?.let { array ->
-                            for (i in 0 until array.size()) {
-                                val toggle = array.getMap(i)
-                                toggles.add(
-                                    Toggle(
-                                        toggle.getString("title"),
-                                        toggle.getString("description"),
-                                        if (toggle.getString("defaultValue") == "ENABLED") {
-                                            ToggleValue.ENABLED
-                                        } else {
-                                            ToggleValue.DISABLED
-                                        }
-                                    )
-                                )
-                            }
-                        }
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         val selectionButtons = it.getArray("selectionButtons")
                         val listSelectionButtons = ArrayList<SelectionButton>()
                         selectionButtons?.let { array ->

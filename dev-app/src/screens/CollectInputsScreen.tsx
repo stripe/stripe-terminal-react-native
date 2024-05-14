@@ -91,8 +91,8 @@ export default function CollectInputsScreen() {
                   submitButtonText: 'submit signature',
                   toggles: [
                     {
-                      title: 'fefef',
-                      description: 'essdsde',
+                      title: 'Opt-in for marketing emails',
+                      description: '',
                       defaultValue: ToggleValue.ENABLED,
                     },
                   ],
