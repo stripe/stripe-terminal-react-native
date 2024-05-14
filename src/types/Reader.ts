@@ -140,4 +140,15 @@ export namespace Reader {
   export type ReaderSettingsParameters = {
     textToSpeechViaSpeakers: boolean;
   };
+
+  export type ReaderSupportParams = {
+    deviceType: DeviceType;
+    simulated?: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+
+  export type ReaderSupportResult = {
+    error?: StripeError;
+    readerSupportResult: boolean;
+  };
 }

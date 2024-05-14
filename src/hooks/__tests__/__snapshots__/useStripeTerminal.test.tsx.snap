@@ -47,6 +47,7 @@ Object {
     "setReaderSettings": [Function],
     "setSimulatedCard": [Function],
     "simulateReaderUpdate": [Function],
+    "supportsReadersOfType": [Function],
   },
 }
 `;
