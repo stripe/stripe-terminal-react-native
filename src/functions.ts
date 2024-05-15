@@ -846,3 +846,20 @@ export async function cancelReaderReconnection(): Promise<{
     }
   }, 'cancelReaderReconnection')();
 }
+
+export async function supportsReadersOfType(
+  params: Reader.ReaderSupportParams
+): Promise<Reader.ReaderSupportResult> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const supportReaderResult = await StripeTerminalSdk.supportsReadersOfType(
+        params
+      );
+      return supportReaderResult;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'supportsReadersOfType')();
+}

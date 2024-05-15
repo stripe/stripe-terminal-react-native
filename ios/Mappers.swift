@@ -77,6 +77,24 @@ class Mappers {
         default: return "unknown"
         }
     }
+    
+    class func mapToDeviceType(_ type: String) -> DeviceType? {
+        switch type {
+        case "appleBuiltIn": return DeviceType.appleBuiltIn
+        case "chipper1X": return DeviceType.chipper1X
+        case "chipper2X": return DeviceType.chipper2X
+        case "etna": return DeviceType.etna
+        case "stripeM2": return DeviceType.stripeM2
+        case "stripeS700": return DeviceType.stripeS700
+        case "stripeS700Devkit": return DeviceType.stripeS700DevKit
+        case "verifoneP400": return DeviceType.verifoneP400
+        case "wiseCube": return DeviceType.wiseCube
+        case "wisePad3": return DeviceType.wisePad3
+        case "wisePosE": return DeviceType.wisePosE
+        case "wisePosEDevkit": return DeviceType.wisePosEDevKit
+        default: return nil
+        }
+    }
 
     class func mapToCartLineItem(_ cartLineItem: NSDictionary) -> CartLineItem? {
         guard let displayName = cartLineItem["displayName"] as? String else { return nil }

@@ -972,6 +972,45 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    @Suppress("unused")
+    fun supportsReadersOfType(params: ReadableMap, promise: Promise) {
+        val deviceTypeParams = requireParam(params.getString("deviceType")) {
+            "You must provide a deviceType"
+        }
+        val deviceType = requireParam(mapToDeviceType(deviceTypeParams)) {
+            "Unknown readerType: $deviceTypeParams"
+        }
+        val discoveryMethodParam = requireParam(params.getString("discoveryMethod")) {
+            "You must provide a discoveryMethod"
+        }
+        val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
+            "Unknown discoveryMethod: $discoveryMethodParam"
+        }
+
+        val readerSupportResult = terminal.supportsReadersOfType(
+            deviceType,
+            when (discoveryMethod) {
+                DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(
+                    getInt(params, "timeout") ?: 0,
+                    getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
+                    isSimulated = getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
+                    getInt(params, "timeout") ?: 0,
+                    getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
+                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(
+                    getBoolean(params, "simulated")
+                ) }
+        )
+
+        promise.resolve(mapFromReaderSupportResult(readerSupportResult))
+    }
+
+    @ReactMethod
     fun addListener(eventName: String?) {
         // Set up any upstream listeners or background tasks as necessary
     }
