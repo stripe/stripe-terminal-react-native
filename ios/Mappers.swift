@@ -771,33 +771,53 @@ class Mappers {
         default: return "unknown"
         }
     }
+    
+    class func mapFromToggleResult(_ toggleResult: NSNumber) -> String {
+        switch toggleResult {
+        case 0: return "ENABLED"
+        case 1: return "DISABLED"
+        case 2: return "SKIPPED"
+        default: return "UNKNOWN"
+        }
+    }
+    
+    class func mapFromToggleResultList(_ toggles: [NSNumber]) -> [String] {
+        var list: [String] = []
+
+        for toggle in toggles {
+            let result = mapFromToggleResult(toggle)
+            list.append(result)
+        }
+
+        return list
+    }
 
     class func mapFromCollectInputs(_ results: [CollectInputsResult]) -> NSDictionary {
         var collectInputResults: [String : Any] = [:]
         for result in results {
             if result is EmailResult {
                 let result = result as! EmailResult
-                var emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? ""]
+                var emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? "", "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults["emailResult"] = emailResult
             } else if result is PhoneResult {
                 let result = result as! PhoneResult
-                var phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? ""]
+                var phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? "", "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults["phoneResult"] = phoneResult
             } else if result is TextResult {
                 let result = result as! TextResult
-                var textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? ""]
+                var textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? "", "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults["textResult"] = textResult
             } else if result is NumericResult {
                 let result = result as! NumericResult
-                var numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? ""]
+                var numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? "", "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults["numericResult"] = numericResult
             } else if result is SignatureResult {
                 let result = result as! SignatureResult
-                var signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? ""]
+                var signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? "", "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults["signatureResult"] = signatureResult
             } else if result is SelectionResult {
                 let result = result as! SelectionResult
-                var selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? ""]
+                var selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults["selectionResult"] = selectionResult
             }
         }

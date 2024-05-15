@@ -5,6 +5,7 @@ import ListItem from '../components/ListItem';
 import {
   CollectInputsParameters,
   SelectionButtonStyle,
+  ToggleValue,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -88,6 +89,13 @@ export default function CollectInputsScreen() {
                   description:
                     'Please sign if you agree to the terms and conditions',
                   submitButtonText: 'submit signature',
+                  toggles: [
+                    {
+                      title: 'Opt-in for marketing emails',
+                      description: '',
+                      defaultValue: ToggleValue.ENABLED,
+                    },
+                  ],
                 },
                 {
                   inputType: 'SELECTION',
@@ -131,6 +139,13 @@ export default function CollectInputsScreen() {
                   description:
                     "We'll send you updates on your order and occasional deals",
                   submitButtonText: 'Done',
+                  toggles: [
+                    {
+                      title: 'Opt-in for marketing emails',
+                      defaultValue: ToggleValue.ENABLED,
+                      description: '',
+                    },
+                  ],
                 },
                 {
                   inputType: 'PHONE',

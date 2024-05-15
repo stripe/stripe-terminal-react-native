@@ -55,6 +55,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SignatureResult
 import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
 import com.stripe.stripeterminal.external.models.TextResult
+import com.stripe.stripeterminal.external.models.ToggleResult
 import com.stripe.stripeterminal.external.models.Wallet
 import com.stripe.stripeterminal.log.LogLevel
 
@@ -714,40 +715,98 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("email", it.email)
+                        putArray(
+                            "toggles",
+                            nativeArrayOf {
+                                it.toggles.forEach { item ->
+                                    pushString(mapFromToggleResult(item))
+                                }
+                            }
+                        )
                     }
                 )
                 is NumericResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("numericString", it.numericString)
+                        putArray(
+                            "toggles",
+                            nativeArrayOf {
+                                it.toggles.forEach { item ->
+                                    pushString(mapFromToggleResult(item))
+                                }
+                            }
+                        )
                     }
                 )
                 is PhoneResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("phone", it.phone)
+                        putArray(
+                            "toggles",
+                            nativeArrayOf {
+                                it.toggles.forEach { item ->
+                                    pushString(mapFromToggleResult(item))
+                                }
+                            }
+                        )
                     }
                 )
                 is SelectionResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("selection", it.selection)
+                        putArray(
+                            "toggles",
+                            nativeArrayOf {
+                                it.toggles.forEach { item ->
+                                    pushString(mapFromToggleResult(item))
+                                }
+                            }
+                        )
                     }
                 )
                 is SignatureResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("signatureSvg", it.signatureSvg)
+                        putArray(
+                            "toggles",
+                            nativeArrayOf {
+                                it.toggles.forEach { item ->
+                                    pushString(mapFromToggleResult(item))
+                                }
+                            }
+                        )
                     }
                 )
                 is TextResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("text", it.text)
+                        putArray(
+                            "toggles",
+                            nativeArrayOf {
+                                it.toggles.forEach { item ->
+                                    pushString(mapFromToggleResult(item))
+                                }
+                            }
+                        )
                     }
                 )
             }
         }
+    }
+}
+
+@OptIn(CollectInputs::class)
+fun mapFromToggleResult(toggleResult: ToggleResult): String {
+    return when (toggleResult) {
+        ToggleResult.ENABLED -> "ENABLED"
+        ToggleResult.DISABLED -> "DISABLED"
+        ToggleResult.SKIPPED -> "SKIPPED"
+        else -> { "UNKNOWN" }
     }
 }
 

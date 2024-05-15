@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
@@ -52,6 +53,8 @@ import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.TextInput
 import com.stripe.stripeterminal.external.models.TippingConfiguration
+import com.stripe.stripeterminal.external.models.Toggle
+import com.stripe.stripeterminal.external.models.ToggleValue
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
@@ -807,6 +810,28 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @OptIn(CollectInputs::class)
+    private fun getTogglesFromParam(toggleList: ReadableArray): ArrayList<Toggle> {
+        val toggles = ArrayList<Toggle>()
+        toggleList.let { array ->
+            for (i in 0 until array.size()) {
+                val toggle = array.getMap(i)
+                toggles.add(
+                    Toggle(
+                        toggle.getString("title"),
+                        toggle.getString("description"),
+                        if (toggle.getString("defaultValue") == "ENABLED") {
+                            ToggleValue.ENABLED
+                        } else {
+                            ToggleValue.DISABLED
+                        }
+                    )
+                )
+            }
+        }
+        return toggles
+    }
+
+    @OptIn(CollectInputs::class)
     @ReactMethod
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
@@ -819,66 +844,89 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             when (collectInput.getString("inputType")) {
                 "TEXT" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             TextInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description") ?: "")
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "NUMERIC" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             NumericInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "EMAIL" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             EmailInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "PHONE" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             PhoneInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "SIGNATURE" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             SignatureInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "SELECTION" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         val selectionButtons = it.getArray("selectionButtons")
                         val listSelectionButtons = ArrayList<SelectionButton>()
                         selectionButtons?.let { array ->
@@ -902,6 +950,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText") ?: "")
                                 .setSelectionButtons(listSelectionButtons)
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
