@@ -658,12 +658,19 @@ class Mappers {
     }
 
     class func mapFromPaymentMethod(_ paymentMethod: PaymentMethod) -> NSDictionary {
+        var cardPresentMapped: NSDictionary?
+        if let cardPresent = paymentMethod.cardPresent{
+            cardPresentMapped = mapFromCardPresent(cardPresent)
+        }
+        var interacPresentMapped: NSDictionary?
+        if let interacPresent = paymentMethod.interacPresent{
+            interacPresentMapped = mapFromCardPresent(interacPresent)
+        }
+
         let result: NSDictionary = [
-            "id": paymentMethod.stripeId,
-            "created": convertDateToUnixTimestamp(date: paymentMethod.created) ?? NSNull(),
-            "customer": paymentMethod.customer ?? NSNull(),
-            "cardDetails": mapFromCardDetails(paymentMethod.card!),
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
+            "cardPresentDetails": cardPresentMapped ?? NSNull(),
+            "interacPresentDetails": interacPresentMapped ?? NSNull(),
         ]
         return result
     }
