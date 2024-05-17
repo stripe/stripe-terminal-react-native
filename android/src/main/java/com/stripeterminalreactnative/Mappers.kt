@@ -509,17 +509,27 @@ internal fun mapFromCardDetails(cardDetails: CardDetails?): ReadableMap = native
     putString("last4", cardDetails?.last4)
 }
 
-internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap =
-    nativeMapOf {
-        putMap(
-            "cardPresentDetails",
-            mapFromCardPresentDetails(paymentMethod?.cardPresentDetails)
-        )
-        putMap(
-            "interacPresentDetails",
-            mapFromCardPresentDetails(paymentMethod?.interacPresentDetails)
-        )
-        putString("customer", paymentMethod?.customer)
+internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
+    paymentMethod?.let {
+        nativeMapOf {
+            putMap(
+                "cardPresentDetails",
+                mapFromCardPresentDetails(it.cardPresentDetails)
+            )
+            putMap(
+                "interacPresentDetails",
+                mapFromCardPresentDetails(it.interacPresentDetails)
+            )
+            putString("customer", it.customer)
+            putMap(
+                "metadata",
+                nativeMapOf {
+                    it.metadata?.map { entry ->
+                        putString(entry.key, entry.value)
+                    }
+                }
+            )
+        }
     }
 
 private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?): ReadableArray =

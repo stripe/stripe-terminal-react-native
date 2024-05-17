@@ -670,7 +670,9 @@ class Mappers {
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
-            "customer": paymentMethod.customer ?? NSNull()
+            "customer": paymentMethod.customer ?? NSNull(),
+            "id": paymentMethod.stripeId,
+            "metadata": NSDictionary(dictionary: paymentMethod.metadata),
         ]
         return result
     }
