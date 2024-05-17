@@ -549,28 +549,30 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
     }
 }
 
-private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap =
-    nativeMapOf {
-        putString("brand", cardPresentDetails?.brand)
-        putString("cardholderName", cardPresentDetails?.cardholderName)
-        putString("country", cardPresentDetails?.country)
-        putString("emvAuthData", cardPresentDetails?.emvAuthData)
-        putIntOrNull(this, "expMonth", cardPresentDetails?.expMonth)
-        putIntOrNull(this, "expYear", cardPresentDetails?.expYear)
-        putString("funding", cardPresentDetails?.funding)
-        putString("generatedCard", cardPresentDetails?.generatedCard)
-        putString("last4", cardPresentDetails?.last4)
-        putString("readMethod", cardPresentDetails?.readMethod)
-        putMap("receiptDetails", mapFromReceiptDetails(cardPresentDetails?.receiptDetails))
-        putString("issuer", cardPresentDetails?.issuer)
-        putString("iin", cardPresentDetails?.iin)
-        putString("network", cardPresentDetails?.network)
-        putString("description", cardPresentDetails?.description)
-        putMap("wallet", mapFromWallet(cardPresentDetails?.wallet))
-        putArray(
-            "preferredLocales",
-            convertListToReadableArray(cardPresentDetails?.preferredLocales)
-        )
+private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap? =
+    cardPresentDetails?.let {
+        nativeMapOf {
+            putString("brand", it.brand)
+            putString("cardholderName", it.cardholderName)
+            putString("country", it.country)
+            putString("emvAuthData", it.emvAuthData)
+            putIntOrNull(this, "expMonth", it.expMonth)
+            putIntOrNull(this, "expYear", it.expYear)
+            putString("funding", it.funding)
+            putString("generatedCard", it.generatedCard)
+            putString("last4", it.last4)
+            putString("readMethod", it.readMethod)
+            putMap("receiptDetails", mapFromReceiptDetails(it.receiptDetails))
+            putString("issuer", it.issuer)
+            putString("iin", it.iin)
+            putString("network", it.network)
+            putString("description", it.description)
+            putMap("wallet", mapFromWallet(it.wallet))
+            putArray(
+                "preferredLocales",
+                convertListToReadableArray(it.preferredLocales)
+            )
+        }
     }
 
 private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap? =
