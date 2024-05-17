@@ -505,6 +505,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "enableCustomerCancellation")
                 )
             }
+            if (params.hasKey("requestDynamicCurrencyConversion")) {
+                configBuilder.setRequestDynamicCurrencyConversion(
+                    getBoolean(params, "requestDynamicCurrencyConversion")
+                )
+            }
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(

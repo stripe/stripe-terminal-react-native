@@ -82,6 +82,8 @@ export default function CollectCardPaymentScreen() {
     useState(false);
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+  const [requestDynamicCurrencyConversion, setRequestDynamicCurrencyConversion] =
+    useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -330,6 +332,7 @@ export default function CollectCardPaymentScreen() {
         : undefined,
       updatePaymentIntent: enableUpdatePaymentIntent,
       enableCustomerCancellation: enableCustomerCancellation,
+      requestDynamicCurrencyConversion: requestDynamicCurrencyConversion,
     });
 
     if (error) {
@@ -727,6 +730,25 @@ export default function CollectCardPaymentScreen() {
           />
         </List>
       )}
+
+      <List
+        bolded={false}
+        topSpacing={false}
+        title="DYNAMIC CURRENCY CONVERSION"
+      >
+        <ListItem
+          title="Request DCC (requires Update PaymentIntent)"
+          rightElement={
+            <Switch
+              testID="request-dynamic-currency-conversion"
+              value={requestDynamicCurrencyConversion}
+              onValueChange={(value) =>
+                setRequestDynamicCurrencyConversion(value)
+              }
+            />
+          }
+        />
+      </List>
 
       <List
         bolded={false}
