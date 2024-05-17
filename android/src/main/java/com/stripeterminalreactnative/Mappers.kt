@@ -509,12 +509,29 @@ internal fun mapFromCardDetails(cardDetails: CardDetails?): ReadableMap = native
     putString("last4", cardDetails?.last4)
 }
 
-internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): ReadableMap = nativeMapOf {
-    putString("id", paymentMethod.id)
-    putString("customer", paymentMethod.customer)
-    putBoolean("livemode", paymentMethod.livemode)
-    putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
-}
+internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
+    paymentMethod?.let {
+        nativeMapOf {
+            putMap(
+                "cardPresentDetails",
+                mapFromCardPresentDetails(it.cardPresentDetails)
+            )
+            putMap(
+                "interacPresentDetails",
+                mapFromCardPresentDetails(it.interacPresentDetails)
+            )
+            putString("customer", it.customer)
+            putString("id", it.id)
+            putMap(
+                "metadata",
+                nativeMapOf {
+                    it.metadata?.map { entry ->
+                        putString(entry.key, entry.value)
+                    }
+                }
+            )
+        }
+    }
 
 private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?): ReadableArray =
     fold(nativeArrayOf()) { writableArray, item ->
@@ -543,28 +560,30 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
     }
 }
 
-private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap =
-    nativeMapOf {
-        putString("brand", cardPresentDetails?.brand)
-        putString("cardholderName", cardPresentDetails?.cardholderName)
-        putString("country", cardPresentDetails?.country)
-        putString("emvAuthData", cardPresentDetails?.emvAuthData)
-        putIntOrNull(this, "expMonth", cardPresentDetails?.expMonth)
-        putIntOrNull(this, "expYear", cardPresentDetails?.expYear)
-        putString("funding", cardPresentDetails?.funding)
-        putString("generatedCard", cardPresentDetails?.generatedCard)
-        putString("last4", cardPresentDetails?.last4)
-        putString("readMethod", cardPresentDetails?.readMethod)
-        putMap("receiptDetails", mapFromReceiptDetails(cardPresentDetails?.receiptDetails))
-        putString("issuer", cardPresentDetails?.issuer)
-        putString("iin", cardPresentDetails?.iin)
-        putString("network", cardPresentDetails?.network)
-        putString("description", cardPresentDetails?.description)
-        putMap("wallet", mapFromWallet(cardPresentDetails?.wallet))
-        putArray(
-            "preferredLocales",
-            convertListToReadableArray(cardPresentDetails?.preferredLocales)
-        )
+private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap? =
+    cardPresentDetails?.let {
+        nativeMapOf {
+            putString("brand", it.brand)
+            putString("cardholderName", it.cardholderName)
+            putString("country", it.country)
+            putString("emvAuthData", it.emvAuthData)
+            putIntOrNull(this, "expMonth", it.expMonth)
+            putIntOrNull(this, "expYear", it.expYear)
+            putString("funding", it.funding)
+            putString("generatedCard", it.generatedCard)
+            putString("last4", it.last4)
+            putString("readMethod", it.readMethod)
+            putMap("receiptDetails", mapFromReceiptDetails(it.receiptDetails))
+            putString("issuer", it.issuer)
+            putString("iin", it.iin)
+            putString("network", it.network)
+            putString("description", it.description)
+            putMap("wallet", mapFromWallet(it.wallet))
+            putArray(
+                "preferredLocales",
+                convertListToReadableArray(it.preferredLocales)
+            )
+        }
     }
 
 private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap? =

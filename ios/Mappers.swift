@@ -77,7 +77,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapToDeviceType(_ type: String) -> DeviceType? {
         switch type {
         case "appleBuiltIn": return DeviceType.appleBuiltIn
@@ -155,7 +155,7 @@ class Mappers {
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         }
     }
-    
+
     class func mapFromCaptureMethod(_ captureMethod: CaptureMethod) -> String {
         switch captureMethod {
         case CaptureMethod.manual: return "manual"
@@ -658,12 +658,21 @@ class Mappers {
     }
 
     class func mapFromPaymentMethod(_ paymentMethod: PaymentMethod) -> NSDictionary {
+        var cardPresentMapped: NSDictionary?
+        if let cardPresent = paymentMethod.cardPresent{
+            cardPresentMapped = mapFromCardPresent(cardPresent)
+        }
+        var interacPresentMapped: NSDictionary?
+        if let interacPresent = paymentMethod.interacPresent{
+            interacPresentMapped = mapFromCardPresent(interacPresent)
+        }
+
         let result: NSDictionary = [
-            "id": paymentMethod.stripeId,
-            "created": convertDateToUnixTimestamp(date: paymentMethod.created) ?? NSNull(),
+            "cardPresentDetails": cardPresentMapped ?? NSNull(),
+            "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
-            "cardDetails": mapFromCardDetails(paymentMethod.card!),
-            "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
+            "id": paymentMethod.stripeId,
+            "metadata": NSDictionary(dictionary: paymentMethod.metadata),
         ]
         return result
     }
@@ -771,7 +780,7 @@ class Mappers {
         default: return "unknown"
         }
     }
-    
+
     class func mapFromToggleResult(_ toggleResult: NSNumber) -> String {
         switch toggleResult {
         case 0: return "ENABLED"
@@ -780,7 +789,7 @@ class Mappers {
         default: return "UNKNOWN"
         }
     }
-    
+
     class func mapFromToggleResultList(_ toggles: [NSNumber]) -> [String] {
         var list: [String] = []
 
