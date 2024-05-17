@@ -521,6 +521,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 mapFromCardPresentDetails(it.interacPresentDetails)
             )
             putString("customer", it.customer)
+            putString("id", it.id)
             putMap(
                 "metadata",
                 nativeMapOf {
