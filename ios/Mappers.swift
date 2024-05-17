@@ -668,9 +668,9 @@ class Mappers {
         }
         
         let result: NSDictionary = [
-            "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
+            "customer": paymentMethod.customer ?? NSNull()
         ]
         return result
     }
