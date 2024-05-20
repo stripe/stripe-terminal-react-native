@@ -1,7 +1,15 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
-import { Platform, StyleSheet, Switch, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import {
   useStripeTerminal,
   PaymentIntent,
@@ -353,7 +361,7 @@ export default function CollectCardPaymentScreen() {
     } else if (paymentIntent) {
       if (enableUpdatePaymentIntent) {
         let cardBrand = paymentIntent.paymentMethod?.cardPresentDetails?.brand;
-        console.log("cardBrand = " + cardBrand)
+
         if (cardBrand && cardBrand == declineCardBrand) {
           addLogs({
             name: 'Collect Payment Method',
@@ -363,16 +371,16 @@ export default function CollectCardPaymentScreen() {
                 description: 'terminal.collectPaymentMethod',
                 onBack: cancelCollectPaymentMethod,
                 metadata: {
-                  errorMessage: "Integration rejected card due to card brand",
+                  errorMessage: 'Integration rejected card due to card brand',
                 },
               },
             ],
           });
           if (recollectAfterCardBrandDecline) {
-            await _collectPaymentMethod(pi)
+            await _collectPaymentMethod(pi);
             return;
           } else {
-            let result = await cancelCollectPaymentMethod()
+            let result = await cancelCollectPaymentMethod();
             if (result.error) {
               addLogs({
                 name: 'Collect Payment Method',
@@ -389,7 +397,7 @@ export default function CollectCardPaymentScreen() {
                 ],
               });
             }
-            return
+            return;
           }
         }
       }
@@ -528,9 +536,19 @@ export default function CollectCardPaymentScreen() {
 
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef<Picker<string>>();
-  const DECLINE_CARD_BRAND = ['None', 'visa', 'amex', 'mastercard', 'discover', 'jcb', 'diners', 'interac', 'unionpay', 'eftpos_au'];
-  const [declineCardBrand, setDeclineCardBrand] =
-    useState<string>('None');
+  const DECLINE_CARD_BRAND = [
+    'None',
+    'visa',
+    'amex',
+    'mastercard',
+    'discover',
+    'jcb',
+    'diners',
+    'interac',
+    'unionpay',
+    'eftpos_au',
+  ];
+  const [declineCardBrand, setDeclineCardBrand] = useState<string>('None');
 
   const handleChangeDeclineCardBrand = async (type: string) => {
     setDeclineCardBrand(type);
@@ -767,7 +785,7 @@ export default function CollectCardPaymentScreen() {
           }
         />
         <ListItem
-          visible = {enableUpdatePaymentIntent}
+          visible={enableUpdatePaymentIntent}
           testID="decline_card_brand"
           onPress={() => {
             setShowPicker(true);
@@ -780,13 +798,15 @@ export default function CollectCardPaymentScreen() {
           title={declineCardBrand}
         />
         <ListItem
-          visible = {enableUpdatePaymentIntent}
+          visible={enableUpdatePaymentIntent}
           title="Recollect After Card Brand Decline"
           rightElement={
             <Switch
               testID="enable-recollect"
               value={recollectAfterCardBrandDecline}
-              onValueChange={(value) => setRecollectAfterCardBrandDecline(value)}
+              onValueChange={(value) =>
+                setRecollectAfterCardBrandDecline(value)
+              }
             />
           }
         />
@@ -891,39 +911,34 @@ export default function CollectCardPaymentScreen() {
         )}
       </List>
       <Modal visible={showPicker} transparent>
-          <TouchableWithoutFeedback
-            testID="close-picker"
-            onPress={() => {
-              setShowPicker(false);
+        <TouchableWithoutFeedback
+          testID="close-picker"
+          onPress={() => {
+            setShowPicker(false);
+          }}
+        >
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.pickerContainer} testID="picker-container">
+          <Picker
+            selectedValue={declineCardBrand}
+            ref={pickerRef as any}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            onValueChange={(itemValue: string) => {
+              handleChangeDeclineCardBrand(itemValue);
+              if (Platform.OS === 'android') {
+                setShowPicker(false);
+              }
             }}
           >
-            <View style={styles.modalOverlay} />
-          </TouchableWithoutFeedback>
-
-          <View style={styles.pickerContainer} testID="picker-container">
-            <Picker
-              selectedValue={declineCardBrand}
-              ref={pickerRef as any}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-              onValueChange={(itemValue: string) => {
-                handleChangeDeclineCardBrand(itemValue);
-                if (Platform.OS === 'android') {
-                  setShowPicker(false);
-                }
-              }}
-            >
-              {DECLINE_CARD_BRAND.map((type) => (
-                <Picker.Item
-                  key={type}
-                  label={type}
-                  testID={type}
-                  value={type}
-                />
-              ))}
-            </Picker>
-          </View>
-        </Modal>
+            {DECLINE_CARD_BRAND.map((type) => (
+              <Picker.Item key={type} label={type} testID={type} value={type} />
+            ))}
+          </Picker>
+        </View>
+      </Modal>
     </KeyboardAwareScrollView>
   );
 }
