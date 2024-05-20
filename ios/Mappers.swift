@@ -156,6 +156,7 @@ class Mappers {
             metadataMap = NSDictionary(dictionary: paymentMetadata)
         }
         var paymentMethodMap: NSDictionary?
+        print("paymentMethod = \(String(describing: paymentIntent.paymentMethod))")
         if let paymentMethod = paymentIntent.paymentMethod {
             paymentMethodMap = mapFromPaymentMethod(paymentMethod)
         }
@@ -640,11 +641,16 @@ class Mappers {
     }
 
     class func mapFromPaymentMethod(_ paymentMethod: PaymentMethod) -> NSDictionary {
+        var cardPresentMap: NSDictionary?
+        if let cardPresent = paymentMethod.cardPresent {
+            cardPresentMap = mapFromCardPresent(cardPresent)
+        }
         let result: NSDictionary = [
             "id": paymentMethod.stripeId,
             "created": convertDateToUnixTimestamp(date: paymentMethod.created) ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "cardDetails": mapFromCardDetails(paymentMethod.card!),
+            "cardPresentDetails": cardPresentMap ?? NSNull(),
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
         ]
         return result

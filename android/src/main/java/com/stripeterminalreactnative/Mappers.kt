@@ -493,6 +493,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): ReadableMap = n
     putString("customer", paymentMethod.customer)
     putBoolean("livemode", paymentMethod.livemode)
     putMap("cardDetails", mapFromCardDetails(paymentMethod.cardDetails))
+    putMap("cardPresentDetails", mapFromCardPresentDetails(paymentMethod.cardPresentDetails))
 }
 
 private fun <T> Iterable<T>.collectToWritableArray(transform: (T) -> ReadableMap?): ReadableArray =

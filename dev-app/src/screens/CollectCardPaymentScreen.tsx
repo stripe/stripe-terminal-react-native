@@ -351,6 +351,48 @@ export default function CollectCardPaymentScreen() {
         ],
       });
     } else if (paymentIntent) {
+      if (enableUpdatePaymentIntent) {
+        let cardBrand = paymentIntent.paymentMethod?.cardPresentDetails?.brand;
+        console.log("cardBrand = " + cardBrand)
+        if (cardBrand && cardBrand == declineCardBrand) {
+          addLogs({
+            name: 'Collect Payment Method',
+            events: [
+              {
+                name: 'Failed',
+                description: 'terminal.collectPaymentMethod',
+                onBack: cancelCollectPaymentMethod,
+                metadata: {
+                  errorMessage: "Integration rejected card due to card brand",
+                },
+              },
+            ],
+          });
+          if (recollectAfterCardBrandDecline) {
+            await _collectPaymentMethod(pi)
+            return;
+          } else {
+            let result = await cancelCollectPaymentMethod()
+            if (result.error) {
+              addLogs({
+                name: 'Collect Payment Method',
+                events: [
+                  {
+                    name: 'Failed',
+                    description: 'terminal.collectPaymentMethod',
+                    onBack: cancelCollectPaymentMethod,
+                    metadata: {
+                      errorCode: result.error.code,
+                      errorMessage: result.error.message,
+                    },
+                  },
+                ],
+              });
+            }
+            return
+          }
+        }
+      }
       addLogs({
         name: 'Collect Payment Method',
         events: [
@@ -487,7 +529,7 @@ export default function CollectCardPaymentScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef<Picker<string>>();
   const DECLINE_CARD_BRAND = ['None', 'visa', 'amex', 'mastercard', 'discover', 'jcb', 'diners', 'interac', 'unionpay', 'eftpos_au'];
-  const [selectedDeclineCardBrand, setDeclineCardBrand] =
+  const [declineCardBrand, setDeclineCardBrand] =
     useState<string>('None');
 
   const handleChangeDeclineCardBrand = async (type: string) => {
@@ -735,7 +777,7 @@ export default function CollectCardPaymentScreen() {
               pickerRef.current?.focus();
             }, 100);
           }}
-          title={selectedDeclineCardBrand}
+          title={declineCardBrand}
         />
         <ListItem
           visible = {enableUpdatePaymentIntent}
@@ -860,7 +902,7 @@ export default function CollectCardPaymentScreen() {
 
           <View style={styles.pickerContainer} testID="picker-container">
             <Picker
-              selectedValue={selectedDeclineCardBrand}
+              selectedValue={declineCardBrand}
               ref={pickerRef as any}
               style={styles.picker}
               itemStyle={styles.pickerItem}
