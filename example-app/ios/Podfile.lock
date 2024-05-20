@@ -1101,10 +1101,10 @@ PODS:
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - SocketRocket (0.6.1)
-  - stripe-terminal-react-native (0.0.1-beta.17):
+  - stripe-terminal-react-native (0.0.1-beta.18):
     - React-Core
-    - StripeTerminal (~> 3.4.0)
-  - StripeTerminal (3.4.0)
+    - StripeTerminal (~> 3.5.0)
+  - StripeTerminal (3.5.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -1380,9 +1380,9 @@ SPEC CHECKSUMS:
   RNReanimated: f6b02d8f5eaa2830296411d4ec3b8ef5442dd13d
   RNScreens: 17e2f657f1b09a71ec3c821368a04acbb7ebcb46
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  stripe-terminal-react-native: a18b7d8957861f853b3cf0daa5d713238ae4b9e4
-  StripeTerminal: bdca32b058179ff3595c7d886a1cc45d4e810c5c
-  Yoga: 805bf71192903b20fc14babe48080582fee65a80
+  stripe-terminal-react-native: d4d8536646e1d16ae8a906867e79107b02e8fc1f
+  StripeTerminal: 107cb1815738accbaa54179411cd916ed129b044
+  Yoga: d17d2cc8105eed528474683b42e2ea310e1daf61
 
 PODFILE CHECKSUM: 8c9f0bca78551a74dc0df7badf546b4cdf9eb304
 

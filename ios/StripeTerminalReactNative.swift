@@ -968,12 +968,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 let inputType = collectInput["inputType"] as? String ?? ""
                 switch (inputType) {
                 case "EMAIL":
+                    var toggles: [Toggle] = []
+                    let toggleList = collectInput["toggles"] as? [NSDictionary]
+                    if let toggleList = toggleList {
+                        for it in toggleList {
+                            do {
+                                let title = it["title"] as! String
+                                let description = it["description"] as! String
+                                let defaultValue = it["defaultValue"] as! String
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                toggles.append(toggle)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
                     do {
                         let input = try EmailInputBuilder(title: collectInput["title"] as! String)
                             .setRequired(collectInput["required"] as? Bool ?? false)
                             .setStripeDescription(collectInput["description"] as? String ?? "")
                             .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
                             .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .setToggles(toggles)
                             .build()
                         inputs.append(input)
                     } catch {
@@ -982,12 +999,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                     }
                     break
                 case "NUMERIC":
+                    var toggles: [Toggle] = []
+                    let toggleList = collectInput["toggles"] as? [NSDictionary]
+                    if let toggleList = toggleList {
+                        for it in toggleList {
+                            do {
+                                let title = it["title"] as! String
+                                let description = it["description"] as! String
+                                let defaultValue = it["defaultValue"] as! String
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                toggles.append(toggle)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
                     do {
                         let input = try NumericInputBuilder(title: collectInput["title"] as! String)
                             .setRequired(collectInput["required"] as? Bool ?? false)
                             .setStripeDescription(collectInput["description"] as? String ?? "")
                             .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
                             .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .setToggles(toggles)
                             .build()
                         inputs.append(input)
                     } catch {
@@ -996,12 +1030,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                     }
                     break
                 case "PHONE":
+                    var toggles: [Toggle] = []
+                    let toggleList = collectInput["toggles"] as? [NSDictionary]
+                    if let toggleList = toggleList {
+                        for it in toggleList {
+                            do {
+                                let title = it["title"] as! String
+                                let description = it["description"] as! String
+                                let defaultValue = it["defaultValue"] as! String
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                toggles.append(toggle)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
                     do {
                         let input = try PhoneInputBuilder(title: collectInput["title"] as! String)
                             .setRequired(collectInput["required"] as? Bool ?? false)
                             .setStripeDescription(collectInput["description"] as? String ?? "")
                             .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
                             .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .setToggles(toggles)
                             .build()
                         inputs.append(input)
                     } catch {
@@ -1010,12 +1061,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                     }
                     break
                 case "TEXT":
+                    var toggles: [Toggle] = []
+                    let toggleList = collectInput["toggles"] as? [NSDictionary]
+                    if let toggleList = toggleList {
+                        for it in toggleList {
+                            do {
+                                let title = it["title"] as! String
+                                let description = it["description"] as! String
+                                let defaultValue = it["defaultValue"] as! String
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                toggles.append(toggle)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
                     do {
                         let input = try TextInputBuilder(title: collectInput["title"] as! String)
                             .setRequired(collectInput["required"] as? Bool ?? false)
                             .setStripeDescription(collectInput["description"] as? String ?? "")
                             .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
                             .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .setToggles(toggles)
                             .build()
                         inputs.append(input)
                     } catch {
@@ -1024,6 +1092,22 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                     }
                     break
                 case "SELECTION":
+                    var toggles: [Toggle] = []
+                    let toggleList = collectInput["toggles"] as? [NSDictionary]
+                    if let toggleList = toggleList {
+                        for it in toggleList {
+                            do {
+                                let title = it["title"] as! String
+                                let description = it["description"] as! String
+                                let defaultValue = it["defaultValue"] as! String
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                toggles.append(toggle)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
                     var selectionButtons: [SelectionButton] = []
                     let selections = collectInput["selectionButtons"] as? [NSDictionary]
                     if let selections = selections {
@@ -1046,6 +1130,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                             .setStripeDescription(collectInput["description"] as? String ?? "")
                             .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
                             .setSelectionButtons(selectionButtons)
+                            .setToggles(toggles)
                             .build()
                         inputs.append(input)
                     } catch {
@@ -1054,12 +1139,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                     }
                     break
                 case "SIGNATURE":
+                    var toggles: [Toggle] = []
+                    let toggleList = collectInput["toggles"] as? [NSDictionary]
+                    if let toggleList = toggleList {
+                        for it in toggleList {
+                            do {
+                                let title = it["title"] as! String
+                                let description = it["description"] as! String
+                                let defaultValue = it["defaultValue"] as! String
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                toggles.append(toggle)
+                            } catch {
+                                resolve(Errors.createError(nsError: error as NSError))
+                                return
+                            }
+                        }
+                    }
                     do {
                         let input = try SignatureInputBuilder(title: collectInput["title"] as! String)
                             .setRequired(collectInput["required"] as? Bool ?? false)
                             .setStripeDescription(collectInput["description"] as? String ?? "")
                             .setSkipButtonText(collectInput["skipButtonText"] as? String ?? "")
                             .setSubmitButtonText(collectInput["submitButtonText"] as? String ?? "")
+                            .setToggles(toggles)
                             .build()
                         inputs.append(input)
                     } catch {
@@ -1137,6 +1239,34 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             } catch {
                 resolve(Errors.createError(nsError: error as NSError))
             }
+        }
+    }
+    
+    @objc(supportsReadersOfType:resolver:rejecter:)
+    func supportsReadersOfType(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["deviceType", "discoveryMethod"])
+
+        if let invalidParams {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams) parameters."))
+            return
+        }
+
+        let deviceTypeParam = params["deviceType"] as? String ?? ""
+        let simulated = params["simulated"] as? Bool ?? false
+        let discoveryMethod = params["discoveryMethod"] as? String
+        let deviceType = Mappers.mapToDeviceType(deviceTypeParam)
+        guard let deviceType else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide correct deviceType parameter."))
+            return
+        }
+        let result = Terminal.shared.supportsReaders(of: deviceType, discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod), simulated: simulated)
+        switch result {
+        case .success(_):
+            resolve(["readerSupportResult": true])
+            break
+        case .failure(let error):
+            resolve(["readerSupportResult": false])
+            break
         }
     }
 

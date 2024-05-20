@@ -9,6 +9,7 @@ Object {
   "cancelDiscovering": [Function],
   "cancelInstallingUpdate": [Function],
   "cancelPaymentIntent": [Function],
+  "cancelReaderReconnection": [Function],
   "cancelSetupIntent": [Function],
   "clearCachedCredentials": [Function],
   "clearReaderDisplay": [Function],
@@ -41,5 +42,6 @@ Object {
   "setReaderSettings": [Function],
   "setSimulatedCard": [Function],
   "simulateReaderUpdate": [Function],
+  "supportsReadersOfType": [Function],
 }
 `;

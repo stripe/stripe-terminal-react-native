@@ -831,3 +831,35 @@ export async function cancelCollectInputs(): Promise<{
     }
   }, 'cancelCollectInputs')();
 }
+
+export async function cancelReaderReconnection(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelReaderReconnection();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelReaderReconnection')();
+}
+
+export async function supportsReadersOfType(
+  params: Reader.ReaderSupportParams
+): Promise<Reader.ReaderSupportResult> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const supportReaderResult = await StripeTerminalSdk.supportsReadersOfType(
+        params
+      );
+      return supportReaderResult;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'supportsReadersOfType')();
+}

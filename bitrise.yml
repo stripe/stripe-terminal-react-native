@@ -63,7 +63,7 @@ workflows:
             - emulator_id: TestingAVD
             - tag: default
             - abi: x86_64
-            - api_level: '30'
+            - api_level: '34'
       - yarn@0:
           inputs:
             - command: install --frozen-lockfile
@@ -122,7 +122,7 @@ workflows:
             - emulator_id: TestingAVD
             - tag: default
             - abi: x86_64
-            - api_level: '30'
+            - api_level: '34'
       - yarn@0:
           inputs:
             - command: e2e:build:example:android

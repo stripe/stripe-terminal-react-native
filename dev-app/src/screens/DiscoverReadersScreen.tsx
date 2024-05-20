@@ -291,37 +291,41 @@ export default function DiscoverReadersScreen() {
       testID="discovery-readers-screen"
       contentContainerStyle={styles.container}
     >
-      <List title="SELECT LOCATION">
-        <ListItem
-          onPress={() => {
-            if (!simulated) {
-              navigation.navigate('LocationListScreen', {
-                onSelect: (location: Location) => setSelectedLocation(location),
-              });
+      {discoveryMethod != 'internet' && (
+        <List title="SELECT LOCATION">
+          <ListItem
+            onPress={() => {
+              if (!simulated) {
+                navigation.navigate('LocationListScreen', {
+                  onSelect: (location: Location) =>
+                    setSelectedLocation(location),
+                  showDummyLocation: true,
+                });
+              }
+            }}
+            disabled={simulated}
+            title={
+              simulated
+                ? 'Mock simulated reader location'
+                : selectedLocation?.displayName || 'No location selected'
             }
-          }}
-          disabled={simulated}
-          title={
-            simulated
-              ? 'Mock simulated reader location'
-              : selectedLocation?.displayName || 'No location selected'
-          }
-        />
+          />
 
-        {simulated ? (
-          <Text style={styles.infoText}>
-            Simulated readers are always registered to the mock simulated
-            location.
-          </Text>
-        ) : (
-          <Text style={styles.infoText}>
-            Bluetooth readers must be registered to a location during the
-            connection process. If you do not select a location, the reader will
-            attempt to register to the same location it was registered to during
-            the previous connection.
-          </Text>
-        )}
-      </List>
+          {simulated ? (
+            <Text style={styles.infoText}>
+              Simulated readers are always registered to the mock simulated
+              location.
+            </Text>
+          ) : (
+            <Text style={styles.infoText}>
+              Bluetooth readers must be registered to a location during the
+              connection process. If you do not select a location, the reader
+              will attempt to register to the same location it was registered to
+              during the previous connection.
+            </Text>
+          )}
+        </List>
+      )}
 
       {simulated && discoveryMethod !== 'internet' && (
         <List title="SIMULATED UPDATE PLAN">
