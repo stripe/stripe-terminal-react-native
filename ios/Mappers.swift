@@ -174,7 +174,6 @@ class Mappers {
             metadataMap = NSDictionary(dictionary: paymentMetadata)
         }
         var paymentMethodMap: NSDictionary?
-        print("paymentMethod = \(String(describing: paymentIntent.paymentMethod))")
         if let paymentMethod = paymentIntent.paymentMethod {
             paymentMethodMap = mapFromPaymentMethod(paymentMethod)
         }

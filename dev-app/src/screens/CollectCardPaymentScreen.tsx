@@ -381,18 +381,15 @@ export default function CollectCardPaymentScreen() {
             return;
           } else {
             let result = await cancelCollectPaymentMethod();
-            if (result.error) {
+            if (!result.error) {
               addLogs({
                 name: 'Collect Payment Method',
                 events: [
                   {
-                    name: 'Failed',
-                    description: 'terminal.collectPaymentMethod',
+                    name: 'Canceled',
+                    description: 'terminal.cancelCollectPaymentMethod',
                     onBack: cancelCollectPaymentMethod,
-                    metadata: {
-                      errorCode: result.error.code,
-                      errorMessage: result.error.message,
-                    },
+                    metadata: { paymentIntentId: pi.id },
                   },
                 ],
               });
