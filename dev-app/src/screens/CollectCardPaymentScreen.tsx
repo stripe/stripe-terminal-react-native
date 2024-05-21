@@ -727,25 +727,18 @@ export default function CollectCardPaymentScreen() {
               />
             }
           />
+          <ListItem
+            title="Request DCC (requires Update PaymentIntent)"
+            rightElement={
+              <Switch
+                testID="request-dynamic-currency-conversion"
+                value={requestDcc}
+                onValueChange={(value) => setRequestDcc(value)}
+              />
+            }
+          />
         </List>
       )}
-
-      <List
-        bolded={false}
-        topSpacing={false}
-        title="DYNAMIC CURRENCY CONVERSION"
-      >
-        <ListItem
-          title="Request DCC (requires Update PaymentIntent)"
-          rightElement={
-            <Switch
-              testID="request-dynamic-currency-conversion"
-              value={requestDcc}
-              onValueChange={(value) => setRequestDcc(value)}
-            />
-          }
-        />
-      </List>
 
       <List
         bolded={false}
