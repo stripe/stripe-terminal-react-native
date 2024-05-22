@@ -555,7 +555,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": paymentIntent])
             }
-            self.collectPaymentMethodCancelable = nil
         }
     }
 
@@ -635,6 +634,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(["paymentIntent": paymentIntent])
             }
         }
+        self.collectPaymentMethodCancelable = nil
     }
 
     func terminal(_ terminal: Terminal, didChangePaymentStatus status: PaymentStatus) {
@@ -836,7 +836,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 let setupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 resolve(["setupIntent": setupIntent])
             }
-            self.collectSetupIntentCancelable = nil
         }
     }
 
@@ -861,6 +860,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(["setupIntent": setupIntent])
             }
         }
+        self.collectRefundPaymentMethodCancelable = nil
     }
 
     @objc(collectRefundPaymentMethod:resolver:rejecter:)
@@ -917,7 +917,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             } else {
                 resolve([:])
             }
-            self.collectRefundPaymentMethodCancelable = nil
         }
     }
 
@@ -931,6 +930,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(["refund": refund])
             }
         }
+        self.collectRefundPaymentMethodCancelable = nil
     }
 
     @objc(clearCachedCredentials:rejecter:)
