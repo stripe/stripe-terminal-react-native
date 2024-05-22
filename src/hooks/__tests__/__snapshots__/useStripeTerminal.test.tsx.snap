@@ -35,6 +35,7 @@ Object {
     "emitter": undefined,
     "getLocations": [Function],
     "getOfflineStatus": [Function],
+    "getPaymentStatus": [Function],
     "getReaderSettings": [Function],
     "initialize": [Function],
     "installAvailableUpdate": [Function],
