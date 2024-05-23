@@ -1391,7 +1391,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: Reader, didReportBatteryLevel batteryLevel: Float, status: BatteryStatus, isCharging: Bool) {
         let result: NSDictionary = [
             "batteryLevel": batteryLevel,
-            "status": Mappers.mapFromBatteryStatus(status),
+            "battertStatus": Mappers.mapFromBatteryStatus(status),
             "isCharging": isCharging,
         ]
         sendEvent(withName: ReactNativeConstants.BATTERY_LEVEL_UPDATE.rawValue, body: ["result": result])

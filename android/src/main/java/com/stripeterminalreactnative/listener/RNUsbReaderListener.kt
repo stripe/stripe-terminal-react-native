@@ -3,7 +3,9 @@ package com.stripeterminalreactnative.listener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListener
+import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.DisconnectReason
+import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
@@ -16,12 +18,18 @@ import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.BATTERY_LEVEL_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_LOW_BATTERY_WARNING
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_READER_EVENT
+import com.stripeterminalreactnative.mapFromBatteryStatus
 import com.stripeterminalreactnative.mapFromReaderDisconnectReason
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
+import com.stripeterminalreactnative.mapFromReaderEvent
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
 import com.stripeterminalreactnative.nativeMapOf
 import com.stripeterminalreactnative.putError
+import com.stripeterminalreactnative.putDoubleOrNull
 
 class RNUsbReaderListener(
     private val context: ReactApplicationContext,
@@ -82,6 +90,40 @@ class RNUsbReaderListener(
     override fun onDisconnect(reason: DisconnectReason) {
         context.sendEvent(DISCONNECT.listenerName) {
             putString("reason", mapFromReaderDisconnectReason(reason))
+        }
+    }
+
+    override fun onBatteryLevelUpdate(
+        batteryLevel: Float,
+        batteryStatus: BatteryStatus,
+        isCharging: Boolean
+    ) {
+        context.sendEvent(BATTERY_LEVEL_UPDATE.listenerName) {
+            putMap(
+                "result",
+                nativeMapOf {
+                    putDoubleOrNull(this,"batteryLevel", batteryLevel.toDouble())
+                    putString("batteryStatus", mapFromBatteryStatus(batteryStatus))
+                    putBoolean("isCharging", isCharging)
+                }
+            )
+        }
+    }
+
+    override fun onReportLowBatteryWarning() {
+        context.sendEvent(REPORT_LOW_BATTERY_WARNING.listenerName) {
+            putString("result", "LOW BATTERY")
+        }
+    }
+
+    override fun onReportReaderEvent(event: ReaderEvent) {
+        context.sendEvent(REPORT_READER_EVENT.listenerName) {
+            putMap(
+                "result",
+                nativeMapOf {
+                    putString("event", mapFromReaderEvent(event))
+                }
+            )
         }
     }
 }
