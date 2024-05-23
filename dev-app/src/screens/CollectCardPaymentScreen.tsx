@@ -93,6 +93,7 @@ export default function CollectCardPaymentScreen() {
     useState(false);
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+  const [requestDcc, setRequestDcc] = useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -341,6 +342,7 @@ export default function CollectCardPaymentScreen() {
         : undefined,
       updatePaymentIntent: enableUpdatePaymentIntent,
       enableCustomerCancellation: enableCustomerCancellation,
+      requestDynamicCurrencyConversion: requestDcc,
     });
 
     if (error) {
@@ -777,7 +779,12 @@ export default function CollectCardPaymentScreen() {
             <Switch
               testID="enable-update-paymentIntent"
               value={enableUpdatePaymentIntent}
-              onValueChange={(value) => setEnableUpdatePaymentIntent(value)}
+              onValueChange={(value) => {
+                setEnableUpdatePaymentIntent(value);
+                if (!value) {
+                  setRequestDcc(false);
+                }
+              }}
             />
           }
         />
@@ -818,6 +825,17 @@ export default function CollectCardPaymentScreen() {
                 testID="enable-cancellation"
                 value={enableCustomerCancellation}
                 onValueChange={(value) => setEnableCustomerCancellation(value)}
+              />
+            }
+          />
+          <ListItem
+            title="Request DCC (requires Update PaymentIntent)"
+            rightElement={
+              <Switch
+                disabled={!enableUpdatePaymentIntent}
+                testID="request-dynamic-currency-conversion"
+                value={requestDcc}
+                onValueChange={(value) => setRequestDcc(value)}
               />
             }
           />

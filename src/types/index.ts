@@ -193,6 +193,7 @@ export type CollectPaymentMethodParams = {
   tipEligibleAmount?: number;
   updatePaymentIntent?: boolean;
   enableCustomerCancellation?: boolean;
+  requestDynamicCurrencyConversion?: boolean;
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
