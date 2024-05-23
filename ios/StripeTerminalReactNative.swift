@@ -1383,7 +1383,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: SCPReader, didReportReaderEvent event: ReaderEvent, info: [AnyHashable : Any]?) {
         let result: NSDictionary = [
             "event": Mappers.mapFromReaderEvent(event),
-            "info": info,
+
         ]
         sendEvent(withName: ReactNativeConstants.REPORT_READER_EVENT.rawValue, body: ["result": result])
     }

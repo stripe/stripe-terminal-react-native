@@ -31,6 +31,10 @@ Object {
     "Android": Object {},
     "IOS": Object {},
   },
+  "ReaderEvent": Object {
+    "CARD_INSERTED": "CARD_INSERTED",
+    "CARD_REMOVED": "CARD_REMOVED",
+  },
   "Refund": Object {
     "Android": Object {},
     "IOS": Object {},
