@@ -1383,7 +1383,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: Reader, didReportReaderEvent event: ReaderEvent, info: [AnyHashable : Any]?) {
         let result: NSDictionary = [
             "event": Mappers.mapFromReaderEvent(event),
-
         ]
         sendEvent(withName: ReactNativeConstants.REPORT_READER_EVENT.rawValue, body: ["result": result])
     }
@@ -1391,7 +1390,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func reader(_ reader: Reader, didReportBatteryLevel batteryLevel: Float, status: BatteryStatus, isCharging: Bool) {
         let result: NSDictionary = [
             "batteryLevel": batteryLevel,
-            "battertStatus": Mappers.mapFromBatteryStatus(status),
+            "batteryStatus": Mappers.mapFromBatteryStatus(status),
             "isCharging": isCharging,
         ]
         sendEvent(withName: ReactNativeConstants.BATTERY_LEVEL_UPDATE.rawValue, body: ["result": result])
