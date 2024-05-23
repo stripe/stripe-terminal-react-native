@@ -860,7 +860,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 resolve(["setupIntent": setupIntent])
             }
         }
-        self.collectRefundPaymentMethodCancelable = nil
+        self.collectSetupIntentCancelable = nil
     }
 
     @objc(collectRefundPaymentMethod:resolver:rejecter:)
