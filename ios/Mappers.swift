@@ -833,6 +833,14 @@ class Mappers {
 
         return (["collectInputResults": collectInputResults])
     }
+
+    class func mapFromReaderEvent(_readerEvent: ReaderEvent) -> String {
+        switch _readerEvent {
+            case ReaderEvent.cardInserted: return "cardInserted"
+            case ReaderEvent.cardRemoved: return "cardRemoved"
+            default: return "unknown"
+        }
+    }
 }
 
 extension UInt {

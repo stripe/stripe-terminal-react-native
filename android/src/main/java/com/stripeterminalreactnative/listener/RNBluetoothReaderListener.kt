@@ -17,6 +17,9 @@ import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
 import com.stripeterminalreactnative.mapFromReaderDisconnectReason
+import com.stripeterminalreactnative.ReactNativeConstants.BATTERY_LEVEL_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_LOW_BATTERY_WARNING
+import com.stripeterminalreactnative.ReactNativeConstants.REPORT_READER_EVENT
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
@@ -82,6 +85,40 @@ class RNBluetoothReaderListener(
     override fun onDisconnect(reason: DisconnectReason) {
         context.sendEvent(DISCONNECT.listenerName) {
             putString("reason", mapFromReaderDisconnectReason(reason))
+        }
+    }
+
+    override fun onBatteryLevelUpdate(
+        batteryLevel: Float,
+        batteryStatus: BatteryStatus,
+        isCharging: Boolean
+    ) {
+        context.sendEvent(BATTERY_LEVEL_UPDATE.listenerName) {
+            putMap(
+                "result",
+                nativeMapOf {
+                    putDoubleOrNull(this,"batteryLevel", batteryLevel.toDouble())
+                    putString("batteryStatus", mapFromBatteryStatus(batteryStatus))
+                    putBoolean("isCharging", isCharging)
+                }
+            )
+        }
+    }
+
+    override fun onReportLowBatteryWarning() {
+        context.sendEvent(REPORT_LOW_BATTERY_WARNING.listenerName) {
+            putString("result", "LOW BATTERY")
+        }
+    }
+
+    override fun onReportReaderEvent(event: ReaderEvent) {
+        context.sendEvent(REPORT_READER_EVENT.listenerName) {
+            putMap(
+                "result",
+                nativeMapOf {
+                    putString("event", mapFromReaderEvent(event))
+                }
+            )
         }
     }
 }

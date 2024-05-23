@@ -834,3 +834,13 @@ fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): Readab
         putBoolean("readerSupportResult", readerSupportResult.isSupported)
     }
 }
+
+fun mapFromBatteryStatus(status: BatteryStatus): String {
+    return when (status) {
+        BatteryStatus.CRITICAL -> "CRITICAL"
+        BatteryStatus.LOW -> "LOW"
+        BatteryStatus.NOMINAL -> "NOMINAL"
+        BatteryStatus.UNKNOWN -> "UNKNOWN"
+        else -> { "UNKNOWN" }
+    }
+}

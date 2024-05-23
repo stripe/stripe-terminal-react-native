@@ -356,6 +356,10 @@ export type UserCallbacks = {
   onDidForwardingFailure?(error?: StripeError): void;
 
   onDidDisconnect?(reason?: Reader.DisconnectReason): void;
+
+  onDidBatteryLevelUpdate?(result: ReadonlyMap<string, object>): void;
+  onDidReportLowBatteryWarning?(): void;
+  onDidReportReaderEvent?(event: ReaderEvent): void;
 };
 
 export namespace PaymentMethod {
@@ -447,6 +451,11 @@ export enum ToggleResult {
   ENABLED = 'ENABLED',
   DISABLED = 'DISABLED',
   SKIPPED = 'SKIPPED',
+}
+
+export enum ReaderEvent {
+  CARD_INSERTED = 'CARD_INSERTED',
+  CARD_REMOVED = 'CARD_REMOVED',
 }
 
 export type OfflineDetails = {

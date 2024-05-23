@@ -19,5 +19,8 @@ enum class ReactNativeConstants(val listenerName: String) {
     CHANGE_OFFLINE_STATUS("didChangeOfflineStatus"),
     FORWARD_PAYMENT_INTENT("didForwardPaymentIntent"),
     REPORT_FORWARDING_ERROR("didReportForwardingError"),
-    DISCONNECT("didDisconnect")
+    DISCONNECT("didDisconnect"),
+    BATTERY_LEVEL_UPDATE("didBatteryLevelUpdate"),
+    REPORT_LOW_BATTERY_WARNING("didReportLowBatteryWarning"),
+    REPORT_READER_EVENT("didReportReaderEvent"),
 }

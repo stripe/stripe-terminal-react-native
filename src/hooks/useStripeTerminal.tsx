@@ -22,6 +22,7 @@ import type {
   SetupIntent,
   OfflineStatus,
   CollectInputsParameters,
+  ReaderEvent,
 } from '../types';
 import {
   discoverReaders,
@@ -91,6 +92,9 @@ export const {
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
   DISCONNECT,
+  BATTERY_LEVEL_UPDATE,
+  REPORT_LOW_BATTERY_WARNING,
+  REPORT_READER_EVENT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -152,6 +156,9 @@ export function useStripeTerminal(props?: Props) {
     onDidForwardPaymentIntent,
     onDidForwardingFailure,
     onDidDisconnect,
+    onDidBatteryLevelUpdate,
+    onDidReportLowBatteryWarning,
+    onDidReportReaderEvent,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -314,6 +321,24 @@ export function useStripeTerminal(props?: Props) {
     [onDidDisconnect]
   );
 
+  const didBatteryLevelUpdate = useCallback(
+    ({ result }: { result: ReadonlyMap<string, object> }) => {
+      onDidBatteryLevelUpdate?.(result);
+    },
+    [onDidBatteryLevelUpdate]
+  );
+
+  const didReportLowBatteryWarning = useCallback(() => {
+    onDidReportLowBatteryWarning?.();
+  }, [onDidReportLowBatteryWarning]);
+
+  const didReportReaderEvent = useCallback(
+    ({ result }: { result: ReaderEvent }) => {
+      onDidReportReaderEvent?.(result);
+    },
+    [onDidReportReaderEvent]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -339,6 +364,10 @@ export function useStripeTerminal(props?: Props) {
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
 
   useListener(DISCONNECT, didDisconnect);
+
+  useListener(BATTERY_LEVEL_UPDATE, didBatteryLevelUpdate);
+  useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
+  useListener(REPORT_READER_EVENT, didReportReaderEvent);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {

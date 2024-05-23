@@ -8,6 +8,7 @@ import {
   PaymentStatus,
   OfflineStatus,
   PaymentIntent,
+  ReaderEvent,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
@@ -35,6 +36,9 @@ const {
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
   DISCONNECT,
+  BATTERY_LEVEL_UPDATE,
+  REPORT_LOW_BATTERY_WARNING,
+  REPORT_READER_EVENT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -241,6 +245,30 @@ export function StripeTerminalProvider({
     [log]
   );
 
+  const didBatteryLevelUpdate = useCallback(
+    ({ result }: { result?: ReadonlyMap<string, object> }) => {
+      log('didBatteryLevelUpdate', result);
+      emitter?.emit(BATTERY_LEVEL_UPDATE, result);
+    },
+    [log]
+  );
+
+  const didReportLowBatteryWarning = useCallback(
+    ({ result }: { result?: string }) => {
+      log('didReportLowBatteryWarning', result);
+      emitter?.emit(REPORT_LOW_BATTERY_WARNING, result);
+    },
+    [log]
+  );
+
+  const didReportReaderEvent = useCallback(
+    ({ result }: EventResult<ReaderEvent>) => {
+      log('didReportReaderEvent', result);
+      emitter?.emit(REPORT_READER_EVENT, result);
+    },
+    [log]
+  );
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -266,6 +294,10 @@ export function StripeTerminalProvider({
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
 
   useListener(DISCONNECT, didDisconnect);
+
+  useListener(BATTERY_LEVEL_UPDATE, didBatteryLevelUpdate);
+  useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
+  useListener(REPORT_READER_EVENT, didReportReaderEvent);
 
   const tokenProviderHandler = async () => {
     try {
