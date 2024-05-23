@@ -834,8 +834,8 @@ class Mappers {
         return (["collectInputResults": collectInputResults])
     }
 
-    class func mapFromReaderEvent(_readerEvent: ReaderEvent) -> String {
-        switch _readerEvent {
+    class func mapFromReaderEvent(_ readerEvent: ReaderEvent) -> String {
+        switch readerEvent {
             case ReaderEvent.cardInserted: return "cardInserted"
             case ReaderEvent.cardRemoved: return "cardRemoved"
             default: return "unknown"

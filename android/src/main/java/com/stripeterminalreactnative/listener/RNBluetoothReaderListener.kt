@@ -3,7 +3,9 @@ package com.stripeterminalreactnative.listener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListener
+import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.DisconnectReason
+import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
@@ -20,11 +22,14 @@ import com.stripeterminalreactnative.mapFromReaderDisconnectReason
 import com.stripeterminalreactnative.ReactNativeConstants.BATTERY_LEVEL_UPDATE
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_LOW_BATTERY_WARNING
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_READER_EVENT
+import com.stripeterminalreactnative.mapFromBatteryStatus
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
+import com.stripeterminalreactnative.mapFromReaderEvent
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
 import com.stripeterminalreactnative.nativeMapOf
 import com.stripeterminalreactnative.putError
+import com.stripeterminalreactnative.putDoubleOrNull
 
 class RNBluetoothReaderListener(
     private val context: ReactApplicationContext,
