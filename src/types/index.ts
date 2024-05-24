@@ -365,26 +365,13 @@ export type UserCallbacks = {
 };
 
 export namespace PaymentMethod {
-  export type Type = IOS.Type &
-    Android.Props & {
-      id: string;
-      customer: string;
-      cardDetails: CardDetails;
-      cardPresentDetails: CardPresentDetails;
-    };
-
-  export namespace IOS {
-    export interface Type {
-      created: string;
-      type: string;
-    }
-  }
-
-  export namespace Android {
-    export interface Props {
-      livemode: boolean;
-    }
-  }
+  export type Type = {
+    id: string;
+    customer: string;
+    interacPresentDetails: CardPresentDetails;
+    cardPresentDetails: CardPresentDetails;
+    metadata?: Record<string, string>;
+  };
 }
 
 export type PaymentMethodResultType =
