@@ -21,8 +21,11 @@ import type { RouteParamList } from '../App';
 import { Picker } from '@react-native-picker/picker';
 
 export default function RefundPaymentScreen() {
-  const { lastSuccessfulChargeId, lastSuccessfulPaymentIntentId } =
-    useContext(AppContext);
+  const {
+    lastSuccessfulAmount,
+    lastSuccessfulChargeId,
+    lastSuccessfulPaymentIntentId,
+  } = useContext(AppContext);
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
     paymentIntentId: string;
@@ -34,7 +37,7 @@ export default function RefundPaymentScreen() {
   }>({
     chargeId: lastSuccessfulChargeId || '',
     paymentIntentId: lastSuccessfulPaymentIntentId || '',
-    amount: '100',
+    amount: lastSuccessfulAmount || '',
     currency: 'CAD',
     refundApplicationFee: false,
     reverseTransfer: false,
