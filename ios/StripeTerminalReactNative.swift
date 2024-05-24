@@ -21,7 +21,7 @@ enum ReactNativeConstants: String, CaseIterable {
     case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
     case REPORT_FORWARDING_ERROR = "didReportForwardingError"
     case DISCONNECT = "didDisconnect"
-    case BATTERY_LEVEL_UPDATE = "didReportBatteryLevel"
+    case UPDATE_BATTERY_LEVEL = "didReportBatteryLevel"
     case REPORT_LOW_BATTERY_WARNING = "didReportLowBatteryWarning"
     case REPORT_READER_EVENT = "didReportReaderEvent"
 }
@@ -1381,9 +1381,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func reader(_ reader: Reader, didReportReaderEvent event: ReaderEvent, info: [AnyHashable : Any]?) {
-        let result: NSDictionary = [
-            "event": Mappers.mapFromReaderEvent(event),
-        ]
+        let result = Mappers.mapFromReaderEvent(event)
         sendEvent(withName: ReactNativeConstants.REPORT_READER_EVENT.rawValue, body: ["result": result])
     }
 
@@ -1393,7 +1391,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             "batteryStatus": Mappers.mapFromBatteryStatus(status),
             "isCharging": isCharging,
         ]
-        sendEvent(withName: ReactNativeConstants.BATTERY_LEVEL_UPDATE.rawValue, body: ["result": result])
+        sendEvent(withName: ReactNativeConstants.UPDATE_BATTERY_LEVEL.rawValue, body: ["result": result])
     }
 
     func readerDidReportLowBatteryWarning(_ reader: Reader) {

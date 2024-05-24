@@ -313,6 +313,8 @@ export type OfflineStatus = {
   reader?: OfflineStatusDetails;
 };
 
+export type ReaderEvent = 'cardInserted' | 'cardRemoved';
+
 type CardDetails = {
   brand: string;
   country: string;
@@ -357,7 +359,7 @@ export type UserCallbacks = {
 
   onDidDisconnect?(reason?: Reader.DisconnectReason): void;
 
-  onDidBatteryLevelUpdate?(result: ReadonlyMap<string, object>): void;
+  onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
   onDidReportLowBatteryWarning?(): void;
   onDidReportReaderEvent?(event: ReaderEvent): void;
 };
@@ -451,11 +453,6 @@ export enum ToggleResult {
   ENABLED = 'ENABLED',
   DISABLED = 'DISABLED',
   SKIPPED = 'SKIPPED',
-}
-
-export enum ReaderEvent {
-  CARD_INSERTED = 'CARD_INSERTED',
-  CARD_REMOVED = 'CARD_REMOVED',
 }
 
 export type OfflineDetails = {

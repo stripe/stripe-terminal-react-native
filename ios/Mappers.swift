@@ -836,9 +836,9 @@ class Mappers {
 
     class func mapFromReaderEvent(_ readerEvent: ReaderEvent) -> String {
         switch readerEvent {
-            case ReaderEvent.cardInserted: return "cardInserted"
-            case ReaderEvent.cardRemoved: return "cardRemoved"
-            default: return "unknown"
+            case .cardInserted: return "cardInserted"
+            case .cardRemoved: return "cardRemoved"
+            @unknown default: return "unknown"
         }
     }
 }

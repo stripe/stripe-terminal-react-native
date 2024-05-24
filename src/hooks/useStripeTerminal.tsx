@@ -92,7 +92,7 @@ export const {
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
   DISCONNECT,
-  BATTERY_LEVEL_UPDATE,
+  UPDATE_BATTERY_LEVEL,
   REPORT_LOW_BATTERY_WARNING,
   REPORT_READER_EVENT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
@@ -156,7 +156,7 @@ export function useStripeTerminal(props?: Props) {
     onDidForwardPaymentIntent,
     onDidForwardingFailure,
     onDidDisconnect,
-    onDidBatteryLevelUpdate,
+    onDidUpdateBatteryLevel,
     onDidReportLowBatteryWarning,
     onDidReportReaderEvent,
   } = props || {};
@@ -321,11 +321,11 @@ export function useStripeTerminal(props?: Props) {
     [onDidDisconnect]
   );
 
-  const didBatteryLevelUpdate = useCallback(
-    ({ result }: { result: ReadonlyMap<string, object> }) => {
-      onDidBatteryLevelUpdate?.(result);
+  const didUpdateBatteryLevel = useCallback(
+    ({ result }: { result: Reader.BatteryLevel }) => {
+      onDidUpdateBatteryLevel?.(result);
     },
-    [onDidBatteryLevelUpdate]
+    [onDidUpdateBatteryLevel]
   );
 
   const didReportLowBatteryWarning = useCallback(() => {
@@ -365,7 +365,7 @@ export function useStripeTerminal(props?: Props) {
 
   useListener(DISCONNECT, didDisconnect);
 
-  useListener(BATTERY_LEVEL_UPDATE, didBatteryLevelUpdate);
+  useListener(UPDATE_BATTERY_LEVEL, didUpdateBatteryLevel);
   useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
 

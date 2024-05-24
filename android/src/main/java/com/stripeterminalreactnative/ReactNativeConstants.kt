@@ -20,7 +20,7 @@ enum class ReactNativeConstants(val listenerName: String) {
     FORWARD_PAYMENT_INTENT("didForwardPaymentIntent"),
     REPORT_FORWARDING_ERROR("didReportForwardingError"),
     DISCONNECT("didDisconnect"),
-    BATTERY_LEVEL_UPDATE("didBatteryLevelUpdate"),
+    UPDATE_BATTERY_LEVEL("didUpdateBatteryLevel"),
     REPORT_LOW_BATTERY_WARNING("didReportLowBatteryWarning"),
     REPORT_READER_EVENT("didReportReaderEvent"),
 }

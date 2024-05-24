@@ -18,7 +18,7 @@ import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
-import com.stripeterminalreactnative.ReactNativeConstants.BATTERY_LEVEL_UPDATE
+import com.stripeterminalreactnative.ReactNativeConstants.UPDATE_BATTERY_LEVEL
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_LOW_BATTERY_WARNING
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_READER_EVENT
 import com.stripeterminalreactnative.mapFromBatteryStatus
@@ -98,7 +98,7 @@ class RNUsbReaderListener(
         batteryStatus: BatteryStatus,
         isCharging: Boolean
     ) {
-        context.sendEvent(BATTERY_LEVEL_UPDATE.listenerName) {
+        context.sendEvent(UPDATE_BATTERY_LEVEL.listenerName) {
             putMap(
                 "result",
                 nativeMapOf {
@@ -118,12 +118,7 @@ class RNUsbReaderListener(
 
     override fun onReportReaderEvent(event: ReaderEvent) {
         context.sendEvent(REPORT_READER_EVENT.listenerName) {
-            putMap(
-                "result",
-                nativeMapOf {
-                    putString("event", mapFromReaderEvent(event))
-                }
-            )
+            putString("event", mapFromReaderEvent(event))
         }
     }
 }

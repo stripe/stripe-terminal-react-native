@@ -36,7 +36,7 @@ const {
   FORWARD_PAYMENT_INTENT,
   REPORT_FORWARDING_ERROR,
   DISCONNECT,
-  BATTERY_LEVEL_UPDATE,
+  UPDATE_BATTERY_LEVEL,
   REPORT_LOW_BATTERY_WARNING,
   REPORT_READER_EVENT,
 } = NativeModules.StripeTerminalReactNative.getConstants();
@@ -245,10 +245,10 @@ export function StripeTerminalProvider({
     [log]
   );
 
-  const didBatteryLevelUpdate = useCallback(
+  const didUpdateBatteryLevel = useCallback(
     ({ result }: { result?: ReadonlyMap<string, object> }) => {
-      log('didBatteryLevelUpdate', result);
-      emitter?.emit(BATTERY_LEVEL_UPDATE, result);
+      log('didUpdateBatteryLevel', result);
+      emitter?.emit(UPDATE_BATTERY_LEVEL, result);
     },
     [log]
   );
@@ -295,7 +295,7 @@ export function StripeTerminalProvider({
 
   useListener(DISCONNECT, didDisconnect);
 
-  useListener(BATTERY_LEVEL_UPDATE, didBatteryLevelUpdate);
+  useListener(UPDATE_BATTERY_LEVEL, didUpdateBatteryLevel);
   useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
 
