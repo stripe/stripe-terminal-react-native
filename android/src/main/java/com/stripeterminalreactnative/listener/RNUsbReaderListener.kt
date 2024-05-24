@@ -118,7 +118,7 @@ class RNUsbReaderListener(
 
     override fun onReportReaderEvent(event: ReaderEvent) {
         context.sendEvent(REPORT_READER_EVENT.listenerName) {
-            putString("event", mapFromReaderEvent(event))
+            putString("result", mapFromReaderEvent(event))
         }
     }
 }
