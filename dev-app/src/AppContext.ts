@@ -13,6 +13,8 @@ export const AppContext = React.createContext<IAppContext>({
   setLastSuccessfulChargeId: (_id) => null,
   lastSuccessfulPaymentIntentId: null,
   setLastSuccessfulPaymentIntentId: (_id) => null,
+  lastSuccessfulAmount: null,
+  setLastSuccessfulAmount: (_a) => null,
   autoReconnectOnUnexpectedDisconnect: false,
   setAutoReconnectOnUnexpectedDisconnect: (_b) => null,
   cachedLocations: [],

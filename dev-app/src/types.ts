@@ -16,6 +16,8 @@ export type IAppContext = {
   setLastSuccessfulChargeId: (id: string) => void;
   lastSuccessfulPaymentIntentId: string | null;
   setLastSuccessfulPaymentIntentId: (id: string) => void;
+  lastSuccessfulAmount: string | null;
+  setLastSuccessfulAmount: (amount: string) => void;
   autoReconnectOnUnexpectedDisconnect: boolean | false;
   setAutoReconnectOnUnexpectedDisconnect: (b: boolean) => void;
   cachedLocations: Array<Location>;

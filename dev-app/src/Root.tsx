@@ -21,6 +21,9 @@ export default function Root() {
   >(null);
   const [lastSuccessfulPaymentIntentId, setLastSuccessfulPaymentIntentId] =
     useState<string | null>(null);
+  const [lastSuccessfulAmount, setLastSuccessfulAmount] = useState<
+    string | null
+  >(null);
   const [
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
@@ -96,6 +99,8 @@ export default function Root() {
         setLastSuccessfulPaymentIntentId: (id) =>
           setLastSuccessfulPaymentIntentId(id),
         lastSuccessfulPaymentIntentId,
+        setLastSuccessfulAmount: (a) => setLastSuccessfulAmount(a),
+        lastSuccessfulAmount,
         autoReconnectOnUnexpectedDisconnect,
         setAutoReconnectOnUnexpectedDisconnect: (b) =>
           setAutoReconnectOnUnexpectedDisconnect(b),
