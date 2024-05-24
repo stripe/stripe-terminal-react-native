@@ -951,6 +951,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         resolve(result)
     }
+    
+    @objc(getPaymentStatus:rejecter:)
+    func getPaymentStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let result = Mappers.mapFromPaymentStatus(Terminal.shared.paymentStatus)
+
+        resolve(result)
+    }
 
     @objc(collectInputs:resolver:rejecter:)
     func collectInputs(_ params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {

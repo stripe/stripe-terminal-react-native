@@ -798,6 +798,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
+    fun getPaymentStatus(promise: Promise) {
+        promise.resolve(mapFromPaymentStatus(terminal.paymentStatus))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
     fun getReaderSettings(promise: Promise) {
         terminal.getReaderSettings(RNReadSettingsCallback(promise))
     }

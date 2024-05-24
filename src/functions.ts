@@ -34,6 +34,7 @@ import type {
   OfflineStatus,
   CollectInputsParameters,
   CollectInputsResults,
+  PaymentStatus,
 } from './types';
 
 export async function initialize(
@@ -772,6 +773,19 @@ export async function getOfflineStatus(): Promise<OfflineStatus> {
       };
     }
   }, 'getOfflineStatus')();
+}
+
+export async function getPaymentStatus(): Promise<PaymentStatus> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const paymentStatus = await StripeTerminalSdk.getPaymentStatus();
+      return paymentStatus;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'getPaymentStatus')();
 }
 
 export async function getReaderSettings(): Promise<Reader.ReaderSettings> {

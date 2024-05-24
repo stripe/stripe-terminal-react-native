@@ -200,6 +200,11 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  getPaymentStatus:(RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   collectInputs:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
