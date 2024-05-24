@@ -315,15 +315,6 @@ export type OfflineStatus = {
 
 export type ReaderEvent = 'cardInserted' | 'cardRemoved';
 
-type CardDetails = {
-  brand: string;
-  country: string;
-  expMonth: number;
-  expYear: number;
-  funding: string;
-  last4: string;
-};
-
 /**
  * @ignore
  */
