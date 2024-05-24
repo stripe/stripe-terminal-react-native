@@ -246,7 +246,7 @@ export function StripeTerminalProvider({
   );
 
   const didUpdateBatteryLevel = useCallback(
-    ({ result }: { result?: ReadonlyMap<string, object> }) => {
+    ({ result }: { result?: Reader.BatteryLevel }) => {
       log('didUpdateBatteryLevel', result);
       emitter?.emit(UPDATE_BATTERY_LEVEL, result);
     },
