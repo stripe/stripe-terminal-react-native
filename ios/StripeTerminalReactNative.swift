@@ -21,7 +21,7 @@ enum ReactNativeConstants: String, CaseIterable {
     case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
     case REPORT_FORWARDING_ERROR = "didReportForwardingError"
     case DISCONNECT = "didDisconnect"
-    case UPDATE_BATTERY_LEVEL = "didReportBatteryLevel"
+    case UPDATE_BATTERY_LEVEL = "didUpdateBatteryLevel"
     case REPORT_LOW_BATTERY_WARNING = "didReportLowBatteryWarning"
     case REPORT_READER_EVENT = "didReportReaderEvent"
 }
