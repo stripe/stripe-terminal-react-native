@@ -34,6 +34,7 @@ import type {
   CollectInputsParameters,
   CollectInputsResults,
   PaymentStatus,
+  ConnectionStatus,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -147,6 +148,7 @@ export interface StripeTerminalSdkType {
   }>;
   getOfflineStatus(): Promise<OfflineStatus>;
   getPaymentStatus(): Promise<PaymentStatus>;
+  getConnectionStatus(): Promise<ConnectionStatus>;
   getReaderSettings(): Promise<Reader.ReaderSettings>;
   setReaderSettings(
     params: Reader.ReaderSettingsParameters

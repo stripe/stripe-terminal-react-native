@@ -64,6 +64,7 @@ import {
   cancelReaderReconnection,
   supportsReadersOfType,
   getPaymentStatus,
+  getConnectionStatus,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -887,6 +888,15 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized]);
 
+  const _getConnectionStatus = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    const response = await getConnectionStatus();
+    return response;
+  }, [_isInitialized]);
+
   const _getReaderSettings = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -1008,6 +1018,7 @@ export function useStripeTerminal(props?: Props) {
     setSimulatedCard: _setSimulatedCard,
     getOfflineStatus: _getOfflineStatus,
     getPaymentStatus: _getPaymentStatus,
+    getConnectionStatus: _getConnectionStatus,
     getReaderSettings: _getReaderSettings,
     setReaderSettings: _setReaderSettings,
     collectInputs: _collectInputs,

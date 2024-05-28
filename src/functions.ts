@@ -35,6 +35,7 @@ import type {
   CollectInputsParameters,
   CollectInputsResults,
   PaymentStatus,
+  ConnectionStatus,
 } from './types';
 
 export async function initialize(
@@ -786,6 +787,19 @@ export async function getPaymentStatus(): Promise<PaymentStatus> {
       };
     }
   }, 'getPaymentStatus')();
+}
+
+export async function getConnectionStatus(): Promise<ConnectionStatus> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const connectionStatus = await StripeTerminalSdk.getConnectionStatus();
+      return connectionStatus;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'getConnectionStatus')();
 }
 
 export async function getReaderSettings(): Promise<Reader.ReaderSettings> {

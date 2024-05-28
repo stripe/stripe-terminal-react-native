@@ -959,6 +959,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         resolve(result)
     }
 
+    @objc(getConnectionStatus:rejecter:)
+    func getConnectionStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let result = Mappers.mapFromConnectionStatus(Terminal.shared.connectionStatus)
+
+        resolve(result)
+    }
+
     @objc(collectInputs:resolver:rejecter:)
     func collectInputs(_ params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["collectInputs"])
