@@ -23,6 +23,7 @@ import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParamet
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
+import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.EmailInput
@@ -800,6 +801,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun getPaymentStatus(promise: Promise) {
         promise.resolve(mapFromPaymentStatus(terminal.paymentStatus))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun getConnectionStatus(promise: Promise) {
+        promise.resolve(mapFromConnectionStatus(terminal.connectionStatus))
     }
 
     @ReactMethod

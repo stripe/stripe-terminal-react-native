@@ -313,6 +313,8 @@ export type OfflineStatus = {
   reader?: OfflineStatusDetails;
 };
 
+export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected';
+
 /**
  * @ignore
  */

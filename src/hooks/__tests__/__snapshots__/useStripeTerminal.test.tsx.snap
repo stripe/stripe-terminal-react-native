@@ -33,6 +33,7 @@ Object {
     "discoverReaders": [Function],
     "discoveredReaders": Array [],
     "emitter": undefined,
+    "getConnectionStatus": [Function],
     "getLocations": [Function],
     "getOfflineStatus": [Function],
     "getPaymentStatus": [Function],
