@@ -59,6 +59,7 @@ export default function CollectCardPaymentScreen() {
     api,
     setLastSuccessfulChargeId,
     setLastSuccessfulPaymentIntentId,
+    setLastSuccessfulAmount,
     account,
   } = useContext(AppContext);
 
@@ -478,6 +479,7 @@ export default function CollectCardPaymentScreen() {
     if (paymentIntent?.charges[0]?.id) {
       setLastSuccessfulChargeId(paymentIntent.charges[0].id);
       setLastSuccessfulPaymentIntentId(paymentIntent.id);
+      setLastSuccessfulAmount(paymentIntent.amount.toString());
     }
 
     if (paymentIntent?.status === 'succeeded') {

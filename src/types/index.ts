@@ -315,6 +315,8 @@ export type OfflineStatus = {
 
 export type ReaderEvent = 'cardInserted' | 'cardRemoved';
 
+export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected';
+
 /**
  * @ignore
  */
