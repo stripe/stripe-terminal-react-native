@@ -58,6 +58,12 @@ export namespace Reader {
 
   export type BatteryStatus = 'critical' | 'low' | 'nominal' | 'unknown';
 
+  export type BatteryLevel = {
+    batteryLevel: number;
+    batteryStatus: BatteryStatus;
+    isCharging: boolean;
+  };
+
   export type NetworkStatus = 'offline' | 'online';
 
   export type SoftwareUpdate = {

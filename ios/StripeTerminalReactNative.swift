@@ -21,6 +21,9 @@ enum ReactNativeConstants: String, CaseIterable {
     case FORWARD_PAYMENT_INTENT = "didForwardPaymentIntent"
     case REPORT_FORWARDING_ERROR = "didReportForwardingError"
     case DISCONNECT = "didDisconnect"
+    case UPDATE_BATTERY_LEVEL = "didUpdateBatteryLevel"
+    case REPORT_LOW_BATTERY_WARNING = "didReportLowBatteryWarning"
+    case REPORT_READER_EVENT = "didReportReaderEvent"
 }
 
 @objc(StripeTerminalReactNative)
@@ -1404,5 +1407,24 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didReportForwardingError error: Error) {
         let result = Errors.createError(nsError: error as NSError)
         sendEvent(withName: ReactNativeConstants.REPORT_FORWARDING_ERROR.rawValue, body: ["result": result])
+    }
+
+    func reader(_ reader: Reader, didReportReaderEvent event: ReaderEvent, info: [AnyHashable : Any]?) {
+        let result = Mappers.mapFromReaderEvent(event)
+        sendEvent(withName: ReactNativeConstants.REPORT_READER_EVENT.rawValue, body: ["result": result])
+    }
+
+    func reader(_ reader: Reader, didReportBatteryLevel batteryLevel: Float, status: BatteryStatus, isCharging: Bool) {
+        let result: NSDictionary = [
+            "batteryLevel": batteryLevel,
+            "batteryStatus": Mappers.mapFromBatteryStatus(status),
+            "isCharging": isCharging,
+        ]
+        sendEvent(withName: ReactNativeConstants.UPDATE_BATTERY_LEVEL.rawValue, body: ["result": result])
+    }
+
+    func readerDidReportLowBatteryWarning(_ reader: Reader) {
+        let result = "LOW BATTERY"
+        sendEvent(withName: ReactNativeConstants.REPORT_LOW_BATTERY_WARNING.rawValue, body: ["result": result])
     }
 }

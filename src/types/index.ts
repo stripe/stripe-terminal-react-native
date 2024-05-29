@@ -317,6 +317,8 @@ export type OfflineStatus = {
   reader?: OfflineStatusDetails;
 };
 
+export type ReaderEvent = 'cardInserted' | 'cardRemoved';
+
 export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected';
 
 /**
@@ -353,6 +355,10 @@ export type UserCallbacks = {
   onDidForwardingFailure?(error?: StripeError): void;
 
   onDidDisconnect?(reason?: Reader.DisconnectReason): void;
+
+  onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
+  onDidReportLowBatteryWarning?(): void;
+  onDidReportReaderEvent?(event: ReaderEvent): void;
 };
 
 export namespace PaymentMethod {

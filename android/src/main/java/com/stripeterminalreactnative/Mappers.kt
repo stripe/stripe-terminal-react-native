@@ -9,6 +9,7 @@ import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.Address
 import com.stripe.stripeterminal.external.models.AmountDetails
+import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.CartLineItem
@@ -832,5 +833,15 @@ fun mapFromToggleResult(toggleResult: ToggleResult): String {
 fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): ReadableMap {
     return nativeMapOf {
         putBoolean("readerSupportResult", readerSupportResult.isSupported)
+    }
+}
+
+fun mapFromBatteryStatus(status: BatteryStatus): String {
+    return when (status) {
+        BatteryStatus.CRITICAL -> "CRITICAL"
+        BatteryStatus.LOW -> "LOW"
+        BatteryStatus.NOMINAL -> "NOMINAL"
+        BatteryStatus.UNKNOWN -> "UNKNOWN"
+        else -> { "UNKNOWN" }
     }
 }
