@@ -343,7 +343,7 @@ export default function CollectCardPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
-              pi: JSON.stringify(error.paymentIntent, undefined, 2),
+              pi: JSON.stringify(paymentIntent, undefined, 2),
             },
           },
         ],
@@ -388,7 +388,6 @@ export default function CollectCardPaymentScreen() {
     );
 
     if (error) {
-      const failedPI = await api.getPaymentIntent(collectedPaymentIntent.id);
       addLogs({
         name: 'Confirm Payment Intent',
         events: [
@@ -398,7 +397,7 @@ export default function CollectCardPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
-              pi: JSON.stringify(failedPI, undefined, 2),
+              pi: JSON.stringify(paymentIntent, undefined, 2),
             },
           },
         ],

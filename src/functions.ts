@@ -283,6 +283,12 @@ export async function createPaymentIntent(
         await StripeTerminalSdk.createPaymentIntent(innerParams);
 
       if (error) {
+        if (paymentIntent) {
+          return {
+            error,
+            paymentIntent,
+          };
+        }
         return {
           error,
           paymentIntent: undefined,
@@ -336,6 +342,12 @@ export async function collectPaymentMethod(
         await StripeTerminalSdk.collectPaymentMethod(innerParams);
 
       if (error) {
+        if (paymentIntent) {
+          return {
+            error,
+            paymentIntent,
+          };
+        }
         return {
           error,
           paymentIntent: undefined,
@@ -416,6 +428,12 @@ export async function confirmPaymentIntent(
         await StripeTerminalSdk.confirmPaymentIntent(innerPaymentIntent);
 
       if (error) {
+        if (paymentIntent) {
+          return {
+            error,
+            paymentIntent: confirmedPaymentIntent,
+          };
+        }
         return {
           error,
           paymentIntent: undefined,

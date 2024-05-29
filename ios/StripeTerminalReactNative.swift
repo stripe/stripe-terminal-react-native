@@ -465,7 +465,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
             if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
+                var result = Errors.createError(nsError: error)
+                if let pi {
+                    let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
+                    result["paymentIntent"] = paymentIntent
+                }
+                resolve(result)
             } else if let pi = pi {
                 let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
@@ -548,7 +553,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             collectConfig: collectConfig
         ) { pi, collectError  in
             if let error = collectError as NSError? {
-                resolve(Errors.createError(nsError: error))
+                var result = Errors.createError(nsError: error)
+                if let pi {
+                    let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
+                    result["paymentIntent"] = paymentIntent
+                }
+                resolve(result)
             } else if let paymentIntent = pi {
                 let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": paymentIntent])
@@ -625,7 +635,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         Terminal.shared.confirmPaymentIntent(paymentIntent) { pi, error in
             if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
+                var result = Errors.createError(nsError: error)
+                if let pi {
+                    let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
+                    result["paymentIntent"] = paymentIntent
+                }
+                resolve(result)
             } else if let pi = pi {
                 let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
