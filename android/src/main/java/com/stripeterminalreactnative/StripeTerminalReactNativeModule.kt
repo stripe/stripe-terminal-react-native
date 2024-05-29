@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
@@ -52,6 +53,8 @@ import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.TextInput
 import com.stripe.stripeterminal.external.models.TippingConfiguration
+import com.stripe.stripeterminal.external.models.Toggle
+import com.stripe.stripeterminal.external.models.ToggleValue
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
@@ -502,6 +505,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "enableCustomerCancellation")
                 )
             }
+            if (params.hasKey("requestDynamicCurrencyConversion")) {
+                configBuilder.setRequestDynamicCurrencyConversion(
+                    getBoolean(params, "requestDynamicCurrencyConversion")
+                )
+            }
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
@@ -790,6 +798,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
+    fun getPaymentStatus(promise: Promise) {
+        promise.resolve(mapFromPaymentStatus(terminal.paymentStatus))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
     fun getReaderSettings(promise: Promise) {
         terminal.getReaderSettings(RNReadSettingsCallback(promise))
     }
@@ -807,6 +821,28 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @OptIn(CollectInputs::class)
+    private fun getTogglesFromParam(toggleList: ReadableArray): ArrayList<Toggle> {
+        val toggles = ArrayList<Toggle>()
+        toggleList.let { array ->
+            for (i in 0 until array.size()) {
+                val toggle = array.getMap(i)
+                toggles.add(
+                    Toggle(
+                        toggle.getString("title"),
+                        toggle.getString("description"),
+                        if (toggle.getString("defaultValue") == "ENABLED") {
+                            ToggleValue.ENABLED
+                        } else {
+                            ToggleValue.DISABLED
+                        }
+                    )
+                )
+            }
+        }
+        return toggles
+    }
+
+    @OptIn(CollectInputs::class)
     @ReactMethod
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
@@ -819,66 +855,89 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             when (collectInput.getString("inputType")) {
                 "TEXT" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             TextInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description") ?: "")
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "NUMERIC" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             NumericInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "EMAIL" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             EmailInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "PHONE" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             PhoneInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "SIGNATURE" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         listInput.add(
                             SignatureInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
                 }
                 "SELECTION" -> {
                     collectInput.let {
+                        var toggles = ArrayList<Toggle>()
+                        it.getArray("toggles")
+                            ?.let { itToggle -> toggles = getTogglesFromParam(itToggle) }
                         val selectionButtons = it.getArray("selectionButtons")
                         val listSelectionButtons = ArrayList<SelectionButton>()
                         selectionButtons?.let { array ->
@@ -902,6 +961,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                                 .setRequired(it.getBoolean("required"))
                                 .setSkipButtonText(it.getString("skipButtonText") ?: "")
                                 .setSelectionButtons(listSelectionButtons)
+                                .setToggles(toggles)
                                 .build()
                         )
                     }
@@ -920,6 +980,45 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelCollectInputs(promise: Promise) {
         cancelOperation(promise, collectInputsCancelable, "collectInputs")
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun supportsReadersOfType(params: ReadableMap, promise: Promise) {
+        val deviceTypeParams = requireParam(params.getString("deviceType")) {
+            "You must provide a deviceType"
+        }
+        val deviceType = requireParam(mapToDeviceType(deviceTypeParams)) {
+            "Unknown readerType: $deviceTypeParams"
+        }
+        val discoveryMethodParam = requireParam(params.getString("discoveryMethod")) {
+            "You must provide a discoveryMethod"
+        }
+        val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
+            "Unknown discoveryMethod: $discoveryMethodParam"
+        }
+
+        val readerSupportResult = terminal.supportsReadersOfType(
+            deviceType,
+            when (discoveryMethod) {
+                DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(
+                    getInt(params, "timeout") ?: 0,
+                    getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
+                    isSimulated = getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
+                    getInt(params, "timeout") ?: 0,
+                    getBoolean(params, "simulated")
+                )
+                DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
+                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(
+                    getBoolean(params, "simulated")
+                ) }
+        )
+
+        promise.resolve(mapFromReaderSupportResult(readerSupportResult))
     }
 
     @ReactMethod

@@ -193,6 +193,7 @@ export type CollectPaymentMethodParams = {
   tipEligibleAmount?: number;
   updatePaymentIntent?: boolean;
   enableCustomerCancellation?: boolean;
+  requestDynamicCurrencyConversion?: boolean;
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
@@ -316,15 +317,6 @@ export type OfflineStatus = {
   reader?: OfflineStatusDetails;
 };
 
-type CardDetails = {
-  brand: string;
-  country: string;
-  expMonth: number;
-  expYear: number;
-  funding: string;
-  last4: string;
-};
-
 /**
  * @ignore
  */
@@ -362,26 +354,13 @@ export type UserCallbacks = {
 };
 
 export namespace PaymentMethod {
-  export type Type = IOS.Type &
-    Android.Props & {
-      id: string;
-      customer: string;
-      cardDetails: CardDetails;
-      cardPresentDetails: CardPresentDetails;
-    };
-
-  export namespace IOS {
-    export interface Type {
-      created: string;
-      type: string;
-    }
-  }
-
-  export namespace Android {
-    export interface Props {
-      livemode: boolean;
-    }
-  }
+  export type Type = {
+    id: string;
+    customer: string;
+    interacPresentDetails: CardPresentDetails;
+    cardPresentDetails: CardPresentDetails;
+    metadata?: Record<string, string>;
+  };
 }
 
 export type PaymentMethodResultType =
@@ -411,6 +390,7 @@ export type Input = {
   submitButtonText?: string;
   title: string;
   selectionButtons?: SelectionButton[];
+  toggles?: Toggle[];
 };
 
 export type CollectInputResult = {
@@ -421,6 +401,7 @@ export type CollectInputResult = {
   selection?: string;
   signatureSvg?: string;
   text?: string;
+  toggles?: ToggleResult[];
 };
 
 export type SelectionButton = {
@@ -430,7 +411,24 @@ export type SelectionButton = {
 
 export enum SelectionButtonStyle {
   PRIMARY = 'PRIMARY',
-  SECONDARY = 'CanSECONDARYceled',
+  SECONDARY = 'SECONDARY',
+}
+
+export type Toggle = {
+  title: string;
+  description: string;
+  defaultValue: ToggleValue;
+};
+
+export enum ToggleValue {
+  ENABLED = 'ENABLED',
+  DISABLED = 'DISABLED',
+}
+
+export enum ToggleResult {
+  ENABLED = 'ENABLED',
+  DISABLED = 'DISABLED',
+  SKIPPED = 'SKIPPED',
 }
 
 export type OfflineDetails = {
