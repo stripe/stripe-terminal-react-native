@@ -17,6 +17,11 @@ internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
             putErrorContents(throwable)
         }
     )
+    if (throwable is TerminalException) {
+        throwable.paymentIntent?.let {
+            putMap("paymentIntent", mapFromPaymentIntent(it, ""))
+        }
+    }
 }
 
 private fun WritableMap.putErrorContents(throwable: Throwable?) {

@@ -214,6 +214,10 @@ export type PaymentIntentResultType =
   | {
       paymentIntent?: undefined;
       error: StripeError;
+    }
+  | {
+      paymentIntent: PaymentIntent.Type;
+      error: StripeError;
     };
 
 export type SetupIntentResultType =
