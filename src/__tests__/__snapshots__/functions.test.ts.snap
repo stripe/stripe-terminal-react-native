@@ -29,6 +29,7 @@ Object {
   "createSetupIntent": [Function],
   "disconnectReader": [Function],
   "discoverReaders": [Function],
+  "getConnectedReader": [Function],
   "getConnectionStatus": [Function],
   "getLocations": [Function],
   "getOfflineStatus": [Function],
