@@ -149,6 +149,7 @@ export interface StripeTerminalSdkType {
   getOfflineStatus(): Promise<OfflineStatus>;
   getPaymentStatus(): Promise<PaymentStatus>;
   getConnectionStatus(): Promise<ConnectionStatus>;
+  getConnectedReader(): Promise<Reader.Type>;
   getReaderSettings(): Promise<Reader.ReaderSettings>;
   setReaderSettings(
     params: Reader.ReaderSettingsParameters

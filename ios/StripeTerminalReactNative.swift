@@ -984,6 +984,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         resolve(result)
     }
 
+    @objc(getConnectedReader:rejecter:)
+    func getConnectedReader(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if let connectedReader = Terminal.shared.connectedReader {
+            let result = Mappers.mapFromReader(connectedReader)
+            resolve(result)
+        } else {
+            resolve([:])
+        }
+    }
+
+
     @objc(collectInputs:resolver:rejecter:)
     func collectInputs(_ params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["collectInputs"])

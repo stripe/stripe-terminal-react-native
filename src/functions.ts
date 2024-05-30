@@ -820,6 +820,19 @@ export async function getConnectionStatus(): Promise<ConnectionStatus> {
   }, 'getConnectionStatus')();
 }
 
+export async function getConnectedReader(): Promise<Reader.Type> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const connectedReader = await StripeTerminalSdk.getConnectedReader();
+      return connectedReader;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'getConnectedReader')();
+}
+
 export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
     try {
