@@ -181,7 +181,7 @@ class PaymentScreen extends React.Component {
   async discoverReaders() {
     this.props.discoverReaders({
       discoveryMethod: 'bluetoothScan',
-      simulated,
+      simulated: true,
     });
   }
 }
