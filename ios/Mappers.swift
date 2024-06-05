@@ -783,10 +783,10 @@ class Mappers {
 
     class func mapFromToggleResult(_ toggleResult: NSNumber) -> String {
         switch toggleResult {
-        case 0: return "ENABLED"
-        case 1: return "DISABLED"
-        case 2: return "SKIPPED"
-        default: return "UNKNOWN"
+        case 0: return "enabled"
+        case 1: return "disabled"
+        case 2: return "skipped"
+        default: return "unknown"
         }
     }
 

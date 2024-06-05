@@ -31,8 +31,8 @@ import type {
   PaymentIntent,
   SetupIntent,
   OfflineStatus,
-  CollectInputsParameters,
-  CollectInputsResults,
+  ICollectInputsParameters,
+  ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
 } from './types';
@@ -154,7 +154,9 @@ export interface StripeTerminalSdkType {
   setReaderSettings(
     params: Reader.ReaderSettingsParameters
   ): Promise<Reader.ReaderSettings>;
-  collectInputs(params: CollectInputsParameters): Promise<CollectInputsResults>;
+  collectInputs(
+    params: ICollectInputsParameters
+  ): Promise<ICollectInputsResults>;
   cancelCollectInputs(): Promise<{
     error?: StripeError;
   }>;
