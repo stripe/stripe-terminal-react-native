@@ -860,7 +860,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         val collectInputs = requireParam(params.getArray("inputs")) {
-            "You must provide a collectInputs"
+            "You must provide an inputs value"
         }
         val listInput = ArrayList<Input>()
         for (i in 0 until collectInputs.size()) {
