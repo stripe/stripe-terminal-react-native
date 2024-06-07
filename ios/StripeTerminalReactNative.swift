@@ -397,7 +397,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let captureMethod = params["captureMethod"] as? String
 
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
-            .setPaymentMethodTypes(paymentMethodTypes)
             .setCaptureMethod(captureMethod == "automatic" ? .automatic : .manual)
             .setSetupFutureUsage(setupFutureUsage)
             .setOnBehalfOf(onBehalfOf)
@@ -410,6 +409,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setCustomer(customer)
             .setTransferGroup(transferGroup)
             .setMetadata(metadata)
+        
+        if !paymentMethodTypes.isEmpty {
+            paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes)
+        }
 
         let cardPresentParamsBuilder = CardPresentParametersBuilder()
             .setRequestExtendedAuthorization(extendedAuth)

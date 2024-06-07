@@ -372,12 +372,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
-        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
-            if (it is String) {
-                PaymentMethodType.valueOf(it.uppercase())
-            } else {
-                null
-            }
+        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull { 
+            it as? String 
+        }?.map{
+            PaymentMethodType.valueOf(it.uppercase())
         }
 
         val intentParams = paymentMethodTypes?.let {
@@ -451,14 +449,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        val offlineBehaviorParam = offlineBehavior.let {
+        val offlineBehaviorParam = offlineBehavior?.let {
             when (it) {
                 "prefer_online" -> OfflineBehavior.PREFER_ONLINE
                 "require_online" -> OfflineBehavior.REQUIRE_ONLINE
                 "force_offline" -> OfflineBehavior.FORCE_OFFLINE
                 else -> OfflineBehavior.PREFER_ONLINE
             }
-        }
+        } ?: OfflineBehavior.PREFER_ONLINE
 
         val uuid = UUID.randomUUID().toString()
 
