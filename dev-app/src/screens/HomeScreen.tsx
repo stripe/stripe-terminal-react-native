@@ -91,7 +91,7 @@ export default function HomeScreen() {
       );
     },
     onDidStartReaderReconnect() {
-      Alert.alert('Reconnecting...', 'Reader has disconneted.', [
+      Alert.alert('Reconnecting...', 'Reader has disconnected.', [
         {
           text: 'Cancel',
           onPress: async () => {
