@@ -24,12 +24,16 @@ import {
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
+import AlertDialog from '../components/AlertDialog';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
   const [online, setOnline] = useState<boolean>(true);
+  const [showReconnectAlert, setShowReconnectAlert] = useState<boolean>(false);
+  const [showDisconnectAlert, setShowDisconnectAlert] =
+    useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
@@ -91,20 +95,17 @@ export default function HomeScreen() {
       );
     },
     onDidStartReaderReconnect() {
-      Alert.alert('Reconnecting...', 'Reader has disconneted.', [
-        {
-          text: 'Cancel',
-          onPress: async () => {
-            await cancelReaderReconnection();
-          },
-        },
-      ]);
+      setShowDisconnectAlert(true);
+      setShowReconnectAlert(false);
     },
     onDidSucceedReaderReconnect() {
-      Alert.alert('Reconnected!', 'We were able to reconnect to the reader.');
+      setShowReconnectAlert(true);
+      setShowDisconnectAlert(false);
     },
     onDidFailReaderReconnect() {
       Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
+      setShowDisconnectAlert(false);
+      setShowReconnectAlert(false);
     },
   });
   const batteryPercentage =
@@ -212,6 +213,35 @@ export default function HomeScreen() {
           }}
         />
       </List>
+
+      <AlertDialog
+        visible={showDisconnectAlert}
+        title="Reconnecting..."
+        message="Reader has disconnected."
+        buttons={[
+          {
+            text: 'Cancel',
+            onPress: async () => {
+              setShowDisconnectAlert(false);
+              await cancelReaderReconnection();
+            },
+          },
+        ]}
+      />
+
+      <AlertDialog
+        visible={showReconnectAlert}
+        title="Reconnected!"
+        message="We were able to reconnect to the reader."
+        buttons={[
+          {
+            text: 'OK',
+            onPress: async () => {
+              setShowReconnectAlert(false);
+            },
+          },
+        ]}
+      />
     </>
   );
 
