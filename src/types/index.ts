@@ -174,7 +174,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   metadata?: Record<string, string>;
   paymentMethodOptions?: PaymentMethodOptions;
   captureMethod?: 'automatic' | 'manual';
-  offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
+  offlineBehavior?: 'prefer_online' | 'require_online' | 'force_offline';
 };
 
 export type CreatePaymentIntentIOSParams = {
