@@ -104,6 +104,7 @@ export default function AlertDialog({
             defaultButtonText = 'CANCEL';
           return (
             <View
+              key={index}
               style={[
                 styles.androidButton,
                 index === 0 && buttonLayoutHorizontal === 1 ? { flex: 1 } : {},
@@ -130,11 +131,12 @@ export default function AlertDialog({
                   <Text
                     style={[
                       {
-                        color: '#387ef5',
+                        color: '#008577',
                         fontFamily: 'initial',
                         fontSize: 16,
                         fontWeight: '500',
                         textTransform: 'uppercase',
+                        marginRight: 12,
                       },
                     ]}
                   >
@@ -188,6 +190,7 @@ export default function AlertDialog({
           }
           return (
             <View
+              key={index}
               style={[
                 styles.iOSButton,
                 { minWidth: buttonLayoutHorizontal === 1 ? '50%' : 'auto' },
@@ -210,8 +213,8 @@ export default function AlertDialog({
                     style={{
                       color: '#387ef5',
                       fontFamily: 'initial',
-                      fontSize: 17,
-                      fontWeight: index === buttons.length - 1 ? '700' : '500',
+                      fontSize: 18,
+                      fontWeight: '500',
                       textTransform: 'none',
                       textAlign: 'center',
                     }}
@@ -303,7 +306,7 @@ const styles = StyleSheet.create({
   },
   androidAlertBox: {
     backgroundColor: '#FAFAFA',
-    maxWidth: 320,
+    maxWidth: 310,
     width: '100%',
     margin: 48,
     elevation: 24,
@@ -314,10 +317,13 @@ const styles = StyleSheet.create({
     fontFamily: 'initial',
     fontSize: 22,
     fontWeight: '500',
-    margin: 24,
+    marginTop: 18,
+    marginBottom: 10,
+    marginLeft: 24,
+    marginRight: 24,
   },
   androidMessage: {
-    color: '#000000',
+    color: '#202020',
     fontFamily: 'initial',
     fontSize: 18,
     fontWeight: 'normal',
@@ -355,7 +361,7 @@ const styles = StyleSheet.create({
   iOSTitle: {
     color: '#000000',
     fontFamily: 'initial',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
     paddingTop: 12,
     paddingRight: 16,
@@ -367,7 +373,7 @@ const styles = StyleSheet.create({
   iOSMessage: {
     color: '#000000',
     fontFamily: 'initial',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 'normal',
     paddingTop: 0,
     paddingRight: 16,
@@ -381,7 +387,7 @@ const styles = StyleSheet.create({
   iOSButton: {
     color: '#387ef5',
     fontFamily: 'initial',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '500',
     textTransform: 'none',
     backgroundColor: 'transparent',
