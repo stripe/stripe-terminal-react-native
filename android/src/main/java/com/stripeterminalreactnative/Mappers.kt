@@ -823,10 +823,10 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
 @OptIn(CollectInputs::class)
 fun mapFromToggleResult(toggleResult: ToggleResult): String {
     return when (toggleResult) {
-        ToggleResult.ENABLED -> "ENABLED"
-        ToggleResult.DISABLED -> "DISABLED"
-        ToggleResult.SKIPPED -> "SKIPPED"
-        else -> { "UNKNOWN" }
+        ToggleResult.ENABLED -> "enable"
+        ToggleResult.DISABLED -> "disable"
+        ToggleResult.SKIPPED -> "skipped"
+        else -> { "unknown" }
     }
 }
 

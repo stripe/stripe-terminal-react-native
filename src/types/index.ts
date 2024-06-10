@@ -381,27 +381,36 @@ export type PaymentMethodResultType =
       error: StripeError;
     };
 
-export type CollectInputsParameters = {
-  collectInputs: Input[];
-};
+export interface ICollectInputsParameters {
+  inputs: Array<IInput>;
+}
 
-export type CollectInputsResults = {
-  collectInputResults?: CollectInputResult[];
-  error: StripeError;
-};
+export enum FormType {
+  SELECTION = 'selection',
+  SIGNATURE = 'signature',
+  PHONE = 'phone',
+  EMAIL = 'email',
+  NUMERIC = 'numeric',
+  TEXT = 'text',
+}
 
-export type Input = {
-  inputType: 'EMAIL' | 'NUMERIC' | 'PHONE' | 'TEXT' | 'SELECTION' | 'SIGNATURE';
-  description?: string;
-  required: boolean;
-  skipButtonText?: string;
-  submitButtonText?: string;
+export interface IInput {
+  formType: FormType;
+  required?: boolean | null;
   title: string;
-  selectionButtons?: SelectionButton[];
-  toggles?: Toggle[];
-};
+  description?: string | null;
+  toggles?: IToggle[] | null;
+  skipButtonText?: string | null;
+  submitButtonText?: string | null;
+  selectionButtons?: ISelectionButton[];
+}
 
-export type CollectInputResult = {
+export interface ICollectInputsResults {
+  collectInputResults?: ICollectInputsResult[];
+  error: StripeError;
+}
+
+export interface ICollectInputsResult {
   skipped: boolean;
   email?: string;
   numericString?: string;
@@ -409,34 +418,34 @@ export type CollectInputResult = {
   selection?: string;
   signatureSvg?: string;
   text?: string;
-  toggles?: ToggleResult[];
-};
-
-export type SelectionButton = {
-  style: SelectionButtonStyle;
-  text: string;
-};
-
-export enum SelectionButtonStyle {
-  PRIMARY = 'PRIMARY',
-  SECONDARY = 'SECONDARY',
+  toggles: ToggleResult[];
 }
 
-export type Toggle = {
-  title: string;
-  description: string;
+export interface ISelectionButton {
+  style: SelectionButtonStyle;
+  text: string;
+}
+
+export enum SelectionButtonStyle {
+  PRIMARY = 'primary',
+  SECONDARY = 'secondary',
+}
+
+export interface IToggle {
+  title?: string | null;
+  description?: string | null;
   defaultValue: ToggleValue;
-};
+}
 
 export enum ToggleValue {
-  ENABLED = 'ENABLED',
-  DISABLED = 'DISABLED',
+  ENABLED = 'enabled',
+  DISABLED = 'disabled',
 }
 
 export enum ToggleResult {
-  ENABLED = 'ENABLED',
-  DISABLED = 'DISABLED',
-  SKIPPED = 'SKIPPED',
+  ENABLED = 'enabled',
+  DISABLED = 'disabled',
+  SKIPPED = 'skipped',
 }
 
 export type OfflineDetails = {

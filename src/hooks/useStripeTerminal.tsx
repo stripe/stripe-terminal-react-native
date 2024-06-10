@@ -21,7 +21,7 @@ import type {
   PaymentIntent,
   SetupIntent,
   OfflineStatus,
-  CollectInputsParameters,
+  ICollectInputsParameters,
   ReaderEvent,
 } from '../types';
 import {
@@ -960,7 +960,7 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _collectInputs = useCallback(
-    async (params: CollectInputsParameters) => {
+    async (params: ICollectInputsParameters) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);

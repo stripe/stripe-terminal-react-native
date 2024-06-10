@@ -1010,12 +1010,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let collectInputsParameters: CollectInputsParameters
 
         var inputs: [Input] = []
-        let collectInputs = params["collectInputs"] as? [NSDictionary]
+        let collectInputs = params["inputs"] as? [NSDictionary]
         if let collectInputs = collectInputs {
             for collectInput in collectInputs {
-                let inputType = collectInput["inputType"] as? String ?? ""
+                let inputType = collectInput["formType"] as? String ?? ""
                 switch (inputType) {
-                case "EMAIL":
+                case "email":
                     var toggles: [Toggle] = []
                     let toggleList = collectInput["toggles"] as? [NSDictionary]
                     if let toggleList = toggleList {
@@ -1046,7 +1046,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                         return
                     }
                     break
-                case "NUMERIC":
+                case "numeric":
                     var toggles: [Toggle] = []
                     let toggleList = collectInput["toggles"] as? [NSDictionary]
                     if let toggleList = toggleList {
@@ -1077,7 +1077,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                         return
                     }
                     break
-                case "PHONE":
+                case "phone":
                     var toggles: [Toggle] = []
                     let toggleList = collectInput["toggles"] as? [NSDictionary]
                     if let toggleList = toggleList {
@@ -1108,7 +1108,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                        return
                     }
                     break
-                case "TEXT":
+                case "text":
                     var toggles: [Toggle] = []
                     let toggleList = collectInput["toggles"] as? [NSDictionary]
                     if let toggleList = toggleList {
@@ -1139,7 +1139,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                         return
                     }
                     break
-                case "SELECTION":
+                case "selection":
                     var toggles: [Toggle] = []
                     let toggleList = collectInput["toggles"] as? [NSDictionary]
                     if let toggleList = toggleList {
@@ -1186,7 +1186,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                         return
                     }
                     break
-                case "SIGNATURE":
+                case "signature":
                     var toggles: [Toggle] = []
                     let toggleList = collectInput["toggles"] as? [NSDictionary]
                     if let toggleList = toggleList {
