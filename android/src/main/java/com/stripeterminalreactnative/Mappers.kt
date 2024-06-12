@@ -243,7 +243,7 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): Readabl
 }
 
 internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt?.let {
-    nativeMapOf {
+        nativeMapOf {
         putString("created", convertToUnixTimestamp(it.created))
         putString("id", it.id)
         putString("status", mapFromSetupAttemptStatus(it.status))
@@ -446,7 +446,7 @@ internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): Writabl
                 "estimatedUpdateTime",
                 mapFromUpdateTimeEstimate(it.timeEstimate)
             )
-            putString("requiredAt", convertToUnixTimestamp(it.requiredAt.time))
+            putString("requiredAt", it.requiredAt.time.toString())
         }
     }
 
