@@ -92,7 +92,7 @@ export default function RegisterInternetReaderScreen() {
         navigation.goBack();
       }
     }
-  }, [navigation, discoverReaders]);
+  }, [navigation, discoverReaders, handleGoBack]);
 
   const handleConnectInternetReader = async (reader: Reader.Type) => {
     const { reader: connectedReader, error } = await connectInternetReader({
