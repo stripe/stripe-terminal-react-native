@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import {
-  CollectInputsParameters,
+  FormType,
+  ICollectInputsParameters,
   SelectionButtonStyle,
   ToggleValue,
   useStripeTerminal,
@@ -17,7 +18,7 @@ export default function CollectInputsScreen() {
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
-  const _collectInputs = async (params: CollectInputsParameters) => {
+  const _collectInputs = async (params: ICollectInputsParameters) => {
     clearLogs();
     setCancel({
       label: 'Cancel CollectInput',
@@ -81,9 +82,9 @@ export default function CollectInputsScreen() {
           color={colors.blue}
           onPress={async () => {
             _collectInputs({
-              collectInputs: [
+              inputs: [
                 {
-                  inputType: 'SIGNATURE',
+                  formType: FormType.SIGNATURE,
                   title: 'Please sign',
                   required: false,
                   description:
@@ -98,7 +99,7 @@ export default function CollectInputsScreen() {
                   ],
                 },
                 {
-                  inputType: 'SELECTION',
+                  formType: FormType.SELECTION,
                   title: 'Choose an option',
                   required: false,
                   description: 'Were you happy with customer service?',
@@ -117,23 +118,23 @@ export default function CollectInputsScreen() {
           color={colors.blue}
           onPress={async () => {
             _collectInputs({
-              collectInputs: [
+              inputs: [
                 {
-                  inputType: 'TEXT',
+                  formType: FormType.TEXT,
                   title: 'Enter your name',
                   required: false,
                   description: "We'll need your name to look up your account",
                   submitButtonText: 'Done',
                 },
                 {
-                  inputType: 'NUMERIC',
+                  formType: FormType.NUMERIC,
                   title: 'Enter your zip code',
                   required: false,
                   description: '',
                   submitButtonText: 'Done',
                 },
                 {
-                  inputType: 'EMAIL',
+                  formType: FormType.EMAIL,
                   title: 'Enter your email address',
                   required: false,
                   description:
@@ -148,7 +149,7 @@ export default function CollectInputsScreen() {
                   ],
                 },
                 {
-                  inputType: 'PHONE',
+                  formType: FormType.PHONE,
                   title: 'Enter your phone number',
                   required: false,
                   description: "We'll text you when your order is ready",

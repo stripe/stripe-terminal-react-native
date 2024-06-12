@@ -372,12 +372,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
-        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
-            if (it is String) {
-                PaymentMethodType.valueOf(it.uppercase())
-            } else {
-                null
-            }
+        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull { 
+            it as? String 
+        }?.map{
+            PaymentMethodType.valueOf(it.uppercase())
         }
 
         val intentParams = paymentMethodTypes?.let {
@@ -451,14 +449,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
 
-        val offlineBehaviorParam = offlineBehavior.let {
+        val offlineBehaviorParam = offlineBehavior?.let {
             when (it) {
                 "prefer_online" -> OfflineBehavior.PREFER_ONLINE
                 "require_online" -> OfflineBehavior.REQUIRE_ONLINE
                 "force_offline" -> OfflineBehavior.FORCE_OFFLINE
                 else -> OfflineBehavior.PREFER_ONLINE
             }
-        }
+        } ?: OfflineBehavior.PREFER_ONLINE
 
         val uuid = UUID.randomUUID().toString()
 
@@ -859,14 +857,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val collectInputs = requireParam(params.getArray("collectInputs")) {
-            "You must provide a collectInputs"
+        val collectInputs = requireParam(params.getArray("inputs")) {
+            "You must provide an inputs value"
         }
         val listInput = ArrayList<Input>()
         for (i in 0 until collectInputs.size()) {
             val collectInput = collectInputs.getMap(i)
-            when (collectInput.getString("inputType")) {
-                "TEXT" -> {
+            when (collectInput.getString("formType")) {
+                "text" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
                         it.getArray("toggles")
@@ -882,7 +880,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         )
                     }
                 }
-                "NUMERIC" -> {
+                "numeric" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
                         it.getArray("toggles")
@@ -898,7 +896,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         )
                     }
                 }
-                "EMAIL" -> {
+                "email" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
                         it.getArray("toggles")
@@ -914,7 +912,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         )
                     }
                 }
-                "PHONE" -> {
+                "phone" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
                         it.getArray("toggles")
@@ -930,7 +928,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         )
                     }
                 }
-                "SIGNATURE" -> {
+                "signature" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
                         it.getArray("toggles")
@@ -946,7 +944,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         )
                     }
                 }
-                "SELECTION" -> {
+                "selection" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
                         it.getArray("toggles")
@@ -958,7 +956,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                                 val button = array.getMap(i)
                                 listSelectionButtons.add(
                                     SelectionButton(
-                                        if (button.getString("style") == "PRIMARY") {
+                                        if (button.getString("style") == "primary") {
                                             SelectionButtonStyle.PRIMARY
                                         } else {
                                             SelectionButtonStyle.SECONDARY

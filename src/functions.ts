@@ -32,8 +32,8 @@ import type {
   PaymentIntent,
   SetupIntent,
   OfflineStatus,
-  CollectInputsParameters,
-  CollectInputsResults,
+  ICollectInputsParameters,
+  ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
 } from './types';
@@ -862,8 +862,8 @@ export async function setReaderSettings(
 }
 
 export async function collectInputs(
-  params: CollectInputsParameters
-): Promise<CollectInputsResults> {
+  params: ICollectInputsParameters
+): Promise<ICollectInputsResults> {
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectInputs(params);
