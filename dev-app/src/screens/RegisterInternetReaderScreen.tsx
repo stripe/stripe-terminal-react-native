@@ -1,5 +1,9 @@
-import React, { useState, useContext } from 'react';
-import type { Location } from '@stripe/stripe-terminal-react-native';
+import React, { useState, useContext, useCallback } from 'react';
+import {
+  Reader,
+  useStripeTerminal,
+  type Location,
+} from '@stripe/stripe-terminal-react-native';
 
 import { useNavigation } from '@react-navigation/core';
 import {
@@ -9,11 +13,13 @@ import {
   Platform,
   StyleSheet,
   View,
+  Alert,
 } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import type { NavigationAction } from '@react-navigation/native';
 
 type InputValuesType = {
   registration_code: string;
@@ -25,10 +31,86 @@ export default function RegisterInternetReaderScreen() {
   const navigation = useNavigation();
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [status, setStatus] = useState<string>('');
+  const [readerId, setReaderId] = useState<string>('');
   const [inputValues, setInputValues] = useState<InputValuesType>({
     registration_code: '',
     label: '',
   });
+
+  const { cancelDiscovering, discoverReaders, connectInternetReader } =
+    useStripeTerminal({
+      onFinishDiscoveringReaders: (finishError) => {
+        if (finishError) {
+          console.error(
+            'Discover readers error',
+            `${finishError.code}, ${finishError.message}`
+          );
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+        } else {
+          console.log('onFinishDiscoveringReaders success');
+        }
+      },
+      onUpdateDiscoveredReaders(readers) {
+        readers.map((reader) => {
+          if (reader.id === readerId) {
+            handleConnectInternetReader(reader);
+            return;
+          }
+        });
+      },
+    });
+
+  const handleGoBack = useCallback(
+    async (action: NavigationAction) => {
+      await cancelDiscovering();
+      if (navigation.canGoBack()) {
+        navigation.dispatch(action);
+      }
+    },
+    [cancelDiscovering, navigation]
+  );
+
+  const handleDiscoverReaders = useCallback(async () => {
+    navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+      handleGoBack(e.data.action);
+    });
+
+    // List of discovered readers will be available within useStripeTerminal hook
+    const { error: discoverReadersError } = await discoverReaders({
+      discoveryMethod: 'internet',
+      simulated: false,
+      timeout: 0,
+    });
+
+    if (discoverReadersError) {
+      const { code, message } = discoverReadersError;
+      Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    }
+  }, [navigation, discoverReaders]);
+
+  const handleConnectInternetReader = async (reader: Reader.Type) => {
+    const { reader: connectedReader, error } = await connectInternetReader({
+      reader,
+    });
+
+    if (error) {
+      console.log('connectInternetReader error:', error);
+      Alert.alert('Connect reader error: ', `${error.code}, ${error.message}`);
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    } else {
+      console.log('Reader connected successfully', connectedReader);
+      navigation.goBack();
+    }
+    return { error };
+  };
 
   const registerReader = async () => {
     setStatus('Registering...');
@@ -47,6 +129,12 @@ export default function RegisterInternetReaderScreen() {
 
       console.log(resp);
       setStatus('Registered');
+      setReaderId(resp.id);
+
+      setTimeout(() => {
+        setStatus('Connecting');
+        handleDiscoverReaders();
+      }, 500);
     } catch (error) {
       console.error(error);
       setStatus('Could not register reader.');
