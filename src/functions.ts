@@ -36,6 +36,7 @@ import type {
   ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
+  ConfirmPaymentMethodParams,
 } from './types';
 
 export async function initialize(
@@ -422,15 +423,15 @@ export async function getLocations(
 }
 
 export async function confirmPaymentIntent(
-  paymentIntent: PaymentIntent.Type
+  params: ConfirmPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
-  return Logger.traceSdkMethod(async (innerPaymentIntent) => {
+  return Logger.traceSdkMethod(async (innerparams) => {
     try {
       const { error, paymentIntent: confirmedPaymentIntent } =
-        await StripeTerminalSdk.confirmPaymentIntent(innerPaymentIntent);
+        await StripeTerminalSdk.confirmPaymentIntent(innerparams);
 
       if (error) {
-        if (paymentIntent) {
+        if (confirmedPaymentIntent) {
           return {
             error,
             paymentIntent: confirmedPaymentIntent,
@@ -450,7 +451,7 @@ export async function confirmPaymentIntent(
         error: error as any,
       };
     }
-  }, 'confirmPaymentIntent')(paymentIntent);
+  }, 'confirmPaymentIntent')(params);
 }
 
 export async function cancelPaymentIntent(

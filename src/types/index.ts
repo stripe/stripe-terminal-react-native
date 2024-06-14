@@ -196,6 +196,10 @@ export type CollectPaymentMethodParams = {
   requestDynamicCurrencyConversion?: boolean;
 };
 
+export type ConfirmPaymentMethodParams = {
+  paymentIntent: PaymentIntent.Type;
+};
+
 export type CollectSetupIntentPaymentMethodParams = {
   customerConsentCollected?: boolean;
   enableCustomerCancellation?: boolean;

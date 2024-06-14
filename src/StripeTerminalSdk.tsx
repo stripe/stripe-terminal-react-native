@@ -35,6 +35,7 @@ import type {
   ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
+  ConfirmPaymentMethodParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -91,7 +92,7 @@ export interface StripeTerminalSdkType {
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntentResultType>;
   // Confirm Payment Intent
   confirmPaymentIntent(
-    paymentIntentJson: PaymentIntent.Type
+    params: ConfirmPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
   // Create Setup Intent
   createSetupIntent(

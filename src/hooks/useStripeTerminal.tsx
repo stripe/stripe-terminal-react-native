@@ -23,6 +23,7 @@ import type {
   OfflineStatus,
   ICollectInputsParameters,
   ReaderEvent,
+  ConfirmPaymentMethodParams,
 } from '../types';
 import {
   discoverReaders,
@@ -608,14 +609,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _confirmPaymentIntent = useCallback(
-    async (paymentIntent: PaymentIntent.Type) => {
+    async (param: ConfirmPaymentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await confirmPaymentIntent(paymentIntent);
+      const response = await confirmPaymentIntent(param);
 
       setLoading(false);
 
