@@ -446,7 +446,7 @@ internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): Writabl
                 "estimatedUpdateTime",
                 mapFromUpdateTimeEstimate(it.timeEstimate)
             )
-            putString("requiredAt", convertToUnixTimestamp(it.requiredAt.time))
+            putString("requiredAt", it.requiredAt.time.toString())
         }
     }
 
