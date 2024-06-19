@@ -141,7 +141,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  confirmSetupIntent:(NSDictionary *)setupIntentJson
+                  confirmSetupIntent:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

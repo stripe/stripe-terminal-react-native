@@ -631,11 +631,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(confirmPaymentIntent:resolver:rejecter:)
     func confirmPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let paymentIntentJSON = params["paymentIntent"] as? NSDictionary else {
+        guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
-        guard let uuid = paymentIntentJSON["sdkUuid"] as? String else {
+        guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
@@ -865,7 +865,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(confirmSetupIntent:resolver:rejecter:)
-    func confirmSetupIntent(setupIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func confirmSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            return
+        }
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return

@@ -24,6 +24,7 @@ import type {
   ICollectInputsParameters,
   ReaderEvent,
   ConfirmPaymentMethodParams,
+  ConfirmSetupIntentMethodParams,
 } from '../types';
 import {
   discoverReaders,
@@ -767,14 +768,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _confirmSetupIntent = useCallback(
-    async (setupIntent: SetupIntent.Type) => {
+    async (params: ConfirmSetupIntentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await confirmSetupIntent(setupIntent);
+      const response = await confirmSetupIntent(params);
 
       setLoading(false);
 

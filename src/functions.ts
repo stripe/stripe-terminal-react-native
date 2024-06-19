@@ -37,6 +37,7 @@ import type {
   PaymentStatus,
   ConnectionStatus,
   ConfirmPaymentMethodParams,
+  ConfirmSetupIntentMethodParams,
 } from './types';
 
 export async function initialize(
@@ -624,7 +625,7 @@ export async function cancelSetupIntent(
 }
 
 export async function confirmSetupIntent(
-  setupIntent: SetupIntent.Type
+  params: ConfirmSetupIntentMethodParams
 ): Promise<SetupIntentResultType> {
   return Logger.traceSdkMethod(async (innerSetupIntent) => {
     try {
@@ -646,7 +647,7 @@ export async function confirmSetupIntent(
         error: error as any,
       };
     }
-  }, 'confirmSetupIntent')(setupIntent);
+  }, 'confirmSetupIntent')(params);
 }
 
 export async function simulateReaderUpdate(

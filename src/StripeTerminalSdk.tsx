@@ -36,6 +36,7 @@ import type {
   PaymentStatus,
   ConnectionStatus,
   ConfirmPaymentMethodParams,
+  ConfirmSetupIntentMethodParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -125,7 +126,7 @@ export interface StripeTerminalSdkType {
   getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;
   // Confirm Setup Intent
   confirmSetupIntent(
-    setupIntent: SetupIntent.Type
+    params: ConfirmSetupIntentMethodParams
   ): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
   collectRefundPaymentMethod(

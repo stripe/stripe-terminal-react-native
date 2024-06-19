@@ -372,8 +372,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
-        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull { 
-            it as? String 
+        val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
+            it as? String
         }?.map{
             PaymentMethodType.valueOf(it.uppercase())
         }
@@ -707,9 +707,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun confirmSetupIntent(setupIntent: ReadableMap, promise: Promise) =
+    fun confirmSetupIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val uuid = requireParam(setupIntent.getString("sdkUuid")) {
+            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+                "You must provide a setupIntent."
+            }
+            val uuid = requireParam(setupIntentJson.getString("sdkUuid")) {
                 "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {

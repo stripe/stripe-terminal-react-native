@@ -200,6 +200,10 @@ export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
 };
 
+export type ConfirmSetupIntentMethodParams = {
+  setupIntent: SetupIntent.Type;
+};
+
 export type CollectSetupIntentPaymentMethodParams = {
   customerConsentCollected?: boolean;
   enableCustomerCancellation?: boolean;
