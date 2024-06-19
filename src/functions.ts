@@ -627,10 +627,10 @@ export async function cancelSetupIntent(
 export async function confirmSetupIntent(
   params: ConfirmSetupIntentMethodParams
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupIntent) => {
+  return Logger.traceSdkMethod(async (innerparams) => {
     try {
       const { setupIntent: confirmedSetupIntent, error } =
-        await StripeTerminalSdk.confirmSetupIntent(innerSetupIntent);
+        await StripeTerminalSdk.confirmSetupIntent(innerparams);
 
       if (error) {
         return {
