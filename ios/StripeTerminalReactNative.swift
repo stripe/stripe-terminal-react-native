@@ -409,7 +409,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setCustomer(customer)
             .setTransferGroup(transferGroup)
             .setMetadata(metadata)
-        
+
         if !paymentMethodTypes.isEmpty {
             paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes)
         }
@@ -972,7 +972,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         resolve(result)
     }
-    
+
     @objc(getPaymentStatus:rejecter:)
     func getPaymentStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let result = Mappers.mapFromPaymentStatus(Terminal.shared.paymentStatus)
@@ -1000,7 +1000,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectInputs:resolver:rejecter:)
     func collectInputs(_ params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["collectInputs"])
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["inputs"])
 
         guard invalidParams == nil else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
