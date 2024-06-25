@@ -30,6 +30,7 @@ export default function HomeScreen() {
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
   const [online, setOnline] = useState<boolean>(true);
+  const [pendingUpdate, setPendingUpdate] = useState<Reader.SoftwareUpdate | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
@@ -85,6 +86,7 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidDisconnect(reason) {
+      setPendingUpdate(null);
       Alert.alert(
         'Reader disconnected!',
         'Reader disconnected with reason ' + reason
@@ -180,6 +182,24 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
+          title="Update reader software"
+          visible={pendingUpdate != null}
+          onPress={() => {
+            navigation.navigate('UpdateReaderScreen', {
+              pendingUpdate,
+              reader: connectedReader,
+              onDidUpdate: () => {
+                setTimeout(() => {
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  }
+                }, 500);
+              },
+              started: false,
+            });
+          }}
+        />
+        <ListItem
           title="Store card via Setup Intents"
           onPress={() => {
             navigation.navigate('SetupIntentScreen', { discoveryMethod });
@@ -271,6 +291,9 @@ export default function HomeScreen() {
                 navigation.navigate('DiscoverReadersScreen', {
                   simulated,
                   discoveryMethod,
+                  setPendingUpdate: (value: Reader.SoftwareUpdate) => {
+                    setPendingUpdate(value);
+                  }
                 });
               }}
             />

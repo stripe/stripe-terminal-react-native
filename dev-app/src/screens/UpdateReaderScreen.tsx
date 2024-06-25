@@ -14,8 +14,9 @@ export default function UpdateReaderScreen() {
   const { params } = useRoute<RouteProp<RouteParamList, 'UpdateReader'>>();
   const updateInfo = params?.update;
   const reader = params?.reader;
+  const started = params?.started;
   const [currentProgress, setCurrentProgress] = useState<string>();
-  const { cancelInstallingUpdate } = useStripeTerminal({
+  const { cancelInstallingUpdate, installAvailableUpdate } = useStripeTerminal({
     onDidReportReaderSoftwareUpdateProgress: (progress) => {
       setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
     },
@@ -62,7 +63,8 @@ export default function UpdateReaderScreen() {
       </List>
 
       <List>
-        <ListItem title="Required update in progress" />
+        { started ? <ListItem title="Required update in progress" />
+         : <ListItem title="Install update" color={colors.blue} onPress={()=>{installAvailableUpdate()}} />}
       </List>
       <View style={styles.row}>
         <Text style={styles.info}>Update progress: {currentProgress}%</Text>

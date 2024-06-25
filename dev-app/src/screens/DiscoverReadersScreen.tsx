@@ -51,7 +51,7 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
   } = useContext(AppContext);
-  const { simulated, discoveryMethod } = params;
+  const { simulated, discoveryMethod, setPendingUpdate } = params;
 
   const {
     cancelDiscovering,
@@ -79,6 +79,7 @@ export default function DiscoverReadersScreen() {
       setDiscoveringLoading(false);
     },
     onDidStartInstallingUpdate: (update) => {
+      setPendingUpdate(null);
       navigation.navigate('UpdateReaderScreen', {
         update,
         reader: connectingReader,
@@ -89,9 +90,11 @@ export default function DiscoverReadersScreen() {
             }
           }, 500);
         },
+        started: true,
       });
     },
     onDidReportAvailableUpdate: (update) => {
+      setPendingUpdate(update);
       Alert.alert('New update is available', update.deviceSoftwareVersion);
     },
   });
