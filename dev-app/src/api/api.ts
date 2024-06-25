@@ -1,4 +1,5 @@
 import type { Stripe } from 'stripe';
+import { getStoredConnectedAccountID } from '../util/merchantStorage';
 
 // Disclaimer: we're using the client layer in lieu of a merchant backend in order
 // to allow dynamic switching of merchant accounts within the app. This eases dev and qa
@@ -26,13 +27,10 @@ type NewPaymentIntentCreateParams = Stripe.PaymentIntentCreateParams &
 export class Api {
   secretKey: string;
 
-  directChargeStripeAccountID = '';
-
   headers: Record<string, string>;
 
   constructor() {
     this.secretKey = '';
-    this.directChargeStripeAccountID = '';
     this.headers = {};
   }
 
@@ -43,10 +41,6 @@ export class Api {
       'Authorization': `Bearer ${this.secretKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     };
-  }
-
-  setStripeAccountID(stripeAccountID: string): void {
-    this.directChargeStripeAccountID = stripeAccountID;
   }
 
   async registerDevice({
@@ -183,11 +177,11 @@ export class Api {
 
     formData.append('payment_method_types[]', 'card_present');
 
-    if (
-      this.directChargeStripeAccountID &&
-      this.directChargeStripeAccountID.length > 0
-    ) {
-      this.headers['Stripe-Account'] = this.directChargeStripeAccountID;
+    let directChargeStripeAccountID = await getStoredConnectedAccountID();
+    if (directChargeStripeAccountID) {
+      this.headers['Stripe-Account'] = directChargeStripeAccountID;
+    } else {
+      delete this.headers['Stripe-Account'];
     }
 
     return fetch('https://api.stripe.com/v1/payment_intents', {
@@ -235,12 +229,13 @@ export class Api {
   > {
     const formData = new URLSearchParams();
 
-    if (
-      this.directChargeStripeAccountID &&
-      this.directChargeStripeAccountID.length > 0
-    ) {
-      this.headers['Stripe-Account'] = this.directChargeStripeAccountID;
+    let directChargeStripeAccountID = await getStoredConnectedAccountID();
+    if (directChargeStripeAccountID) {
+      this.headers['Stripe-Account'] = directChargeStripeAccountID;
+    } else {
+      delete this.headers['Stripe-Account'];
     }
+
     return fetch('https://api.stripe.com/v1/terminal/connection_tokens', {
       headers: this.headers,
       method: 'POST',

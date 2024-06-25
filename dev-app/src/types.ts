@@ -22,6 +22,8 @@ export type IAppContext = {
   setAutoReconnectOnUnexpectedDisconnect: (b: boolean) => void;
   cachedLocations: Array<Location>;
   setCachedLocations: (locations: Array<Location>) => void;
+  refreshToken: boolean;
+  setRefreshToken: (b: boolean) => void;
 };
 
 export type IShortAccount = {

@@ -19,4 +19,6 @@ export const AppContext = React.createContext<IAppContext>({
   setAutoReconnectOnUnexpectedDisconnect: (_b) => null,
   cachedLocations: [],
   setCachedLocations: (_locations) => null,
+  refreshToken: false,
+  setRefreshToken: (_b) => null,
 });

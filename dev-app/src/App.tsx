@@ -125,7 +125,7 @@ export default function App() {
   const { initialize: initStripe, clearCachedCredentials } =
     useStripeTerminal();
   const { account } = useContext(AppContext);
-
+  const { refreshToken } = useContext(AppContext);
   useEffect(() => {
     const initAndClear = async () => {
       const { error, reader } = await initStripe();
@@ -150,7 +150,7 @@ export default function App() {
     if (account?.secretKey && hasPerms) {
       initAndClear();
     }
-  }, [account, initStripe, clearCachedCredentials, hasPerms]);
+  }, [account, initStripe, clearCachedCredentials, hasPerms, refreshToken]);
 
   const handlePermissionsSuccess = useCallback(async () => {
     setHasPerms(true);

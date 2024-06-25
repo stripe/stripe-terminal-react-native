@@ -28,6 +28,7 @@ export default function Root() {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
   ] = useState<boolean | false>(false);
+  const [refreshToken, setRefreshToken] = useState<boolean | false>(false);
 
   const [cachedLocations, setCachedLocations] = useState<Location[]>([]);
 
@@ -106,6 +107,8 @@ export default function Root() {
           setAutoReconnectOnUnexpectedDisconnect(b),
         cachedLocations,
         setCachedLocations: (locations) => setCachedLocations(locations),
+        refreshToken,
+        setRefreshToken: (b) => setRefreshToken(b),
       }}
     >
       <StripeTerminalProvider
