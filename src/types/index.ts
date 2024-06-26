@@ -200,6 +200,10 @@ export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
 };
 
+export type CancelPaymentMethodParams = {
+  paymentIntent: PaymentIntent.Type;
+};
+
 export type ConfirmSetupIntentMethodParams = {
   setupIntent: SetupIntent.Type;
 };

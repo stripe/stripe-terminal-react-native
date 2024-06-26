@@ -598,9 +598,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @OptIn(OfflineMode::class)
     @ReactMethod
     @Suppress("unused")
-    fun cancelPaymentIntent(paymentIntent: ReadableMap, promise: Promise) =
+    fun cancelPaymentIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val uuid = requireParam(paymentIntent.getString("sdkUuid")) {
+            val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
+                "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+            }
+            val uuid = requireParam(paymentIntentJson.getString("sdkUuid")) {
                 "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val paymentIntent = requireParam(paymentIntents[uuid]) {

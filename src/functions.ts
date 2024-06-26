@@ -29,7 +29,6 @@ import type {
   ConnectReaderResultType,
   ConnectHandoffParams,
   CollectPaymentMethodParams,
-  PaymentIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ICollectInputsResults,
@@ -38,6 +37,7 @@ import type {
   ConfirmPaymentMethodParams,
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
+  CancelPaymentMethodParams,
 } from './types';
 
 export async function initialize(
@@ -456,12 +456,12 @@ export async function confirmPaymentIntent(
 }
 
 export async function cancelPaymentIntent(
-  paymentIntent: PaymentIntent.Type
+  params: CancelPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
-  return Logger.traceSdkMethod(async (innerPaymentIntent) => {
+  return Logger.traceSdkMethod(async (innerparams) => {
     try {
       const { paymentIntent: canceledPaymentIntent, error } =
-        await StripeTerminalSdk.cancelPaymentIntent(innerPaymentIntent);
+        await StripeTerminalSdk.cancelPaymentIntent(innerparams);
 
       if (error) {
         return {
@@ -478,7 +478,7 @@ export async function cancelPaymentIntent(
         error: error as any,
       };
     }
-  }, 'cancelPaymentIntent')(paymentIntent);
+  }, 'cancelPaymentIntent')(params);
 }
 
 export async function installAvailableUpdate(): Promise<{

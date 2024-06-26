@@ -28,7 +28,6 @@ import type {
   ConnectLocalMobileParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
-  PaymentIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ICollectInputsResults,
@@ -37,6 +36,7 @@ import type {
   ConfirmPaymentMethodParams,
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
+  CancelPaymentMethodParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -101,7 +101,7 @@ export interface StripeTerminalSdkType {
   ): Promise<SetupIntentResultType>;
   // Cancel Payment Intent
   cancelPaymentIntent(
-    paymentIntent: PaymentIntent.Type
+    params: CancelPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
   // Collect Setup Intent payment method
   collectSetupIntentPaymentMethod(

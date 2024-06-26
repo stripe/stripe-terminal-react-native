@@ -25,6 +25,7 @@ import type {
   ConfirmPaymentMethodParams,
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
+  CancelPaymentMethodParams,
 } from '../types';
 import {
   discoverReaders,
@@ -644,14 +645,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _cancelPaymentIntent = useCallback(
-    async (paymentIntent: PaymentIntent.Type) => {
+    async (params: CancelPaymentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await cancelPaymentIntent(paymentIntent);
+      const response = await cancelPaymentIntent(params);
 
       setLoading(false);
 
