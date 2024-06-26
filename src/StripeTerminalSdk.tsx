@@ -29,7 +29,6 @@ import type {
   ConnectReaderResultType,
   CollectPaymentMethodParams,
   PaymentIntent,
-  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ICollectInputsResults,
@@ -37,6 +36,7 @@ import type {
   ConnectionStatus,
   ConfirmPaymentMethodParams,
   ConfirmSetupIntentMethodParams,
+  CancelSetupIntentMethodParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -120,7 +120,7 @@ export interface StripeTerminalSdkType {
   retrieveSetupIntent(clientSecret: string): Promise<SetupIntentResultType>;
   // Cancel Setup Intent
   cancelSetupIntent(
-    setupIntent: SetupIntent.Type
+    params: CancelSetupIntentMethodParams
   ): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
   getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;

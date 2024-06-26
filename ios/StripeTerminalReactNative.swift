@@ -776,7 +776,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(cancelSetupIntent:resolver:rejecter:)
-    func cancelSetupIntent(setupIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func cancelSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            return
+        }
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return

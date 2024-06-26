@@ -685,9 +685,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelSetupIntent(setupIntent: ReadableMap, promise: Promise) =
+    fun cancelSetupIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val uuid = requireParam(setupIntent.getString("sdkUuid")) {
+            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+                "You must provide a setupIntent."
+            }
+            val uuid = requireParam(setupIntentJson.getString("sdkUuid")) {
                 "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
             val setupIntent = requireParam(setupIntents[uuid]) {

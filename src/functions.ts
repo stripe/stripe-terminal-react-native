@@ -30,7 +30,6 @@ import type {
   ConnectHandoffParams,
   CollectPaymentMethodParams,
   PaymentIntent,
-  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ICollectInputsResults,
@@ -38,6 +37,7 @@ import type {
   ConnectionStatus,
   ConfirmPaymentMethodParams,
   ConfirmSetupIntentMethodParams,
+  CancelSetupIntentMethodParams,
 } from './types';
 
 export async function initialize(
@@ -599,12 +599,12 @@ export async function clearReaderDisplay(): Promise<ClearReaderDisplayResultType
 }
 
 export async function cancelSetupIntent(
-  setupIntent: SetupIntent.Type
+  params: CancelSetupIntentMethodParams
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupIntent) => {
+  return Logger.traceSdkMethod(async (innerParams) => {
     try {
       const { setupIntent: canceledSetupIntent, error } =
-        await StripeTerminalSdk.cancelSetupIntent(innerSetupIntent);
+        await StripeTerminalSdk.cancelSetupIntent(innerParams);
 
       if (error) {
         return {
@@ -621,7 +621,7 @@ export async function cancelSetupIntent(
         error: error as any,
       };
     }
-  }, 'cancelSetupIntent')(setupIntent);
+  }, 'cancelSetupIntent')(params);
 }
 
 export async function confirmSetupIntent(

@@ -204,6 +204,10 @@ export type ConfirmSetupIntentMethodParams = {
   setupIntent: SetupIntent.Type;
 };
 
+export type CancelSetupIntentMethodParams = {
+  setupIntent: SetupIntent.Type;
+};
+
 export type CollectSetupIntentPaymentMethodParams = {
   customerConsentCollected?: boolean;
   enableCustomerCancellation?: boolean;

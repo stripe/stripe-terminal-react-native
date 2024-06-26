@@ -19,12 +19,12 @@ import type {
   UserCallbacks,
   EventResult,
   PaymentIntent,
-  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ReaderEvent,
   ConfirmPaymentMethodParams,
   ConfirmSetupIntentMethodParams,
+  CancelSetupIntentMethodParams,
 } from '../types';
 import {
   discoverReaders,
@@ -751,14 +751,14 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading, _isInitialized]);
 
   const _cancelSetupIntent = useCallback(
-    async (setupIntent: SetupIntent.Type) => {
+    async (params: CancelSetupIntentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await cancelSetupIntent(setupIntent);
+      const response = await cancelSetupIntent(params);
 
       setLoading(false);
 

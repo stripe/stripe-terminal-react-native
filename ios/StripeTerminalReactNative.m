@@ -129,7 +129,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  cancelSetupIntent:(NSDictionary *)setupIntentJson
+                  cancelSetupIntent:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
