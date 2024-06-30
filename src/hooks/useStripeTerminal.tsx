@@ -19,10 +19,13 @@ import type {
   UserCallbacks,
   EventResult,
   PaymentIntent,
-  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ReaderEvent,
+  ConfirmPaymentMethodParams,
+  ConfirmSetupIntentMethodParams,
+  CancelSetupIntentMethodParams,
+  CancelPaymentMethodParams,
 } from '../types';
 import {
   discoverReaders,
@@ -608,14 +611,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _confirmPaymentIntent = useCallback(
-    async (paymentIntent: PaymentIntent.Type) => {
+    async (param: ConfirmPaymentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await confirmPaymentIntent(paymentIntent);
+      const response = await confirmPaymentIntent(param);
 
       setLoading(false);
 
@@ -642,14 +645,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _cancelPaymentIntent = useCallback(
-    async (paymentIntent: PaymentIntent.Type) => {
+    async (params: CancelPaymentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await cancelPaymentIntent(paymentIntent);
+      const response = await cancelPaymentIntent(params);
 
       setLoading(false);
 
@@ -749,14 +752,14 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading, _isInitialized]);
 
   const _cancelSetupIntent = useCallback(
-    async (setupIntent: SetupIntent.Type) => {
+    async (params: CancelSetupIntentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await cancelSetupIntent(setupIntent);
+      const response = await cancelSetupIntent(params);
 
       setLoading(false);
 
@@ -766,14 +769,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _confirmSetupIntent = useCallback(
-    async (setupIntent: SetupIntent.Type) => {
+    async (params: ConfirmSetupIntentMethodParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await confirmSetupIntent(setupIntent);
+      const response = await confirmSetupIntent(params);
 
       setLoading(false);
 
