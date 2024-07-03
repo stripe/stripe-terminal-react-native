@@ -194,10 +194,12 @@ export type CollectPaymentMethodParams = {
   updatePaymentIntent?: boolean;
   enableCustomerCancellation?: boolean;
   requestDynamicCurrencyConversion?: boolean;
+  surchargeNotice?: string;
 };
 
 export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
+  amountSurcharge?: number;
 };
 
 export type CancelPaymentMethodParams = {
