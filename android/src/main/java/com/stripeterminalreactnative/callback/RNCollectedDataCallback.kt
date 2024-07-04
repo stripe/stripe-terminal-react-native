@@ -15,7 +15,6 @@ class RNCollectedDataCallback(
     private val promise: Promise
 ) : CollectedDataCallback {
     override fun onSuccess(collectedData: CollectedData) {
-        Log.d("Eric", "onSuccess collectedData: $collectedData")
         promise.resolve(
             nativeMapOf {
                 putMap("collectedData", mapFromCollectedData(collectedData))
