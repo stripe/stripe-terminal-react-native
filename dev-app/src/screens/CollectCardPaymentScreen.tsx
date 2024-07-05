@@ -441,9 +441,7 @@ export default function CollectCardPaymentScreen() {
 
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
-      amountSurcharge: amountSurcharge
-        ? Number(amountSurcharge)
-        : undefined,
+      amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
     });
 
     if (error) {
@@ -745,13 +743,13 @@ export default function CollectCardPaymentScreen() {
       </List>
 
       <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
-          <TextInput
-            testID="Surcharge Notice"
-            style={styles.input}
-            value={surchargeNotice}
-            onChangeText={(value: string) => setSurchargeNotice(value)}
-            placeholder="Surcharge Notice"
-          />
+        <TextInput
+          testID="Surcharge Notice"
+          style={styles.input}
+          value={surchargeNotice}
+          onChangeText={(value: string) => setSurchargeNotice(value)}
+          placeholder="Surcharge Notice"
+        />
       </List>
 
       <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">

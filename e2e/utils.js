@@ -169,6 +169,9 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
   await waitFor(enableInteracSwitch).toBeVisible().withTimeout(10000);
   await enableInteracSwitch.tap();
 
+  if (device.getPlatform() === 'ios') {
+    await element(by.id('collect-scroll-view')).scroll(1500, 'down');
+  }
   await element(by.id('collect-scroll-view')).scrollTo('bottom');
 
   const button = element(by.text('Collect payment'));
