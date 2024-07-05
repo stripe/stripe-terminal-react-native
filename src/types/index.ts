@@ -175,6 +175,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   paymentMethodOptions?: PaymentMethodOptions;
   captureMethod?: 'automatic' | 'manual';
   offlineBehavior?: 'prefer_online' | 'require_online' | 'force_offline';
+  surcharge?: SurchargeParams;
 };
 
 export type CreatePaymentIntentIOSParams = {
@@ -185,6 +186,11 @@ export type PaymentMethodOptions = {
   requestExtendedAuthorization?: boolean;
   requestIncrementalAuthorizationSupport?: boolean;
   requestedPriority: string;
+};
+
+export type SurchargeParams = {
+  status: string;
+  maximumAmount: number;
 };
 
 export type CollectPaymentMethodParams = {

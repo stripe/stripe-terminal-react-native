@@ -441,6 +441,7 @@ class Mappers {
         case "none": return SimulateReaderUpdate.none
         case "random": return SimulateReaderUpdate.random
         case "required": return SimulateReaderUpdate.required
+        case "lowBatterySucceedConnect": return SimulateReaderUpdate.lowBatterySucceedConnect
         default: return SimulateReaderUpdate.none
         }
     }
@@ -840,6 +841,23 @@ class Mappers {
             case .cardRemoved: return "cardRemoved"
             @unknown default: return "unknown"
         }
+    }
+    
+    class func mapToCollectDataType(_ type: String) -> CollectDataType? {
+        switch type {
+            case "0": return CollectDataType.unknown
+            case "1": return CollectDataType.magstripe
+            default: return CollectDataType.unknown
+        }
+    }
+    
+    class func mapFromCollectedData(_ collectData: CollectedData) -> NSDictionary {
+        let result: NSDictionary = [
+            "stripeId": collectData.stripeId ?? NSNull(),
+            "created": Mappers.convertDateToUnixTimestamp(date: collectData.created),
+            "livemode": collectData.livemode,
+        ]
+        return result
     }
 }
 

@@ -441,7 +441,9 @@ export default function CollectCardPaymentScreen() {
 
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
-      amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
+      amountSurcharge: amountSurcharge
+        ? Number(amountSurcharge)
+        : undefined,
     });
 
     if (error) {
@@ -742,13 +744,19 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
-      <List
-        bolded={false}
-        topSpacing={false}
-        title="Per-Transaction Amount Surcharge"
-      >
+      <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
+          <TextInput
+            testID="Surcharge Notice"
+            style={styles.input}
+            value={surchargeNotice}
+            onChangeText={(value: string) => setSurchargeNotice(value)}
+            placeholder="Surcharge Notice"
+          />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
         <TextInput
-          testID="Per-Transaction Amount Surcharge"
+          testID="Amount Surcharge"
           style={styles.input}
           value={amountSurcharge}
           onChangeText={(value: string) => setAmountSurcharge(value)}
@@ -835,19 +843,6 @@ export default function CollectCardPaymentScreen() {
           }
         />
       </List>
-      {enableUpdatePaymentIntent && (
-        <>
-          <List bolded={false} topSpacing={false} title="Surcharge Notice">
-            <TextInput
-              testID="Surcharge Notice"
-              style={styles.input}
-              value={surchargeNotice}
-              onChangeText={(value: string) => setSurchargeNotice(value)}
-              placeholder="Surcharge Notice"
-            />
-          </List>
-        </>
-      )}
 
       {discoveryMethod === 'internet' && (
         <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">

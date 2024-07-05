@@ -395,6 +395,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
         let requestedPriority = paymentMethodOptions["requestedPriority"] as? String
         let captureMethod = params["captureMethod"] as? String
+        let surchargeParams = params["surcharge"] as? [AnyHashable : Any] ?? [:]
 
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
             .setCaptureMethod(captureMethod == "automatic" ? .automatic : .manual)
@@ -413,7 +414,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         if !paymentMethodTypes.isEmpty {
             paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes)
         }
-
+        
         let cardPresentParamsBuilder = CardPresentParametersBuilder()
             .setRequestExtendedAuthorization(extendedAuth)
             .setRequestIncrementalAuthorizationSupport(incrementalAuth)
@@ -425,7 +426,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         default:
             break
         }
-
+        
+        if !surchargeParams.isEmpty {
+            let surcharge = Surcharge.decodedObject(fromJSON: surchargeParams)
+            cardPresentParamsBuilder.setSurcharge(surcharge)
+        }
+        
         let cardPresentParams: CardPresentParameters
         do {
             cardPresentParams = try cardPresentParamsBuilder.build()
@@ -529,12 +535,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let requestDynamicCurrencyConversion = params["requestDynamicCurrencyConversion"] as? Bool ?? false
+        let surchargeNotice = params["surchargeNotice"] as? String
 
         let collectConfigBuilder = CollectConfigurationBuilder()
             .setSkipTipping(skipTipping)
             .setUpdatePaymentIntent(updatePaymentIntent)
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
+        
+        if let surchargeNoticeValue = surchargeNotice, !surchargeNoticeValue.isEmpty {
+            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
+        }
 
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
@@ -644,7 +655,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        Terminal.shared.confirmPaymentIntent(paymentIntent) { pi, error in
+        let amountSurcharge = params["amountSurcharge"] as? NSNumber
+        let confirmConfigBuilder = ConfirmConfigurationBuilder()
+        if let amountSurchargeValue = amountSurcharge {
+            confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
+        }
+
+        let confirmConfig: ConfirmConfiguration
+        do {
+            confirmConfig = try confirmConfigBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        
+        Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
             if let error = error as NSError? {
                 var result = Errors.createError(nsError: error)
                 if let pi {
@@ -968,6 +993,36 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             }
         }
         self.collectRefundPaymentMethodCancelable = nil
+    }
+    
+    @objc(collectData:resolver:rejecter:)
+    func collectData(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let collectDataTypeParam = params["collectDataType"] as? String ?? ""
+        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        
+        let collectDataType = Mappers.mapToCollectDataType(collectDataTypeParam)
+        guard let collectDataType else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide correct collectDataType parameter."))
+            return
+        }
+        
+        let collectDataConfig: CollectDataConfiguration
+        do {
+            collectDataConfig = try CollectDataConfigurationBuilder().setCollectDataType(collectDataType)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        
+        Terminal.shared.collectData(collectDataConfig) {
+            collectedData, error in
+                if let error = error as NSError? {
+                    resolve(Errors.createError(nsError: error))
+                } else {
+                    resolve(collectedData != nil ? Mappers.mapFromCollectedData(collectedData!) : [:])
+                }
+        }
     }
 
     @objc(clearCachedCredentials:rejecter:)

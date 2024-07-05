@@ -807,17 +807,17 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectData(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val collectDataType = requireParam(params.getString("type")) {
+            val collectDataTypeParam = requireParam(params.getString("collectDataType")) {
                 "You must provide a collectDataType"
             }
-            val type = requireParam(mapFromCollectDataType(collectDataType)) {
-                "Unknown collectDataType: $collectDataType"
+            val collectDataType = requireParam(mapFromCollectDataType(collectDataTypeParam)) {
+                "Unknown collectDataType: $collectDataTypeParam"
             }
             val enableCustomerCancellation = getBoolean(params,"enableCustomerCancellation")
 
             val configBuilder = CollectDataConfiguration.Builder()
                 .setEnableCustomerCancellation(enableCustomerCancellation)
-                .setType(type)
+                .setType(collectDataType)
             val config = configBuilder.build()
 
             collectDataCancelable = terminal.collectData(config, RNCollectedDataCallback(promise))
