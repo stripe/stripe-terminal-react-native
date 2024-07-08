@@ -742,7 +742,7 @@ export default function CollectCardPaymentScreen() {
         />
       </List>
 
-      <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
+      {/* <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
         <TextInput
           testID="Surcharge Notice"
           style={styles.input}
@@ -760,7 +760,7 @@ export default function CollectCardPaymentScreen() {
           onChangeText={(value: string) => setAmountSurcharge(value)}
           placeholder="Amount Surcharge"
         />
-      </List>
+      </List> */}
 
       <List bolded={false} topSpacing={false} title="EXTENDED AUTH">
         <ListItem
@@ -868,6 +868,25 @@ export default function CollectCardPaymentScreen() {
         </List>
       )}
 
+    <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
+        <TextInput
+          testID="Surcharge Notice"
+          style={styles.input}
+          value={surchargeNotice}
+          onChangeText={(value: string) => setSurchargeNotice(value)}
+          placeholder="Surcharge Notice"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
+        <TextInput
+          testID="Amount Surcharge"
+          style={styles.input}
+          value={amountSurcharge}
+          onChangeText={(value: string) => setAmountSurcharge(value)}
+          placeholder="Amount Surcharge"
+        />
+      </List>
       <List
         bolded={false}
         topSpacing={false}

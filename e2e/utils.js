@@ -170,7 +170,7 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
   await enableInteracSwitch.tap();
 
   if (device.getPlatform() === 'ios') {
-    await element(by.id('collect-scroll-view')).scroll(1500, 'down');
+    await element(by.id('collect-scroll-view')).scroll(700, 'down');
   }
   await element(by.id('collect-scroll-view')).scrollTo('bottom');
 

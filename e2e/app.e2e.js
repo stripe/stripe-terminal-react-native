@@ -98,7 +98,7 @@ describe('Basic funtionalities', () => {
     await amountInput.tapReturnKey();
 
     if (device.getPlatform() === 'ios') {
-      await element(by.id('collect-scroll-view')).scroll(1500, 'down');
+      await element(by.id('collect-scroll-view')).scroll(1200, 'down');
     }
     await element(by.id('collect-scroll-view')).scrollTo('bottom');
 
