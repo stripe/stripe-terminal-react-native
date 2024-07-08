@@ -4,6 +4,7 @@ import {
   IOSConfig,
   withInfoPlist,
   withAndroidManifest,
+  withGradleProperties,
   AndroidConfig,
 } from '@expo/config-plugins';
 
@@ -36,6 +37,7 @@ const withStripeTerminal: ConfigPlugin<StripeTerminalPluginProps> = (
   config = withStripeTerminalIos(config, props);
   config = withNoopSwiftFile(config);
   config = withStripeTerminalAndroid(config);
+  config = withJetifierIgnoringJackson(config);
 
   return config;
 };
@@ -44,6 +46,18 @@ const withStripeTerminalAndroid: ConfigPlugin = (expoConfig) => {
   return withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBTPermissionToManifest(config.modResults);
     config.modResults = addLocationPermissionToManifest(config.modResults);
+
+    return config;
+  });
+};
+
+const withJetifierIgnoringJackson: ConfigPlugin = (expoConfig) => {
+  return withGradleProperties(expoConfig, (config) => {
+    config.modResults.push({
+      key: 'android.jetifier.ignorelist',
+      value: 'jackson-core',
+      type: 'property',
+    });
 
     return config;
   });
