@@ -1,6 +1,13 @@
 /* eslint-env detox/detox, jest */
 
-const { collectInteracRefund, createInteracPayment } = require('./utils');
+const {
+  navigateTo,
+  connectReader,
+  checkIfConnected,
+  collectInteracRefund,
+  changeDiscoveryMethod,
+  createInteracPayment,
+} = require('./utils');
 
 jest.retryTimes(3);
 
@@ -14,6 +21,13 @@ describe('In-Person Refund', () => {
 
   afterAll(async () => {
     await device.sendToHome();
+  });
+
+  it('Connect and disconnect', async () => {
+    await changeDiscoveryMethod('Bluetooth Scan');
+    await navigateTo('Discover Readers');
+    await connectReader();
+    await checkIfConnected();
   });
 
   it('Collect and Refund CA card payment via bt reader', async () => {
