@@ -36,6 +36,7 @@ export default function CollectDataScreen() {
 
     const { collectedData, error } = await collectData({
       collectDataType: collectDataType,
+      enableCustomerCancellation: false,
     });
 
     if (error) {
