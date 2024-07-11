@@ -505,6 +505,7 @@ export type CollectData = {
 
 export interface CollectDataParams {
   collectDataType: CollectDataType;
+  enableCustomerCancellation: boolean;
 }
 
 export enum CollectDataType {
