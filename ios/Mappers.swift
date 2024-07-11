@@ -854,7 +854,7 @@ class Mappers {
     class func mapFromCollectedData(_ collectData: CollectedData) -> NSDictionary {
         let result: NSDictionary = [
             "stripeId": collectData.stripeId ?? NSNull(),
-            "created": Mappers.convertDateToUnixTimestamp(date: collectData.created),
+            "created": convertDateToUnixTimestamp(date: collectData.created),
             "livemode": collectData.livemode,
         ]
         return result

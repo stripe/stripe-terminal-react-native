@@ -852,8 +852,8 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
 
 fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
     return nativeMapOf {
-        putString("id",collectData.id)
-        putIntOrNull(this, "created", collectData.created.toInt())
+        putString("stripeId",collectData.id)
+        putString("created", convertToUnixTimestamp(collectData.created))
         putBoolean("livemode", collectData.livemode)
     }
 }

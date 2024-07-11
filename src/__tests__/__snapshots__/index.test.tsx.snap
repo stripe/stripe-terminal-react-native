@@ -5,6 +5,10 @@ Object {
   "CHANGE_CONNECTION_STATUS": "CHANGE_CONNECTION_STATUS",
   "CHANGE_OFFLINE_STATUS": undefined,
   "CHANGE_PAYMENT_STATUS": "CHANGE_PAYMENT_STATUS",
+  "CollectDataType": Object {
+    "MAGSTRIPE": "magstripe",
+    "UNDEFINED": "undefined",
+  },
   "CommonError": Object {
     "Canceled": "Canceled",
     "Failed": "Failed",

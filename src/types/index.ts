@@ -496,3 +496,28 @@ export type AmountDetails = {
 export type Amount = {
   amount: number;
 };
+
+export type CollectData = {
+  stripeId?: string;
+  created: string;
+  livemode: boolean;
+};
+
+export interface CollectDataParams {
+  collectDataType: CollectDataType;
+}
+
+export enum CollectDataType {
+  MAGSTRIPE = 'magstripe',
+  UNDEFINED = 'undefined',
+}
+
+export type CollectDataResultType =
+  | {
+      collectedData?: CollectData;
+      error?: undefined;
+    }
+  | {
+      collectedData?: undefined;
+      error: StripeError;
+    };

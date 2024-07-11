@@ -29,6 +29,7 @@ import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import DatabaseScreen from './screens/DatabaseScreen';
 import ReaderSettingsScreen from './screens/ReaderSettingsScreen';
+import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import {
   Reader,
@@ -290,6 +291,13 @@ export default function App() {
                 headerTitle: 'Collect Inputs',
               }}
               component={CollectInputsScreen}
+            />
+            <Stack.Screen
+              name="CollectDataScreen"
+              options={{
+                headerTitle: 'Collect Data',
+              }}
+              component={CollectDataScreen}
             />
             <Stack.Screen
               name="LogListScreen"

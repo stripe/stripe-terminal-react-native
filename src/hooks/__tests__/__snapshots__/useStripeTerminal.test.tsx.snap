@@ -14,6 +14,7 @@ Object {
     "cancelSetupIntent": [Function],
     "clearCachedCredentials": [Function],
     "clearReaderDisplay": [Function],
+    "collectData": [Function],
     "collectInputs": [Function],
     "collectPaymentMethod": [Function],
     "collectRefundPaymentMethod": [Function],

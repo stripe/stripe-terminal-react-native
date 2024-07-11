@@ -543,10 +543,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
         
-        if let surchargeNoticeValue = surchargeNotice, !surchargeNoticeValue.isEmpty {
+        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice, !surchargeNoticeValue.isEmpty {
             collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
         }
-
+        
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
                 let tippingConfig = try TippingConfigurationBuilder()
@@ -573,6 +573,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         ) { pi, collectError  in
             if let error = collectError as NSError? {
                 var result = Errors.createError(nsError: error)
+                
                 if let pi {
                     let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
                     result["paymentIntent"] = paymentIntent
