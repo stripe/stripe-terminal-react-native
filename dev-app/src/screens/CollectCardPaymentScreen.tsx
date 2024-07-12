@@ -861,6 +861,7 @@ export default function CollectCardPaymentScreen() {
       <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
         <TextInput
           testID="Amount Surcharge"
+          keyboardType="numeric"
           style={styles.input}
           value={amountSurcharge}
           onChangeText={(value: string) => setAmountSurcharge(value)}

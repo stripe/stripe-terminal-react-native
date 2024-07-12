@@ -510,7 +510,7 @@ export interface CollectDataParams {
 
 export enum CollectDataType {
   MAGSTRIPE = 'magstripe',
-  UNDEFINED = 'undefined',
+  UNKNOW = 'unknown',
 }
 
 export type CollectDataResultType =

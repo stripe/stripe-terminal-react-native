@@ -845,8 +845,8 @@ class Mappers {
     
     class func mapToCollectDataType(_ type: String) -> CollectDataType? {
         switch type {
-            case "0": return CollectDataType.unknown
-            case "1": return CollectDataType.magstripe
+            case "unknown": return CollectDataType.unknown
+            case "magstripe": return CollectDataType.magstripe
             default: return CollectDataType.unknown
         }
     }
