@@ -175,10 +175,16 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   paymentMethodOptions?: PaymentMethodOptions;
   captureMethod?: 'automatic' | 'manual';
   offlineBehavior?: 'prefer_online' | 'require_online' | 'force_offline';
+  surcharge?: SurchargeParams;
 };
 
 export type CreatePaymentIntentIOSParams = {
   paymentMethodTypes?: string[];
+};
+
+export type SurchargeParams = {
+  status: string;
+  maximumAmount: number;
 };
 
 export type PaymentMethodOptions = {
@@ -194,10 +200,12 @@ export type CollectPaymentMethodParams = {
   updatePaymentIntent?: boolean;
   enableCustomerCancellation?: boolean;
   requestDynamicCurrencyConversion?: boolean;
+  surchargeNotice?: string;
 };
 
 export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
+  amountSurcharge?: number;
 };
 
 export type CancelPaymentMethodParams = {

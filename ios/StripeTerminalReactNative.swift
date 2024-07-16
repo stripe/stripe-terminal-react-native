@@ -395,6 +395,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
         let requestedPriority = paymentMethodOptions["requestedPriority"] as? String
         let captureMethod = params["captureMethod"] as? String
+        let surchargeParams = params["surcharge"] as? [AnyHashable : Any] ?? [:]
 
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
             .setCaptureMethod(captureMethod == "automatic" ? .automatic : .manual)
@@ -424,6 +425,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             cardPresentParamsBuilder.setRequestedPriority(CardPresentRouting.international)
         default:
             break
+        }
+
+        if !surchargeParams.isEmpty {
+            let surcharge = Surcharge.decodedObject(fromJSON: surchargeParams)
+            cardPresentParamsBuilder.setSurcharge(surcharge)
         }
 
         let cardPresentParams: CardPresentParameters
@@ -529,12 +535,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let requestDynamicCurrencyConversion = params["requestDynamicCurrencyConversion"] as? Bool ?? false
+        let surchargeNotice = params["surchargeNotice"] as? String
 
         let collectConfigBuilder = CollectConfigurationBuilder()
             .setSkipTipping(skipTipping)
             .setUpdatePaymentIntent(updatePaymentIntent)
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
+
+        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
+            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
+        }
 
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
@@ -644,7 +655,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        Terminal.shared.confirmPaymentIntent(paymentIntent) { pi, error in
+        let amountSurcharge = params["amountSurcharge"] as? NSNumber
+        let confirmConfigBuilder = ConfirmConfigurationBuilder()
+        if let amountSurchargeValue = amountSurcharge {
+            confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
+        }
+
+        let confirmConfig: ConfirmConfiguration
+        do {
+            confirmConfig = try confirmConfigBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+
+        Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
             if let error = error as NSError? {
                 var result = Errors.createError(nsError: error)
                 if let pi {

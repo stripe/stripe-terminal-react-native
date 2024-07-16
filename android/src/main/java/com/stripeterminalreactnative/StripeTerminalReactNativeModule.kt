@@ -23,6 +23,7 @@ import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParamet
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
+import com.stripe.stripeterminal.external.models.ConfirmConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
@@ -509,6 +510,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "requestDynamicCurrencyConversion")
                 )
             }
+            if (params.hasKey("surchargeNotice")) {
+                configBuilder.setSurchargeNotice(params.getString("surchargeNotice"))
+            }
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
@@ -547,12 +551,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = requireParam(paymentIntents[uuid]) {
             "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
+        val configBuilder = ConfirmConfiguration.Builder()
+        if (params.hasKey("amountSurcharge")) {
+            val amountSurcharge = getInt(params, "amountSurcharge")?.toLong()
+            configBuilder.amountSurcharge(amountSurcharge)
+        }
+        val config = configBuilder.build()
 
         terminal.confirmPaymentIntent(
             paymentIntent,
             RNPaymentIntentCallback(promise, uuid) {
                 paymentIntents.clear()
-            }
+            },
+            config
         )
     }
 

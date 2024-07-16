@@ -441,6 +441,7 @@ class Mappers {
         case "none": return SimulateReaderUpdate.none
         case "random": return SimulateReaderUpdate.random
         case "required": return SimulateReaderUpdate.required
+        case "lowBatterySucceedConnect": return SimulateReaderUpdate.lowBatterySucceedConnect
         default: return SimulateReaderUpdate.none
         }
     }

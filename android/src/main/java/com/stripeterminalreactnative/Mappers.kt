@@ -432,6 +432,8 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
         "none" -> SimulateReaderUpdate.NONE
         "random" -> SimulateReaderUpdate.RANDOM
         "required" -> SimulateReaderUpdate.REQUIRED
+        "lowBattery" -> SimulateReaderUpdate.LOW_BATTERY
+        "lowBatterySucceedConnect" -> SimulateReaderUpdate.LOW_BATTERY_SUCCEED_CONNECT
         else -> SimulateReaderUpdate.NONE
     }
 }
