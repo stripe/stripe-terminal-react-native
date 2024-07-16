@@ -61,6 +61,11 @@ fi
 
 BRANCH_NAME=$1
 
+if [ "$BRANCH_NAME" = "main" ]; then
+  echo "Error! Cannot publish from the 'main' branch."
+  exit 1
+fi
+
 # Make sure our working dir is the repo root directory
 cd "$(git rev-parse --show-toplevel)"
 
@@ -99,9 +104,4 @@ echo "Tagging and publishing release"
 yarn -s --ignore-scripts publish --access=public
 
 echo "Pushing git commit and tag"
-git push --follow-tags
-
-echo "Publish successful!"
-echo ""
-
-create_github_release
+git push
