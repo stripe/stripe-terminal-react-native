@@ -96,7 +96,10 @@ describe('Basic funtionalities', () => {
 
     await amountInput.replaceText('20000');
     await amountInput.tapReturnKey();
-
+    
+    if (device.getPlatform() === 'ios') {
+      await element(by.id('collect-scroll-view')).scroll(1200, 'down');
+    }
     await element(by.id('collect-scroll-view')).scrollTo('bottom');
 
     const button = element(by.text('Collect payment'));
