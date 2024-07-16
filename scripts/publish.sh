@@ -104,4 +104,9 @@ echo "Tagging and publishing release"
 yarn -s --ignore-scripts publish --access=public
 
 echo "Pushing git commit and tag"
-git push
+git push --follow-tags
+
+echo "Publish successful!"
+echo ""
+
+create_github_release
