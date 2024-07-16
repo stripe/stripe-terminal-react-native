@@ -95,7 +95,9 @@ export default function CollectCardPaymentScreen() {
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
   const [requestDcc, setRequestDcc] = useState(false);
+  const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
+  const [amountSurcharge, setAmountSurcharge] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod, deviceType } = params;
@@ -344,6 +346,7 @@ export default function CollectCardPaymentScreen() {
       updatePaymentIntent: enableUpdatePaymentIntent,
       enableCustomerCancellation: enableCustomerCancellation,
       requestDynamicCurrencyConversion: requestDcc,
+      surchargeNotice: surchargeNotice,
     });
 
     if (error) {
@@ -438,6 +441,7 @@ export default function CollectCardPaymentScreen() {
 
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
+      amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
     });
 
     if (error) {
@@ -771,6 +775,27 @@ export default function CollectCardPaymentScreen() {
               }
             />
           }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
+        <TextInput
+          testID="Surcharge Notice"
+          style={styles.input}
+          value={surchargeNotice}
+          onChangeText={(value: string) => setSurchargeNotice(value)}
+          placeholder="Surcharge Notice"
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
+        <TextInput
+          testID="Amount Surcharge"
+          keyboardType="numeric"
+          style={styles.input}
+          value={amountSurcharge}
+          onChangeText={(value: string) => setAmountSurcharge(value)}
+          placeholder="Amount Surcharge"
         />
       </List>
 
