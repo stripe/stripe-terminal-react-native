@@ -395,7 +395,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
         let requestedPriority = paymentMethodOptions["requestedPriority"] as? String
         let captureMethod = params["captureMethod"] as? String
-        let surchargeParams = params["surcharge"] as? [AnyHashable : Any] ?? [:]
 
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
             .setCaptureMethod(captureMethod == "automatic" ? .automatic : .manual)
@@ -425,11 +424,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             cardPresentParamsBuilder.setRequestedPriority(CardPresentRouting.international)
         default:
             break
-        }
-
-        if !surchargeParams.isEmpty {
-            let surcharge = Surcharge.decodedObject(fromJSON: surchargeParams)
-            cardPresentParamsBuilder.setSurcharge(surcharge)
         }
 
         let cardPresentParams: CardPresentParameters

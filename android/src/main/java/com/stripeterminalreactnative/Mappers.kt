@@ -225,7 +225,7 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
             nativeMapOf {
                 putBoolean("requestExtendedAuthorization", it.cardPresent?.requestExtendedAuthorization ?: false)
                 putBoolean("requestIncrementalAuthorizationSupport",it.cardPresent?.requestIncrementalAuthorizationSupport ?: false)
-                putMap("surCharge",
+                putMap("surcharge",
                     nativeMapOf{
                         putString("status",it.cardPresent?.surcharge?.status)
                         putIntOrNull(this,"maximumAmount",it.cardPresent?.surcharge?.maximumAmount?.toInt())

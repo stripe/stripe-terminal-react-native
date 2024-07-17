@@ -203,9 +203,9 @@ class Mappers {
         guard let unwrappedOptions = options else {
             return nil
         }
-        var surChargeMap: NSDictionary?
-        if let surChargeMapDetails = options?.cardPresentParameters.surcharge {
-            surChargeMap = [
+        var surchargeMap: NSDictionary?
+        if let surchargeMapDetails = options?.cardPresentParameters.surcharge {
+            surchargeMap = [
                 "status": options?.cardPresentParameters.surcharge?.status ?? NSNull(),
                 "maximumAmount": options?.cardPresentParameters.surcharge?.maximumAmount,
             ]
@@ -216,7 +216,7 @@ class Mappers {
             cardPresentMap = [
                 "requestExtendedAuthorization": options?.cardPresentParameters.requestExtendedAuthorization ?? false,
                 "requestIncrementalAuthorizationSupport": options?.cardPresentParameters.requestIncrementalAuthorizationSupport ?? false,
-                "surCharge": surChargeMap ?? NSNull(),
+                "surcharge": surchargeMap ?? NSNull(),
             ]
         }
         let result: NSDictionary = [
