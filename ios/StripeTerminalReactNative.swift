@@ -1250,7 +1250,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 if let error = error as NSError? {
                     resolve(Errors.createError(nsError: error))
                 } else {
-                    resolve(Mappers.mapFromCollectInputs(collectInputResults ?? []))
+                    resolve(Mappers.mapFromCollectInputsResults(collectInputResults ?? []))
                 }
             }
         }

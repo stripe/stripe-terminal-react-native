@@ -801,7 +801,7 @@ class Mappers {
         return list
     }
 
-    class func mapFromCollectInputs(_ results: [CollectInputsResult]) -> NSDictionary {
+    class func mapFromCollectInputsResults(_ results: [CollectInputsResult]) -> NSDictionary {
         var collectInputResults: [NSDictionary] = []
         for result in results {
             if result is EmailResult {
