@@ -853,7 +853,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     Toggle(
                         toggle.getString("title"),
                         toggle.getString("description"),
-                        if (toggle.getString("defaultValue") == "ENABLED") {
+                        if (toggle.getString("defaultValue") == "enabled") {
                             ToggleValue.ENABLED
                         } else {
                             ToggleValue.DISABLED
