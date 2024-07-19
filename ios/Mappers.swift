@@ -194,10 +194,37 @@ class Mappers {
             "paymentMethodId": paymentIntent.paymentMethodId ?? NSNull(),
             "paymentMethod": paymentMethodMap ?? NSNull(),
             "offlineDetails": offlineDetailsMap ?? NSNull(),
+            "paymentMethodOptions":mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions) ?? NSNull(),
         ]
         return result
     }
 
+    class func mapFromPaymentMethodOptions(_ options: PaymentMethodOptionsParameters?) -> NSDictionary? {
+        guard let unwrappedOptions = options else {
+            return nil
+        }
+        var surchargeMap: NSDictionary?
+        if let surchargeMapDetails = options?.cardPresentParameters.surcharge {
+            surchargeMap = [
+                "status": options?.cardPresentParameters.surcharge?.status ?? NSNull(),
+                "maximumAmount": options?.cardPresentParameters.surcharge?.maximumAmount,
+            ]
+        }
+        
+        var cardPresentMap: NSDictionary?
+        if let cardPresentMapDetails = options?.cardPresentParameters {
+            cardPresentMap = [
+                "requestExtendedAuthorization": options?.cardPresentParameters.requestExtendedAuthorization ?? false,
+                "requestIncrementalAuthorizationSupport": options?.cardPresentParameters.requestIncrementalAuthorizationSupport ?? false,
+                "surcharge": surchargeMap ?? NSNull(),
+            ]
+        }
+        let result: NSDictionary = [
+            "cardPresent": cardPresentMap ?? NSNull(),
+        ]
+        return result
+    }
+    
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         var metadataMap: NSDictionary?
         if let metadata = setupIntent.metadata {
@@ -441,6 +468,7 @@ class Mappers {
         case "none": return SimulateReaderUpdate.none
         case "random": return SimulateReaderUpdate.random
         case "required": return SimulateReaderUpdate.required
+        case "lowBatterySucceedConnect": return SimulateReaderUpdate.lowBatterySucceedConnect
         default: return SimulateReaderUpdate.none
         }
     }
