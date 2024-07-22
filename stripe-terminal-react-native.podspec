@@ -14,6 +14,11 @@ Pod::Spec.new do |s|
   s.source       = { git: 'https://github.com/stripe/stripe-terminal-react-native.git', tag: s.version.to_s }
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
+  s.exclude_files = 'ios/Tests/'
+
+  s.test_spec 'Tests' do |test_spec|
+    test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
+  end
 
   s.dependency 'React-Core'
   s.dependency 'StripeTerminal', '~> 3.7.0'
