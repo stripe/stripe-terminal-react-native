@@ -829,33 +829,33 @@ class Mappers {
         return list
     }
 
-    class func mapFromCollectInputs(_ results: [CollectInputsResult]) -> NSDictionary {
-        var collectInputResults: [String : Any] = [:]
+    class func mapFromCollectInputsResults(_ results: [CollectInputsResult]) -> NSDictionary {
+        var collectInputResults: [NSDictionary] = []
         for result in results {
             if result is EmailResult {
                 let result = result as! EmailResult
                 var emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? "", "toggles": mapFromToggleResultList(result.toggles)]
-                collectInputResults["emailResult"] = emailResult
+                collectInputResults.append(emailResult)
             } else if result is PhoneResult {
                 let result = result as! PhoneResult
                 var phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? "", "toggles": mapFromToggleResultList(result.toggles)]
-                collectInputResults["phoneResult"] = phoneResult
+                collectInputResults.append(phoneResult)
             } else if result is TextResult {
                 let result = result as! TextResult
                 var textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? "", "toggles": mapFromToggleResultList(result.toggles)]
-                collectInputResults["textResult"] = textResult
+                collectInputResults.append(textResult)
             } else if result is NumericResult {
                 let result = result as! NumericResult
                 var numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? "", "toggles": mapFromToggleResultList(result.toggles)]
-                collectInputResults["numericResult"] = numericResult
+                collectInputResults.append(numericResult)
             } else if result is SignatureResult {
                 let result = result as! SignatureResult
                 var signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? "", "toggles": mapFromToggleResultList(result.toggles)]
-                collectInputResults["signatureResult"] = signatureResult
+                collectInputResults.append(signatureResult)
             } else if result is SelectionResult {
                 let result = result as! SelectionResult
                 var selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "toggles": mapFromToggleResultList(result.toggles)]
-                collectInputResults["selectionResult"] = selectionResult
+                collectInputResults.append(selectionResult)
             }
         }
 

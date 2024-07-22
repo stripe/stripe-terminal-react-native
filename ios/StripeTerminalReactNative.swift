@@ -1059,7 +1059,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1090,7 +1090,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1121,7 +1121,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1152,7 +1152,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1183,7 +1183,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1198,7 +1198,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                             do {
                                 let style = it["style"] as! String
                                 let text = it["text"] as! String
-                                let button = try SelectionButtonBuilder(style: (style == "PRIMARY") ? .primary : .secondary,
+                                let button = try SelectionButtonBuilder(style: (style == "primary") ? .primary : .secondary,
                                                                         text: text).build()
                                 selectionButtons.append(button)
                             } catch {
@@ -1230,7 +1230,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1269,7 +1269,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 if let error = error as NSError? {
                     resolve(Errors.createError(nsError: error))
                 } else {
-                    resolve(Mappers.mapFromCollectInputs(collectInputResults ?? []))
+                    resolve(Mappers.mapFromCollectInputsResults(collectInputResults ?? []))
                 }
             }
         }
