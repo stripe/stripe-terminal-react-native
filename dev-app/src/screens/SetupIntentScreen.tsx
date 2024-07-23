@@ -37,7 +37,7 @@ export default function SetupIntentScreen() {
         name: 'Collect Setup Intent',
         events: [
           {
-            name: input.join(' / '),
+            name: input.sort().join(' / '),
             description: 'terminal.didRequestReaderInput',
             onBack: cancelCollectSetupIntent,
           },
