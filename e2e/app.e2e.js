@@ -114,7 +114,7 @@ describe('Basic funtionalities', () => {
     await checkIfLogExist('Create');
     await checkIfLogExist('Created');
     await checkIfLogExist('Collect');
-    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('swipeCard / insertCard / tapCard');
     await checkIfLogExist('removeCard');
     await checkIfLogExist('Collected');
     await checkIfLogExist('Process');
@@ -142,7 +142,7 @@ describe('Basic funtionalities', () => {
 
     await checkIfLogExist('Create');
     await checkIfLogExist('Collect');
-    await checkIfLogExist('insertCard / swipeCard / tapCard');
+    await checkIfLogExist('swipeCard / insertCard / tapCard');
     await checkIfLogExist('removeCard');
     await checkIfLogExist('Created');
     await checkIfLogExist('Process');
