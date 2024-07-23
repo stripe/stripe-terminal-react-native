@@ -118,7 +118,7 @@ export default function CollectCardPaymentScreen() {
         name: 'Collect Payment Method',
         events: [
           {
-            name: input.join(' / '),
+            name: input.sort().join(' / '),
             description: 'terminal.didRequestReaderInput',
             onBack: cancelCollectPaymentMethod,
           },
