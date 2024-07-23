@@ -349,8 +349,8 @@ class Mappers {
         array.forEach { item in
             switch item {
             case 0: return
-            case 1: return mappedOptions.add("insertCard")
-            case 2: return mappedOptions.add("swipeCard")
+            case 1: return mappedOptions.add("swipeCard")
+            case 2: return mappedOptions.add("insertCard")
             case 4: return mappedOptions.add("tapCard")
             default: return
             }
