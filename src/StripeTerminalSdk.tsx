@@ -28,13 +28,15 @@ import type {
   ConnectLocalMobileParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
-  PaymentIntent,
-  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
+  ConfirmPaymentMethodParams,
+  ConfirmSetupIntentMethodParams,
+  CancelSetupIntentMethodParams,
+  CancelPaymentMethodParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -91,7 +93,7 @@ export interface StripeTerminalSdkType {
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntentResultType>;
   // Confirm Payment Intent
   confirmPaymentIntent(
-    paymentIntentJson: PaymentIntent.Type
+    params: ConfirmPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
   // Create Setup Intent
   createSetupIntent(
@@ -99,7 +101,7 @@ export interface StripeTerminalSdkType {
   ): Promise<SetupIntentResultType>;
   // Cancel Payment Intent
   cancelPaymentIntent(
-    paymentIntent: PaymentIntent.Type
+    params: CancelPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
   // Collect Setup Intent payment method
   collectSetupIntentPaymentMethod(
@@ -118,13 +120,13 @@ export interface StripeTerminalSdkType {
   retrieveSetupIntent(clientSecret: string): Promise<SetupIntentResultType>;
   // Cancel Setup Intent
   cancelSetupIntent(
-    setupIntent: SetupIntent.Type
+    params: CancelSetupIntentMethodParams
   ): Promise<SetupIntentResultType>;
   // List of locations belonging to the merchant
   getLocations(params: GetLocationsParams): Promise<GetLocationsResultType>;
   // Confirm Setup Intent
   confirmSetupIntent(
-    setupIntent: SetupIntent.Type
+    params: ConfirmSetupIntentMethodParams
   ): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
   collectRefundPaymentMethod(

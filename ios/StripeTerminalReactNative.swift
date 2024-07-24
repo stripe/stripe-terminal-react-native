@@ -409,7 +409,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setCustomer(customer)
             .setTransferGroup(transferGroup)
             .setMetadata(metadata)
-        
+
         if !paymentMethodTypes.isEmpty {
             paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes)
         }
@@ -529,12 +529,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let requestDynamicCurrencyConversion = params["requestDynamicCurrencyConversion"] as? Bool ?? false
+        let surchargeNotice = params["surchargeNotice"] as? String
 
         let collectConfigBuilder = CollectConfigurationBuilder()
             .setSkipTipping(skipTipping)
             .setUpdatePaymentIntent(updatePaymentIntent)
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
+
+        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
+            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
+        }
 
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
@@ -630,7 +635,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(confirmPaymentIntent:resolver:rejecter:)
-    func confirmPaymentIntent(paymentIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func confirmPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            return
+        }
         guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
@@ -640,7 +649,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        Terminal.shared.confirmPaymentIntent(paymentIntent) { pi, error in
+        let amountSurcharge = params["amountSurcharge"] as? NSNumber
+        let confirmConfigBuilder = ConfirmConfigurationBuilder()
+        if let amountSurchargeValue = amountSurcharge {
+            confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
+        }
+
+        let confirmConfig: ConfirmConfiguration
+        do {
+            confirmConfig = try confirmConfigBuilder.build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+
+        Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
             if let error = error as NSError? {
                 var result = Errors.createError(nsError: error)
                 if let pi {
@@ -696,7 +719,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(cancelPaymentIntent:resolver:rejecter:)
-    func cancelPaymentIntent(paymentIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func cancelPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            return
+        }
         guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
@@ -772,7 +799,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(cancelSetupIntent:resolver:rejecter:)
-    func cancelSetupIntent(setupIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func cancelSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            return
+        }
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
@@ -861,7 +892,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     @objc(confirmSetupIntent:resolver:rejecter:)
-    func confirmSetupIntent(setupIntentJson: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func confirmSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            return
+        }
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
@@ -972,7 +1007,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         resolve(result)
     }
-    
+
     @objc(getPaymentStatus:rejecter:)
     func getPaymentStatus(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let result = Mappers.mapFromPaymentStatus(Terminal.shared.paymentStatus)
@@ -1000,7 +1035,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     @objc(collectInputs:resolver:rejecter:)
     func collectInputs(_ params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["collectInputs"])
+        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["inputs"])
 
         guard invalidParams == nil else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
@@ -1024,7 +1059,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1055,7 +1090,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1086,7 +1121,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1117,7 +1152,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1148,7 +1183,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1163,7 +1198,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                             do {
                                 let style = it["style"] as! String
                                 let text = it["text"] as! String
-                                let button = try SelectionButtonBuilder(style: (style == "PRIMARY") ? .primary : .secondary,
+                                let button = try SelectionButtonBuilder(style: (style == "primary") ? .primary : .secondary,
                                                                         text: text).build()
                                 selectionButtons.append(button)
                             } catch {
@@ -1195,7 +1230,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                                 let title = it["title"] as! String
                                 let description = it["description"] as! String
                                 let defaultValue = it["defaultValue"] as! String
-                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "ENABLED") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
+                                let toggle = try ToggleBuilder(defaultValue: (defaultValue == "enabled") ? ToggleValue.enabled : ToggleValue.disabled).setTitle(title).setStripeDescription(description).build()
                                 toggles.append(toggle)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
@@ -1234,7 +1269,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
                 if let error = error as NSError? {
                     resolve(Errors.createError(nsError: error))
                 } else {
-                    resolve(Mappers.mapFromCollectInputs(collectInputResults ?? []))
+                    resolve(Mappers.mapFromCollectInputsResults(collectInputResults ?? []))
                 }
             }
         }

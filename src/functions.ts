@@ -29,13 +29,15 @@ import type {
   ConnectReaderResultType,
   ConnectHandoffParams,
   CollectPaymentMethodParams,
-  PaymentIntent,
-  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
+  ConfirmPaymentMethodParams,
+  ConfirmSetupIntentMethodParams,
+  CancelSetupIntentMethodParams,
+  CancelPaymentMethodParams,
 } from './types';
 
 export async function initialize(
@@ -422,15 +424,15 @@ export async function getLocations(
 }
 
 export async function confirmPaymentIntent(
-  paymentIntent: PaymentIntent.Type
+  params: ConfirmPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
-  return Logger.traceSdkMethod(async (innerPaymentIntent) => {
+  return Logger.traceSdkMethod(async (innerparams) => {
     try {
       const { error, paymentIntent: confirmedPaymentIntent } =
-        await StripeTerminalSdk.confirmPaymentIntent(innerPaymentIntent);
+        await StripeTerminalSdk.confirmPaymentIntent(innerparams);
 
       if (error) {
-        if (paymentIntent) {
+        if (confirmedPaymentIntent) {
           return {
             error,
             paymentIntent: confirmedPaymentIntent,
@@ -450,16 +452,16 @@ export async function confirmPaymentIntent(
         error: error as any,
       };
     }
-  }, 'confirmPaymentIntent')(paymentIntent);
+  }, 'confirmPaymentIntent')(params);
 }
 
 export async function cancelPaymentIntent(
-  paymentIntent: PaymentIntent.Type
+  params: CancelPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
-  return Logger.traceSdkMethod(async (innerPaymentIntent) => {
+  return Logger.traceSdkMethod(async (innerparams) => {
     try {
       const { paymentIntent: canceledPaymentIntent, error } =
-        await StripeTerminalSdk.cancelPaymentIntent(innerPaymentIntent);
+        await StripeTerminalSdk.cancelPaymentIntent(innerparams);
 
       if (error) {
         return {
@@ -476,7 +478,7 @@ export async function cancelPaymentIntent(
         error: error as any,
       };
     }
-  }, 'cancelPaymentIntent')(paymentIntent);
+  }, 'cancelPaymentIntent')(params);
 }
 
 export async function installAvailableUpdate(): Promise<{
@@ -597,12 +599,12 @@ export async function clearReaderDisplay(): Promise<ClearReaderDisplayResultType
 }
 
 export async function cancelSetupIntent(
-  setupIntent: SetupIntent.Type
+  params: CancelSetupIntentMethodParams
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupIntent) => {
+  return Logger.traceSdkMethod(async (innerParams) => {
     try {
       const { setupIntent: canceledSetupIntent, error } =
-        await StripeTerminalSdk.cancelSetupIntent(innerSetupIntent);
+        await StripeTerminalSdk.cancelSetupIntent(innerParams);
 
       if (error) {
         return {
@@ -619,16 +621,16 @@ export async function cancelSetupIntent(
         error: error as any,
       };
     }
-  }, 'cancelSetupIntent')(setupIntent);
+  }, 'cancelSetupIntent')(params);
 }
 
 export async function confirmSetupIntent(
-  setupIntent: SetupIntent.Type
+  params: ConfirmSetupIntentMethodParams
 ): Promise<SetupIntentResultType> {
-  return Logger.traceSdkMethod(async (innerSetupIntent) => {
+  return Logger.traceSdkMethod(async (innerparams) => {
     try {
       const { setupIntent: confirmedSetupIntent, error } =
-        await StripeTerminalSdk.confirmSetupIntent(innerSetupIntent);
+        await StripeTerminalSdk.confirmSetupIntent(innerparams);
 
       if (error) {
         return {
@@ -645,7 +647,7 @@ export async function confirmSetupIntent(
         error: error as any,
       };
     }
-  }, 'confirmSetupIntent')(setupIntent);
+  }, 'confirmSetupIntent')(params);
 }
 
 export async function simulateReaderUpdate(

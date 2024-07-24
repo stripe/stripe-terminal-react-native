@@ -37,7 +37,7 @@ export default function SetupIntentScreen() {
         name: 'Collect Setup Intent',
         events: [
           {
-            name: input.join(' / '),
+            name: input.sort().join(' / '),
             description: 'terminal.didRequestReaderInput',
             onBack: cancelCollectSetupIntent,
           },
@@ -69,7 +69,9 @@ export default function SetupIntentScreen() {
           },
         ],
       });
-      const { setupIntent, error } = await confirmSetupIntent(si);
+      const { setupIntent, error } = await confirmSetupIntent({
+        setupIntent: si,
+      });
       if (error) {
         addLogs({
           name: 'Process Payment',

@@ -12,7 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { api, AppContext } from '../AppContext';
+import { AppContext } from '../AppContext';
 import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
 import {
@@ -23,6 +23,7 @@ import {
 } from '../util/merchantStorage';
 
 export default function MerchantSelectScreen() {
+  const { refreshToken, setRefreshToken } = useContext(AppContext);
   const { account, setAccount } = useContext(AppContext);
   const [accounts, setAccounts] = useState<Array<IShortAccount>>([]);
   const [isAddPending, setIsAddPending] = useState<boolean>(false);
@@ -53,7 +54,6 @@ export default function MerchantSelectScreen() {
   useEffect(() => {
     getStoredConnectedAccountID().then((value) => {
       if (value) {
-        api.directChargeStripeAccountID = value;
         setConnectedStripeAccountID(value);
       }
     });
@@ -62,8 +62,12 @@ export default function MerchantSelectScreen() {
   // store connected stripe account id to storage
   const onConnectedAccountInputChange = (value: string) => {
     setConnectedStripeAccountID(value);
-    api.setStripeAccountID(value);
     setStoredConnectedAccountID(value);
+  };
+
+  // Set a flag to trigger the update token re-request when the connectedStripeAccount changes.
+  const onEndInputTextContentChange = () => {
+    setRefreshToken(!refreshToken);
   };
 
   const onSelectAccount = useCallback(
@@ -144,6 +148,7 @@ export default function MerchantSelectScreen() {
           onChangeText={onConnectedAccountInputChange}
           placeholder="Connected Stripe Account ID"
           editable={!isAddPending}
+          onEndEditing={onEndInputTextContentChange}
         />
       </List>
       <List bolded={false} topSpacing={false} title="Select Merchant">

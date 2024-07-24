@@ -30,6 +30,7 @@ import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
 import com.stripe.stripeterminal.external.models.PaymentMethod
 import com.stripe.stripeterminal.external.models.PaymentMethodDetails
+import com.stripe.stripeterminal.external.models.PaymentMethodOptions
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PaymentStatus
 import com.stripe.stripeterminal.external.models.PhoneResult
@@ -214,6 +215,25 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putString("paymentMethodId", paymentIntent.paymentMethodId)
     putMap("paymentMethod", paymentIntent.paymentMethod?.let { mapFromPaymentMethod(it) })
     putMap("offlineDetails", mapFromOfflineDetails(paymentIntent.offlineDetails))
+    putMap("paymentMethodOptions",mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions))
+}
+
+internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOptions?): ReadableMap? = paymentMethodOptions?.let {
+    nativeMapOf {
+        putMap(
+            "cardPresent",
+            nativeMapOf {
+                putBoolean("requestExtendedAuthorization", it.cardPresent?.requestExtendedAuthorization ?: false)
+                putBoolean("requestIncrementalAuthorizationSupport",it.cardPresent?.requestIncrementalAuthorizationSupport ?: false)
+                putMap("surcharge",
+                    nativeMapOf{
+                        putString("status",it.cardPresent?.surcharge?.status)
+                        putIntOrNull(this,"maximumAmount",it.cardPresent?.surcharge?.maximumAmount?.toInt())
+                    }
+                )
+            }
+        )
+    }
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
@@ -432,6 +452,8 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
         "none" -> SimulateReaderUpdate.NONE
         "random" -> SimulateReaderUpdate.RANDOM
         "required" -> SimulateReaderUpdate.REQUIRED
+        "lowBattery" -> SimulateReaderUpdate.LOW_BATTERY
+        "lowBatterySucceedConnect" -> SimulateReaderUpdate.LOW_BATTERY_SUCCEED_CONNECT
         else -> SimulateReaderUpdate.NONE
     }
 }
@@ -823,8 +845,8 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
 @OptIn(CollectInputs::class)
 fun mapFromToggleResult(toggleResult: ToggleResult): String {
     return when (toggleResult) {
-        ToggleResult.ENABLED -> "enable"
-        ToggleResult.DISABLED -> "disable"
+        ToggleResult.ENABLED -> "enabled"
+        ToggleResult.DISABLED -> "disabled"
         ToggleResult.SKIPPED -> "skipped"
         else -> { "unknown" }
     }
