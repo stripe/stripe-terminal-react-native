@@ -19,4 +19,14 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapFromLocationStatus(.notSet), "notSet")
     }
 
+    func testCollectInputsReturnsMapper() {
+        let output: NSDictionary = Mappers.mapFromCollectInputsResults([])
+        XCTAssertNotNil(output.object(forKey: "collectInputResults"))
+        XCTAssertTrue(output["collectInputResults"] is [NSDictionary])
+        let results: [NSDictionary] = output["collectInputResults"] as! [NSDictionary]
+        for result in results {
+            XCTAssertNotNil(result.object(forKey: "skipped"))
+            XCTAssertNotNil(result.object(forKey: "toggles"))
+        }
+    }
 }

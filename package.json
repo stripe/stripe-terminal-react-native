@@ -32,6 +32,7 @@
     "get:testbutler": "curl -f -o ./test-butler-app.apk https://repo1.maven.org/maven2/com/linkedin/testbutler/test-butler-app/2.2.1/test-butler-app-2.2.1.apk",
     "docs": "npx typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none",
     "unit-test:android": "cd android && ./gradlew testDebugUnitTest",
+    "unit-test:ios": "xcodebuild test -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 15' -scheme UnitTests",
     "unit-test:js": "jest"
   },
   "keywords": [
