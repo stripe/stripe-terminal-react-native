@@ -79,7 +79,6 @@ export default function DiscoverReadersScreen() {
       setDiscoveringLoading(false);
     },
     onDidStartInstallingUpdate: (update) => {
-      setPendingUpdate(null);
       navigation.navigate('UpdateReaderScreen', {
         update,
         reader: connectingReader,
@@ -87,6 +86,7 @@ export default function DiscoverReadersScreen() {
           setTimeout(() => {
             if (navigation.canGoBack()) {
               navigation.goBack();
+              setPendingUpdate(null);
             }
           }, 500);
         },

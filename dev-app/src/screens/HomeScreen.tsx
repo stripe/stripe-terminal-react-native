@@ -46,6 +46,9 @@ export default function HomeScreen() {
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
+      if (status == 'notConnected') {
+        setPendingUpdate(null)
+      }
     },
     onDidChangeOfflineStatus(status: OfflineStatus) {
       console.log(status);
