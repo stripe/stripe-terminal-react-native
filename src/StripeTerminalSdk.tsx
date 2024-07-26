@@ -37,6 +37,8 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  CollectDataParams,
+  CollectDataResultType,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -162,6 +164,7 @@ export interface StripeTerminalSdkType {
   cancelCollectInputs(): Promise<{
     error?: StripeError;
   }>;
+  collectData(params: CollectDataParams): Promise<CollectDataResultType>;
   cancelReaderReconnection(): Promise<{
     error?: StripeError;
   }>;

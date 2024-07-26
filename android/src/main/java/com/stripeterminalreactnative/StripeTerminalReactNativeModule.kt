@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
@@ -22,6 +23,7 @@ import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
+import com.stripe.stripeterminal.external.models.CollectDataConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
 import com.stripe.stripeterminal.external.models.ConfirmConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionStatus
@@ -58,6 +60,7 @@ import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripe.stripeterminal.external.models.Toggle
 import com.stripe.stripeterminal.external.models.ToggleValue
 import com.stripeterminalreactnative.callback.NoOpCallback
+import com.stripeterminalreactnative.callback.RNCollectedDataCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
@@ -88,6 +91,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var installUpdateCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
     private var collectInputsCancelable: Cancelable? = null
+    private var collectDataCancelable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -795,6 +799,27 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 ).build(),
                 NoOpCallback(promise)
             )
+        }
+
+    @OptIn(CollectData::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun collectData(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val collectDataTypeParam = requireParam(params.getString("collectDataType")) {
+                "You must provide a collectDataType"
+            }
+            val collectDataType = requireParam(mapFromCollectDataType(collectDataTypeParam)) {
+                "Unknown collectDataType: $collectDataTypeParam"
+            }
+            val enableCustomerCancellation = getBoolean(params,"enableCustomerCancellation")
+
+            val configBuilder = CollectDataConfiguration.Builder()
+                .setEnableCustomerCancellation(enableCustomerCancellation)
+                .setType(collectDataType)
+            val config = configBuilder.build()
+
+            collectDataCancelable = terminal.collectData(config, RNCollectedDataCallback(promise))
         }
 
     @ReactMethod

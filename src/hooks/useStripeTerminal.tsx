@@ -26,6 +26,7 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  CollectDataParams,
 } from '../types';
 import {
   discoverReaders,
@@ -65,6 +66,7 @@ import {
   setReaderSettings,
   collectInputs,
   cancelCollectInputs,
+  collectData,
   cancelReaderReconnection,
   supportsReadersOfType,
   getPaymentStatus,
@@ -993,6 +995,23 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
+  const _collectData = useCallback(
+    async (params: CollectDataParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await collectData(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
   const _cancelReaderReconnection = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -1066,6 +1085,7 @@ export function useStripeTerminal(props?: Props) {
     setReaderSettings: _setReaderSettings,
     collectInputs: _collectInputs,
     cancelCollectInputs: _cancelCollectInputs,
+    collectData: _collectData,
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
     emitter: emitter,
