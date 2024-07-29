@@ -69,7 +69,9 @@ export default function SetupIntentScreen() {
           },
         ],
       });
-      const { setupIntent, error } = await confirmSetupIntent(si);
+      const { setupIntent, error } = await confirmSetupIntent({
+        setupIntent:si
+      });
       if (error) {
         addLogs({
           name: 'Process Payment',
