@@ -874,7 +874,7 @@ class Mappers {
         switch type {
             case "unknown": return CollectDataType.unknown
             case "magstripe": return CollectDataType.magstripe
-              @unknown default: return nil
+            default: return CollectDataType.unknown
         }
     }
 
