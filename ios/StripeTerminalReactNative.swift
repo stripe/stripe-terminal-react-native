@@ -1013,8 +1013,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             collectedData, error in
                 if let error = error as NSError? {
                     resolve(Errors.createError(nsError: error))
+                } else if let collectedData {
+                    resolve(Mappers.mapFromCollectedData(collectedData))
                 } else {
-                    resolve(collectedData != nil ? Mappers.mapFromCollectedData(collectedData!) : [:])
+                    resolve([:])
                 }
         }
     }
