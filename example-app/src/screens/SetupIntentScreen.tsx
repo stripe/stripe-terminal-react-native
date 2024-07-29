@@ -70,7 +70,7 @@ export default function SetupIntentScreen() {
         ],
       });
       const { setupIntent, error } = await confirmSetupIntent({
-        setupIntent:si
+        setupIntent: si,
       });
       if (error) {
         addLogs({

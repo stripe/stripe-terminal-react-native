@@ -339,7 +339,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     const { paymentIntent, error } = await confirmPaymentIntent({
-      paymentIntent: collectedPaymentIntent
+      paymentIntent: collectedPaymentIntent,
     });
 
     if (error) {
