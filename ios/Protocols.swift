@@ -18,6 +18,31 @@ protocol TextResult : CollectInputsResult {
     var toggles: [NSNumber] { get }
 }
 
+protocol NumericResult : CollectInputsResult {
+    var numericString: String? { get }
+    var toggles: [NSNumber] { get }
+}
+
+protocol PhoneResult : CollectInputsResult {
+    var phone: String? { get }
+    var toggles: [NSNumber] { get }
+}
+
+protocol EmailResult : CollectInputsResult {
+    var email: String? { get }
+    var toggles: [NSNumber] { get }
+}
+
+protocol SignatureResult : CollectInputsResult {
+    var signatureSvg: String? { get }
+    var toggles: [NSNumber] { get }
+}
+
+protocol SelectionResult : CollectInputsResult {
+    var selection: String? { get }
+    var toggles: [NSNumber] { get }
+}
+
 extension StripeTerminal.TextResult : TextResult {
 }
 
