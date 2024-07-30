@@ -133,6 +133,7 @@ workflows:
           inputs:
             - content: |-
                 cd example-app/ios
+                pod update hermes-engine --no-repo-update
                 pod update RCT-Folly --no-repo-update
                 pod install
           title: Pod install
