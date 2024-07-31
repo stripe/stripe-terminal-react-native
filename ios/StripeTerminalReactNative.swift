@@ -24,6 +24,7 @@ enum ReactNativeConstants: String, CaseIterable {
     case UPDATE_BATTERY_LEVEL = "didUpdateBatteryLevel"
     case REPORT_LOW_BATTERY_WARNING = "didReportLowBatteryWarning"
     case REPORT_READER_EVENT = "didReportReaderEvent"
+    case ACCEPT_TERMS_OF_SERVICE = "didAcceptTermsOfService"
 }
 
 @objc(StripeTerminalReactNative)
@@ -371,6 +372,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
         let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
         sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
+    }
+
+    func localMobileReaderDidAcceptTermsOfService(_ reader: Reader) {
+        sendEvent(withName: ReactNativeConstants.ACCEPT_TERMS_OF_SERVICE.rawValue, body: ["reader": reader])
     }
 
     @objc(createPaymentIntent:resolver:rejecter:)

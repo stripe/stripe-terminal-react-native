@@ -375,6 +375,8 @@ export type UserCallbacks = {
   onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
   onDidReportLowBatteryWarning?(): void;
   onDidReportReaderEvent?(event: ReaderEvent): void;
+
+  onDidAcceptTermsOfService?(): void;
 };
 
 export namespace PaymentMethod {

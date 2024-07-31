@@ -101,6 +101,7 @@ export const {
   UPDATE_BATTERY_LEVEL,
   REPORT_LOW_BATTERY_WARNING,
   REPORT_READER_EVENT,
+  ACCEPT_TERMS_OF_SERVICE,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -165,6 +166,7 @@ export function useStripeTerminal(props?: Props) {
     onDidUpdateBatteryLevel,
     onDidReportLowBatteryWarning,
     onDidReportReaderEvent,
+    onDidAcceptTermsOfService,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -345,6 +347,10 @@ export function useStripeTerminal(props?: Props) {
     [onDidReportReaderEvent]
   );
 
+  const acceptTermsOfService = useCallback(() => {
+    onDidAcceptTermsOfService?.();
+  }, [onDidAcceptTermsOfService]);
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -374,6 +380,7 @@ export function useStripeTerminal(props?: Props) {
   useListener(UPDATE_BATTERY_LEVEL, didUpdateBatteryLevel);
   useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
+  useListener(ACCEPT_TERMS_OF_SERVICE, acceptTermsOfService);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {
