@@ -233,7 +233,7 @@ export default function SetupIntentScreen() {
       }
 
       const response = await createSetupIntent({
-        customerId: resp.id,
+        customer: resp.id,
       });
       setupIntent = response.setupIntent;
       setupIntentError = response.error;

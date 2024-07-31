@@ -491,7 +491,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let setupIntentParams: SetupIntentParameters
         do {
             setupIntentParams = try SetupIntentParametersBuilder()
-                .setCustomer(params["customerId"] as? String)
+                .setCustomer(params["customer"] as? String)
                 .build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
