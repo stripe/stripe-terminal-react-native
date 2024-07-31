@@ -46,5 +46,20 @@ protocol SelectionResult : CollectInputsResult {
 extension StripeTerminal.TextResult : TextResult {
 }
 
+extension StripeTerminal.NumericResult : NumericResult {
+}
+
+extension StripeTerminal.PhoneResult : PhoneResult {
+}
+
+extension StripeTerminal.EmailResult : EmailResult {
+}
+
+extension StripeTerminal.SignatureResult : SignatureResult {
+}
+
+extension StripeTerminal.SelectionResult : SelectionResult {
+}
+
 extension StripeTerminal.CollectInputsResult : CollectInputsResult {
 }

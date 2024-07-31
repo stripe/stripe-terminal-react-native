@@ -84,11 +84,11 @@ final class MappersTests: XCTestCase {
         let testSelection = "selection"
         let testSignatureSvg = "signatureSvg"
         XCTAssertEqual(results.count, 5)
-        XCTAssertTrue(results.contains(where: { $0[testNumericString] != nil }))
-        XCTAssertTrue(results.contains(where: { $0[testPhone] != nil }))
-        XCTAssertTrue(results.contains(where: { $0[testEmail] != nil }))
-        XCTAssertTrue(results.contains(where: { $0[testSelection] != nil }))
-        XCTAssertTrue(results.contains(where: { $0[testSignatureSvg] != nil }))
+        XCTAssertTrue(results[0][testNumericString] != nil)
+        XCTAssertTrue(results[1][testPhone] != nil)
+        XCTAssertTrue(results[2][testEmail] != nil)
+        XCTAssertTrue(results[3][testSelection] != nil)
+        XCTAssertTrue(results[4][testSignatureSvg] != nil)
             
         for result in results {
             if ((result.object(forKey: testNumericString)) != nil) {
