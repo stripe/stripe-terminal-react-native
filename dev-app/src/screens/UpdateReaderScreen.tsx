@@ -15,8 +15,9 @@ export default function UpdateReaderScreen() {
   const updateInfo = params?.update;
   const reader = params?.reader;
   const started = params?.started;
+  const [startToUpdate, setStartToUpdate] = useState<boolean>(started);
   const [currentProgress, setCurrentProgress] = useState<string>();
-  const { cancelInstallingUpdate, installAvailableUpdate } = useStripeTerminal({
+  const { cancelInstallingUpdate, installAvailableUpdate, connectedReader } = useStripeTerminal({
     onDidReportReaderSoftwareUpdateProgress: (progress) => {
       setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
     },
@@ -25,6 +26,9 @@ export default function UpdateReaderScreen() {
       if (navigation.canGoBack()) {
         navigation.goBack();
       }
+    },
+    onDidStartInstallingUpdate(update) {
+      setStartToUpdate(true)
     },
   });
 
@@ -45,7 +49,7 @@ export default function UpdateReaderScreen() {
           <Image source={icon} style={styles.image} />
         </View>
         <Text style={styles.readerName}>{reader.serialNumber}</Text>
-        <Text style={styles.connecting}>Connecting...</Text>
+        <Text style={styles.connecting}>{connectedReader? "Connected" : "Connecting..."}</Text>
       </View>
 
       <List title="CURRENT VERSION">
@@ -63,8 +67,8 @@ export default function UpdateReaderScreen() {
       </List>
 
       <List>
-        { started ? <ListItem title="Required update in progress" />
-         : <ListItem title="Install update" color={colors.blue} onPress={()=>{installAvailableUpdate()}} />}
+        <ListItem visible={startToUpdate} title="Required update in progress" />
+        <ListItem visible={!startToUpdate} title="Install update" color={colors.blue} onPress={()=>{installAvailableUpdate()}} />
       </List>
       <View style={styles.row}>
         <Text style={styles.info}>Update progress: {currentProgress}%</Text>

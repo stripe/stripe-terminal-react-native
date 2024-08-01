@@ -190,14 +190,10 @@ export default function HomeScreen() {
           visible={pendingUpdate != null}
           onPress={() => {
             navigation.navigate('UpdateReaderScreen', {
-              pendingUpdate,
+              update: pendingUpdate,
               reader: connectedReader,
               onDidUpdate: () => {
-                setTimeout(() => {
-                  if (navigation.canGoBack()) {
-                    navigation.goBack();
-                  }
-                }, 500);
+                setPendingUpdate(null);
               },
               started: false,
             });
@@ -324,7 +320,7 @@ export default function HomeScreen() {
                 navigation.navigate('DiscoverReadersScreen', {
                   simulated,
                   discoveryMethod,
-                  setPendingUpdate: (value: Reader.SoftwareUpdate) => {
+                  setPendingUpdateInfo: (value: Reader.SoftwareUpdate) => {
                     setPendingUpdate(value);
                   }
                 });

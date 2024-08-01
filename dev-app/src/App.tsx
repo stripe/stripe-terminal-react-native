@@ -60,7 +60,7 @@ export type RouteParamList = {
   DiscoverReaders: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
-    setPendingUpdate: (update: Reader.SoftwareUpdate | null) => void;
+    setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
   };
   MerchantSelect: {
     onSelectMerchant: ({
