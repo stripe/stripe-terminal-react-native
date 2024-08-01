@@ -34,7 +34,8 @@ export default function HomeScreen() {
   const [showReconnectAlert, setShowReconnectAlert] = useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] =
     useState<boolean>(false);
-  const [pendingUpdate, setPendingUpdate] = useState<Reader.SoftwareUpdate | null>(null);
+  const [pendingUpdate, setPendingUpdate] =
+    useState<Reader.SoftwareUpdate | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
@@ -47,7 +48,7 @@ export default function HomeScreen() {
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
       if (status == 'notConnected') {
-        setPendingUpdate(null)
+        setPendingUpdate(null);
       }
     },
     onDidChangeOfflineStatus(status: OfflineStatus) {
@@ -322,7 +323,7 @@ export default function HomeScreen() {
                   discoveryMethod,
                   setPendingUpdateInfo: (value: Reader.SoftwareUpdate) => {
                     setPendingUpdate(value);
-                  }
+                  },
                 });
               }}
             />
