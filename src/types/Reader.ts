@@ -97,6 +97,8 @@ export namespace Reader {
     | 'wisePadEDevkit'
     | 'stripeS700Devkit'
     | 'stripeS700'
+    | 'stripeS710Devkit'
+    | 'stripeS710'
     | 'cotsDevice'
     | 'appleBuiltIn'
     | 'etna';
