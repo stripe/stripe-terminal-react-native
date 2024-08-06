@@ -140,14 +140,14 @@ class Mappers {
         return DiscoveryMethod.internet
     }
 
-    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool, timeout: UInt) throws-> DiscoveryConfiguration {
+    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool, locationId: String?, timeout: UInt) throws-> DiscoveryConfiguration {
         switch discoveryMethod {
         case "bluetoothScan":
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         case "bluetoothProximity":
             return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "internet":
-            return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+            return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
         case "localMobile":
             return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         @unknown default:

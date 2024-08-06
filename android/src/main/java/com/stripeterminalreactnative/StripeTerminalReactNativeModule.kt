@@ -196,6 +196,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
+        val locationId = params.getString("locationId")
 
         val listener = RNDiscoveryListener(
             context,
@@ -215,7 +216,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
-                    isSimulated = getBoolean(params, "simulated")
+                    isSimulated = getBoolean(params, "simulated"),
+                    location = locationId
                 )
                 DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
                     getInt(params, "timeout") ?: 0,
