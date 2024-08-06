@@ -812,7 +812,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val collectDataType = requireParam(mapFromCollectDataType(collectDataTypeParam)) {
                 "Unknown collectDataType: $collectDataTypeParam"
             }
-            val enableCustomerCancellation = getBoolean(params,"enableCustomerCancellation")
+            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
 
             val configBuilder = CollectDataConfiguration.Builder()
                 .setEnableCustomerCancellation(enableCustomerCancellation)

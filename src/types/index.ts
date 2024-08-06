@@ -491,7 +491,7 @@ export type Amount = {
   amount: number;
 };
 
-export type CollectData = {
+export type CollectedData = {
   stripeId?: string;
   created: string;
   livemode: boolean;
@@ -504,12 +504,12 @@ export interface CollectDataParams {
 
 export enum CollectDataType {
   MAGSTRIPE = 'magstripe',
-  UNKNOW = 'unknown',
+  UNKNOWN = 'unknown',
 }
 
 export type CollectDataResultType =
   | {
-      collectedData?: CollectData;
+      collectedData?: CollectedData;
       error?: undefined;
     }
   | {

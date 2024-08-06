@@ -872,14 +872,14 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
 
 fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
     return nativeMapOf {
-        putString("stripeId",collectData.id)
+        putString("stripeId", collectData.id)
         putString("created", convertToUnixTimestamp(collectData.created))
         putBoolean("livemode", collectData.livemode)
     }
 }
 
 fun mapFromCollectDataType(type: String): CollectDataType? {
-    return when(type) {
+    return when (type) {
         "magstripe" -> CollectDataType.MAGSTRIPE
         else -> null
     }

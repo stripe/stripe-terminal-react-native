@@ -992,11 +992,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     @objc(collectData:resolver:rejecter:)
     func collectData(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let collectDataTypeParam = params["collectDataType"] as? String ?? ""
-        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
 
         let collectDataType = Mappers.mapToCollectDataType(collectDataTypeParam)
         guard let collectDataType else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide correct collectDataType parameter."))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a collectDataType."))
             return
         }
 

@@ -7,7 +7,7 @@ Object {
   "CHANGE_PAYMENT_STATUS": "CHANGE_PAYMENT_STATUS",
   "CollectDataType": Object {
     "MAGSTRIPE": "magstripe",
-    "UNKNOW": "unknown",
+    "UNKNOWN": "unknown",
   },
   "CommonError": Object {
     "Canceled": "Canceled",
