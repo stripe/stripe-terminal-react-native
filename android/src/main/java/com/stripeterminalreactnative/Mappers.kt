@@ -142,6 +142,8 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.STRIPE_M2 -> "stripeM2"
         DeviceType.STRIPE_S700 -> "stripeS700"
         DeviceType.STRIPE_S700_DEVKIT -> "stripeS700Devkit"
+        DeviceType.STRIPE_S710 -> "stripeS710"
+        DeviceType.STRIPE_S710_DEVKIT -> "stripeS710Devkit"
         DeviceType.UNKNOWN -> "unknown"
         DeviceType.VERIFONE_P400 -> "verifoneP400"
         DeviceType.WISECUBE -> "wiseCube"
@@ -161,6 +163,8 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         "stripeM2" -> DeviceType.STRIPE_M2
         "stripeS700" -> DeviceType.STRIPE_S700
         "stripeS700Devkit" -> DeviceType.STRIPE_S700_DEVKIT
+        "stripeS710" -> DeviceType.STRIPE_S710
+        "stripeS710Devkit" -> DeviceType.STRIPE_S710_DEVKIT
         "verifoneP400" -> DeviceType.VERIFONE_P400
         "wiseCube" -> DeviceType.WISECUBE
         "wisePad3" -> DeviceType.WISEPAD_3
