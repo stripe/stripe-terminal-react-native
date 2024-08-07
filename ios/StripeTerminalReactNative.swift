@@ -174,10 +174,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let simulated = params["simulated"] as? Bool
         let discoveryMethod = params["discoveryMethod"] as? String
         let timeout = params["timeout"] as? UInt ?? 0
+        let locationId = params["locationId"] as? String
 
         let config: DiscoveryConfiguration
         do {
-            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false, timeout: timeout)
+            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false,  locationId: locationId ?? nil, timeout: timeout)
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
