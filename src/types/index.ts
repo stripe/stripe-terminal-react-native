@@ -22,6 +22,7 @@ export type LogLevelIOS = 'none' | 'verbose';
 export type LogLevelAndroid = 'none' | 'verbose' | 'error' | 'warning';
 
 export type DiscoverReadersParams = {
+  locationId?: string;
   timeout?: number;
   simulated?: boolean;
   discoveryMethod: Reader.DiscoveryMethod;
