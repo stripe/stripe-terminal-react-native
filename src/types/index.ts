@@ -491,3 +491,29 @@ export type AmountDetails = {
 export type Amount = {
   amount: number;
 };
+
+export type CollectedData = {
+  stripeId?: string;
+  created: string;
+  livemode: boolean;
+};
+
+export interface CollectDataParams {
+  collectDataType: CollectDataType;
+  enableCustomerCancellation: boolean;
+}
+
+export enum CollectDataType {
+  MAGSTRIPE = 'magstripe',
+  UNKNOWN = 'unknown',
+}
+
+export type CollectDataResultType =
+  | {
+      collectedData?: CollectedData;
+      error?: undefined;
+    }
+  | {
+      collectedData?: undefined;
+      error: StripeError;
+    };

@@ -990,6 +990,37 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         self.collectRefundPaymentMethodCancelable = nil
     }
 
+    @objc(collectData:resolver:rejecter:)
+    func collectData(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let collectDataTypeParam = params["collectDataType"] as? String ?? ""
+
+        let collectDataType = Mappers.mapToCollectDataType(collectDataTypeParam)
+        guard let collectDataType else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a collectDataType."))
+            return
+        }
+
+        let collectDataConfig: CollectDataConfiguration
+        do {
+            collectDataConfig = try CollectDataConfigurationBuilder().setCollectDataType(collectDataType)
+                .build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+
+        Terminal.shared.collectData(collectDataConfig) {
+            collectedData, error in
+                if let error = error as NSError? {
+                    resolve(Errors.createError(nsError: error))
+                } else if let collectedData {
+                    resolve(Mappers.mapFromCollectedData(collectedData))
+                } else {
+                    resolve([:])
+                }
+        }
+    }
+
     @objc(clearCachedCredentials:rejecter:)
     func clearCachedCredentials(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.clearCachedCredentials()

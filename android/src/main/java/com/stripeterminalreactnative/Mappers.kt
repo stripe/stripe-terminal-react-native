@@ -14,6 +14,8 @@ import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.CartLineItem
 import com.stripe.stripeterminal.external.models.Charge
+import com.stripe.stripeterminal.external.models.CollectDataType
+import com.stripe.stripeterminal.external.models.CollectedData
 import com.stripe.stripeterminal.external.models.CollectInputsResult
 import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
@@ -869,5 +871,20 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
         BatteryStatus.NOMINAL -> "NOMINAL"
         BatteryStatus.UNKNOWN -> "UNKNOWN"
         else -> { "UNKNOWN" }
+    }
+}
+
+fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
+    return nativeMapOf {
+        putString("stripeId", collectData.id)
+        putString("created", convertToUnixTimestamp(collectData.created))
+        putBoolean("livemode", collectData.livemode)
+    }
+}
+
+fun mapFromCollectDataType(type: String): CollectDataType? {
+    return when (type) {
+        "magstripe" -> CollectDataType.MAGSTRIPE
+        else -> null
     }
 }
