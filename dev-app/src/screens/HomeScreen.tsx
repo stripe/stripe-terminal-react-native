@@ -205,6 +205,12 @@ export default function HomeScreen() {
           }}
         />
       </List>
+      <ListItem
+        title="Collect Data"
+        onPress={() => {
+          navigation.navigate('CollectDataScreen');
+        }}
+      />
       <List title="DATABASE">
         <ListItem
           title="Database"

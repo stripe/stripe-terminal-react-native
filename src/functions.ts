@@ -38,6 +38,8 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  CollectDataParams,
+  CollectDataResultType,
   LocalMobileUxConfiguration,
 } from './types';
 import { CommonError } from './types';
@@ -894,6 +896,21 @@ export async function cancelCollectInputs(): Promise<{
       };
     }
   }, 'cancelCollectInputs')();
+}
+
+export async function collectData(
+  params: CollectDataParams
+): Promise<CollectDataResultType> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const response = await StripeTerminalSdk.collectData(params);
+      return response;
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'collectData')();
 }
 
 export async function cancelReaderReconnection(): Promise<{

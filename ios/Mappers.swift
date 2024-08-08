@@ -869,6 +869,23 @@ class Mappers {
             @unknown default: return "unknown"
         }
     }
+
+    class func mapToCollectDataType(_ type: String) -> CollectDataType? {
+        switch type {
+            case "unknown": return CollectDataType.unknown
+            case "magstripe": return CollectDataType.magstripe
+            default: return nil
+        }
+    }
+
+    class func mapFromCollectedData(_ collectData: CollectedData) -> NSDictionary {
+        let result: NSDictionary = [
+            "stripeId": collectData.stripeId ?? NSNull(),
+            "created": convertDateToUnixTimestamp(date: collectData.created),
+            "livemode": collectData.livemode,
+        ]
+        return result
+    }
 }
 
 extension UInt {

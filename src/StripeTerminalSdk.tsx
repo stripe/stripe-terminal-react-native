@@ -37,6 +37,8 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  CollectDataParams,
+  CollectDataResultType,
   LocalMobileUxConfiguration,
 } from './types';
 
@@ -163,6 +165,7 @@ export interface StripeTerminalSdkType {
   cancelCollectInputs(): Promise<{
     error?: StripeError;
   }>;
+  collectData(params: CollectDataParams): Promise<CollectDataResultType>;
   cancelReaderReconnection(): Promise<{
     error?: StripeError;
   }>;
