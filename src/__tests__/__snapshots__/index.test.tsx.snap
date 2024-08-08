@@ -10,6 +10,11 @@ Object {
     "Failed": "Failed",
     "Unknown": "Unknown",
   },
+  "DarkMode": Object {
+    "DARK": "dark",
+    "LIGHT": "light",
+    "SYSTEM": "system",
+  },
   "FETCH_TOKEN_PROVIDER": "FETCH_TOKEN_PROVIDER",
   "FINISH_DISCOVERING_READERS": "FINISH_DISCOVERING_READERS",
   "FINISH_INSTALLING_UPDATE": "FINISH_INSTALLING_UPDATE",
@@ -52,6 +57,13 @@ Object {
   },
   "StripeTerminalProvider": [Function],
   "StripeTerminalProviderProps": undefined,
+  "TapZoneIndicator": Object {
+    "ABOVE": "above",
+    "BEHIND": "behind",
+    "BELOW": "below",
+    "DEFAULT": "default",
+    "FRONT": "front",
+  },
   "ToggleResult": Object {
     "DISABLED": "disabled",
     "ENABLED": "enabled",
