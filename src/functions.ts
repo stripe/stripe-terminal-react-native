@@ -38,7 +38,10 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  LocalMobileUxConfiguration,
 } from './types';
+import { CommonError } from './types';
+import { Platform } from 'react-native';
 
 export async function initialize(
   params: InitParams
@@ -923,4 +926,30 @@ export async function supportsReadersOfType(
       };
     }
   }, 'supportsReadersOfType')();
+}
+
+export async function setLocalMobileUxConfiguration(
+  params: LocalMobileUxConfiguration
+): Promise<{
+  error?: StripeError;
+}> {
+  if (Platform.OS === 'ios') {
+    return {
+      error: {
+        message: "'setLocalMobileUxConfiguration' is unsupported on iOS",
+        code: CommonError.Failed,
+      },
+    };
+  }
+
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.setLocalMobileUxConfiguration(params);
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'setLocalMobileUxConfiguration')();
 }

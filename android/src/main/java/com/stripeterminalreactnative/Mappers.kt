@@ -19,6 +19,7 @@ import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.EmailResult
+import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.NetworkStatus
@@ -869,5 +870,37 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
         BatteryStatus.NOMINAL -> "NOMINAL"
         BatteryStatus.UNKNOWN -> "UNKNOWN"
         else -> { "UNKNOWN" }
+    }
+}
+
+fun mapToTapZoneIndicator(indicator: String?): LocalMobileUxConfiguration.TapZoneIndicator {
+    return when (indicator) {
+        "default" -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+        "above" -> LocalMobileUxConfiguration.TapZoneIndicator.ABOVE
+        "below" -> LocalMobileUxConfiguration.TapZoneIndicator.BELOW
+        "front" -> LocalMobileUxConfiguration.TapZoneIndicator.FRONT
+        "behind" -> LocalMobileUxConfiguration.TapZoneIndicator.BEHIND
+        else -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+    }
+}
+
+fun mapToDarkMode(mode: String?): LocalMobileUxConfiguration.DarkMode {
+    return when (mode) {
+        "dark" -> LocalMobileUxConfiguration.DarkMode.DARK
+        "light" -> LocalMobileUxConfiguration.DarkMode.LIGHT
+        "system" -> LocalMobileUxConfiguration.DarkMode.SYSTEM
+        else -> LocalMobileUxConfiguration.DarkMode.SYSTEM
+    }
+}
+
+fun hexToArgb(color: String): Int {
+    return try {
+        val alpha = color.substring(0, 2).toInt(16)
+        val red = color.substring(2, 4).toInt(16)
+        val green = color.substring(4, 6).toInt(16)
+        val blue = color.substring(6, 8).toInt(16)
+        (alpha shl 24) or (red shl 16) or (green shl 8) or blue
+    } catch (e: NumberFormatException) {
+        throw IllegalArgumentException("Invalid ARGB hex format", e)
     }
 }

@@ -491,3 +491,39 @@ export type AmountDetails = {
 export type Amount = {
   amount: number;
 };
+
+export type LocalMobileUxConfiguration = {
+  tapZone: TapZone;
+  darkMode: DarkMode;
+  colors: Colors;
+};
+
+export type TapZone = {
+  tapZoneIndicator: TapZoneIndicator;
+  tapZonePosition: TapZonePosition;
+};
+
+export type TapZonePosition = {
+  xBias: number;
+  yBias: number;
+};
+
+export enum TapZoneIndicator {
+  DEFAULT = 'default',
+  ABOVE = 'above',
+  BELOW = 'below',
+  FRONT = 'front',
+  BEHIND = 'behind',
+}
+
+export type Colors = {
+  primary: string;
+  success: string;
+  error: string;
+};
+
+export enum DarkMode {
+  DARK = 'dark',
+  LIGHT = 'light',
+  SYSTEM = 'system',
+}

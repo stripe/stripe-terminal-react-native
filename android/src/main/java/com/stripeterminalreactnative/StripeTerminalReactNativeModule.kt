@@ -24,12 +24,12 @@ import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
 import com.stripe.stripeterminal.external.models.ConfirmConfiguration
-import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.EmailInput
 import com.stripe.stripeterminal.external.models.Input
 import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
 import com.stripe.stripeterminal.external.models.NumericInput
 import com.stripe.stripeterminal.external.models.OfflineBehavior
 import com.stripe.stripeterminal.external.models.PaymentIntent
@@ -774,7 +774,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val refundApplicationFee = params.getBoolean("refundApplicationFee")
             val reverseTransfer = params.getBoolean("reverseTransfer")
 
-            var intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
+            val intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
                 RefundParameters.Builder(
                     RefundParameters.Id.PaymentIntent(paymentIntentId),
                     amount,
@@ -835,7 +835,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getConnectedReader(promise: Promise) {
-        promise.resolve((terminal.connectedReader ?: null)?.let { mapFromReader(it) })
+        promise.resolve(terminal.connectedReader?.let { mapFromReader(it) })
     }
 
     @ReactMethod
@@ -850,7 +850,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val textToSpeechViaSpeakers = requireParam(getBoolean(params, "textToSpeechViaSpeakers")) {
             "You must provide textToSpeechViaSpeakers parameters."
         }
-        var readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
+        val readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
             textToSpeechViaSpeakers
         )
         terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
@@ -1055,6 +1055,51 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
 
         promise.resolve(mapFromReaderSupportResult(readerSupportResult))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun setLocalMobileUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val localMobileUxConfigurationBuilder = LocalMobileUxConfiguration.Builder()
+
+        var tapZone: LocalMobileUxConfiguration.TapZone? = null
+        val tapZoneParam = params.getMap("tapZone")
+        tapZoneParam?.let {
+            val tapZoneIndicator = mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
+
+            val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
+                LocalMobileUxConfiguration.TapZonePosition.Manual(
+                    it.getDouble("xBias").toFloat(),
+                    it.getDouble("yBias").toFloat())
+            }
+
+            val tapZoneBuilder = LocalMobileUxConfiguration.TapZone.Manual.Builder()
+            tapZoneIndicator.let { tapZoneBuilder.indicator(it) }
+            tapZonePosition?.let { tapZoneBuilder.position(it) }
+            tapZone = tapZoneBuilder.build()
+        }
+        localMobileUxConfigurationBuilder.tapZone(tapZone?:LocalMobileUxConfiguration.TapZone.Default)
+
+        val colorsParam = params.getMap("colors")
+        colorsParam?.let {
+            val colorSchemeBuilder = LocalMobileUxConfiguration.ColorScheme.Builder()
+            colorSchemeBuilder.apply {
+                primary(it.getString("primary")?.let {
+                    LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) } ?:
+                    LocalMobileUxConfiguration.Color.Default)
+                success(it.getString("success")?.let {
+                    LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) } ?:
+                    LocalMobileUxConfiguration.Color.Default)
+                error(it.getString("error")?.let {
+                    LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) } ?:
+                    LocalMobileUxConfiguration.Color.Default)
+            }
+            localMobileUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+        }
+
+        localMobileUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
+
+        terminal.setLocalMobileUxConfiguration(localMobileUxConfigurationBuilder.build())
     }
 
     @ReactMethod

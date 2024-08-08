@@ -37,6 +37,7 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  LocalMobileUxConfiguration,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -168,6 +169,9 @@ export interface StripeTerminalSdkType {
   supportsReadersOfType(
     params: Reader.ReaderSupportParams
   ): Promise<Reader.ReaderSupportResult>;
+  setLocalMobileUxConfiguration(params: LocalMobileUxConfiguration): Promise<{
+    error?: StripeError;
+  }>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
