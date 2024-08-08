@@ -94,6 +94,9 @@ export default function DiscoverReadersScreen() {
     onDidReportAvailableUpdate: (update) => {
       Alert.alert('New update is available', update.deviceSoftwareVersion);
     },
+    onDidAcceptTermsOfService: () => {
+      Alert.alert('Accept terms of Service');
+    },
   });
 
   const isBTReader = (reader: Reader.Type) =>
