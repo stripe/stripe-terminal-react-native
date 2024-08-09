@@ -46,6 +46,7 @@ export type RouteParamList = {
     update: Reader.SoftwareUpdate;
     reader: Reader.Type;
     onDidUpdate: () => void;
+    started: boolean;
   };
   LocationList: {
     onSelect: (location: Location) => void;
@@ -60,6 +61,7 @@ export type RouteParamList = {
   DiscoverReaders: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
+    setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
   };
   MerchantSelect: {
     onSelectMerchant: ({

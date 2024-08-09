@@ -34,6 +34,8 @@ export default function HomeScreen() {
   const [showReconnectAlert, setShowReconnectAlert] = useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] =
     useState<boolean>(false);
+  const [pendingUpdate, setPendingUpdate] =
+    useState<Reader.SoftwareUpdate | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
@@ -45,6 +47,9 @@ export default function HomeScreen() {
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
+      if (status == 'notConnected') {
+        setPendingUpdate(null);
+      }
     },
     onDidChangeOfflineStatus(status: OfflineStatus) {
       console.log(status);
@@ -89,6 +94,7 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidDisconnect(reason) {
+      setPendingUpdate(null);
       Alert.alert(
         'Reader disconnected!',
         'Reader disconnected with reason ' + reason
@@ -178,6 +184,20 @@ export default function HomeScreen() {
           title="Reader settings"
           onPress={() => {
             navigation.navigate('ReaderSettingsScreen');
+          }}
+        />
+        <ListItem
+          title="Update reader software"
+          visible={pendingUpdate != null}
+          onPress={() => {
+            navigation.navigate('UpdateReaderScreen', {
+              update: pendingUpdate,
+              reader: connectedReader,
+              onDidUpdate: () => {
+                setPendingUpdate(null);
+              },
+              started: false,
+            });
           }}
         />
         <ListItem
@@ -307,6 +327,9 @@ export default function HomeScreen() {
                 navigation.navigate('DiscoverReadersScreen', {
                   simulated,
                   discoveryMethod,
+                  setPendingUpdateInfo: (value: Reader.SoftwareUpdate) => {
+                    setPendingUpdate(value);
+                  },
                 });
               }}
             />
