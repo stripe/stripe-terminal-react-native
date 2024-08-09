@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import android.graphics.Color
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
@@ -906,18 +907,14 @@ fun mapToDarkMode(mode: String?): LocalMobileUxConfiguration.DarkMode {
         "dark" -> LocalMobileUxConfiguration.DarkMode.DARK
         "light" -> LocalMobileUxConfiguration.DarkMode.LIGHT
         "system" -> LocalMobileUxConfiguration.DarkMode.SYSTEM
-        else -> LocalMobileUxConfiguration.DarkMode.SYSTEM
+        else -> LocalMobileUxConfiguration.DarkMode.LIGHT
     }
 }
 
 fun hexToArgb(color: String): Int {
     return try {
-        val alpha = color.substring(0, 2).toInt(16)
-        val red = color.substring(2, 4).toInt(16)
-        val green = color.substring(4, 6).toInt(16)
-        val blue = color.substring(6, 8).toInt(16)
-        (alpha shl 24) or (red shl 16) or (green shl 8) or blue
-    } catch (e: NumberFormatException) {
+        Color.parseColor(color)
+    } catch (e: IllegalArgumentException) {
         throw IllegalArgumentException("Invalid ARGB hex format", e)
     }
 }

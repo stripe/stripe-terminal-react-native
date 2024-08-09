@@ -519,14 +519,14 @@ export type CollectDataResultType =
     };
 
 export type LocalMobileUxConfiguration = {
-  tapZone: TapZone;
-  darkMode: DarkMode;
-  colors: Colors;
+  tapZone?: TapZone;
+  darkMode?: DarkMode;
+  colors?: Colors;
 };
 
 export type TapZone = {
-  tapZoneIndicator: TapZoneIndicator;
-  tapZonePosition: TapZonePosition;
+  tapZoneIndicator?: TapZoneIndicator;
+  tapZonePosition?: TapZonePosition;
 };
 
 export type TapZonePosition = {
@@ -543,9 +543,9 @@ export enum TapZoneIndicator {
 }
 
 export type Colors = {
-  primary: string;
-  success: string;
-  error: string;
+  primary?: string;
+  success?: string;
+  error?: string;
 };
 
 export enum DarkMode {

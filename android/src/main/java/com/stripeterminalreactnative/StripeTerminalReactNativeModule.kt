@@ -1096,12 +1096,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 LocalMobileUxConfiguration.TapZonePosition.Manual(
                     it.getDouble("xBias").toFloat(),
                     it.getDouble("yBias").toFloat())
-            }
+            } ?: LocalMobileUxConfiguration.TapZonePosition.Default
 
-            val tapZoneBuilder = LocalMobileUxConfiguration.TapZone.Manual.Builder()
-            tapZoneIndicator.let { tapZoneBuilder.indicator(it) }
-            tapZonePosition?.let { tapZoneBuilder.position(it) }
-            tapZone = tapZoneBuilder.build()
+            tapZone = LocalMobileUxConfiguration.TapZone.Manual.Builder()
+                .indicator(tapZoneIndicator)
+                .position(tapZonePosition)
+                .build()
         }
         localMobileUxConfigurationBuilder.tapZone(tapZone?:LocalMobileUxConfiguration.TapZone.Default)
 
@@ -1109,15 +1109,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         colorsParam?.let {
             val colorSchemeBuilder = LocalMobileUxConfiguration.ColorScheme.Builder()
             colorSchemeBuilder.apply {
-                primary(it.getString("primary")?.let {
-                    LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) } ?:
-                    LocalMobileUxConfiguration.Color.Default)
-                success(it.getString("success")?.let {
-                    LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) } ?:
-                    LocalMobileUxConfiguration.Color.Default)
-                error(it.getString("error")?.let {
-                    LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) } ?:
-                    LocalMobileUxConfiguration.Color.Default)
+                primary(it.getString("primary").toLocalMobileColor())
+                success(it.getString("success").toLocalMobileColor())
+                error(it.getString("error").toLocalMobileColor())
             }
             localMobileUxConfigurationBuilder.colors(colorSchemeBuilder.build())
         }
@@ -1125,6 +1119,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         localMobileUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
 
         terminal.setLocalMobileUxConfiguration(localMobileUxConfigurationBuilder.build())
+    }
+
+    private fun String?.toLocalMobileColor(): LocalMobileUxConfiguration.Color {
+        return this
+            ?.let { LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) }
+            ?: LocalMobileUxConfiguration.Color.Default
     }
 
     @ReactMethod
