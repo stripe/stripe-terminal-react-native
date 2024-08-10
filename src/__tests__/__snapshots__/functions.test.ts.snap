@@ -42,6 +42,7 @@ Object {
   "retrievePaymentIntent": [Function],
   "retrieveSetupIntent": [Function],
   "setConnectionToken": [Function],
+  "setLocalMobileUxConfiguration": [Function],
   "setReaderDisplay": [Function],
   "setReaderSettings": [Function],
   "setSimulatedCard": [Function],

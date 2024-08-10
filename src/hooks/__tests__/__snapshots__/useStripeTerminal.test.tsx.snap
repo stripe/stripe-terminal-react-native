@@ -47,6 +47,7 @@ Object {
     "rebootReader": [Function],
     "retrievePaymentIntent": [Function],
     "retrieveSetupIntent": [Function],
+    "setLocalMobileUxConfiguration": [Function],
     "setReaderDisplay": [Function],
     "setReaderSettings": [Function],
     "setSimulatedCard": [Function],

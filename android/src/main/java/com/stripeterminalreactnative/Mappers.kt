@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import android.graphics.Color
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
@@ -21,6 +22,7 @@ import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.EmailResult
+import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.NetworkStatus
@@ -886,5 +888,33 @@ fun mapFromCollectDataType(type: String): CollectDataType? {
     return when (type) {
         "magstripe" -> CollectDataType.MAGSTRIPE
         else -> null
+    }
+}
+
+fun mapToTapZoneIndicator(indicator: String?): LocalMobileUxConfiguration.TapZoneIndicator {
+    return when (indicator) {
+        "default" -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+        "above" -> LocalMobileUxConfiguration.TapZoneIndicator.ABOVE
+        "below" -> LocalMobileUxConfiguration.TapZoneIndicator.BELOW
+        "front" -> LocalMobileUxConfiguration.TapZoneIndicator.FRONT
+        "behind" -> LocalMobileUxConfiguration.TapZoneIndicator.BEHIND
+        else -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+    }
+}
+
+fun mapToDarkMode(mode: String?): LocalMobileUxConfiguration.DarkMode {
+    return when (mode) {
+        "dark" -> LocalMobileUxConfiguration.DarkMode.DARK
+        "light" -> LocalMobileUxConfiguration.DarkMode.LIGHT
+        "system" -> LocalMobileUxConfiguration.DarkMode.SYSTEM
+        else -> LocalMobileUxConfiguration.DarkMode.LIGHT
+    }
+}
+
+fun hexToArgb(color: String): Int {
+    return try {
+        Color.parseColor(color)
+    } catch (e: IllegalArgumentException) {
+        throw IllegalArgumentException("Invalid ARGB hex format", e)
     }
 }

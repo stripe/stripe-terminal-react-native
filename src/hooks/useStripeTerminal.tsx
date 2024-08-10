@@ -27,6 +27,7 @@ import type {
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
   CollectDataParams,
+  LocalMobileUxConfiguration,
 } from '../types';
 import {
   discoverReaders,
@@ -72,6 +73,7 @@ import {
   getPaymentStatus,
   getConnectionStatus,
   getConnectedReader,
+  setLocalMobileUxConfiguration,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -1050,6 +1052,23 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setLoading]
   );
 
+  const _setLocalMobileUxConfiguration = useCallback(
+    async (params: LocalMobileUxConfiguration) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await setLocalMobileUxConfiguration(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
   return {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
@@ -1095,6 +1114,7 @@ export function useStripeTerminal(props?: Props) {
     collectData: _collectData,
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
+    setLocalMobileUxConfiguration: _setLocalMobileUxConfiguration,
     emitter: emitter,
     discoveredReaders,
     connectedReader,
