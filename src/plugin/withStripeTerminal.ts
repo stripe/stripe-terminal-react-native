@@ -140,12 +140,12 @@ const withStripeTerminalIos: ConfigPlugin<StripeTerminalPluginProps> = (
 ) => {
   return withInfoPlist(expoConfig, (config) => {
     if (props.bluetoothBackgroundMode) {
-      if(!Array.isArray(config.modResults.UIBackgroundModes)) {
+      if (!Array.isArray(config.modResults.UIBackgroundModes)) {
         config.modResults.UIBackgroundModes = [];
       }
-      config.modResults.UIBackgroundModes.push( 'bluetooth-central' )
+      config.modResults.UIBackgroundModes.push('bluetooth-central');
     }
-    
+
     config.modResults.NSLocationWhenInUseUsageDescription =
       props.locationWhenInUsePermission ||
       'Location access is required in order to accept payments.';
