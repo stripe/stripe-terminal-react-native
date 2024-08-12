@@ -384,6 +384,7 @@ export type UserCallbacks = {
 
 export namespace PaymentMethod {
   export type Type = {
+    type: PaymentMethodType;
     id: string;
     customer: string;
     interacPresentDetails: CardPresentDetails;

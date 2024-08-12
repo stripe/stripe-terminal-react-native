@@ -700,6 +700,7 @@ class Mappers {
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
+            "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
             "metadata": NSDictionary(dictionary: paymentMethod.metadata),
         ]
         return result

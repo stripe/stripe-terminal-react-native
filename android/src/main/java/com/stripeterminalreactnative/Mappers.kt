@@ -553,6 +553,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
             )
             putString("customer", it.customer)
             putString("id", it.id)
+            putString("type", mapFromPaymentMethodDetailsType(it.type))
             putMap(
                 "metadata",
                 nativeMapOf {
