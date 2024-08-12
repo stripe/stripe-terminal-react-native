@@ -64,41 +64,47 @@ export default function DiscoverReadersScreen() {
     connectLocalMobileReader,
     connectHandoffReader,
   } = useStripeTerminal({
-    onFinishDiscoveringReaders: (finishError) => {
-      if (finishError) {
-        console.error(
-          'Discover readers error',
-          `${finishError.code}, ${finishError.message}`
-        );
-        if (navigation.canGoBack()) {
-          navigation.goBack();
+    discoveryCallbacks: {
+      onFinishDiscoveringReaders: (finishError) => {
+        if (finishError) {
+          console.error(
+            'Discover readers error',
+            `${finishError.code}, ${finishError.message}`
+          );
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+        } else {
+          console.log('onFinishDiscoveringReaders success');
         }
-      } else {
-        console.log('onFinishDiscoveringReaders success');
-      }
-      setDiscoveringLoading(false);
+        setDiscoveringLoading(false);
+      },
     },
-    onDidStartInstallingUpdate: (update) => {
-      navigation.navigate('UpdateReaderScreen', {
-        update,
-        reader: connectingReader,
-        onDidUpdate: () => {
-          setPendingUpdateInfo(null);
-          setTimeout(() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            }
-          }, 500);
-        },
-        started: true,
-      });
+    readerCallbacks: {
+      onDidStartInstallingUpdate: (update) => {
+        navigation.navigate('UpdateReaderScreen', {
+          update,
+          reader: connectingReader,
+          onDidUpdate: () => {
+            setPendingUpdateInfo(null);
+            setTimeout(() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              }
+            }, 500);
+          },
+          started: true,
+        });
+      },
+      onDidReportAvailableUpdate: (update) => {
+        setPendingUpdateInfo(update);
+        Alert.alert('New update is available', update.deviceSoftwareVersion);
+      },
     },
-    onDidReportAvailableUpdate: (update) => {
-      setPendingUpdateInfo(update);
-      Alert.alert('New update is available', update.deviceSoftwareVersion);
-    },
-    onDidAcceptTermsOfService: () => {
-      Alert.alert('Accept terms of Service');
+    localMobileReaderCallbacks: {
+      onDidAcceptTermsOfService: () => {
+        Alert.alert('Accept terms of Service');
+      },
     },
   });
 

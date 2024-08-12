@@ -113,30 +113,32 @@ export default function CollectCardPaymentScreen() {
     setSimulatedCard,
     getOfflineStatus,
   } = useStripeTerminal({
-    onDidRequestReaderInput: (input) => {
-      // @ts-ignore
-      setCancel((prev) => ({ ...prev, isDisabled: false }));
-      addLogs({
-        name: 'Collect Payment Method',
-        events: [
-          {
-            name: input.sort().join(' / '),
-            description: 'terminal.didRequestReaderInput',
-            onBack: cancelCollectPaymentMethod,
-          },
-        ],
-      });
-    },
-    onDidRequestReaderDisplayMessage: (message) => {
-      addLogs({
-        name: 'Collect Payment Method',
-        events: [
-          {
-            name: message,
-            description: 'terminal.didRequestReaderDisplayMessage',
-          },
-        ],
-      });
+    readerCallbacks: {
+      onDidRequestReaderInput: (input) => {
+        // @ts-ignore
+        setCancel((prev) => ({ ...prev, isDisabled: false }));
+        addLogs({
+          name: 'Collect Payment Method',
+          events: [
+            {
+              name: input.sort().join(' / '),
+              description: 'terminal.didRequestReaderInput',
+              onBack: cancelCollectPaymentMethod,
+            },
+          ],
+        });
+      },
+      onDidRequestReaderDisplayMessage: (message) => {
+        addLogs({
+          name: 'Collect Payment Method',
+          events: [
+            {
+              name: message,
+              description: 'terminal.didRequestReaderDisplayMessage',
+            },
+          ],
+        });
+      },
     },
   });
 

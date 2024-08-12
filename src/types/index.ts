@@ -348,37 +348,54 @@ export type EventResult<T> = {
 };
 
 export type UserCallbacks = {
-  onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
-  onFinishDiscoveringReaders?(error?: StripeError): void;
-  onDidReportUnexpectedReaderDisconnect?(error?: StripeError): void;
-  onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
-  onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
-  onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
+  readerCallbacks?: ReaderCallbacks;
+  terminalCallbacks?: TerminalCallbacks;
+  reconnectionCallbacks?: ReconnectionCallbacks;
+  offlineCallbacks?: OfflineCallbacks;
+  discoveryCallbacks?: DiscoveryCallbacks;
+  localMobileReaderCallbacks?: LocalMobileReaderCallbacks;
+};
+
+export type ReaderCallbacks = {
+  onDidDisconnect?(reason?: Reader.DisconnectReason): void;
   onDidFinishInstallingUpdate?(result: UpdateSoftwareResultType): void;
-
-  onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
+  onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
+  onDidReportLowBatteryWarning?(): void;
+  onDidReportReaderEvent?(event: ReaderEvent): void;
+  onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
   onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;
+  onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
+  onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
+  onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
+};
 
+export type TerminalCallbacks = {
+  onDidReportUnexpectedReaderDisconnect?(error?: StripeError): void;
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
+};
 
+export type ReconnectionCallbacks = {
+  onDidFailReaderReconnect?(): void;
   onDidStartReaderReconnect?(): void;
   onDidSucceedReaderReconnect?(): void;
-  onDidFailReaderReconnect?(): void;
+};
 
-  onDidChangeOfflineStatus?(status: OfflineStatus): void;
+export type OfflineCallbacks = {
   onDidForwardPaymentIntent?(
     paymentIntent: PaymentIntent.Type,
     error: StripeError
   ): void;
   onDidForwardingFailure?(error?: StripeError): void;
+  onDidChangeOfflineStatus?(status: OfflineStatus): void;
+};
 
-  onDidDisconnect?(reason?: Reader.DisconnectReason): void;
+export type DiscoveryCallbacks = {
+  onFinishDiscoveringReaders?(error?: StripeError): void;
+  onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
+};
 
-  onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
-  onDidReportLowBatteryWarning?(): void;
-  onDidReportReaderEvent?(event: ReaderEvent): void;
-
+export type LocalMobileReaderCallbacks = {
   onDidAcceptTermsOfService?(): void;
 };
 

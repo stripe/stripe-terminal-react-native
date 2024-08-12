@@ -56,29 +56,31 @@ export default function RefundPaymentScreen() {
     confirmRefund,
     setSimulatedCard,
   } = useStripeTerminal({
-    onDidRequestReaderInput: (input) => {
-      addLogs({
-        name: 'Collect Refund Payment Method',
-        events: [
-          {
-            name: input.join(' / '),
-            description: 'terminal.didRequestReaderInput',
-            onBack: cancelCollectRefundPaymentMethod,
-          },
-        ],
-      });
-    },
-    onDidRequestReaderDisplayMessage: (message) => {
-      addLogs({
-        name: 'Collect Refund Payment Method',
-        events: [
-          {
-            name: message,
-            description: 'terminal.didRequestReaderDisplayMessage',
-          },
-        ],
-      });
-      console.log('message', message);
+    readerCallbacks: {
+      onDidRequestReaderInput: (input) => {
+        addLogs({
+          name: 'Collect Refund Payment Method',
+          events: [
+            {
+              name: input.join(' / '),
+              description: 'terminal.didRequestReaderInput',
+              onBack: cancelCollectRefundPaymentMethod,
+            },
+          ],
+        });
+      },
+      onDidRequestReaderDisplayMessage: (message) => {
+        addLogs({
+          name: 'Collect Refund Payment Method',
+          events: [
+            {
+              name: message,
+              description: 'terminal.didRequestReaderDisplayMessage',
+            },
+          ],
+        });
+        console.log('message', message);
+      },
     },
   });
 

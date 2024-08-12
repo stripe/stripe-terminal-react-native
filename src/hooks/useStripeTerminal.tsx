@@ -123,11 +123,15 @@ export type Props = UserCallbacks;
  * @example
  * ```ts
  * const { discoverReaders } = useStripeTerminal({
- *   onUpdateDiscoveredReaders: (readers) => {
- *     setDisoveredReaders(readers)
- *   }
- *   onDidReportReaderSoftwareUpdateProgress: (progress) => {
- *     setCurrentProgress(progress)
+ *   discoveryCallbacks: {
+ *     onUpdateDiscoveredReaders: (readers) => {
+ *       setDisoveredReaders(readers)
+ *     }
+ *   },
+ *   readerCallbacks: {
+ *     onDidReportReaderSoftwareUpdateProgress: (progress) => {
+ *       setCurrentProgress(progress)
+ *     }
  *   }
  * })
  * ```
@@ -149,29 +153,40 @@ export function useStripeTerminal(props?: Props) {
   const _isInitialized = useCallback(() => isInitialized, [isInitialized]);
 
   const {
-    onUpdateDiscoveredReaders,
-    onFinishDiscoveringReaders,
+    onDidDisconnect,
     onDidFinishInstallingUpdate,
     onDidReportAvailableUpdate,
+    onDidReportLowBatteryWarning,
+    onDidReportReaderEvent,
     onDidReportReaderSoftwareUpdateProgress,
-    onDidReportUnexpectedReaderDisconnect,
-    onDidStartInstallingUpdate,
-    onDidRequestReaderInput,
     onDidRequestReaderDisplayMessage,
-    onDidChangePaymentStatus,
+    onDidRequestReaderInput,
+    onDidStartInstallingUpdate,
+    onDidUpdateBatteryLevel,
+  } = props?.readerCallbacks || {};
+
+  const {
     onDidChangeConnectionStatus,
+    onDidChangePaymentStatus,
+    onDidReportUnexpectedReaderDisconnect,
+  } = props?.terminalCallbacks || {};
+
+  const {
+    onDidFailReaderReconnect,
     onDidStartReaderReconnect,
     onDidSucceedReaderReconnect,
-    onDidFailReaderReconnect,
+  } = props?.reconnectionCallbacks || {};
+
+  const {
     onDidChangeOfflineStatus,
     onDidForwardPaymentIntent,
     onDidForwardingFailure,
-    onDidDisconnect,
-    onDidUpdateBatteryLevel,
-    onDidReportLowBatteryWarning,
-    onDidReportReaderEvent,
-    onDidAcceptTermsOfService,
-  } = props || {};
+  } = props?.offlineCallbacks || {};
+
+  const { onFinishDiscoveringReaders, onUpdateDiscoveredReaders } =
+    props?.discoveryCallbacks || {};
+
+  const { onDidAcceptTermsOfService } = props?.localMobileReaderCallbacks || {};
 
   const _discoverReaders = useCallback(
     async (params: DiscoverReadersParams) => {

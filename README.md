@@ -132,12 +132,16 @@ import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 export default function PaymentScreen() {
   const { discoverReaders, connectedReader, discoveredReaders } =
     useStripeTerminal({
-      onUpdateDiscoveredReaders: (readers) => {
-        // access to discovered readers
+      discoveryCallbacks: {
+        onUpdateDiscoveredReaders: (readers) => {
+          // access to discovered readers
+        },
       },
-      onDidChangeConnectionStatus: (status) => {
-        // access to the current connection status
-      },
+      terminalCallbacks: {
+        onDidChangeConnectionStatus: (status) => {
+          // access to the current connection status
+        },
+      }
     });
 
   useEffect(() => {

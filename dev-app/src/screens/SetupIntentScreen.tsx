@@ -32,28 +32,30 @@ export default function SetupIntentScreen() {
     retrieveSetupIntent,
     cancelCollectSetupIntent,
   } = useStripeTerminal({
-    onDidRequestReaderInput: (input) => {
-      addLogs({
-        name: 'Collect Setup Intent',
-        events: [
-          {
-            name: input.sort().join(' / '),
-            description: 'terminal.didRequestReaderInput',
-            onBack: cancelCollectSetupIntent,
-          },
-        ],
-      });
-    },
-    onDidRequestReaderDisplayMessage: (message) => {
-      addLogs({
-        name: 'Collect Setup Intent',
-        events: [
-          {
-            name: message,
-            description: 'terminal.didRequestReaderDisplayMessage',
-          },
-        ],
-      });
+    readerCallbacks: {
+      onDidRequestReaderInput: (input) => {
+        addLogs({
+          name: 'Collect Setup Intent',
+          events: [
+            {
+              name: input.sort().join(' / '),
+              description: 'terminal.didRequestReaderInput',
+              onBack: cancelCollectSetupIntent,
+            },
+          ],
+        });
+      },
+      onDidRequestReaderDisplayMessage: (message) => {
+        addLogs({
+          name: 'Collect Setup Intent',
+          events: [
+            {
+              name: message,
+              description: 'terminal.didRequestReaderDisplayMessage',
+            },
+          ],
+        });
+      },
     },
   });
 

@@ -45,73 +45,83 @@ export default function HomeScreen() {
     rebootReader,
     cancelReaderReconnection,
   } = useStripeTerminal({
-    onDidChangeConnectionStatus(status) {
-      setConnectionStatus(status);
-      if (status == 'notConnected') {
+    terminalCallbacks: {
+      onDidChangeConnectionStatus: (status) => {
+        setConnectionStatus(status);
+        if (status == 'notConnected') {
+          setPendingUpdate(null);
+        }
+      },
+    },
+    offlineCallbacks: {
+      onDidChangeOfflineStatus(status: OfflineStatus) {
+        console.log(status);
+        setOnline(status.sdk.networkStatus === 'online' ? true : false);
+      },
+      onDidForwardingFailure(error) {
+        console.log('onDidForwardingFailure ' + error?.message);
+        let toast = Toast.show(
+          error?.message ? error.message : 'unknown error',
+          {
+            duration: Toast.durations.LONG,
+            position: Toast.positions.BOTTOM,
+            shadow: true,
+            animation: true,
+            hideOnPress: true,
+            delay: 0,
+          }
+        );
+
+        setTimeout(function () {
+          Toast.hide(toast);
+        }, 3000);
+      },
+      onDidForwardPaymentIntent(paymentIntent, error) {
+        let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
+        if (error) {
+          toastMsg +
+            'ErrorCode = ' +
+            error.code +
+            '. ErrorMsg = ' +
+            error.message;
+        }
+        console.log(toastMsg);
+        let toast = Toast.show(toastMsg, {
+          duration: Toast.durations.LONG,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        });
+        setTimeout(function () {
+          Toast.hide(toast);
+        }, 3000);
+      },
+    },
+    readerCallbacks: {
+      onDidDisconnect(reason) {
         setPendingUpdate(null);
-      }
+        Alert.alert(
+          'Reader disconnected!',
+          'Reader disconnected with reason ' + reason
+        );
+      },
     },
-    onDidChangeOfflineStatus(status: OfflineStatus) {
-      console.log(status);
-      setOnline(status.sdk.networkStatus === 'online' ? true : false);
-    },
-    onDidForwardingFailure(error) {
-      console.log('onDidForwardingFailure ' + error?.message);
-      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
-      });
-
-      setTimeout(function () {
-        Toast.hide(toast);
-      }, 3000);
-    },
-    onDidForwardPaymentIntent(paymentIntent, error) {
-      let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
-      if (error) {
-        toastMsg +
-          'ErrorCode = ' +
-          error.code +
-          '. ErrorMsg = ' +
-          error.message;
-      }
-      console.log(toastMsg);
-      let toast = Toast.show(toastMsg, {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
-      });
-
-      setTimeout(function () {
-        Toast.hide(toast);
-      }, 3000);
-    },
-    onDidDisconnect(reason) {
-      setPendingUpdate(null);
-      Alert.alert(
-        'Reader disconnected!',
-        'Reader disconnected with reason ' + reason
-      );
-    },
-    onDidStartReaderReconnect() {
-      setShowDisconnectAlert(true);
-      setShowReconnectAlert(false);
-    },
-    onDidSucceedReaderReconnect() {
-      setShowReconnectAlert(true);
-      setShowDisconnectAlert(false);
-    },
-    onDidFailReaderReconnect() {
-      Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
-      setShowDisconnectAlert(false);
-      setShowReconnectAlert(false);
+    reconnectionCallbacks: {
+      onDidStartReaderReconnect() {
+        setShowDisconnectAlert(true);
+        setShowReconnectAlert(false);
+      },
+      onDidSucceedReaderReconnect() {
+        setShowReconnectAlert(true);
+        setShowDisconnectAlert(false);
+      },
+      onDidFailReaderReconnect() {
+        Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
+        setShowDisconnectAlert(false);
+        setShowReconnectAlert(false);
+      },
     },
   });
   const batteryPercentage =

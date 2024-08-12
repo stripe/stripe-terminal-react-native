@@ -19,17 +19,19 @@ export default function UpdateReaderScreen() {
   const [currentProgress, setCurrentProgress] = useState<string>();
   const { cancelInstallingUpdate, installAvailableUpdate, connectedReader } =
     useStripeTerminal({
-      onDidReportReaderSoftwareUpdateProgress: (progress) => {
-        setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
-      },
-      onDidFinishInstallingUpdate: () => {
-        params?.onDidUpdate();
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-      },
-      onDidStartInstallingUpdate(_update) {
-        setStartToUpdate(true);
+      readerCallbacks: {
+        onDidReportReaderSoftwareUpdateProgress: (progress) => {
+          setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
+        },
+        onDidFinishInstallingUpdate: () => {
+          params?.onDidUpdate();
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+        },
+        onDidStartInstallingUpdate: (_update) => {
+          setStartToUpdate(true);
+        },
       },
     });
 

@@ -39,26 +39,28 @@ export default function RegisterInternetReaderScreen() {
 
   const { cancelDiscovering, discoverReaders, connectInternetReader } =
     useStripeTerminal({
-      onFinishDiscoveringReaders: (finishError) => {
-        if (finishError) {
-          console.error(
-            'Discover readers error',
-            `${finishError.code}, ${finishError.message}`
-          );
-          if (navigation.canGoBack()) {
-            navigation.goBack();
+      discoveryCallbacks: {
+        onFinishDiscoveringReaders: (finishError) => {
+          if (finishError) {
+            console.error(
+              'Discover readers error',
+              `${finishError.code}, ${finishError.message}`
+            );
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            }
+          } else {
+            console.log('onFinishDiscoveringReaders success');
           }
-        } else {
-          console.log('onFinishDiscoveringReaders success');
-        }
-      },
-      onUpdateDiscoveredReaders(readers) {
-        readers.map((reader) => {
-          if (reader.id === readerId) {
-            handleConnectInternetReader(reader);
-            return;
-          }
-        });
+        },
+        onUpdateDiscoveredReaders(readers) {
+          readers.map((reader) => {
+            if (reader.id === readerId) {
+              handleConnectInternetReader(reader);
+              return;
+            }
+          });
+        },
       },
     });
 
