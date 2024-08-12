@@ -140,7 +140,10 @@ const withStripeTerminalIos: ConfigPlugin<StripeTerminalPluginProps> = (
 ) => {
   return withInfoPlist(expoConfig, (config) => {
     if (props.bluetoothBackgroundMode) {
-      config.modResults.UIBackgroundModes = ['bluetooth-central'];
+      config.modResults.UIBackgroundModes = [
+        ...(config.modResults.UIBackgroundModes ?? []),
+        'bluetooth-central',
+      ];
     }
 
     config.modResults.NSLocationWhenInUseUsageDescription =
