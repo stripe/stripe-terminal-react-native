@@ -24,7 +24,7 @@ export default function LocationListScreen() {
   const { params } = useRoute<RouteProp<RouteParamList, 'LocationList'>>();
 
   const { getLocations, loading } = useStripeTerminal();
-  const [list, setList] = useState<Location[]>([]);
+  const [list, setList] = useState<Location[]>(cachedLocations);
   const dummyLocations: Location[] = [
     { id: 'ABCD', displayName: 'Bad Location', livemode: false },
     {
@@ -35,17 +35,20 @@ export default function LocationListScreen() {
   ];
 
   useEffect(() => {
+    if (list != null && list.length != 0) {
+      setCachedLocations(list);
+    }
+  }, [list, setCachedLocations]);
+
+  useEffect(() => {
     async function init() {
       const { locations } = await getLocations({ limit: 20 });
       if (locations) {
         setList(locations);
-        setCachedLocations(locations);
-      } else {
-        setList(cachedLocations);
       }
     }
     init();
-  }, [getLocations, setCachedLocations, cachedLocations]);
+  }, [getLocations]);
 
   const renderItem = (item: Location) => (
     <ListItem
