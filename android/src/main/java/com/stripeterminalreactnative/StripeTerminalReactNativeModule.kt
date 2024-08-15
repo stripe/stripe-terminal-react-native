@@ -579,7 +579,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listParameters = ListLocationsParameters.Builder().apply {
             endingBefore = params.getString("endingBefore")
             startingAfter = params.getString("startingAfter")
-            limit = getInt(params, "endingBefore")
+            limit = getInt(params, "limit")
         }
         terminal.listLocations(listParameters.build(), RNLocationListCallback(promise))
     }
