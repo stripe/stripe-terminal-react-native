@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
+import com.stripe.stripeterminal.BuildConfig
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.external.CollectData
@@ -1119,6 +1120,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         localMobileUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
 
         terminal.setLocalMobileUxConfiguration(localMobileUxConfigurationBuilder.build())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun getNativeSdkVersion(promise: Promise) {
+        promise.resolve(BuildConfig.SDK_VERSION_NAME)
     }
 
     private fun String?.toLocalMobileColor(): LocalMobileUxConfiguration.Color {
