@@ -7,12 +7,14 @@ enum TokenError: Error {
 class TokenProvider: ConnectionTokenProvider {
     static let shared = TokenProvider()
     var completionCallback: ConnectionTokenCompletionBlock? = nil
+    var callbackMap: [String : ConnectionTokenCompletionBlock?] = [:]
 
     static var delegate: RCTEventEmitter? = nil
 
-    func setConnectionToken(token: String?, error: String?) {
+    func setConnectionToken(token: String?, error: String?, callbackId: String?) {
         let unwrappedToken = token ?? ""
         if (!unwrappedToken.isEmpty) {
+            self.completionCallback = self.callbackMap[callbackId ?? ""] ?? nil
             self.completionCallback?(token, nil)
         } else {
             self.completionCallback?(nil, TokenError.runtimeError(error ?? "") )
@@ -20,7 +22,8 @@ class TokenProvider: ConnectionTokenProvider {
     }
 
     func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
-        self.completionCallback = completion
-        TokenProvider.delegate?.sendEvent(withName: ReactNativeConstants.FETCH_TOKEN_PROVIDER.rawValue, body: [:])
+        let uuid = UUID().uuidString
+        self.callbackMap[uuid] = completion
+        TokenProvider.delegate?.sendEvent(withName: ReactNativeConstants.FETCH_TOKEN_PROVIDER.rawValue, body: ["callbackId": uuid])
     }
 }

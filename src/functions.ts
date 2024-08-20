@@ -74,10 +74,11 @@ export async function initialize(
 
 export async function setConnectionToken(
   token?: string,
-  error?: string
+  error?: string,
+  callbackId?: string
 ): Promise<void> {
   try {
-    await StripeTerminalSdk.setConnectionToken({ token, error });
+    await StripeTerminalSdk.setConnectionToken({ token, error, callbackId });
   } catch (e) {
     console.warn('Unexpected error:', e);
   }

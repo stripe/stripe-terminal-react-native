@@ -17,6 +17,7 @@ class TokenProviderTest {
     companion object {
         const val TOKEN = "token"
         const val ERROR = "error"
+        const val CALLBACKID = "callbackId"
 
         @ClassRule
         @JvmField
@@ -34,7 +35,7 @@ class TokenProviderTest {
         verify(exactly = 1) { context.sendEvent(any()) }
         verify { callback wasNot Called }
 
-        tokenProvider.setConnectionToken(TOKEN, ERROR)
+        tokenProvider.setConnectionToken(TOKEN, ERROR, CALLBACKID)
 
         verify(exactly = 1) { callback.onSuccess(TOKEN) }
         verify(exactly = 0) { callback.onFailure(any()) }
@@ -48,12 +49,17 @@ class TokenProviderTest {
         verify(exactly = 1) { context.sendEvent(any()) }
         verify { callback wasNot Called }
 
-        tokenProvider.setConnectionToken(null, ERROR)
+        tokenProvider.setConnectionToken(null, ERROR, CALLBACKID)
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 1) { callback.onFailure(any()) }
 
-        tokenProvider.setConnectionToken(null, null)
+        tokenProvider.setConnectionToken(null, null, CALLBACKID)
+
+        verify(exactly = 0) { callback.onSuccess(any()) }
+        verify(exactly = 2) { callback.onFailure(any()) }
+
+        tokenProvider.setConnectionToken(null, null, null)
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 2) { callback.onFailure(any()) }
