@@ -11,23 +11,30 @@ import kotlin.collections.HashMap
 
 class TokenProvider(private val context: ReactApplicationContext) : ConnectionTokenProvider {
     private var connectionTokenCallback: ConnectionTokenCallback? = null
-    private var callbackMap: HashMap<String, ConnectionTokenCallback> = HashMap()
+    var callbackMap: HashMap<String, ConnectionTokenCallback> = HashMap()
 
     fun setConnectionToken(token: String?, error: String?, callbackId: String?) {
         try {
             if (!token.isNullOrEmpty()) {
-                connectionTokenCallback = callbackMap[callbackId]
-                connectionTokenCallback?.onSuccess(token)
-                connectionTokenCallback = null
+                callbackId?.let {
+                    connectionTokenCallback = callbackMap[callbackId]
+                    connectionTokenCallback?.onSuccess(token)
+                }
             } else {
-                connectionTokenCallback?.onFailure(
-                    ConnectionTokenException(error ?: "", null)
-                )
+                callbackId?.let {
+                    connectionTokenCallback = callbackMap[callbackId]
+                    connectionTokenCallback?.onFailure(
+                        ConnectionTokenException(error ?: "", null)
+                    )
+                }
             }
         } catch (e: Throwable) {
-            connectionTokenCallback?.onFailure(
-                ConnectionTokenException("Failed to fetch connection token", e)
-            )
+            callbackId?.let {
+                connectionTokenCallback = callbackMap[callbackId]
+                connectionTokenCallback?.onFailure(
+                    ConnectionTokenException("Failed to fetch connection token", e)
+                )
+            }
         }
     }
 

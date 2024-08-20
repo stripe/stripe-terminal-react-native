@@ -299,9 +299,12 @@ export function StripeTerminalProvider({
   useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
 
-  const tokenProviderHandler = async ({callbackId} : {callbackId: string}) => {
+  const tokenProviderHandler = async ({
+    callbackId,
+  }: {
+    callbackId: string;
+  }) => {
     try {
-      console.log("tokenProviderHandler callbackId = " + callbackId)
       const connectionToken = await tokenProvider();
 
       setConnectionToken(connectionToken, undefined, callbackId);

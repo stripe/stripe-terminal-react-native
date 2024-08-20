@@ -3,6 +3,7 @@ package com.stripeterminalreactnative
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.ConnectionTokenCallback
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
+import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
 import io.mockk.Called
 import io.mockk.mockk
 import io.mockk.verify
@@ -10,6 +11,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class TokenProviderTest {
@@ -17,7 +19,6 @@ class TokenProviderTest {
     companion object {
         const val TOKEN = "token"
         const val ERROR = "error"
-        const val CALLBACKID = "callbackId"
 
         @ClassRule
         @JvmField
@@ -32,10 +33,14 @@ class TokenProviderTest {
         val tokenProvider = TokenProvider(context)
         tokenProvider.fetchConnectionToken(callback)
 
-        verify(exactly = 1) { context.sendEvent(any()) }
+        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+
+        verify(exactly = 1) {
+            context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any())
+        }
         verify { callback wasNot Called }
 
-        tokenProvider.setConnectionToken(TOKEN, ERROR, CALLBACKID)
+        tokenProvider.setConnectionToken(TOKEN, ERROR, tokenProvider.callbackMap.keys.first())
 
         verify(exactly = 1) { callback.onSuccess(TOKEN) }
         verify(exactly = 0) { callback.onFailure(any()) }
@@ -46,15 +51,17 @@ class TokenProviderTest {
         val tokenProvider = TokenProvider(context)
         tokenProvider.fetchConnectionToken(callback)
 
-        verify(exactly = 1) { context.sendEvent(any()) }
+        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+
+        verify(exactly = 1) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         verify { callback wasNot Called }
 
-        tokenProvider.setConnectionToken(null, ERROR, CALLBACKID)
+        tokenProvider.setConnectionToken(null, ERROR, tokenProvider.callbackMap.keys.first())
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 1) { callback.onFailure(any()) }
 
-        tokenProvider.setConnectionToken(null, null, CALLBACKID)
+        tokenProvider.setConnectionToken(null, null, tokenProvider.callbackMap.keys.first())
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 2) { callback.onFailure(any()) }

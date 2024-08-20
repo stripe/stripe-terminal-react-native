@@ -17,6 +17,7 @@ class TokenProvider: ConnectionTokenProvider {
             self.completionCallback = self.callbackMap[callbackId ?? ""] ?? nil
             self.completionCallback?(token, nil)
         } else {
+            self.completionCallback = self.callbackMap[callbackId ?? ""] ?? nil
             self.completionCallback?(nil, TokenError.runtimeError(error ?? "") )
         }
     }
