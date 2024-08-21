@@ -6,19 +6,23 @@ enum TokenError: Error {
 
 class TokenProvider: ConnectionTokenProvider {
     static let shared = TokenProvider()
-    var completionCallback: ConnectionTokenCompletionBlock? = nil
     var callbackMap: [String : ConnectionTokenCompletionBlock?] = [:]
-
     static var delegate: RCTEventEmitter? = nil
 
     func setConnectionToken(token: String?, error: String?, callbackId: String?) {
         let unwrappedToken = token ?? ""
         if (!unwrappedToken.isEmpty) {
-            self.completionCallback = self.callbackMap[callbackId ?? ""] ?? nil
-            self.completionCallback?(token, nil)
+            if let callbackId = callbackId {
+                let completionCallback = self.callbackMap[callbackId] ?? nil
+                completionCallback?(token, nil)
+                self.callbackMap.removeValue(forKey: callbackId)
+            }
         } else {
-            self.completionCallback = self.callbackMap[callbackId ?? ""] ?? nil
-            self.completionCallback?(nil, TokenError.runtimeError(error ?? "") )
+            if let callbackId = callbackId {
+                let completionCallback = self.callbackMap[callbackId] ?? nil
+                completionCallback?(nil, TokenError.runtimeError(error ?? ""))
+                self.callbackMap.removeValue(forKey: callbackId)
+            }
         }
     }
 

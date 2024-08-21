@@ -41,6 +41,7 @@ class TokenProviderTest {
         verify { callback wasNot Called }
 
         tokenProvider.setConnectionToken(TOKEN, ERROR, tokenProvider.callbackMap.keys.first())
+        assertTrue { tokenProvider.callbackMap.keys.count() == 0 }
 
         verify(exactly = 1) { callback.onSuccess(TOKEN) }
         verify(exactly = 0) { callback.onFailure(any()) }
@@ -52,20 +53,26 @@ class TokenProviderTest {
         tokenProvider.fetchConnectionToken(callback)
 
         assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
-
         verify(exactly = 1) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         verify { callback wasNot Called }
-
         tokenProvider.setConnectionToken(null, ERROR, tokenProvider.callbackMap.keys.first())
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 1) { callback.onFailure(any()) }
 
+        tokenProvider.fetchConnectionToken(callback)
+
+        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+        verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         tokenProvider.setConnectionToken(null, null, tokenProvider.callbackMap.keys.first())
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 2) { callback.onFailure(any()) }
 
+        tokenProvider.fetchConnectionToken(callback)
+
+        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+        verify(exactly = 3) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         tokenProvider.setConnectionToken(null, null, null)
 
         verify(exactly = 0) { callback.onSuccess(any()) }

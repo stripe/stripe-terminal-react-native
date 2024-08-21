@@ -10,15 +10,16 @@ import java.util.UUID
 import kotlin.collections.HashMap
 
 class TokenProvider(private val context: ReactApplicationContext) : ConnectionTokenProvider {
-    private var connectionTokenCallback: ConnectionTokenCallback? = null
     var callbackMap: HashMap<String, ConnectionTokenCallback> = HashMap()
 
     fun setConnectionToken(token: String?, error: String?, callbackId: String?) {
+        var connectionTokenCallback: ConnectionTokenCallback? = null
         try {
             if (!token.isNullOrEmpty()) {
                 callbackId?.let {
                     connectionTokenCallback = callbackMap[callbackId]
                     connectionTokenCallback?.onSuccess(token)
+                    callbackMap.remove(callbackId)
                 }
             } else {
                 callbackId?.let {
@@ -26,6 +27,7 @@ class TokenProvider(private val context: ReactApplicationContext) : ConnectionTo
                     connectionTokenCallback?.onFailure(
                         ConnectionTokenException(error ?: "", null)
                     )
+                    callbackMap.remove(callbackId)
                 }
             }
         } catch (e: Throwable) {
@@ -34,6 +36,7 @@ class TokenProvider(private val context: ReactApplicationContext) : ConnectionTo
                 connectionTokenCallback?.onFailure(
                     ConnectionTokenException("Failed to fetch connection token", e)
                 )
+                callbackMap.remove(callbackId)
             }
         }
     }
