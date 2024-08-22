@@ -13,29 +13,17 @@ class TokenProvider(private val context: ReactApplicationContext) : ConnectionTo
     var callbackMap: HashMap<String, ConnectionTokenCallback> = HashMap()
 
     fun setConnectionToken(token: String?, error: String?, callbackId: String?) {
-        var connectionTokenCallback: ConnectionTokenCallback? = null
-        try {
-            if (!token.isNullOrEmpty()) {
-                callbackId?.let {
-                    connectionTokenCallback = callbackMap[callbackId]
-                    connectionTokenCallback?.onSuccess(token)
-                    callbackMap.remove(callbackId)
+        val connectionTokenCallback = callbackMap[callbackId]
+        if (connectionTokenCallback != null) {
+            try {
+                if (!token.isNullOrEmpty()) {
+                    connectionTokenCallback.onSuccess(token)
+                } else {
+                    connectionTokenCallback.onFailure(ConnectionTokenException(error ?: "", null))
                 }
-            } else {
-                callbackId?.let {
-                    connectionTokenCallback = callbackMap[callbackId]
-                    connectionTokenCallback?.onFailure(
-                        ConnectionTokenException(error ?: "", null)
-                    )
-                    callbackMap.remove(callbackId)
-                }
-            }
-        } catch (e: Throwable) {
-            callbackId?.let {
-                connectionTokenCallback = callbackMap[callbackId]
-                connectionTokenCallback?.onFailure(
-                    ConnectionTokenException("Failed to fetch connection token", e)
-                )
+            } catch (e: Throwable) {
+                connectionTokenCallback.onFailure(ConnectionTokenException("Failed to fetch connection token", e))
+            } finally {
                 callbackMap.remove(callbackId)
             }
         }

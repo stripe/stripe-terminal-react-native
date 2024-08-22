@@ -10,20 +10,16 @@ class TokenProvider: ConnectionTokenProvider {
     static var delegate: RCTEventEmitter? = nil
 
     func setConnectionToken(token: String?, error: String?, callbackId: String?) {
+        guard let callbackId = callbackId, let completionCallback = callbackMap[callbackId] else { return }
+
         let unwrappedToken = token ?? ""
         if (!unwrappedToken.isEmpty) {
-            if let callbackId = callbackId {
-                let completionCallback = self.callbackMap[callbackId] ?? nil
-                completionCallback?(token, nil)
-                self.callbackMap.removeValue(forKey: callbackId)
-            }
+            completionCallback?(unwrappedToken, nil)
         } else {
-            if let callbackId = callbackId {
-                let completionCallback = self.callbackMap[callbackId] ?? nil
-                completionCallback?(nil, TokenError.runtimeError(error ?? ""))
-                self.callbackMap.removeValue(forKey: callbackId)
-            }
+            completionCallback?(nil, TokenError.runtimeError(error ?? ""))
         }
+
+        callbackMap.removeValue(forKey: callbackId)
     }
 
     func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
