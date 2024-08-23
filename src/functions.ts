@@ -970,3 +970,9 @@ export async function setLocalMobileUxConfiguration(
     }
   }, 'setLocalMobileUxConfiguration')();
 }
+
+export async function getNativeSdkVersion(): Promise<string> {
+  return Logger.traceSdkMethod(async () => {
+    return await StripeTerminalSdk.getNativeSdkVersion();
+  }, 'getNativeSdkVersion')();
+}

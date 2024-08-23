@@ -74,6 +74,7 @@ import {
   getConnectionStatus,
   getConnectedReader,
   setLocalMobileUxConfiguration,
+  getNativeSdkVersion,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -1069,6 +1070,10 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setLoading]
   );
 
+  const _getNativeSdkVersion = useCallback(async () => {
+    return await getNativeSdkVersion();
+  }, []);
+
   return {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
@@ -1115,6 +1120,7 @@ export function useStripeTerminal(props?: Props) {
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
     setLocalMobileUxConfiguration: _setLocalMobileUxConfiguration,
+    getNativeSdkVersion: _getNativeSdkVersion,
     emitter: emitter,
     discoveredReaders,
     connectedReader,
