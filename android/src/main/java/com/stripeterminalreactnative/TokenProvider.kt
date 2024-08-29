@@ -6,13 +6,19 @@ import com.stripe.stripeterminal.external.callable.ConnectionTokenProvider
 import com.stripe.stripeterminal.external.models.ConnectionTokenException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
+import java.util.Hashtable
 import java.util.UUID
-import kotlin.collections.HashMap
 
 class TokenProvider(private val context: ReactApplicationContext) : ConnectionTokenProvider {
-    var callbackMap: HashMap<String, ConnectionTokenCallback> = HashMap()
+    var callbackMap: Hashtable<String, ConnectionTokenCallback> = Hashtable()
 
     fun setConnectionToken(token: String?, error: String?, callbackId: String?) {
+        if (callbackId.isNullOrEmpty() || callbackMap[callbackId] == null) {
+            throw ConnectionTokenException(
+                "setConnectionToken requires the callbackId to be set to the callbackId value provided to the tokenProviderHandler."
+            )
+        }
+
         val connectionTokenCallback = callbackMap[callbackId]
         if (connectionTokenCallback != null) {
             try {

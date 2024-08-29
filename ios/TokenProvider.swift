@@ -10,8 +10,11 @@ class TokenProvider: ConnectionTokenProvider {
     static var delegate: RCTEventEmitter? = nil
 
     func setConnectionToken(token: String?, error: String?, callbackId: String?) {
-        guard let callbackId = callbackId, let completionCallback = callbackMap[callbackId] else { return }
-
+        guard let callbackId, let completionCallback = self.callbackMap[callbackId] else {
+            print("⚠️ setConnectionToken requires the callbackId be set to the callbackId value provided to the tokenProviderHandler.")
+            return
+        }
+        
         let unwrappedToken = token ?? ""
         if (!unwrappedToken.isEmpty) {
             completionCallback?(unwrappedToken, nil)
