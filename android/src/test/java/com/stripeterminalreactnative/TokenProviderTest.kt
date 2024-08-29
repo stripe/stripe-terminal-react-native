@@ -2,6 +2,7 @@ package com.stripeterminalreactnative
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.ConnectionTokenCallback
+import com.stripe.stripeterminal.external.models.ConnectionTokenException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
 import io.mockk.Called
@@ -11,6 +12,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
@@ -73,9 +75,9 @@ class TokenProviderTest {
 
         assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
         verify(exactly = 3) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
-        tokenProvider.setConnectionToken(null, null, null)
 
-        verify(exactly = 0) { callback.onSuccess(any()) }
-        verify(exactly = 2) { callback.onFailure(any()) }
+        assertFailsWith<ConnectionTokenException> {
+            tokenProvider.setConnectionToken(null, null, null)
+        }
     }
 }
