@@ -39,6 +39,7 @@ const {
   UPDATE_BATTERY_LEVEL,
   REPORT_LOW_BATTERY_WARNING,
   REPORT_READER_EVENT,
+  ACCEPT_TERMS_OF_SERVICE,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const emitter = new EventEmitter();
@@ -269,6 +270,11 @@ export function StripeTerminalProvider({
     [log]
   );
 
+  const didAcceptTermsOfService = useCallback(() => {
+    log('didAcceptTermsOfService');
+    emitter?.emit(ACCEPT_TERMS_OF_SERVICE);
+  }, [log]);
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -298,6 +304,7 @@ export function StripeTerminalProvider({
   useListener(UPDATE_BATTERY_LEVEL, didUpdateBatteryLevel);
   useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
+  useListener(ACCEPT_TERMS_OF_SERVICE, didAcceptTermsOfService);
 
   const tokenProviderHandler = async () => {
     try {
