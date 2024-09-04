@@ -6,21 +6,28 @@ enum TokenError: Error {
 
 class TokenProvider: ConnectionTokenProvider {
     static let shared = TokenProvider()
-    var completionCallback: ConnectionTokenCompletionBlock? = nil
-
+    var callbackMap: [String : ConnectionTokenCompletionBlock?] = [:]
     static var delegate: RCTEventEmitter? = nil
 
-    func setConnectionToken(token: String?, error: String?) {
+    func setConnectionToken(token: String?, error: String?, callbackId: String?) {
+        guard let callbackId, let completionCallback = self.callbackMap[callbackId] else {
+            print("⚠️ setConnectionToken requires the callbackId be set to the callbackId value provided to the tokenProviderHandler.")
+            return
+        }
+        
         let unwrappedToken = token ?? ""
         if (!unwrappedToken.isEmpty) {
-            self.completionCallback?(token, nil)
+            completionCallback?(unwrappedToken, nil)
         } else {
-            self.completionCallback?(nil, TokenError.runtimeError(error ?? "") )
+            completionCallback?(nil, TokenError.runtimeError(error ?? ""))
         }
+
+        callbackMap.removeValue(forKey: callbackId)
     }
 
     func fetchConnectionToken(_ completion: @escaping ConnectionTokenCompletionBlock) {
-        self.completionCallback = completion
-        TokenProvider.delegate?.sendEvent(withName: ReactNativeConstants.FETCH_TOKEN_PROVIDER.rawValue, body: [:])
+        let uuid = UUID().uuidString
+        self.callbackMap[uuid] = completion
+        TokenProvider.delegate?.sendEvent(withName: ReactNativeConstants.FETCH_TOKEN_PROVIDER.rawValue, body: ["callbackId": uuid])
     }
 }
