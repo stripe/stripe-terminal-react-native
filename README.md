@@ -154,7 +154,7 @@ export default function PaymentScreen() {
 In case your app uses `React Class Components` you can use dedicated `withStripeTerminal` Higher-Order-Component.
 Please note that unlike the hooks approach, you need to use event emitter to listen on specific events that comes from SDK.
 
-[Here](https://github.com/stripe/stripe-terminal-react-native/blob/main/src/hooks/useStripeTerminal.tsx#L85-L109) you can find the list of available events to be used within the event emitter.
+[Here](https://github.com/stripe/stripe-terminal-react-native/blob/281df38/src/hooks/useStripeTerminal.tsx#L85-L109) you can find the list of available events to be used within the event emitter.
 
 Example:
 
