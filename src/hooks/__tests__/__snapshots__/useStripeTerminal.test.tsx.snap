@@ -37,6 +37,7 @@ Object {
     "getConnectedReader": [Function],
     "getConnectionStatus": [Function],
     "getLocations": [Function],
+    "getNativeSdkVersion": [Function],
     "getOfflineStatus": [Function],
     "getPaymentStatus": [Function],
     "getReaderSettings": [Function],

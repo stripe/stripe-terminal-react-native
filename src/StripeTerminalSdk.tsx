@@ -175,6 +175,7 @@ export interface StripeTerminalSdkType {
   setLocalMobileUxConfiguration(params: LocalMobileUxConfiguration): Promise<{
     error?: StripeError;
   }>;
+  getNativeSdkVersion(): Promise<string>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

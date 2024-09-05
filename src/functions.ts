@@ -971,3 +971,13 @@ export async function setLocalMobileUxConfiguration(
     }
   }, 'setLocalMobileUxConfiguration')();
 }
+
+export async function getNativeSdkVersion(): Promise<string> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      return await StripeTerminalSdk.getNativeSdkVersion();
+    } catch (error) {
+      return '';
+    }
+  }, 'getNativeSdkVersion')();
+}
