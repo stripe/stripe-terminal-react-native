@@ -973,6 +973,10 @@ export async function setLocalMobileUxConfiguration(
 
 export async function getNativeSdkVersion(): Promise<string> {
   return Logger.traceSdkMethod(async () => {
-    return await StripeTerminalSdk.getNativeSdkVersion();
+    try {
+      return await StripeTerminalSdk.getNativeSdkVersion();
+    } catch (error) {
+      return '';
+    }
   }, 'getNativeSdkVersion')();
 }
