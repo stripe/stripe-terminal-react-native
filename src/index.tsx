@@ -1,5 +1,8 @@
 export * from './types';
 export * from './StripeTerminalSdk';
+import * as PackageJson from '../package.json';
+
+export const SDK_VERSION = PackageJson.version;
 
 // hooks
 export {
