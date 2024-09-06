@@ -80,6 +80,7 @@ Object {
   "UPDATE_DISCOVERED_READERS": "UPDATE_DISCOVERED_READERS",
   "UseStripeTerminalProps": undefined,
   "WithStripeTerminalProps": undefined,
+  "getSdkVersion": [Function],
   "requestNeededAndroidPermissions": [Function],
   "useStripeTerminal": [Function],
   "withStripeTerminal": [Function],
