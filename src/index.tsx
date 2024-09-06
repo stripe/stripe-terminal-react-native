@@ -1,5 +1,10 @@
 export * from './types';
 export * from './StripeTerminalSdk';
+import * as PackageJson from '../package.json';
+
+export const getSdkVersion = () => {
+  return PackageJson.version;
+};
 
 // hooks
 export {
