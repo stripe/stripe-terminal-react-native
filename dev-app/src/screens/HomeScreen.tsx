@@ -23,7 +23,9 @@ import {
   OfflineStatus,
   Reader,
   useStripeTerminal,
+  getSdkVersion,
 } from '@stripe/stripe-terminal-react-native';
+
 import AlertDialog from '../components/AlertDialog';
 
 export default function HomeScreen() {
@@ -39,11 +41,13 @@ export default function HomeScreen() {
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
+  const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
   const {
     disconnectReader,
     connectedReader,
     rebootReader,
     cancelReaderReconnection,
+    getNativeSdkVersion,
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
@@ -114,6 +118,13 @@ export default function HomeScreen() {
       setShowReconnectAlert(false);
     },
   });
+  useEffect(() => {
+    const getVersion = async () => {
+      const version = await getNativeSdkVersion();
+      setInnerSdkVersion(version);
+    };
+    getVersion();
+  }, [getNativeSdkVersion]);
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -270,9 +281,12 @@ export default function HomeScreen() {
       />
     </>
   );
-
   return (
-    <ScrollView testID="home-screen" style={styles.container}>
+    <ScrollView
+      testID="home-screen"
+      style={styles.container}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <View style={styles.accountContainer}>
         <Text style={styles.readerName}>
           {account?.settings?.dashboard?.display_name} ({account?.id})
@@ -397,6 +411,20 @@ export default function HomeScreen() {
               payments.
             </Text>
           </List>
+          <List title="Version">
+            <ListItem
+              title="SDK Version"
+              rightElement={
+                <Text style={styles.versionText}>{getSdkVersion()}</Text>
+              }
+            />
+            <ListItem
+              title="Native SDK Version"
+              rightElement={
+                <Text style={styles.versionText}>{innerSdkVersion}</Text>
+              }
+            />
+          </List>
         </>
       )}
     </ScrollView>
@@ -450,6 +478,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray,
     marginVertical: 10,
+  },
+  versionText: {
+    color: colors.dark_gray,
   },
   infoText: {
     paddingHorizontal: 16,
