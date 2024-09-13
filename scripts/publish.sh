@@ -6,7 +6,7 @@ IFS=$'\n\t'
 echo_help() {
   cat << EOF
 USAGE:
-    ./scripts/publish.sh
+    ./scripts/publish.sh <branch-name>
 EOF
 }
 
@@ -52,20 +52,18 @@ Remember to create a release on GitHub with a changelog notes:
 EOF
 }
 
-if [ $# -gt 0 ]; then
-  # Show help message if -h, --help, or help passed
-  case $1 in
-    -h | --help | help)
-      echo_help
-      exit 0
-      ;;
-    *)
-      echo "Invalid argument $1"
-      echo ""
-      echo_help
-      exit 1
-      ;;
-  esac
+if [ $# -ne 1 ]; then
+  echo "Error: Branch name is mandatory"
+  echo ""
+  echo_help
+  exit 1
+fi
+
+BRANCH_NAME=$1
+
+if [ "$BRANCH_NAME" = "main" ]; then
+  echo "Error! Cannot publish from the 'main' branch."
+  exit 1
 fi
 
 # Make sure our working dir is the repo root directory
@@ -74,15 +72,17 @@ cd "$(git rev-parse --show-toplevel)"
 echo "Fetching git remotes"
 git fetch
 
-GIT_STATUS=$(git status)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-if ! grep -q 'On branch main' <<< "$GIT_STATUS"; then
-  echo "Error! Must be on main branch to publish"
+if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
+  echo "Error! Must be on branch '$BRANCH_NAME' to publish"
   exit 1
 fi
 
-if ! grep -q "Your branch is up to date with 'origin/main'." <<< "$GIT_STATUS"; then
-  echo "Error! Must be up to date with origin/main to publish"
+GIT_STATUS=$(git status)
+
+if ! grep -q "Your branch is up to date with 'origin/$BRANCH_NAME'." <<< "$GIT_STATUS"; then
+  echo "Error! Must be up to date with origin/$BRANCH_NAME to publish"
   exit 1
 fi
 
