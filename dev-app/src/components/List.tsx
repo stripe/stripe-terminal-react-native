@@ -9,6 +9,7 @@ type Props = {
   children: React.ReactElement | React.ReactElement[];
   topSpacing?: boolean;
   bolded?: boolean;
+  visible?: boolean;
 };
 
 export default function List({
@@ -18,7 +19,11 @@ export default function List({
   loading,
   topSpacing = true,
   bolded = true,
+  visible = true,
 }: Props) {
+  if (!visible) {
+    return <></>;
+  }
   return (
     <View style={[styles.container, topSpacing && styles.topSpacing]}>
       <View style={styles.titleContainer}>

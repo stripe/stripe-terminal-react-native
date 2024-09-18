@@ -61,6 +61,7 @@ export type RouteParamList = {
   DiscoverReaders: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
+    discoveryTimeout: number;
     setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
   };
   MerchantSelect: {
