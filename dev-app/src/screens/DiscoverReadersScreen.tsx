@@ -51,7 +51,8 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
   } = useContext(AppContext);
-  const { simulated, discoveryMethod, setPendingUpdateInfo } = params;
+  const { simulated, discoveryMethod, discoveryTimeout, setPendingUpdateInfo } =
+    params;
 
   const {
     cancelDiscovering,
@@ -159,7 +160,7 @@ export default function DiscoverReadersScreen() {
     const { error: discoverReadersError } = await discoverReaders({
       discoveryMethod,
       simulated,
-      timeout: 0,
+      timeout: discoveryTimeout,
     });
 
     if (discoverReadersError) {
@@ -169,7 +170,13 @@ export default function DiscoverReadersScreen() {
         navigation.goBack();
       }
     }
-  }, [navigation, discoverReaders, discoveryMethod, simulated]);
+  }, [
+    navigation,
+    discoverReaders,
+    discoveryMethod,
+    discoveryTimeout,
+    simulated,
+  ]);
 
   useEffect(() => {
     simulateReaderUpdate('none');
