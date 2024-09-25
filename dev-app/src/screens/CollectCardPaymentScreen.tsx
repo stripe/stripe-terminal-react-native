@@ -181,7 +181,7 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
 
-    if (deviceType === 'verifoneP400') {
+    if (deviceType === 'stripeS700') {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
