@@ -438,7 +438,7 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - SocketRocket (0.6.1)
-  - stripe-terminal-react-native (0.0.1-beta.21):
+  - stripe-terminal-react-native (0.0.1-beta.22):
     - React-Core
     - StripeTerminal (~> 3.8.3)
   - StripeTerminal (3.8.3)
@@ -641,7 +641,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 32a01c29ecc9bb0b5bf7bc0a33547f61b4dc2741
   RNScreens: 3c2d122f5e08c192e254c510b212306da97d2581
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  stripe-terminal-react-native: ba328640bd353ccbe94002de4a96c263b67bb95f
+  stripe-terminal-react-native: f354ea9dba528c466d842ffca16dd66e704af68f
   StripeTerminal: 1982b8395d3a45d887a6db0ff75aa3df8be58dcb
   Yoga: 4c3aa327e4a6a23eeacd71f61c81df1bcdf677d5
 
