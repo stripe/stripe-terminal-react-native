@@ -15,6 +15,7 @@ stages:
       - typescript: {}
       - unit-js: {}
       - unit-android: {}
+      - unit-ios: {}
       - example-build-ios: {}
       - example-build-android: {}
       - e2e-android: {}
@@ -25,6 +26,7 @@ stages:
       - typescript: {}
       - unit-js: {}
       - unit-android: {}
+      - unit-ios: {}
       - example-build-ios: {}
       - example-build-android: {}
       - e2e-android: {}
@@ -89,18 +91,6 @@ workflows:
         machine_type_id: elite-xl
   e2e-ios:
     steps:
-      - bundler@0: {}
-      - script@1:
-          inputs:
-            - content: |-
-                set -e
-                # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
-                cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
-                gem install cocoapods -v 1.15.2 && pod install && cd - && \
-                npm rebuild detox
-                echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
-                git diff --exit-code
-          title: Set up cocoapods
       - yarn@0:
           inputs:
             - command: e2e:build:ios:release
@@ -113,6 +103,7 @@ workflows:
           title: test detox
     before_run:
       - prep_all
+      - setup_cocoapods
     after_run:
       - complete_all
   example-build-android:
@@ -142,6 +133,7 @@ workflows:
           inputs:
             - content: |-
                 cd example-app/ios
+                pod update hermes-engine --no-repo-update
                 pod update RCT-Folly --no-repo-update
                 pod install
           title: Pod install
@@ -214,6 +206,20 @@ workflows:
                 echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
                 git diff --exit-code
           title: Check for diffs in yarn lockfile
+  setup_cocoapods:
+    steps:
+      - bundler@0: {}
+      - script@1:
+          inputs:
+            - content: |-
+                set -e
+                # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
+                cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
+                gem install cocoapods -v 1.15.2 && pod install && cd - && \
+                npm rebuild detox
+                echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
+                git diff --exit-code
+          title: Set up cocoapods
   typescript:
     steps:
       - yarn@0:
@@ -251,6 +257,21 @@ workflows:
           title: yarn unit-test:js --coverage
     before_run:
       - prep_all
+    after_run:
+      - complete_all
+  unit-ios:
+    steps:
+      - xcode-test@5:
+          inputs:
+            - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
+            - scheme: UnitTests
+            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
+            - command: yarn unit-test:ios
+            - cache_local_deps: 'yes'
+          title: xcodebuild iOS Unit Tests
+    before_run:
+      - prep_all
+      - setup_cocoapods
     after_run:
       - complete_all
 meta:

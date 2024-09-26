@@ -46,6 +46,8 @@
     <string>This app uses Bluetooth to connect to supported card readers.</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>Bluetooth access is required in order to connect to supported bluetooth card readers.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>This app uses the local WiFi network to connect to supported card readers.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Location access is required in order to accept payments.</string>
     <key>UIBackgroundModes</key>
@@ -56,7 +58,7 @@
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
-      <string>armv7</string>
+      <string>arm64</string>
     </array>
     <key>UIRequiresFullScreen</key>
     <false/>

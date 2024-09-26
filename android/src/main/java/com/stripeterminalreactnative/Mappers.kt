@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import android.graphics.Color
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
@@ -14,11 +15,14 @@ import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.CartLineItem
 import com.stripe.stripeterminal.external.models.Charge
+import com.stripe.stripeterminal.external.models.CollectDataType
+import com.stripe.stripeterminal.external.models.CollectedData
 import com.stripe.stripeterminal.external.models.CollectInputsResult
 import com.stripe.stripeterminal.external.models.ConnectionStatus
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.EmailResult
+import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.NetworkStatus
@@ -30,6 +34,7 @@ import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
 import com.stripe.stripeterminal.external.models.PaymentMethod
 import com.stripe.stripeterminal.external.models.PaymentMethodDetails
+import com.stripe.stripeterminal.external.models.PaymentMethodOptions
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PaymentStatus
 import com.stripe.stripeterminal.external.models.PhoneResult
@@ -141,6 +146,8 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.STRIPE_M2 -> "stripeM2"
         DeviceType.STRIPE_S700 -> "stripeS700"
         DeviceType.STRIPE_S700_DEVKIT -> "stripeS700Devkit"
+        DeviceType.STRIPE_S710 -> "stripeS710"
+        DeviceType.STRIPE_S710_DEVKIT -> "stripeS710Devkit"
         DeviceType.UNKNOWN -> "unknown"
         DeviceType.VERIFONE_P400 -> "verifoneP400"
         DeviceType.WISECUBE -> "wiseCube"
@@ -160,6 +167,8 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         "stripeM2" -> DeviceType.STRIPE_M2
         "stripeS700" -> DeviceType.STRIPE_S700
         "stripeS700Devkit" -> DeviceType.STRIPE_S700_DEVKIT
+        "stripeS710" -> DeviceType.STRIPE_S710
+        "stripeS710Devkit" -> DeviceType.STRIPE_S710_DEVKIT
         "verifoneP400" -> DeviceType.VERIFONE_P400
         "wiseCube" -> DeviceType.WISECUBE
         "wisePad3" -> DeviceType.WISEPAD_3
@@ -214,6 +223,25 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
     putString("paymentMethodId", paymentIntent.paymentMethodId)
     putMap("paymentMethod", paymentIntent.paymentMethod?.let { mapFromPaymentMethod(it) })
     putMap("offlineDetails", mapFromOfflineDetails(paymentIntent.offlineDetails))
+    putMap("paymentMethodOptions",mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions))
+}
+
+internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOptions?): ReadableMap? = paymentMethodOptions?.let {
+    nativeMapOf {
+        putMap(
+            "cardPresent",
+            nativeMapOf {
+                putBoolean("requestExtendedAuthorization", it.cardPresent?.requestExtendedAuthorization ?: false)
+                putBoolean("requestIncrementalAuthorizationSupport",it.cardPresent?.requestIncrementalAuthorizationSupport ?: false)
+                putMap("surcharge",
+                    nativeMapOf{
+                        putString("status",it.cardPresent?.surcharge?.status)
+                        putIntOrNull(this,"maximumAmount",it.cardPresent?.surcharge?.maximumAmount?.toInt())
+                    }
+                )
+            }
+        )
+    }
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
@@ -432,6 +460,8 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
         "none" -> SimulateReaderUpdate.NONE
         "random" -> SimulateReaderUpdate.RANDOM
         "required" -> SimulateReaderUpdate.REQUIRED
+        "lowBattery" -> SimulateReaderUpdate.LOW_BATTERY
+        "lowBatterySucceedConnect" -> SimulateReaderUpdate.LOW_BATTERY_SUCCEED_CONNECT
         else -> SimulateReaderUpdate.NONE
     }
 }
@@ -523,6 +553,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
             )
             putString("customer", it.customer)
             putString("id", it.id)
+            putString("type", mapFromPaymentMethodDetailsType(it.type))
             putMap(
                 "metadata",
                 nativeMapOf {
@@ -823,8 +854,8 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
 @OptIn(CollectInputs::class)
 fun mapFromToggleResult(toggleResult: ToggleResult): String {
     return when (toggleResult) {
-        ToggleResult.ENABLED -> "enable"
-        ToggleResult.DISABLED -> "disable"
+        ToggleResult.ENABLED -> "enabled"
+        ToggleResult.DISABLED -> "disabled"
         ToggleResult.SKIPPED -> "skipped"
         else -> { "unknown" }
     }
@@ -843,5 +874,48 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
         BatteryStatus.NOMINAL -> "NOMINAL"
         BatteryStatus.UNKNOWN -> "UNKNOWN"
         else -> { "UNKNOWN" }
+    }
+}
+
+fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
+    return nativeMapOf {
+        putString("stripeId", collectData.id)
+        putString("created", convertToUnixTimestamp(collectData.created))
+        putBoolean("livemode", collectData.livemode)
+    }
+}
+
+fun mapFromCollectDataType(type: String): CollectDataType? {
+    return when (type) {
+        "magstripe" -> CollectDataType.MAGSTRIPE
+        else -> null
+    }
+}
+
+fun mapToTapZoneIndicator(indicator: String?): LocalMobileUxConfiguration.TapZoneIndicator {
+    return when (indicator) {
+        "default" -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+        "above" -> LocalMobileUxConfiguration.TapZoneIndicator.ABOVE
+        "below" -> LocalMobileUxConfiguration.TapZoneIndicator.BELOW
+        "front" -> LocalMobileUxConfiguration.TapZoneIndicator.FRONT
+        "behind" -> LocalMobileUxConfiguration.TapZoneIndicator.BEHIND
+        else -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+    }
+}
+
+fun mapToDarkMode(mode: String?): LocalMobileUxConfiguration.DarkMode {
+    return when (mode) {
+        "dark" -> LocalMobileUxConfiguration.DarkMode.DARK
+        "light" -> LocalMobileUxConfiguration.DarkMode.LIGHT
+        "system" -> LocalMobileUxConfiguration.DarkMode.SYSTEM
+        else -> LocalMobileUxConfiguration.DarkMode.LIGHT
+    }
+}
+
+fun hexToArgb(color: String): Int {
+    return try {
+        Color.parseColor(color)
+    } catch (e: IllegalArgumentException) {
+        throw IllegalArgumentException("Invalid ARGB hex format", e)
     }
 }

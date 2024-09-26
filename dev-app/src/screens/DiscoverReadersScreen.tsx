@@ -51,7 +51,8 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
   } = useContext(AppContext);
-  const { simulated, discoveryMethod } = params;
+  const { simulated, discoveryMethod, discoveryTimeout, setPendingUpdateInfo } =
+    params;
 
   const {
     cancelDiscovering,
@@ -83,16 +84,22 @@ export default function DiscoverReadersScreen() {
         update,
         reader: connectingReader,
         onDidUpdate: () => {
+          setPendingUpdateInfo(null);
           setTimeout(() => {
             if (navigation.canGoBack()) {
               navigation.goBack();
             }
           }, 500);
         },
+        started: true,
       });
     },
     onDidReportAvailableUpdate: (update) => {
+      setPendingUpdateInfo(update);
       Alert.alert('New update is available', update.deviceSoftwareVersion);
+    },
+    onDidAcceptTermsOfService: () => {
+      Alert.alert('Accept terms of Service');
     },
   });
 
@@ -153,7 +160,7 @@ export default function DiscoverReadersScreen() {
     const { error: discoverReadersError } = await discoverReaders({
       discoveryMethod,
       simulated,
-      timeout: 0,
+      timeout: discoveryTimeout,
     });
 
     if (discoverReadersError) {
@@ -163,7 +170,13 @@ export default function DiscoverReadersScreen() {
         navigation.goBack();
       }
     }
-  }, [navigation, discoverReaders, discoveryMethod, simulated]);
+  }, [
+    navigation,
+    discoverReaders,
+    discoveryMethod,
+    discoveryTimeout,
+    simulated,
+  ]);
 
   useEffect(() => {
     simulateReaderUpdate('none');

@@ -252,6 +252,8 @@ extension ErrorCode.Code {
             return "AppleBuiltInReaderInvalidMerchant"
         case .connectionTokenProviderTimedOut:
             return "ConnectionTokenProviderTimedOut"
+        case .surchargingNotAvailable:
+            return "SurchargingNotAvailable"
         @unknown default:
             return "Unknown"
         }

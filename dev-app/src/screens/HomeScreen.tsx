@@ -4,9 +4,10 @@ import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
   View,
-  ScrollView,
   Text,
   Image,
+  Platform,
+  TextInput,
   Switch,
   Alert,
 } from 'react-native';
@@ -23,7 +24,9 @@ import {
   OfflineStatus,
   Reader,
   useStripeTerminal,
+  getSdkVersion,
 } from '@stripe/stripe-terminal-react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AlertDialog from '../components/AlertDialog';
 
 export default function HomeScreen() {
@@ -34,17 +37,25 @@ export default function HomeScreen() {
   const [showReconnectAlert, setShowReconnectAlert] = useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] =
     useState<boolean>(false);
+  const [pendingUpdate, setPendingUpdate] =
+    useState<Reader.SoftwareUpdate | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
+  const [discoveryTimeout, setDiscoveryTimeout] = useState<number>(0);
+  const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
   const {
     disconnectReader,
     connectedReader,
     rebootReader,
     cancelReaderReconnection,
+    getNativeSdkVersion,
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
+      if (status == 'notConnected') {
+        setPendingUpdate(null);
+      }
     },
     onDidChangeOfflineStatus(status: OfflineStatus) {
       console.log(status);
@@ -89,6 +100,7 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidDisconnect(reason) {
+      setPendingUpdate(null);
       Alert.alert(
         'Reader disconnected!',
         'Reader disconnected with reason ' + reason
@@ -108,6 +120,13 @@ export default function HomeScreen() {
       setShowReconnectAlert(false);
     },
   });
+  useEffect(() => {
+    const getVersion = async () => {
+      const version = await getNativeSdkVersion();
+      setInnerSdkVersion(version);
+    };
+    getVersion();
+  }, [getNativeSdkVersion]);
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -130,6 +149,10 @@ export default function HomeScreen() {
 
     loadDiscSettings();
   }, []);
+
+  const validTimeoutMethod = () => {
+    return discoveryMethod === 'bluetoothScan' || discoveryMethod === 'usb';
+  };
 
   const renderConnectedContent = (
     <>
@@ -181,6 +204,20 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
+          title="Update reader software"
+          visible={pendingUpdate != null}
+          onPress={() => {
+            navigation.navigate('UpdateReaderScreen', {
+              update: pendingUpdate,
+              reader: connectedReader,
+              onDidUpdate: () => {
+                setPendingUpdate(null);
+              },
+              started: false,
+            });
+          }}
+        />
+        <ListItem
           title="Store card via Setup Intents"
           onPress={() => {
             navigation.navigate('SetupIntentScreen', { discoveryMethod });
@@ -205,6 +242,12 @@ export default function HomeScreen() {
           }}
         />
       </List>
+      <ListItem
+        title="Collect Data"
+        onPress={() => {
+          navigation.navigate('CollectDataScreen');
+        }}
+      />
       <List title="DATABASE">
         <ListItem
           title="Database"
@@ -244,9 +287,12 @@ export default function HomeScreen() {
       />
     </>
   );
-
   return (
-    <ScrollView testID="home-screen" style={styles.container}>
+    <KeyboardAwareScrollView
+      testID="home-screen"
+      style={styles.container}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <View style={styles.accountContainer}>
         <Text style={styles.readerName}>
           {account?.settings?.dashboard?.display_name} ({account?.id})
@@ -298,9 +344,14 @@ export default function HomeScreen() {
               color={colors.blue}
               disabled={!account}
               onPress={() => {
+                const timeout = validTimeoutMethod() ? discoveryTimeout : 0;
                 navigation.navigate('DiscoverReadersScreen', {
                   simulated,
                   discoveryMethod,
+                  discoveryTimeout: timeout,
+                  setPendingUpdateInfo: (value: Reader.SoftwareUpdate) => {
+                    setPendingUpdate(value);
+                  },
                 });
               }}
             />
@@ -344,6 +395,24 @@ export default function HomeScreen() {
             />
           </List>
 
+          <List
+            topSpacing={false}
+            title="TIMEOUT"
+            visible={validTimeoutMethod()}
+          >
+            <TextInput
+              keyboardType="numeric"
+              style={styles.input}
+              value={discoveryTimeout !== 0 ? discoveryTimeout.toString() : ''}
+              placeholderTextColor={colors.gray}
+              placeholder="0 => no timeout"
+              onChangeText={(value) => {
+                const data = parseInt(value, 10) || 0;
+                setDiscoveryTimeout(data);
+              }}
+            />
+          </List>
+
           <List>
             <ListItem
               title="Simulated"
@@ -368,9 +437,23 @@ export default function HomeScreen() {
               payments.
             </Text>
           </List>
+          <List title="Version">
+            <ListItem
+              title="SDK Version"
+              rightElement={
+                <Text style={styles.versionText}>{getSdkVersion()}</Text>
+              }
+            />
+            <ListItem
+              title="Native SDK Version"
+              rightElement={
+                <Text style={styles.versionText}>{innerSdkVersion}</Text>
+              }
+            />
+          </List>
         </>
       )}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -421,6 +504,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray,
     marginVertical: 10,
+  },
+  input: {
+    height: 44,
+    backgroundColor: colors.white,
+    color: colors.dark_gray,
+    paddingLeft: 16,
+    borderBottomColor: colors.gray,
+    ...Platform.select({
+      ios: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+      },
+      android: {
+        borderBottomWidth: 1,
+        borderBottomColor: `${colors.gray}66`,
+        color: colors.dark_gray,
+      },
+    }),
+  },
+  versionText: {
+    color: colors.dark_gray,
   },
   infoText: {
     paddingHorizontal: 16,

@@ -94,7 +94,7 @@ export default function CollectInputsScreen() {
                     {
                       title: 'Opt-in for marketing emails',
                       description: '',
-                      defaultValue: ToggleValue.ENABLED,
+                      defaultValue: ToggleValue.DISABLED,
                     },
                   ],
                 },

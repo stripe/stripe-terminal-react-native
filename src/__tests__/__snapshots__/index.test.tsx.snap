@@ -5,10 +5,19 @@ Object {
   "CHANGE_CONNECTION_STATUS": "CHANGE_CONNECTION_STATUS",
   "CHANGE_OFFLINE_STATUS": undefined,
   "CHANGE_PAYMENT_STATUS": "CHANGE_PAYMENT_STATUS",
+  "CollectDataType": Object {
+    "MAGSTRIPE": "magstripe",
+    "UNKNOWN": "unknown",
+  },
   "CommonError": Object {
     "Canceled": "Canceled",
     "Failed": "Failed",
     "Unknown": "Unknown",
+  },
+  "DarkMode": Object {
+    "DARK": "dark",
+    "LIGHT": "light",
+    "SYSTEM": "system",
   },
   "FETCH_TOKEN_PROVIDER": "FETCH_TOKEN_PROVIDER",
   "FINISH_DISCOVERING_READERS": "FINISH_DISCOVERING_READERS",
@@ -52,6 +61,13 @@ Object {
   },
   "StripeTerminalProvider": [Function],
   "StripeTerminalProviderProps": undefined,
+  "TapZoneIndicator": Object {
+    "ABOVE": "above",
+    "BEHIND": "behind",
+    "BELOW": "below",
+    "DEFAULT": "default",
+    "FRONT": "front",
+  },
   "ToggleResult": Object {
     "DISABLED": "disabled",
     "ENABLED": "enabled",
@@ -64,6 +80,7 @@ Object {
   "UPDATE_DISCOVERED_READERS": "UPDATE_DISCOVERED_READERS",
   "UseStripeTerminalProps": undefined,
   "WithStripeTerminalProps": undefined,
+  "getSdkVersion": [Function],
   "requestNeededAndroidPermissions": [Function],
   "useStripeTerminal": [Function],
   "withStripeTerminal": [Function],

@@ -37,6 +37,9 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  CollectDataParams,
+  CollectDataResultType,
+  LocalMobileUxConfiguration,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -162,12 +165,17 @@ export interface StripeTerminalSdkType {
   cancelCollectInputs(): Promise<{
     error?: StripeError;
   }>;
+  collectData(params: CollectDataParams): Promise<CollectDataResultType>;
   cancelReaderReconnection(): Promise<{
     error?: StripeError;
   }>;
   supportsReadersOfType(
     params: Reader.ReaderSupportParams
   ): Promise<Reader.ReaderSupportResult>;
+  setLocalMobileUxConfiguration(params: LocalMobileUxConfiguration): Promise<{
+    error?: StripeError;
+  }>;
+  getNativeSdkVersion(): Promise<string>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

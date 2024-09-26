@@ -23,6 +23,7 @@ export type LogLevelIOS = 'none' | 'verbose';
 export type LogLevelAndroid = 'none' | 'verbose' | 'error' | 'warning';
 
 export type DiscoverReadersParams = {
+  locationId?: string;
   timeout?: number;
   simulated?: boolean;
   discoveryMethod: Reader.DiscoveryMethod;
@@ -195,10 +196,12 @@ export type CollectPaymentMethodParams = {
   updatePaymentIntent?: boolean;
   enableCustomerCancellation?: boolean;
   requestDynamicCurrencyConversion?: boolean;
+  surchargeNotice?: string;
 };
 
 export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
+  amountSurcharge?: number;
 };
 
 export type CancelPaymentMethodParams = {
@@ -220,7 +223,7 @@ export type CollectSetupIntentPaymentMethodParams = {
 };
 
 export type CreateSetupIntentParams = {
-  customerId?: string;
+  customer?: string;
 };
 
 export type PaymentIntentResultType =
@@ -376,10 +379,13 @@ export type UserCallbacks = {
   onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
   onDidReportLowBatteryWarning?(): void;
   onDidReportReaderEvent?(event: ReaderEvent): void;
+
+  onDidAcceptTermsOfService?(): void;
 };
 
 export namespace PaymentMethod {
   export type Type = {
+    type: PaymentMethodType;
     id: string;
     customer: string;
     interacPresentDetails: CardPresentDetails;
@@ -489,3 +495,65 @@ export type AmountDetails = {
 export type Amount = {
   amount: number;
 };
+
+export type CollectedData = {
+  stripeId?: string;
+  created: string;
+  livemode: boolean;
+};
+
+export interface CollectDataParams {
+  collectDataType: CollectDataType;
+  enableCustomerCancellation: boolean;
+}
+
+export enum CollectDataType {
+  MAGSTRIPE = 'magstripe',
+  UNKNOWN = 'unknown',
+}
+
+export type CollectDataResultType =
+  | {
+      collectedData?: CollectedData;
+      error?: undefined;
+    }
+  | {
+      collectedData?: undefined;
+      error: StripeError;
+    };
+
+export type LocalMobileUxConfiguration = {
+  tapZone?: TapZone;
+  darkMode?: DarkMode;
+  colors?: Colors;
+};
+
+export type TapZone = {
+  tapZoneIndicator?: TapZoneIndicator;
+  tapZonePosition?: TapZonePosition;
+};
+
+export type TapZonePosition = {
+  xBias: number;
+  yBias: number;
+};
+
+export enum TapZoneIndicator {
+  DEFAULT = 'default',
+  ABOVE = 'above',
+  BELOW = 'below',
+  FRONT = 'front',
+  BEHIND = 'behind',
+}
+
+export type Colors = {
+  primary?: string;
+  success?: string;
+  error?: string;
+};
+
+export enum DarkMode {
+  DARK = 'dark',
+  LIGHT = 'light',
+  SYSTEM = 'system',
+}

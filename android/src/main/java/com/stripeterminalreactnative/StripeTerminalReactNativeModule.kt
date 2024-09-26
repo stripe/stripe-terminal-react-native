@@ -11,8 +11,10 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
+import com.stripe.stripeterminal.BuildConfig
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
+import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
@@ -22,13 +24,15 @@ import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
+import com.stripe.stripeterminal.external.models.CollectDataConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
-import com.stripe.stripeterminal.external.models.ConnectionStatus
+import com.stripe.stripeterminal.external.models.ConfirmConfiguration
 import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.EmailInput
 import com.stripe.stripeterminal.external.models.Input
 import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
 import com.stripe.stripeterminal.external.models.NumericInput
 import com.stripe.stripeterminal.external.models.OfflineBehavior
 import com.stripe.stripeterminal.external.models.PaymentIntent
@@ -57,6 +61,7 @@ import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripe.stripeterminal.external.models.Toggle
 import com.stripe.stripeterminal.external.models.ToggleValue
 import com.stripeterminalreactnative.callback.NoOpCallback
+import com.stripeterminalreactnative.callback.RNCollectedDataCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNLocationListCallback
 import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
@@ -87,6 +92,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     private var installUpdateCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
     private var collectInputsCancelable: Cancelable? = null
+    private var collectDataCancelable: Cancelable? = null
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -196,6 +202,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
+        val locationId = params.getString("locationId")
 
         val listener = RNDiscoveryListener(
             context,
@@ -215,7 +222,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
-                    isSimulated = getBoolean(params, "simulated")
+                    isSimulated = getBoolean(params, "simulated"),
+                    location = locationId
                 )
                 DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
                     getInt(params, "timeout") ?: 0,
@@ -510,6 +518,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "requestDynamicCurrencyConversion")
                 )
             }
+            if (params.hasKey("surchargeNotice")) {
+                configBuilder.setSurchargeNotice(params.getString("surchargeNotice"))
+            }
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
@@ -548,12 +559,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = requireParam(paymentIntents[uuid]) {
             "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
+        val configBuilder = ConfirmConfiguration.Builder()
+        if (params.hasKey("amountSurcharge")) {
+            val amountSurcharge = getInt(params, "amountSurcharge")?.toLong()
+            configBuilder.amountSurcharge(amountSurcharge)
+        }
+        val config = configBuilder.build()
 
         terminal.confirmPaymentIntent(
             paymentIntent,
             RNPaymentIntentCallback(promise, uuid) {
                 paymentIntents.clear()
-            }
+            },
+            config
         )
     }
 
@@ -563,7 +581,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listParameters = ListLocationsParameters.Builder().apply {
             endingBefore = params.getString("endingBefore")
             startingAfter = params.getString("startingAfter")
-            limit = getInt(params, "endingBefore")
+            limit = getInt(params, "limit")
         }
         terminal.listLocations(listParameters.build(), RNLocationListCallback(promise))
     }
@@ -762,7 +780,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val refundApplicationFee = params.getBoolean("refundApplicationFee")
             val reverseTransfer = params.getBoolean("reverseTransfer")
 
-            var intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
+            val intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
                 RefundParameters.Builder(
                     RefundParameters.Id.PaymentIntent(paymentIntentId),
                     amount,
@@ -785,6 +803,27 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 ).build(),
                 NoOpCallback(promise)
             )
+        }
+
+    @OptIn(CollectData::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun collectData(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val collectDataTypeParam = requireParam(params.getString("collectDataType")) {
+                "You must provide a collectDataType"
+            }
+            val collectDataType = requireParam(mapFromCollectDataType(collectDataTypeParam)) {
+                "Unknown collectDataType: $collectDataTypeParam"
+            }
+            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
+
+            val configBuilder = CollectDataConfiguration.Builder()
+                .setEnableCustomerCancellation(enableCustomerCancellation)
+                .setType(collectDataType)
+            val config = configBuilder.build()
+
+            collectDataCancelable = terminal.collectData(config, RNCollectedDataCallback(promise))
         }
 
     @ReactMethod
@@ -823,7 +862,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getConnectedReader(promise: Promise) {
-        promise.resolve((terminal.connectedReader ?: null)?.let { mapFromReader(it) })
+        promise.resolve(terminal.connectedReader?.let { mapFromReader(it) })
     }
 
     @ReactMethod
@@ -838,7 +877,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val textToSpeechViaSpeakers = requireParam(getBoolean(params, "textToSpeechViaSpeakers")) {
             "You must provide textToSpeechViaSpeakers parameters."
         }
-        var readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
+        val readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
             textToSpeechViaSpeakers
         )
         terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
@@ -854,7 +893,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     Toggle(
                         toggle.getString("title"),
                         toggle.getString("description"),
-                        if (toggle.getString("defaultValue") == "ENABLED") {
+                        if (toggle.getString("defaultValue") == "enabled") {
                             ToggleValue.ENABLED
                         } else {
                             ToggleValue.DISABLED
@@ -1043,6 +1082,57 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
 
         promise.resolve(mapFromReaderSupportResult(readerSupportResult))
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun setLocalMobileUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val localMobileUxConfigurationBuilder = LocalMobileUxConfiguration.Builder()
+
+        var tapZone: LocalMobileUxConfiguration.TapZone? = null
+        val tapZoneParam = params.getMap("tapZone")
+        tapZoneParam?.let {
+            val tapZoneIndicator = mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
+
+            val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
+                LocalMobileUxConfiguration.TapZonePosition.Manual(
+                    it.getDouble("xBias").toFloat(),
+                    it.getDouble("yBias").toFloat())
+            } ?: LocalMobileUxConfiguration.TapZonePosition.Default
+
+            tapZone = LocalMobileUxConfiguration.TapZone.Manual.Builder()
+                .indicator(tapZoneIndicator)
+                .position(tapZonePosition)
+                .build()
+        }
+        localMobileUxConfigurationBuilder.tapZone(tapZone?:LocalMobileUxConfiguration.TapZone.Default)
+
+        val colorsParam = params.getMap("colors")
+        colorsParam?.let {
+            val colorSchemeBuilder = LocalMobileUxConfiguration.ColorScheme.Builder()
+            colorSchemeBuilder.apply {
+                primary(it.getString("primary").toLocalMobileColor())
+                success(it.getString("success").toLocalMobileColor())
+                error(it.getString("error").toLocalMobileColor())
+            }
+            localMobileUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+        }
+
+        localMobileUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
+
+        terminal.setLocalMobileUxConfiguration(localMobileUxConfigurationBuilder.build())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun getNativeSdkVersion(promise: Promise) {
+        promise.resolve(BuildConfig.SDK_VERSION_NAME)
+    }
+
+    private fun String?.toLocalMobileColor(): LocalMobileUxConfiguration.Color {
+        return this
+            ?.let { LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) }
+            ?: LocalMobileUxConfiguration.Color.Default
     }
 
     @ReactMethod

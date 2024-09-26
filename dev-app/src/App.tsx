@@ -29,6 +29,7 @@ import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
 import DatabaseScreen from './screens/DatabaseScreen';
 import ReaderSettingsScreen from './screens/ReaderSettingsScreen';
+import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import {
   Reader,
@@ -45,6 +46,7 @@ export type RouteParamList = {
     update: Reader.SoftwareUpdate;
     reader: Reader.Type;
     onDidUpdate: () => void;
+    started: boolean;
   };
   LocationList: {
     onSelect: (location: Location) => void;
@@ -59,6 +61,8 @@ export type RouteParamList = {
   DiscoverReaders: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
+    discoveryTimeout: number;
+    setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
   };
   MerchantSelect: {
     onSelectMerchant: ({
@@ -290,6 +294,13 @@ export default function App() {
                 headerTitle: 'Collect Inputs',
               }}
               component={CollectInputsScreen}
+            />
+            <Stack.Screen
+              name="CollectDataScreen"
+              options={{
+                headerTitle: 'Collect Data',
+              }}
+              component={CollectDataScreen}
             />
             <Stack.Screen
               name="LogListScreen"

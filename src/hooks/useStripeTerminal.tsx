@@ -26,6 +26,8 @@ import type {
   ConfirmSetupIntentMethodParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
+  CollectDataParams,
+  LocalMobileUxConfiguration,
 } from '../types';
 import {
   discoverReaders,
@@ -65,11 +67,14 @@ import {
   setReaderSettings,
   collectInputs,
   cancelCollectInputs,
+  collectData,
   cancelReaderReconnection,
   supportsReadersOfType,
   getPaymentStatus,
   getConnectionStatus,
   getConnectedReader,
+  setLocalMobileUxConfiguration,
+  getNativeSdkVersion,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
 import { useListener } from './useListener';
@@ -101,6 +106,7 @@ export const {
   UPDATE_BATTERY_LEVEL,
   REPORT_LOW_BATTERY_WARNING,
   REPORT_READER_EVENT,
+  ACCEPT_TERMS_OF_SERVICE,
 } = NativeModules.StripeTerminalReactNative.getConstants();
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
@@ -165,6 +171,7 @@ export function useStripeTerminal(props?: Props) {
     onDidUpdateBatteryLevel,
     onDidReportLowBatteryWarning,
     onDidReportReaderEvent,
+    onDidAcceptTermsOfService,
   } = props || {};
 
   const _discoverReaders = useCallback(
@@ -345,6 +352,10 @@ export function useStripeTerminal(props?: Props) {
     [onDidReportReaderEvent]
   );
 
+  const acceptTermsOfService = useCallback(() => {
+    onDidAcceptTermsOfService?.();
+  }, [onDidAcceptTermsOfService]);
+
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
@@ -374,6 +385,7 @@ export function useStripeTerminal(props?: Props) {
   useListener(UPDATE_BATTERY_LEVEL, didUpdateBatteryLevel);
   useListener(REPORT_LOW_BATTERY_WARNING, didReportLowBatteryWarning);
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
+  useListener(ACCEPT_TERMS_OF_SERVICE, acceptTermsOfService);
 
   const _initialize = useCallback(async () => {
     if (!initialize || typeof initialize !== 'function') {
@@ -993,6 +1005,23 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
+  const _collectData = useCallback(
+    async (params: CollectDataParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await collectData(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
   const _cancelReaderReconnection = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -1023,6 +1052,27 @@ export function useStripeTerminal(props?: Props) {
     },
     [_isInitialized, setLoading]
   );
+
+  const _setLocalMobileUxConfiguration = useCallback(
+    async (params: LocalMobileUxConfiguration) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await setLocalMobileUxConfiguration(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
+  const _getNativeSdkVersion = useCallback(async () => {
+    return await getNativeSdkVersion();
+  }, []);
 
   return {
     initialize: _initialize,
@@ -1066,8 +1116,11 @@ export function useStripeTerminal(props?: Props) {
     setReaderSettings: _setReaderSettings,
     collectInputs: _collectInputs,
     cancelCollectInputs: _cancelCollectInputs,
+    collectData: _collectData,
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
+    setLocalMobileUxConfiguration: _setLocalMobileUxConfiguration,
+    getNativeSdkVersion: _getNativeSdkVersion,
     emitter: emitter,
     discoveredReaders,
     connectedReader,
