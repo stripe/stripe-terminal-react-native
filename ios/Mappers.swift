@@ -210,7 +210,7 @@ class Mappers {
                 "maximumAmount": options?.cardPresentParameters.surcharge?.maximumAmount,
             ]
         }
-        
+
         var cardPresentMap: NSDictionary?
         if let cardPresentMapDetails = options?.cardPresentParameters {
             cardPresentMap = [
@@ -224,7 +224,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         var metadataMap: NSDictionary?
         if let metadata = setupIntent.metadata {
@@ -314,6 +314,7 @@ class Mappers {
         case PaymentIntentStatus.requiresConfirmation: return "requiresConfirmation"
         case PaymentIntentStatus.requiresPaymentMethod: return "requiresPaymentMethod"
         case PaymentIntentStatus.succeeded: return "succeeded"
+        case PaymentIntentStatus.requiresAction: return "requiresAction"
         default: return "unknown"
         }
     }
@@ -448,7 +449,7 @@ class Mappers {
             "status": mapFromChargeStatus(charge.status),
             "id": charge.stripeId,
             "authorizationCode": charge.authorizationCode,
-            "paymentMethodDetails": paymentMethodDetailsMap
+            "paymentMethodDetails": paymentMethodDetailsMap,
         ]
         return result
     }
@@ -498,7 +499,18 @@ class Mappers {
             "iin": cardPresent.iin,
             "description": cardPresent.stripeDescription,
             "network": mapFromCardPresentDetailsNetwork(cardPresent.network ?? NSNumber(-1)),
-            "wallet": walletMap
+            "wallet": walletMap,
+            "location": cardPresent.location ?? NSNull(),
+            "reader": cardPresent.reader ?? NSNull(),
+        ]
+        return result
+    }
+
+    class func mapFromWechatPay(_ wechatPay: WechatPayDetails) -> NSDictionary {
+        let result: NSDictionary = [
+            "location": wechatPay.location ?? NSNull(),
+            "reader": wechatPay.reader ?? NSNull(),
+            "transactionId": wechatPay.transactionId ?? NSNull(),
         ]
         return result
     }
@@ -620,6 +632,7 @@ class Mappers {
         case PaymentMethodType.card: return "card"
         case PaymentMethodType.cardPresent: return "cardPresent"
         case PaymentMethodType.interacPresent: return "interacPresent"
+        case PaymentMethodType.wechatPay: return "wechatPay"
         default: return "unknown"
         }
     }
@@ -633,11 +646,16 @@ class Mappers {
         if let interacPresent = paymentMethodDetails.interacPresent{
             interacPresentMapped = mapFromCardPresent(interacPresent)
         }
+        var wechatPayMapped: NSDictionary?
+        if let wechatPay = paymentMethodDetails.wechatPay{
+            wechatPayMapped = mapFromWechatPay(wechatPay)
+        }
 
         let result: NSDictionary = [
             "type": mapFromPaymentMethodDetailsType(paymentMethodDetails.type),
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
+            "wechatPayDetails": wechatPayMapped ?? NSNull(),
         ]
         return result
     }
@@ -694,10 +712,15 @@ class Mappers {
         if let interacPresent = paymentMethod.interacPresent{
             interacPresentMapped = mapFromCardPresent(interacPresent)
         }
+        var wechatPayMapped: NSDictionary?
+        if let wechatPay = paymentMethod.wechatPay{
+            wechatPayMapped = mapFromWechatPay(wechatPay)
+        }
 
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
+            "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
