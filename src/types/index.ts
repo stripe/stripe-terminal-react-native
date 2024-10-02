@@ -149,7 +149,11 @@ export type PaymentStatus =
   | 'processing'
   | 'waitingForInput';
 
-export type PaymentMethodType = 'cardPresent' | 'interacPresent' | 'card';
+export type PaymentMethodType =
+  | 'cardPresent'
+  | 'interacPresent'
+  | 'card'
+  | 'wechatPay';
 
 export interface Charge {
   id: string;
@@ -297,6 +301,14 @@ export type CardPresentDetails = {
   network: string;
   description: string;
   wallet: Wallet;
+  location?: string;
+  reader?: string;
+};
+
+export type WechatPayDetails = {
+  location?: string;
+  reader?: string;
+  transactionId?: string;
 };
 
 export type ReceiptDetails = {
@@ -319,6 +331,7 @@ export type PaymentMethodDetails = {
   type: string;
   cardPresentDetails?: CardPresentDetails;
   interacPresentDetails?: CardPresentDetails;
+  wechatPayDetails?: WechatPayDetails;
 };
 
 export type ConfirmRefundResultType = {
@@ -390,6 +403,7 @@ export namespace PaymentMethod {
     customer: string;
     interacPresentDetails: CardPresentDetails;
     cardPresentDetails: CardPresentDetails;
+    wechatPayDetails: WechatPayDetails;
     metadata?: Record<string, string>;
   };
 }
