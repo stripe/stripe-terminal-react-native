@@ -1,18 +1,13 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import {
   Location,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import ListItem from '../components/ListItem';
+import List from '../components/List';
 
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
@@ -35,7 +30,7 @@ export default function LocationListScreen() {
   ];
 
   useEffect(() => {
-    if (list != null && list.length != 0) {
+    if (list != null && list.length !== 0) {
       setCachedLocations(list);
     }
   }, [list, setCachedLocations]);
@@ -63,36 +58,28 @@ export default function LocationListScreen() {
       }}
     />
   );
-
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       {params?.showDummyLocation === true && (
-        <FlatList
-          style={{ marginBottom: 30 }}
-          data={dummyLocations}
-          ListHeaderComponent={() => (
-            <Text style={styles.header}>INTERNAL: DUMMY LOCATIONS</Text>
-          )}
-          renderItem={({ item }) => renderItem(item)}
-        />
+        <List title="INTERNAL: DUMMY LOCATIONS">
+          {dummyLocations.map((location) => renderItem(location))}
+        </List>
       )}
-      <FlatList
-        data={list}
-        ListHeaderComponent={() => (
-          <Text style={styles.header}>{list.length} LOCATIONS FOUND</Text>
-        )}
-        ListEmptyComponent={() => <>{loading && <ActivityIndicator />}</>}
-        renderItem={({ item }) => renderItem(item)}
-      />
-    </View>
+      <List title={list.length + ' LOCATIONS FOUND'}>
+        <>
+          {list.map((location) => renderItem(location))}
+          {loading && list.length === 0 && <ActivityIndicator />}
+        </>
+      </List>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     backgroundColor: colors.white,
   },
   header: {
