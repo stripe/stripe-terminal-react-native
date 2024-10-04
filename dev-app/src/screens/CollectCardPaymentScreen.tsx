@@ -24,6 +24,12 @@ import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Modal } from 'react-native';
+import type { IPaymentMethodType } from '../types';
+import {
+  DEFAULT_ENABLED_PAYMENT_METHOD_TYPES,
+  getEnabledPaymentMethodTypes,
+  PAYMENT_METHOD_TYPES,
+} from '../util/paymentMethodTypes';
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
@@ -85,7 +91,6 @@ export default function CollectCardPaymentScreen() {
     offlineModeStoredTransactionLimit: '50000',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
-  const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
   const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
@@ -98,6 +103,14 @@ export default function CollectCardPaymentScreen() {
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const [amountSurcharge, setAmountSurcharge] = useState('');
+  const [paymentMethodTypes, setPaymentMethodTypes] = useState<
+    IPaymentMethodType[]
+  >(
+    PAYMENT_METHOD_TYPES.map((type) => ({
+      type,
+      enabled: DEFAULT_ENABLED_PAYMENT_METHOD_TYPES.includes(type),
+    }))
+  );
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod, deviceType } = params;
@@ -162,10 +175,7 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const paymentMethods = ['card_present'];
-    if (enableInterac) {
-      paymentMethods.push('interac_present');
-    }
+    const paymentMethods = getEnabledPaymentMethodTypes(paymentMethodTypes);
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
     };
@@ -630,15 +640,17 @@ export default function CollectCardPaymentScreen() {
         </Picker>
       </List>
 
-      <List bolded={false} topSpacing={false} title="INTERAC">
+      <List topSpacing={false} title="PAYMENT METHOD TYPES">
         <ListItem
-          title="Enable Interac Present"
-          rightElement={
-            <Switch
-              testID="enable-interac"
-              value={enableInterac}
-              onValueChange={(value) => setEnableInterac(value)}
-            />
+          title={getEnabledPaymentMethodTypes(paymentMethodTypes).join(', ')}
+          testID="payment-method-button"
+          onPress={() =>
+            navigation.navigate('PaymentMethodSelectScreen', {
+              paymentMethodTypes: paymentMethodTypes,
+              onChange: (newPaymentMethodTypes: IPaymentMethodType[]) => {
+                setPaymentMethodTypes(newPaymentMethodTypes);
+              },
+            })
           }
         />
       </List>
