@@ -20,6 +20,7 @@ import SetupIntentScreen from './screens/SetupIntentScreen';
 import LogListScreen from './screens/LogListScreen';
 import LogScreen from './screens/LogScreen';
 import RegisterInternetReaderScreen from './screens/RegisterInternetReaderScreen';
+import PaymentMethodSelectScreen from './screens/PaymentMethodSelectScreen';
 import {
   Reader,
   Location,
@@ -28,6 +29,7 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
 import DatabaseScreen from './screens/DatabaseScreen';
+import type { IPaymentMethodType } from './types';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -59,6 +61,10 @@ export type RouteParamList = {
   Log: {
     event: Event;
     log: Log;
+  };
+  PaymentMethodSelect: {
+    paymentMethodTypes: IPaymentMethodType[];
+    onChange: (paymentMethodTypes: IPaymentMethodType[]) => void;
   };
 };
 
@@ -239,6 +245,14 @@ export default function App() {
                 headerBackAccessibilityLabel: 'payment-back',
               }}
               component={CollectCardPaymentScreen}
+            />
+            <Stack.Screen
+              name="PaymentMethodSelectScreen"
+              options={{
+                headerTitle: 'Select Payment Methods',
+                headerBackAccessibilityLabel: 'payment-back',
+              }}
+              component={PaymentMethodSelectScreen}
             />
             <Stack.Screen
               name="SetupIntentScreen"

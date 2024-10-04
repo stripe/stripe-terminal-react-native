@@ -13,3 +13,8 @@ export type IShortAccount = {
 };
 
 export type Api = IApi;
+
+export interface IPaymentMethodType {
+  type: string;
+  enabled: boolean;
+}
