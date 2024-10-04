@@ -383,8 +383,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         val paymentMethodTypes = paymentMethods?.toArrayList()?.mapNotNull {
             it as? String
-        }?.map{
-            PaymentMethodType.valueOf(it.uppercase())
+        }?.mapNotNull {
+            try {
+                PaymentMethodType.valueOf(it.uppercase())
+            } catch (e: IllegalArgumentException) {
+                null
+            }
         }
 
         val intentParams = paymentMethodTypes?.let {
