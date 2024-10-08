@@ -15,10 +15,8 @@ import { LogContext } from '../components/LogContext';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import type { IPaymentMethodType } from '../types';
 import {
   DEFAULT_ENABLED_PAYMENT_METHOD_TYPES,
-  getEnabledPaymentMethodTypes,
   PAYMENT_METHOD_TYPES,
 } from '../util/paymentMethodTypes';
 
@@ -76,7 +74,6 @@ export default function CollectCardPaymentScreen() {
     offlineModeStoredTransactionLimit: '50000',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
-  const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
   const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
@@ -84,13 +81,9 @@ export default function CollectCardPaymentScreen() {
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
-  const [paymentMethodTypes, setPaymentMethodTypes] = useState<
-    IPaymentMethodType[]
-  >(
-    PAYMENT_METHOD_TYPES.map((type) => ({
-      type,
-      enabled: DEFAULT_ENABLED_PAYMENT_METHOD_TYPES.includes(type),
-    }))
+  const paymentMethodTypes = PAYMENT_METHOD_TYPES;
+  const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
+    DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
   );
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -144,7 +137,7 @@ export default function CollectCardPaymentScreen() {
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
     });
-    const paymentMethods = getEnabledPaymentMethodTypes(paymentMethodTypes);
+    const paymentMethods = enabledPaymentMethodTypes;
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
     };
@@ -510,13 +503,14 @@ export default function CollectCardPaymentScreen() {
 
       <List topSpacing={false} title="PAYMENT METHOD TYPES">
         <ListItem
-          title={getEnabledPaymentMethodTypes(paymentMethodTypes).join(', ')}
+          title={enabledPaymentMethodTypes.join(', ')}
           testID="payment-method-button"
           onPress={() =>
             navigation.navigate('PaymentMethodSelectScreen', {
               paymentMethodTypes: paymentMethodTypes,
-              onChange: (newPaymentMethodTypes: IPaymentMethodType[]) => {
-                setPaymentMethodTypes(newPaymentMethodTypes);
+              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+              onChange: (newPaymentMethodTypes: string[]) => {
+                setEnabledPaymentMethodTypes(newPaymentMethodTypes)
               },
             })
           }

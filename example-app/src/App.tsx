@@ -29,7 +29,6 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
 import DatabaseScreen from './screens/DatabaseScreen';
-import type { IPaymentMethodType } from './types';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -63,8 +62,9 @@ export type RouteParamList = {
     log: Log;
   };
   PaymentMethodSelect: {
-    paymentMethodTypes: IPaymentMethodType[];
-    onChange: (paymentMethodTypes: IPaymentMethodType[]) => void;
+    paymentMethodTypes: string[];
+    enabledPaymentMethodTypes: string[];
+    onChange: (paymentMethodTypes: string[]) => void;
   };
 };
 

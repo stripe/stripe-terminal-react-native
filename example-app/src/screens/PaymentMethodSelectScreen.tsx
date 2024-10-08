@@ -1,23 +1,32 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React from 'react';
-import { FlatList, StyleSheet, Switch, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { colors } from '../colors';
 
 import type { RouteParamList } from '../App';
-import type { IPaymentMethodType } from '../types';
 import ListItem from '../components/ListItem';
+
+type PaymentMethodTypeWrapper = {
+  type: string;
+  enabled: boolean;
+};
 
 export default function PaymentMethodSelectScreen() {
   const navigation = useNavigation();
   const { params } =
     useRoute<RouteProp<RouteParamList, 'PaymentMethodSelect'>>();
 
-  const [pendingPaymentMethodTypes, setPendingPaymentMethodTypes] =
-    React.useState<IPaymentMethodType[]>(params.paymentMethodTypes);
+  const [paymentMethodTypes, setPaymentMethodTypes] = React.useState<
+    PaymentMethodTypeWrapper[]
+  >(
+    params.paymentMethodTypes.map((it) => ({
+      type: it,
+      enabled: params.enabledPaymentMethodTypes.indexOf(it) >= 0,
+    }))
+  );
 
   const doCancel = () => {
     // Revert any pending changes
-    setPendingPaymentMethodTypes(params.paymentMethodTypes);
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -33,14 +42,14 @@ export default function PaymentMethodSelectScreen() {
         testID="confirm-button"
         color={colors.green}
         onPress={async () => {
-          params.onChange(pendingPaymentMethodTypes);
+          params.onChange(
+            paymentMethodTypes.filter((it) => it.enabled).map((it) => it.type)
+          );
           if (navigation.canGoBack()) {
             navigation.goBack();
           }
         }}
-        disabled={
-          pendingPaymentMethodTypes.filter((pmt) => pmt.enabled).length === 0
-        }
+        disabled={paymentMethodTypes.filter((it) => it.enabled).length === 0}
       />
       <ListItem
         title="Cancel"
@@ -48,33 +57,31 @@ export default function PaymentMethodSelectScreen() {
         color={colors.red}
         onPress={doCancel}
       />
-      <FlatList
-        data={params.paymentMethodTypes}
-        renderItem={({ item, index }) => (
-          <ListItem
-            title={item.type}
-            rightElement={
-              <Switch
-                key={item.type}
-                id={item.type}
-                value={pendingPaymentMethodTypes[index].enabled}
-                onChange={() => {
-                  const updatedPaymentMethodTypes =
-                    pendingPaymentMethodTypes.map((paymentMethodTypeToUpdate) =>
-                      paymentMethodTypeToUpdate.type === item.type
-                        ? {
-                          ...paymentMethodTypeToUpdate,
-                          enabled: !paymentMethodTypeToUpdate.enabled,
-                        }
-                        : paymentMethodTypeToUpdate
-                    );
-                  setPendingPaymentMethodTypes(updatedPaymentMethodTypes);
-                }}
-              />
-            }
-          />
-        )}
-      />
+      <ScrollView style={styles.container}>
+        {paymentMethodTypes.map((item, index) => {
+          return (
+            <ListItem
+              title={item.type}
+              key={item.type}
+              rightElement={
+                <Switch
+                  key={`${item.type}_switch`}
+                  id={item.type}
+                  value={paymentMethodTypes[index].enabled}
+                  onChange={() => {
+                    const updatedPaymentMethodTypes = [...paymentMethodTypes];
+                    updatedPaymentMethodTypes[index] = {
+                      ...updatedPaymentMethodTypes[index],
+                      enabled: !updatedPaymentMethodTypes[index].enabled,
+                    };
+                    setPaymentMethodTypes(updatedPaymentMethodTypes);
+                  }}
+                />
+              }
+            />
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }

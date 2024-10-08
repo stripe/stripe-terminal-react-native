@@ -24,10 +24,8 @@ import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Modal } from 'react-native';
-import type { IPaymentMethodType } from '../types';
 import {
   DEFAULT_ENABLED_PAYMENT_METHOD_TYPES,
-  getEnabledPaymentMethodTypes,
   PAYMENT_METHOD_TYPES,
 } from '../util/paymentMethodTypes';
 
@@ -103,13 +101,9 @@ export default function CollectCardPaymentScreen() {
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const [amountSurcharge, setAmountSurcharge] = useState('');
-  const [paymentMethodTypes, setPaymentMethodTypes] = useState<
-    IPaymentMethodType[]
-  >(
-    PAYMENT_METHOD_TYPES.map((type) => ({
-      type,
-      enabled: DEFAULT_ENABLED_PAYMENT_METHOD_TYPES.includes(type),
-    }))
+  const paymentMethodTypes = PAYMENT_METHOD_TYPES;
+  const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
+    DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
   );
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
@@ -175,7 +169,7 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const paymentMethods = getEnabledPaymentMethodTypes(paymentMethodTypes);
+    const paymentMethods = enabledPaymentMethodTypes;
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
     };
@@ -642,13 +636,14 @@ export default function CollectCardPaymentScreen() {
 
       <List topSpacing={false} title="PAYMENT METHOD TYPES">
         <ListItem
-          title={getEnabledPaymentMethodTypes(paymentMethodTypes).join(', ')}
+          title={enabledPaymentMethodTypes.join(', ')}
           testID="payment-method-button"
           onPress={() =>
             navigation.navigate('PaymentMethodSelectScreen', {
               paymentMethodTypes: paymentMethodTypes,
-              onChange: (newPaymentMethodTypes: IPaymentMethodType[]) => {
-                setPaymentMethodTypes(newPaymentMethodTypes);
+              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+              onChange: (newPaymentMethodTypes: string[]) => {
+                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
               },
             })
           }

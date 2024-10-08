@@ -41,7 +41,6 @@ import {
 import { Alert, LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
-import type { IPaymentMethodType } from './types';
 
 export type RouteParamList = {
   UpdateReader: {
@@ -87,8 +86,9 @@ export type RouteParamList = {
     log: Log;
   };
   PaymentMethodSelect: {
-    paymentMethodTypes: IPaymentMethodType[];
-    onChange: (paymentMethodTypes: IPaymentMethodType[]) => void;
+    paymentMethodTypes: string[];
+    enabledPaymentMethodTypes: string[];
+    onChange: (paymentMethodTypes: string[]) => void;
   };
 };
 

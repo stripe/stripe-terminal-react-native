@@ -1,5 +1,3 @@
-import type { IPaymentMethodType } from '../types';
-
 export const DEFAULT_ENABLED_PAYMENT_METHOD_TYPES = ['card_present'];
 
 export const PAYMENT_METHOD_TYPES = [
@@ -70,13 +68,3 @@ export const PAYMENT_METHOD_TYPES = [
   'wechat_pay',
   'zip',
 ];
-
-export const getEnabledPaymentMethodTypes = (
-  paymentMethodTypes: IPaymentMethodType[]
-): string[] =>
-  paymentMethodTypes.reduce((selected, t) => {
-    if (t.enabled) {
-      selected.push(t.type);
-    }
-    return selected;
-  }, [] as string[]);
