@@ -74,6 +74,7 @@ export default function CollectCardPaymentScreen() {
     offlineModeStoredTransactionLimit: '50000',
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
+  const [enableInterac, setEnableInterac] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
   const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
@@ -138,6 +139,9 @@ export default function CollectCardPaymentScreen() {
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
     });
     const paymentMethods = enabledPaymentMethodTypes;
+    if (enableInterac && !paymentMethods.includes('interac_present')) {
+      paymentMethods.push('interac_present');
+    }
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
     };
@@ -501,7 +505,20 @@ export default function CollectCardPaymentScreen() {
         </Picker>
       </List>
 
-      <List topSpacing={false} title="PAYMENT METHOD TYPES">
+      <List bolded={false} topSpacing={false} title="INTERAC">
+        <ListItem
+          title="Enable Interac Present"
+          rightElement={
+            <Switch
+              testID="enable-interac"
+              value={enableInterac}
+              onValueChange={(value) => setEnableInterac(value)}
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="PAYMENT METHOD TYPES">
         <ListItem
           title={enabledPaymentMethodTypes.join(', ')}
           testID="payment-method-button"
@@ -510,7 +527,7 @@ export default function CollectCardPaymentScreen() {
               paymentMethodTypes: paymentMethodTypes,
               enabledPaymentMethodTypes: enabledPaymentMethodTypes,
               onChange: (newPaymentMethodTypes: string[]) => {
-                setEnabledPaymentMethodTypes(newPaymentMethodTypes)
+                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
               },
             })
           }

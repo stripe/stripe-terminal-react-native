@@ -21,7 +21,7 @@ export default function PaymentMethodSelectScreen() {
   >(
     params.paymentMethodTypes.map((it) => ({
       type: it,
-      enabled: params.enabledPaymentMethodTypes.indexOf(it) >= 0,
+      enabled: params.enabledPaymentMethodTypes.includes(it),
     }))
   );
 
