@@ -138,9 +138,12 @@ export default function CollectCardPaymentScreen() {
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
     });
-    const paymentMethods = enabledPaymentMethodTypes;
-    if (enableInterac && !paymentMethods.includes('interac_present')) {
-      paymentMethods.push('interac_present');
+    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
+    if (
+      enableInterac &&
+      !resolvedPaymentMethodTypes.includes('interac_present')
+    ) {
+      resolvedPaymentMethodTypes.push('interac_present');
     }
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
@@ -160,7 +163,7 @@ export default function CollectCardPaymentScreen() {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: paymentMethods,
+        payment_method_types: resolvedPaymentMethodTypes,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,

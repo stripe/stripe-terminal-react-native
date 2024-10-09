@@ -170,9 +170,12 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const paymentMethods = enabledPaymentMethodTypes;
-    if (enableInterac && !paymentMethods.includes('interac_present')) {
-      paymentMethods.push('interac_present');
+    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
+    if (
+      enableInterac &&
+      !resolvedPaymentMethodTypes.includes('interac_present')
+    ) {
+      resolvedPaymentMethodTypes.push('interac_present');
     }
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
@@ -193,7 +196,7 @@ export default function CollectCardPaymentScreen() {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: paymentMethods,
+        payment_method_types: resolvedPaymentMethodTypes,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,
@@ -260,7 +263,7 @@ export default function CollectCardPaymentScreen() {
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: paymentMethods,
+        paymentMethodTypes: resolvedPaymentMethodTypes,
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount
