@@ -176,7 +176,10 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
     await element(by.id('collect-scroll-view')).scroll(1000, 'down');
   }
 
-  await element(by.id('collect-scroll-view')).scrollTo('bottom');
+  await waitFor(element(by.text('Collect payment')))
+    .toBeVisible()
+    .whileElement(by.id('collect-scroll-view'))
+    .scroll(1250, 'down');
 
   const button = element(by.text('Collect payment'));
 
