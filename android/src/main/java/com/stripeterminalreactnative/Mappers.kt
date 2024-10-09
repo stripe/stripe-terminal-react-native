@@ -63,6 +63,7 @@ import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
 import com.stripe.stripeterminal.external.models.TextResult
 import com.stripe.stripeterminal.external.models.ToggleResult
 import com.stripe.stripeterminal.external.models.Wallet
+import com.stripe.stripeterminal.external.models.WechatPayDetails
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
@@ -411,6 +412,7 @@ internal fun mapFromPaymentIntentStatus(status: PaymentIntentStatus?): String {
         PaymentIntentStatus.REQUIRES_CONFIRMATION -> "requiresConfirmation"
         PaymentIntentStatus.REQUIRES_PAYMENT_METHOD -> "requiresPaymentMethod"
         PaymentIntentStatus.SUCCEEDED -> "succeeded"
+        PaymentIntentStatus.REQUIRES_ACTION -> "requiresAction"
         else -> "unknown"
     }
 }
@@ -551,6 +553,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "interacPresentDetails",
                 mapFromCardPresentDetails(it.interacPresentDetails)
             )
+            putMap(
+                "wechatPayDetails",
+                mapFromWechatPayDetails(it.wechatPayDetails)
+            )
             putString("customer", it.customer)
             putString("id", it.id)
             putString("type", mapFromPaymentMethodDetailsType(it.type))
@@ -580,6 +586,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "interacPresentDetails",
             mapFromCardPresentDetails(paymentMethodDetails?.interacPresentDetails)
         )
+        putMap(
+            "wechatPayDetails",
+            mapFromWechatPayDetails(paymentMethodDetails?.wechatPayDetails)
+        )
         putString("type", mapFromPaymentMethodDetailsType(paymentMethodDetails?.type))
     }
 
@@ -588,6 +598,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.CARD -> "card"
         PaymentMethodType.CARD_PRESENT -> "cardPresent"
         PaymentMethodType.INTERAC_PRESENT -> "interacPresent"
+        PaymentMethodType.WECHAT_PAY -> "wechatPay"
         else -> "unknown"
     }
 }
@@ -615,6 +626,17 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
                 "preferredLocales",
                 convertListToReadableArray(it.preferredLocales)
             )
+            putString("location", it.location)
+            putString("reader", it.reader)
+        }
+    }
+
+private fun mapFromWechatPayDetails(wechatPayDetails: WechatPayDetails?): ReadableMap? =
+    wechatPayDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
+            putString("transactionId", it.transactionId)
         }
     }
 

@@ -23,6 +23,7 @@ export namespace PaymentIntent {
   export type Status =
     | 'canceled'
     | 'processing'
+    | 'requiresAction'
     | 'requiresCapture'
     | 'requiresConfirmation'
     | 'requiresPaymentMethod'

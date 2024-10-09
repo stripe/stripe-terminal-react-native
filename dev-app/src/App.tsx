@@ -31,6 +31,7 @@ import DatabaseScreen from './screens/DatabaseScreen';
 import ReaderSettingsScreen from './screens/ReaderSettingsScreen';
 import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
+import PaymentMethodSelectScreen from './screens/PaymentMethodSelectScreen';
 import {
   Reader,
   Location,
@@ -83,6 +84,11 @@ export type RouteParamList = {
   Log: {
     event: Event;
     log: Log;
+  };
+  PaymentMethodSelect: {
+    paymentMethodTypes: string[];
+    enabledPaymentMethodTypes: string[];
+    onChange: (paymentMethodTypes: string[]) => void;
   };
 };
 
@@ -279,6 +285,14 @@ export default function App() {
                 headerBackAccessibilityLabel: 'payment-back',
               }}
               component={CollectCardPaymentScreen}
+            />
+            <Stack.Screen
+              name="PaymentMethodSelectScreen"
+              options={{
+                headerTitle: 'Select Payment Methods',
+                headerBackAccessibilityLabel: 'payment-back',
+              }}
+              component={PaymentMethodSelectScreen}
             />
             <Stack.Screen
               name="SetupIntentScreen"
