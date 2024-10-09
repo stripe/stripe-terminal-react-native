@@ -216,7 +216,7 @@ export default function CollectCardPaymentScreen() {
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: paymentMethods,
+        paymentMethodTypes: resolvedPaymentMethodTypes,
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount
