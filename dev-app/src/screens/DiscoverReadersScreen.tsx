@@ -67,10 +67,12 @@ export default function DiscoverReadersScreen() {
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
       if (finishError) {
-        console.error(
-          'Discover readers error',
-          `${finishError.code}, ${finishError.message}`
-        );
+        if (shouldShowDiscoverError(finishError)) {
+          console.error(
+            'Discover readers error',
+            `${finishError.code}, ${finishError.message}`
+          );
+        }
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
@@ -165,7 +167,9 @@ export default function DiscoverReadersScreen() {
 
     if (discoverReadersError) {
       const { code, message } = discoverReadersError;
-      Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      if (shouldShowDiscoverError(discoverReadersError)) {
+        Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      }
       if (navigation.canGoBack()) {
         navigation.goBack();
       }
@@ -534,4 +538,8 @@ function mapToPlanDisplayName(plan: string) {
     default:
       return '';
   }
+}
+
+function shouldShowDiscoverError(error: StripeError) {
+  return error.code.toString() != 'USER_ERROR.CANCELED';
 }
