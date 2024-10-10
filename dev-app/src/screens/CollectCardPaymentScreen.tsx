@@ -86,6 +86,7 @@ export default function CollectCardPaymentScreen() {
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
+  const [enableBackendPI, setEnableBackendPI] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
   const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
@@ -100,7 +101,7 @@ export default function CollectCardPaymentScreen() {
   const [amountSurcharge, setAmountSurcharge] = useState('');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
-  const { simulated, discoveryMethod, deviceType } = params;
+  const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation();
 
@@ -181,7 +182,7 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
 
-    if (deviceType === 'verifoneP400') {
+    if (enableBackendPI) {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
@@ -638,6 +639,19 @@ export default function CollectCardPaymentScreen() {
               testID="enable-interac"
               value={enableInterac}
               onValueChange={(value) => setEnableInterac(value)}
+            />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="BACKEND PI">
+        <ListItem
+          title="Create PI on the backend"
+          rightElement={
+            <Switch
+              testID="enable-backend-pi"
+              value={enableBackendPI}
+              onValueChange={(value) => setEnableBackendPI(value)}
             />
           }
         />
