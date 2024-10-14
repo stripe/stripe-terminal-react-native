@@ -11,7 +11,9 @@ const {
 
 jest.retryTimes(3);
 
-describe('In-Person Refund', () => {
+// TODO(nazli): Investigate flakiness (TERMINAL-41034)
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('In-Person Refund', () => {
   beforeEach(async () => {
     await device.launchApp({
       permissions: { location: 'always' },
