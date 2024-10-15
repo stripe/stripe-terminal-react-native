@@ -3,6 +3,7 @@ import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
   Platform,
+  SafeAreaView,
   StyleSheet,
   Switch,
   Text,
@@ -24,6 +25,10 @@ import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Modal } from 'react-native';
+import {
+  DEFAULT_ENABLED_PAYMENT_METHOD_TYPES,
+  PAYMENT_METHOD_TYPES,
+} from '../util/paymentMethodTypes';
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
@@ -98,6 +103,10 @@ export default function CollectCardPaymentScreen() {
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const [amountSurcharge, setAmountSurcharge] = useState('');
+  const paymentMethodTypes = PAYMENT_METHOD_TYPES;
+  const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
+    DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
+  );
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod, deviceType } = params;
@@ -162,9 +171,12 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const paymentMethods = ['card_present'];
-    if (enableInterac) {
-      paymentMethods.push('interac_present');
+    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
+    if (
+      enableInterac &&
+      !resolvedPaymentMethodTypes.includes('interac_present')
+    ) {
+      resolvedPaymentMethodTypes.push('interac_present');
     }
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
@@ -185,7 +197,7 @@ export default function CollectCardPaymentScreen() {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: paymentMethods,
+        payment_method_types: resolvedPaymentMethodTypes,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,
@@ -252,7 +264,7 @@ export default function CollectCardPaymentScreen() {
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: paymentMethods,
+        paymentMethodTypes: resolvedPaymentMethodTypes,
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount
@@ -560,433 +572,466 @@ export default function CollectCardPaymentScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      testID="collect-scroll-view"
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="always"
-    >
-      {simulated && (
-        <List bolded={false} topSpacing={false} title="CARD NUMBER">
+    <SafeAreaView style={styles.container}>
+      <KeyboardAwareScrollView
+        testID="collect-scroll-view"
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="always"
+      >
+        {simulated && (
+          <List bolded={false} topSpacing={false} title="CARD NUMBER">
+            <TextInput
+              testID="card-number-text-field"
+              keyboardType="numeric"
+              style={styles.input}
+              value={testCardNumber}
+              onChangeText={(value) => setTestCardNumber(value)}
+              placeholder="card number"
+            />
+          </List>
+        )}
+        <List bolded={false} topSpacing={false} title="AMOUNT">
           <TextInput
-            testID="card-number-text-field"
+            testID="amount-text-field"
             keyboardType="numeric"
             style={styles.input}
-            value={testCardNumber}
-            onChangeText={(value) => setTestCardNumber(value)}
-            placeholder="card number"
+            value={inputValues.amount}
+            onChangeText={(value) =>
+              setInputValues((state) => ({ ...state, amount: value }))
+            }
+            placeholder="amount"
           />
         </List>
-      )}
-      <List bolded={false} topSpacing={false} title="AMOUNT">
-        <TextInput
-          testID="amount-text-field"
-          keyboardType="numeric"
-          style={styles.input}
-          value={inputValues.amount}
-          onChangeText={(value) =>
-            setInputValues((state) => ({ ...state, amount: value }))
-          }
-          placeholder="amount"
-        />
-      </List>
-      <List bolded={false} topSpacing={false} title="CURRENCY">
-        <Picker
-          selectedValue={inputValues?.currency}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          testID="select-currency-picker"
-          onValueChange={(value) =>
-            setInputValues((state) => ({ ...state, currency: value }))
-          }
-        >
-          {CURRENCIES.map((a) => (
-            <Picker.Item
-              key={a.value}
-              label={a.label}
-              testID={a.value}
-              value={a.value}
-            />
-          ))}
-        </Picker>
-      </List>
-      <List bolded={false} topSpacing={false} title="CAPTURE METHOD">
-        <Picker
-          selectedValue={inputValues?.captureMethod}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          testID="select-capture-method-picker"
-          onValueChange={(value) =>
-            setInputValues((state) => ({ ...state, captureMethod: value }))
-          }
-        >
-          {CAPTURE_METHODS.map((a) => (
-            <Picker.Item
-              key={a.value}
-              label={a.label}
-              testID={a.value}
-              value={a.value}
-            />
-          ))}
-        </Picker>
-      </List>
-
-      <List bolded={false} topSpacing={false} title="INTERAC">
-        <ListItem
-          title="Enable Interac Present"
-          rightElement={
-            <Switch
-              testID="enable-interac"
-              value={enableInterac}
-              onValueChange={(value) => setEnableInterac(value)}
-            />
-          }
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
-        <Picker
-          selectedValue={inputValues?.requestedPriority}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          testID="select-routing-priority-picker"
-          onValueChange={(value) =>
-            setInputValues((state) => ({ ...state, requestedPriority: value }))
-          }
-        >
-          {ROUTING_PRIORITY.map((a) => (
-            <Picker.Item
-              key={a.value}
-              label={a.label}
-              testID={a.value}
-              value={a.value}
-            />
-          ))}
-        </Picker>
-      </List>
-
-      <List bolded={false} topSpacing={false} title="CONNECT">
-        <ListItem
-          title="Enable Connect"
-          rightElement={
-            <Switch
-              testID="enable-connect"
-              value={enableConnect}
-              onValueChange={(value) => setEnableConnect(value)}
-            />
-          }
-        />
-      </List>
-      {enableConnect && (
-        <>
-          <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
-            <TextInput
-              testID="destination-charge"
-              style={styles.input}
-              value={inputValues.connectedAccountId}
-              onChangeText={(value: string) =>
-                setInputValues((state) => ({
-                  ...state,
-                  connectedAccountId: value,
-                }))
-              }
-              placeholder="Connected Stripe Account ID"
-            />
-          </List>
-
-          <List
-            bolded={false}
-            topSpacing={false}
-            title="APPLICATION FEE AMOUNT"
-          >
-            <TextInput
-              testID="application-fee-amount"
-              style={styles.input}
-              value={inputValues.applicationFeeAmount}
-              onChangeText={(value: string) =>
-                setInputValues((state) => ({
-                  ...state,
-                  applicationFeeAmount: value,
-                }))
-              }
-              placeholder="Application Fee Amount"
-            />
-          </List>
-        </>
-      )}
-
-      <List bolded={false} topSpacing={false} title="SKIP TIPPING">
-        <ListItem
-          title="Skip Tipping"
-          rightElement={
-            <Switch
-              testID="skip-tipping"
-              value={skipTipping}
-              onValueChange={(value) => setSkipTipping(value)}
-            />
-          }
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="TIP-ELIGIBLE AMOUNT">
-        <TextInput
-          testID="tip-eligible-amount"
-          keyboardType={Platform.select({
-            ios: 'numbers-and-punctuation',
-            android: 'numeric',
-            default: 'numeric',
-          })}
-          style={styles.input}
-          value={tipEligibleAmount}
-          onChangeText={(value: string) => setTipEligibleAmount(value)}
-          placeholder="Tip-eligible amount"
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="EXTENDED AUTH">
-        <ListItem
-          title="Request Extended Authorization"
-          rightElement={
-            <Switch
-              testID="extended-auth"
-              value={inputValues.requestExtendedAuthorization}
-              onValueChange={(value) =>
-                setInputValues((state) => ({
-                  ...state,
-                  requestExtendedAuthorization: value,
-                }))
-              }
-            />
-          }
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="INCREMENTAL AUTH">
-        <ListItem
-          title="Request Incremental Authorization Support"
-          rightElement={
-            <Switch
-              testID="incremental-auth"
-              value={inputValues.requestIncrementalAuthorizationSupport}
-              onValueChange={(value) =>
-                setInputValues((state) => ({
-                  ...state,
-                  requestIncrementalAuthorizationSupport: value,
-                }))
-              }
-            />
-          }
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
-        <TextInput
-          testID="Surcharge Notice"
-          style={styles.input}
-          value={surchargeNotice}
-          onChangeText={(value: string) => setSurchargeNotice(value)}
-          placeholder="Surcharge Notice"
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
-        <TextInput
-          testID="Amount Surcharge"
-          keyboardType="numeric"
-          style={styles.input}
-          value={amountSurcharge}
-          onChangeText={(value: string) => setAmountSurcharge(value)}
-          placeholder="Amount Surcharge"
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
-        <ListItem
-          title="Enable Update PaymentIntent"
-          rightElement={
-            <Switch
-              testID="enable-update-paymentIntent"
-              value={enableUpdatePaymentIntent}
-              onValueChange={(value) => {
-                setEnableUpdatePaymentIntent(value);
-                if (!value) {
-                  setRequestDcc(false);
-                }
-              }}
-            />
-          }
-        />
-        <ListItem
-          visible={enableUpdatePaymentIntent}
-          testID="decline_card_brand"
-          onPress={() => {
-            setShowPicker(true);
-
-            // Android workaround for instant diplaying options list
-            setTimeout(() => {
-              pickerRef.current?.focus();
-            }, 100);
-          }}
-          title={declineCardBrand}
-        />
-        <ListItem
-          visible={enableUpdatePaymentIntent}
-          title="Recollect After Card Brand Decline"
-          rightElement={
-            <Switch
-              testID="enable-recollect"
-              value={recollectAfterCardBrandDecline}
-              onValueChange={(value) =>
-                setRecollectAfterCardBrandDecline(value)
-              }
-            />
-          }
-        />
-      </List>
-
-      {discoveryMethod === 'internet' && (
-        <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
-          <ListItem
-            title="Customer cancellation"
-            rightElement={
-              <Switch
-                testID="enable-cancellation"
-                value={enableCustomerCancellation}
-                onValueChange={(value) => setEnableCustomerCancellation(value)}
-              />
-            }
-          />
-          <ListItem
-            title="Request DCC (requires Update PaymentIntent)"
-            rightElement={
-              <Switch
-                disabled={!enableUpdatePaymentIntent}
-                testID="request-dynamic-currency-conversion"
-                value={requestDcc}
-                onValueChange={(value) => setRequestDcc(value)}
-              />
-            }
-          />
-        </List>
-      )}
-
-      <List
-        bolded={false}
-        topSpacing={false}
-        title="OFFLINE MODE TRANSACTION LIMIT"
-      >
-        <TextInput
-          testID="limit-text-field"
-          keyboardType="numeric"
-          style={styles.input}
-          value={inputValues.offlineModeTransactionLimit}
-          onChangeText={(value) =>
-            setInputValues((state) => ({
-              ...state,
-              offlineModeTransactionLimit: value,
-            }))
-          }
-          placeholder="amount"
-        />
-      </List>
-
-      <List
-        bolded={false}
-        topSpacing={false}
-        title="OFFLINE MODE STORED TRANSACTION LIMIT"
-      >
-        <TextInput
-          testID="store-limit-text-field"
-          keyboardType="numeric"
-          style={styles.input}
-          value={inputValues.offlineModeStoredTransactionLimit}
-          onChangeText={(value) =>
-            setInputValues((state) => ({
-              ...state,
-              offlineModeStoredTransactionLimit: value,
-            }))
-          }
-          placeholder="amount"
-        />
-      </List>
-
-      <List bolded={false} topSpacing={false} title="OFFLINE BEHAVIOR">
-        <Picker
-          selectedValue={inputValues?.offlineBehavior}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-          testID="select-offline-behavior-picker"
-          onValueChange={(value) =>
-            setInputValues((state) => ({ ...state, offlineBehavior: value }))
-          }
-        >
-          {OFFLINE_BEHAVIOR.map((a) => (
-            <Picker.Item
-              key={a.value}
-              label={a.label}
-              testID={a.value}
-              value={a.value}
-            />
-          ))}
-        </Picker>
-      </List>
-
-      <List
-        bolded={false}
-        topSpacing={false}
-        title={`${(Number(inputValues.amount) / 100).toFixed(2)} ${
-          inputValues.currency
-        }`}
-      >
-        <ListItem
-          color={colors.blue}
-          title="Collect payment"
-          onPress={_createPaymentIntent}
-        />
-        {simulated ? (
-          <Text style={styles.info}>
-            Collect a card payment using a simulated reader
-          </Text>
-        ) : (
-          <Text style={styles.info}>
-            Collect a card payment using a physical Stripe test card and reader
-          </Text>
-        )}
-      </List>
-      <Modal visible={showPicker} transparent>
-        <TouchableWithoutFeedback
-          testID="close-picker"
-          onPress={() => {
-            setShowPicker(false);
-          }}
-        >
-          <View style={styles.modalOverlay} />
-        </TouchableWithoutFeedback>
-
-        <View style={styles.pickerContainer} testID="picker-container">
+        <List bolded={false} topSpacing={false} title="CURRENCY">
           <Picker
-            selectedValue={declineCardBrand}
-            ref={pickerRef as any}
+            selectedValue={inputValues?.currency}
             style={styles.picker}
             itemStyle={styles.pickerItem}
-            onValueChange={(itemValue: string) => {
-              handleChangeDeclineCardBrand(itemValue);
-              if (Platform.OS === 'android') {
-                setShowPicker(false);
-              }
-            }}
+            testID="select-currency-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({ ...state, currency: value }))
+            }
           >
-            {DECLINE_CARD_BRAND.map((type) => (
-              <Picker.Item key={type} label={type} testID={type} value={type} />
+            {CURRENCIES.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
             ))}
           </Picker>
-        </View>
-      </Modal>
-    </KeyboardAwareScrollView>
+        </List>
+        <List bolded={false} topSpacing={false} title="CAPTURE METHOD">
+          <Picker
+            selectedValue={inputValues?.captureMethod}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-capture-method-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({ ...state, captureMethod: value }))
+            }
+          >
+            {CAPTURE_METHODS.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
+
+        <List bolded={false} topSpacing={false} title="INTERAC">
+          <ListItem
+            title="Enable Interac Present"
+            rightElement={
+              <Switch
+                testID="enable-interac"
+                value={enableInterac}
+                onValueChange={(value) => setEnableInterac(value)}
+              />
+            }
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="PAYMENT METHOD TYPES">
+          <ListItem
+            title={enabledPaymentMethodTypes.join(', ')}
+            testID="payment-method-button"
+            onPress={() =>
+              navigation.navigate('PaymentMethodSelectScreen', {
+                paymentMethodTypes: paymentMethodTypes,
+                enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+                onChange: (newPaymentMethodTypes: string[]) => {
+                  setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                },
+              })
+            }
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
+          <Picker
+            selectedValue={inputValues?.requestedPriority}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-routing-priority-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({
+                ...state,
+                requestedPriority: value,
+              }))
+            }
+          >
+            {ROUTING_PRIORITY.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
+
+        <List bolded={false} topSpacing={false} title="CONNECT">
+          <ListItem
+            title="Enable Connect"
+            rightElement={
+              <Switch
+                testID="enable-connect"
+                value={enableConnect}
+                onValueChange={(value) => setEnableConnect(value)}
+              />
+            }
+          />
+        </List>
+        {enableConnect && (
+          <>
+            <List bolded={false} topSpacing={false} title="DESTINATION CHARGE">
+              <TextInput
+                testID="destination-charge"
+                style={styles.input}
+                value={inputValues.connectedAccountId}
+                onChangeText={(value: string) =>
+                  setInputValues((state) => ({
+                    ...state,
+                    connectedAccountId: value,
+                  }))
+                }
+                placeholder="Connected Stripe Account ID"
+              />
+            </List>
+
+            <List
+              bolded={false}
+              topSpacing={false}
+              title="APPLICATION FEE AMOUNT"
+            >
+              <TextInput
+                testID="application-fee-amount"
+                style={styles.input}
+                value={inputValues.applicationFeeAmount}
+                onChangeText={(value: string) =>
+                  setInputValues((state) => ({
+                    ...state,
+                    applicationFeeAmount: value,
+                  }))
+                }
+                placeholder="Application Fee Amount"
+              />
+            </List>
+          </>
+        )}
+
+        <List bolded={false} topSpacing={false} title="SKIP TIPPING">
+          <ListItem
+            title="Skip Tipping"
+            rightElement={
+              <Switch
+                testID="skip-tipping"
+                value={skipTipping}
+                onValueChange={(value) => setSkipTipping(value)}
+              />
+            }
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="TIP-ELIGIBLE AMOUNT">
+          <TextInput
+            testID="tip-eligible-amount"
+            keyboardType={Platform.select({
+              ios: 'numbers-and-punctuation',
+              android: 'numeric',
+              default: 'numeric',
+            })}
+            style={styles.input}
+            value={tipEligibleAmount}
+            onChangeText={(value: string) => setTipEligibleAmount(value)}
+            placeholder="Tip-eligible amount"
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="EXTENDED AUTH">
+          <ListItem
+            title="Request Extended Authorization"
+            rightElement={
+              <Switch
+                testID="extended-auth"
+                value={inputValues.requestExtendedAuthorization}
+                onValueChange={(value) =>
+                  setInputValues((state) => ({
+                    ...state,
+                    requestExtendedAuthorization: value,
+                  }))
+                }
+              />
+            }
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="INCREMENTAL AUTH">
+          <ListItem
+            title="Request Incremental Authorization Support"
+            rightElement={
+              <Switch
+                testID="incremental-auth"
+                value={inputValues.requestIncrementalAuthorizationSupport}
+                onValueChange={(value) =>
+                  setInputValues((state) => ({
+                    ...state,
+                    requestIncrementalAuthorizationSupport: value,
+                  }))
+                }
+              />
+            }
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">
+          <TextInput
+            testID="Surcharge Notice"
+            style={styles.input}
+            value={surchargeNotice}
+            onChangeText={(value: string) => setSurchargeNotice(value)}
+            placeholder="Surcharge Notice"
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
+          <TextInput
+            testID="Amount Surcharge"
+            keyboardType="numeric"
+            style={styles.input}
+            value={amountSurcharge}
+            onChangeText={(value: string) => setAmountSurcharge(value)}
+            placeholder="Amount Surcharge"
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
+          <ListItem
+            title="Enable Update PaymentIntent"
+            rightElement={
+              <Switch
+                testID="enable-update-paymentIntent"
+                value={enableUpdatePaymentIntent}
+                onValueChange={(value) => {
+                  setEnableUpdatePaymentIntent(value);
+                  if (!value) {
+                    setRequestDcc(false);
+                  }
+                }}
+              />
+            }
+          />
+          <ListItem
+            visible={enableUpdatePaymentIntent}
+            testID="decline_card_brand"
+            onPress={() => {
+              setShowPicker(true);
+
+              // Android workaround for instant diplaying options list
+              setTimeout(() => {
+                pickerRef.current?.focus();
+              }, 100);
+            }}
+            title={declineCardBrand}
+          />
+          <ListItem
+            visible={enableUpdatePaymentIntent}
+            title="Recollect After Card Brand Decline"
+            rightElement={
+              <Switch
+                testID="enable-recollect"
+                value={recollectAfterCardBrandDecline}
+                onValueChange={(value) =>
+                  setRecollectAfterCardBrandDecline(value)
+                }
+              />
+            }
+          />
+        </List>
+
+        {discoveryMethod === 'internet' && (
+          <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
+            <ListItem
+              title="Customer cancellation"
+              rightElement={
+                <Switch
+                  testID="enable-cancellation"
+                  value={enableCustomerCancellation}
+                  onValueChange={(value) =>
+                    setEnableCustomerCancellation(value)
+                  }
+                />
+              }
+            />
+            <ListItem
+              title="Request DCC (requires Update PaymentIntent)"
+              rightElement={
+                <Switch
+                  disabled={!enableUpdatePaymentIntent}
+                  testID="request-dynamic-currency-conversion"
+                  value={requestDcc}
+                  onValueChange={(value) => setRequestDcc(value)}
+                />
+              }
+            />
+          </List>
+        )}
+
+        <List
+          bolded={false}
+          topSpacing={false}
+          title="OFFLINE MODE TRANSACTION LIMIT"
+        >
+          <TextInput
+            testID="limit-text-field"
+            keyboardType="numeric"
+            style={styles.input}
+            value={inputValues.offlineModeTransactionLimit}
+            onChangeText={(value) =>
+              setInputValues((state) => ({
+                ...state,
+                offlineModeTransactionLimit: value,
+              }))
+            }
+            placeholder="amount"
+          />
+        </List>
+
+        <List
+          bolded={false}
+          topSpacing={false}
+          title="OFFLINE MODE STORED TRANSACTION LIMIT"
+        >
+          <TextInput
+            testID="store-limit-text-field"
+            keyboardType="numeric"
+            style={styles.input}
+            value={inputValues.offlineModeStoredTransactionLimit}
+            onChangeText={(value) =>
+              setInputValues((state) => ({
+                ...state,
+                offlineModeStoredTransactionLimit: value,
+              }))
+            }
+            placeholder="amount"
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="OFFLINE BEHAVIOR">
+          <Picker
+            selectedValue={inputValues?.offlineBehavior}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-offline-behavior-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({ ...state, offlineBehavior: value }))
+            }
+          >
+            {OFFLINE_BEHAVIOR.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
+        <Modal visible={showPicker} transparent>
+          <TouchableWithoutFeedback
+            testID="close-picker"
+            onPress={() => {
+              setShowPicker(false);
+            }}
+          >
+            <View style={styles.modalOverlay} />
+          </TouchableWithoutFeedback>
+
+          <View style={styles.pickerContainer} testID="picker-container">
+            <Picker
+              selectedValue={declineCardBrand}
+              ref={pickerRef as any}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+              onValueChange={(itemValue: string) => {
+                handleChangeDeclineCardBrand(itemValue);
+                if (Platform.OS === 'android') {
+                  setShowPicker(false);
+                }
+              }}
+            >
+              {DECLINE_CARD_BRAND.map((type) => (
+                <Picker.Item
+                  key={type}
+                  label={type}
+                  testID={type}
+                  value={type}
+                />
+              ))}
+            </Picker>
+          </View>
+        </Modal>
+      </KeyboardAwareScrollView>
+      <View style={styles.footer}>
+        <List
+          bolded={false}
+          topSpacing={false}
+          title={`${(Number(inputValues.amount) / 100).toFixed(2)} ${
+            inputValues.currency
+          }`}
+        >
+          <ListItem
+            color={colors.blue}
+            title="Collect payment"
+            onPress={_createPaymentIntent}
+          />
+          {simulated ? (
+            <Text style={styles.info}>
+              Collect a card payment using a simulated reader
+            </Text>
+          ) : (
+            <Text style={styles.info}>
+              Collect a card payment using a physical Stripe test card and
+              reader
+            </Text>
+          )}
+        </List>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollContainer: {
     backgroundColor: colors.light_gray,
     paddingVertical: 22,
     flexGrow: 1,
@@ -1056,5 +1101,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  footer: {
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

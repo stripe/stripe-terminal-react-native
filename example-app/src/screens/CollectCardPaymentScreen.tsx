@@ -15,6 +15,10 @@ import { LogContext } from '../components/LogContext';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  DEFAULT_ENABLED_PAYMENT_METHOD_TYPES,
+  PAYMENT_METHOD_TYPES,
+} from '../util/paymentMethodTypes';
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
@@ -78,6 +82,10 @@ export default function CollectCardPaymentScreen() {
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
+  const paymentMethodTypes = PAYMENT_METHOD_TYPES;
+  const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
+    DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
+  );
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
@@ -130,9 +138,12 @@ export default function CollectCardPaymentScreen() {
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
     });
-    const paymentMethods = ['card_present'];
-    if (enableInterac) {
-      paymentMethods.push('interac_present');
+    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
+    if (
+      enableInterac &&
+      !resolvedPaymentMethodTypes.includes('interac_present')
+    ) {
+      resolvedPaymentMethodTypes.push('interac_present');
     }
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
@@ -152,7 +163,7 @@ export default function CollectCardPaymentScreen() {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: paymentMethods,
+        payment_method_types: resolvedPaymentMethodTypes,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,
@@ -205,7 +216,7 @@ export default function CollectCardPaymentScreen() {
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: paymentMethods,
+        paymentMethodTypes: resolvedPaymentMethodTypes,
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount
@@ -506,6 +517,22 @@ export default function CollectCardPaymentScreen() {
               value={enableInterac}
               onValueChange={(value) => setEnableInterac(value)}
             />
+          }
+        />
+      </List>
+
+      <List bolded={false} topSpacing={false} title="PAYMENT METHOD TYPES">
+        <ListItem
+          title={enabledPaymentMethodTypes.join(', ')}
+          testID="payment-method-button"
+          onPress={() =>
+            navigation.navigate('PaymentMethodSelectScreen', {
+              paymentMethodTypes: paymentMethodTypes,
+              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+              onChange: (newPaymentMethodTypes: string[]) => {
+                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+              },
+            })
           }
         />
       </List>
