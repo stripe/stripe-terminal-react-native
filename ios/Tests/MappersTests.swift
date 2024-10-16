@@ -60,15 +60,15 @@ final class MappersTests: XCTestCase {
         guard
             let skipped = result["skipped"] as? Bool,
             let toggles = result["toggles"] as? [String],
-            let text = result["text"] as? String else {
-            XCTFail("CollectInput TestResult should have had text, skipped and toggles")
+            let text = result["formType"] as? String else {
+            XCTFail("CollectInput TestResult should have had formType, skipped and toggles")
             return
         }
         XCTAssertFalse(skipped)
         XCTAssertEqual(toggles.count, 2)
         XCTAssertEqual(toggles[0], "enabled")
         XCTAssertEqual(toggles[1], "skipped")
-        XCTAssertEqual(text, "Written text from the reader")
+        XCTAssertEqual(text, "text")
         
         output = Mappers.mapFromCollectInputsResults([
             numericResult, phoneResult, emailResult, selectionResult, signatureResult
@@ -78,89 +78,24 @@ final class MappersTests: XCTestCase {
         
         results = output["collectInputResults"] as! [NSDictionary]
         
-        let testNumericString = "numericString"
-        let testPhone = "phone"
-        let testEmail = "email"
-        let testSelection = "selection"
-        let testSignatureSvg = "signatureSvg"
         XCTAssertEqual(results.count, 5)
-        XCTAssertTrue(results[0][testNumericString] != nil)
-        XCTAssertTrue(results[1][testPhone] != nil)
-        XCTAssertTrue(results[2][testEmail] != nil)
-        XCTAssertTrue(results[3][testSelection] != nil)
-        XCTAssertTrue(results[4][testSignatureSvg] != nil)
+        XCTAssertTrue(results[0]["formType"] as! String == "numeric")
+        XCTAssertTrue(results[1]["formType"] as! String == "phone")
+        XCTAssertTrue(results[2]["formType"] as! String == "email")
+        XCTAssertTrue(results[3]["formType"] as! String == "selection")
+        XCTAssertTrue(results[4]["formType"] as! String == "signature")
             
         for result in results {
-            if ((result.object(forKey: testNumericString)) != nil) {
-                guard
-                    let skipped = result["skipped"] as? Bool,
-                    let toggles = result["toggles"] as? [String],
-                    let numericString = result[testNumericString] as? String else {
-                    XCTFail("CollectInput NumericResult should have had numericString, skipped and toggles")
-                    return
-                }
-                XCTAssertFalse(skipped)
-                XCTAssertEqual(toggles.count, 2)
-                XCTAssertEqual(toggles[0], "enabled")
-                XCTAssertEqual(toggles[1], "skipped")
-                XCTAssertEqual(numericString, "123456")
+            guard
+                let skipped = result["skipped"] as? Bool,
+                let toggles = result["toggles"] as? [String] else {
+                XCTFail("CollectInput should have had skipped and toggles")
+                return
             }
-            if ((result.object(forKey: testPhone)) != nil) {
-                guard
-                    let skipped = result["skipped"] as? Bool,
-                    let toggles = result["toggles"] as? [String],
-                    let phone = result[testPhone] as? String else {
-                    XCTFail("CollectInput PhoneResult should have had phone, skipped and toggles")
-                    return
-                }
-                XCTAssertFalse(skipped)
-                XCTAssertEqual(toggles.count, 2)
-                XCTAssertEqual(toggles[0], "enabled")
-                XCTAssertEqual(toggles[1], "skipped")
-                XCTAssertEqual(phone, "+1 425-555-1234")
-            }
-            if ((result.object(forKey: testEmail)) != nil) {
-                guard
-                    let skipped = result["skipped"] as? Bool,
-                    let toggles = result["toggles"] as? [String],
-                    let email = result[testEmail] as? String else {
-                    XCTFail("CollectInput EmailResult should have had email, skipped and toggles")
-                    return
-                }
-                XCTAssertFalse(skipped)
-                XCTAssertEqual(toggles.count, 2)
-                XCTAssertEqual(toggles[0], "enabled")
-                XCTAssertEqual(toggles[1], "skipped")
-                XCTAssertEqual(email, "unit.test@abc.com")
-            }
-            if ((result.object(forKey: testSelection)) != nil) {
-                guard
-                    let skipped = result["skipped"] as? Bool,
-                    let toggles = result["toggles"] as? [String],
-                    let selection = result[testSelection] as? String else {
-                    XCTFail("CollectInput SelectionResult should have had selection, skipped and toggles")
-                    return
-                }
-                XCTAssertFalse(skipped)
-                XCTAssertEqual(toggles.count, 2)
-                XCTAssertEqual(toggles[0], "enabled")
-                XCTAssertEqual(toggles[1], "skipped")
-                XCTAssertEqual(selection, "Yes")
-            }
-            if ((result.object(forKey: testSignatureSvg)) != nil) {
-                guard
-                    let skipped = result["skipped"] as? Bool,
-                    let toggles = result["toggles"] as? [String],
-                    let signatureSvg = result[testSignatureSvg] as? String else {
-                    XCTFail("CollectInput SignatureResult should have had signatureSvg, skipped and toggles")
-                    return
-                }
-                XCTAssertFalse(skipped)
-                XCTAssertEqual(toggles.count, 2)
-                XCTAssertEqual(toggles[0], "enabled")
-                XCTAssertEqual(toggles[1], "skipped")
-                XCTAssertEqual(signatureSvg, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 974 943\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"10\" stroke=\"black\"><g><path d=\"M468.5171463.52472 L468.5171 463.52472 \"/></g></svg>")
-            }
+            XCTAssertFalse(skipped)
+            XCTAssertEqual(toggles.count, 2)
+            XCTAssertEqual(toggles[0], "enabled")
+            XCTAssertEqual(toggles[1], "skipped")
         }
     }
 }

@@ -449,12 +449,7 @@ export interface ICollectInputsResults {
 
 export interface ICollectInputsResult {
   skipped: boolean;
-  email?: string;
-  numericString?: string;
-  phone?: string;
-  selection?: string;
-  signatureSvg?: string;
-  text?: string;
+  formType: FormType;
   toggles: ToggleResult[];
 }
 
