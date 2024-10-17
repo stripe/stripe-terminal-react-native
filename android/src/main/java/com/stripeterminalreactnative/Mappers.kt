@@ -821,6 +821,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 is EmailResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
+                        putString("email", it.email)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",
@@ -836,6 +837,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 is NumericResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
+                        putString("numericString", it.numericString)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",
@@ -851,6 +853,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 is PhoneResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
+                        putString("phone", it.phone)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",
@@ -866,6 +869,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 is SelectionResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
+                        putString("selection", it.selection)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",
@@ -881,6 +885,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 is SignatureResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
+                        putString("signatureSvg", it.signatureSvg)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",
@@ -896,6 +901,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                 is TextResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
+                        putString("text", it.text)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",

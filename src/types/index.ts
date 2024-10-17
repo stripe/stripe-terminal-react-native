@@ -453,6 +453,42 @@ export interface ICollectInputsResult {
   toggles: ToggleResult[];
 }
 
+// Contains data collected from a selection form
+export interface SelectionResult extends ICollectInputsResult {
+  // selected button. Null if the form was skipped.
+  selection?: string | null;
+}
+
+// Contains data collected from a signature form
+export interface SignatureResult extends ICollectInputsResult {
+  // signature in svg format. Null if the form was skipped.
+  signatureSvg?: string | null;
+}
+
+// Contains data collected from a phone form
+export interface PhoneResult extends ICollectInputsResult {
+  // the submitted phone number in E.164 format. Null if the form was skipped.
+  phone?: string | null;
+}
+
+// Contains data collected from an email form
+export interface EmailResult extends ICollectInputsResult {
+  // the submitted email. Null if the form was skipped.
+  email?: string | null;
+}
+
+// Contains data collected from a text form
+export interface TextResult extends ICollectInputsResult {
+  // the submitted text. Null if the form was skipped.
+  text?: string | null;
+}
+
+// Contains data collected from an email form
+export interface NumericResult extends ICollectInputsResult {
+  // the submitted number as a string. Null if the form was skipped.
+  numericString?: string | null;
+}
+
 export interface ISelectionButton {
   style: SelectionButtonStyle;
   text: string;

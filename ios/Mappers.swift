@@ -876,27 +876,27 @@ class Mappers {
         for result in results {
             if result is EmailResult {
                 let result = result as! EmailResult
-                var emailResult: NSDictionary = ["skipped": result.skipped, "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(emailResult)
             } else if result is PhoneResult {
                 let result = result as! PhoneResult
-                var phoneResult: NSDictionary = ["skipped": result.skipped, "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(phoneResult)
             } else if result is TextResult {
                 let result = result as! TextResult
-                var textResult: NSDictionary = ["skipped": result.skipped, "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(textResult)
             } else if result is NumericResult {
                 let result = result as! NumericResult
-                var numericResult: NSDictionary = ["skipped": result.skipped, "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(numericResult)
             } else if result is SignatureResult {
                 let result = result as! SignatureResult
-                var signatureResult: NSDictionary = ["skipped": result.skipped, "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(signatureResult)
             } else if result is SelectionResult {
                 let result = result as! SelectionResult
-                var selectionResult: NSDictionary = ["skipped": result.skipped, "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(selectionResult)
             }
         }
