@@ -60,14 +60,16 @@ final class MappersTests: XCTestCase {
         guard
             let skipped = result["skipped"] as? Bool,
             let toggles = result["toggles"] as? [String],
+            let formType = result["formType"] as? String,
             let text = result["text"] as? String else {
-            XCTFail("CollectInput TestResult should have had text, skipped and toggles")
+            XCTFail("CollectInput TestResult should have had text, formType, skipped and toggles")
             return
         }
         XCTAssertFalse(skipped)
         XCTAssertEqual(toggles.count, 2)
         XCTAssertEqual(toggles[0], "enabled")
         XCTAssertEqual(toggles[1], "skipped")
+        XCTAssertEqual(formType, "text")
         XCTAssertEqual(text, "Written text from the reader")
         
         output = Mappers.mapFromCollectInputsResults([
@@ -89,6 +91,12 @@ final class MappersTests: XCTestCase {
         XCTAssertTrue(results[2][testEmail] != nil)
         XCTAssertTrue(results[3][testSelection] != nil)
         XCTAssertTrue(results[4][testSignatureSvg] != nil)
+        
+        XCTAssertTrue(results[0]["formType"] as! String == "numeric")
+        XCTAssertTrue(results[1]["formType"] as! String == "phone")
+        XCTAssertTrue(results[2]["formType"] as! String == "email")
+        XCTAssertTrue(results[3]["formType"] as! String == "selection")
+        XCTAssertTrue(results[4]["formType"] as! String == "signature")
             
         for result in results {
             if ((result.object(forKey: testNumericString)) != nil) {

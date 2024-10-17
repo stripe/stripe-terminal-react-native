@@ -66,7 +66,8 @@ import com.stripe.stripeterminal.external.models.Wallet
 import com.stripe.stripeterminal.external.models.WechatPayDetails
 import com.stripe.stripeterminal.log.LogLevel
 
-internal fun getInt(map: ReadableMap, key: String): Int? = if (map.hasKey(key)) map.getInt(key) else null
+internal fun getInt(map: ReadableMap, key: String): Int? =
+    if (map.hasKey(key)) map.getInt(key) else null
 
 internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
     if (map?.hasKey(key) == true) map.getBoolean(key) else false
@@ -200,50 +201,65 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
 }
 
 @OptIn(OfflineMode::class)
-internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap = nativeMapOf {
-    putString("id", paymentIntent.id)
-    putInt("amount", paymentIntent.amount.toInt())
-    putString("captureMethod", paymentIntent.captureMethod)
-    putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
-    putString("created", convertToUnixTimestamp(paymentIntent.created))
-    putString("currency", paymentIntent.currency)
-    putMap(
-        "metadata",
-        nativeMapOf {
-            paymentIntent.metadata?.map {
-                putString(it.key, it.value)
-            }
-        }
-    )
-    putString("statementDescriptor", paymentIntent.statementDescriptor)
-    putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
-    putMap("amountDetails", mapFromAmountDetails(paymentIntent.amountDetails))
-    putInt("amountTip", paymentIntent.amountTip?.toInt() ?: 0)
-    putString("statementDescriptorSuffix", paymentIntent.statementDescriptorSuffix)
-    putString("sdkUuid", uuid)
-    putString("paymentMethodId", paymentIntent.paymentMethodId)
-    putMap("paymentMethod", paymentIntent.paymentMethod?.let { mapFromPaymentMethod(it) })
-    putMap("offlineDetails", mapFromOfflineDetails(paymentIntent.offlineDetails))
-    putMap("paymentMethodOptions",mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions))
-}
-
-internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOptions?): ReadableMap? = paymentMethodOptions?.let {
+internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap =
     nativeMapOf {
+        putString("id", paymentIntent.id)
+        putInt("amount", paymentIntent.amount.toInt())
+        putString("captureMethod", paymentIntent.captureMethod)
+        putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+        putString("created", convertToUnixTimestamp(paymentIntent.created))
+        putString("currency", paymentIntent.currency)
         putMap(
-            "cardPresent",
+            "metadata",
             nativeMapOf {
-                putBoolean("requestExtendedAuthorization", it.cardPresent?.requestExtendedAuthorization ?: false)
-                putBoolean("requestIncrementalAuthorizationSupport",it.cardPresent?.requestIncrementalAuthorizationSupport ?: false)
-                putMap("surcharge",
-                    nativeMapOf{
-                        putString("status",it.cardPresent?.surcharge?.status)
-                        putIntOrNull(this,"maximumAmount",it.cardPresent?.surcharge?.maximumAmount?.toInt())
-                    }
-                )
+                paymentIntent.metadata?.map {
+                    putString(it.key, it.value)
+                }
             }
         )
+        putString("statementDescriptor", paymentIntent.statementDescriptor)
+        putString("status", mapFromPaymentIntentStatus(paymentIntent.status))
+        putMap("amountDetails", mapFromAmountDetails(paymentIntent.amountDetails))
+        putInt("amountTip", paymentIntent.amountTip?.toInt() ?: 0)
+        putString("statementDescriptorSuffix", paymentIntent.statementDescriptorSuffix)
+        putString("sdkUuid", uuid)
+        putString("paymentMethodId", paymentIntent.paymentMethodId)
+        putMap("paymentMethod", paymentIntent.paymentMethod?.let { mapFromPaymentMethod(it) })
+        putMap("offlineDetails", mapFromOfflineDetails(paymentIntent.offlineDetails))
+        putMap(
+            "paymentMethodOptions",
+            mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions)
+        )
     }
-}
+
+internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOptions?): ReadableMap? =
+    paymentMethodOptions?.let {
+        nativeMapOf {
+            putMap(
+                "cardPresent",
+                nativeMapOf {
+                    putBoolean(
+                        "requestExtendedAuthorization",
+                        it.cardPresent?.requestExtendedAuthorization ?: false
+                    )
+                    putBoolean(
+                        "requestIncrementalAuthorizationSupport",
+                        it.cardPresent?.requestIncrementalAuthorizationSupport ?: false
+                    )
+                    putMap("surcharge",
+                        nativeMapOf {
+                            putString("status", it.cardPresent?.surcharge?.status)
+                            putIntOrNull(
+                                this,
+                                "maximumAmount",
+                                it.cardPresent?.surcharge?.maximumAmount?.toInt()
+                            )
+                        }
+                    )
+                }
+            )
+        }
+    }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
     putString("created", convertToUnixTimestamp(setupIntent.created))
@@ -259,7 +275,7 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): Readabl
     putMap(
         "metadata",
         nativeMapOf {
-            setupIntent.metadata?.map {
+            setupIntent.metadata.map {
                 putString(it.key, it.value)
             }
         }
@@ -688,7 +704,11 @@ internal fun mapFromWallet(wallet: Wallet?): ReadableMap =
 
 private fun convertListToReadableArray(list: List<String>?): ReadableArray? {
     return list?.let {
-        WritableNativeArray().apply { for (item in list) { pushString(item) } }
+        WritableNativeArray().apply {
+            for (item in list) {
+                pushString(item)
+            }
+        }
     }
 }
 
@@ -754,7 +774,9 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
         DisconnectReason.CRITICALLY_LOW_BATTERY -> "criticallyLowBattery"
         DisconnectReason.POWERED_OFF -> "poweredOff"
         DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
-        else -> { "unknown" }
+        else -> {
+            "unknown"
+        }
     }
 }
 
@@ -780,6 +802,18 @@ internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
 }
 
 @OptIn(CollectInputs::class)
+private fun CollectInputsResult.getFormType(): String {
+    return when (this) {
+        is EmailResult -> "email"
+        is NumericResult -> "numeric"
+        is PhoneResult -> "phone"
+        is SelectionResult -> "selection"
+        is SignatureResult -> "signature"
+        is TextResult -> "text"
+    }
+}
+
+@OptIn(CollectInputs::class)
 fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArray {
     return nativeArrayOf {
         results.forEach {
@@ -788,6 +822,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("email", it.email)
+                        putString("formType", it.getFormType())
                         putArray(
                             "toggles",
                             nativeArrayOf {
@@ -798,10 +833,12 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                         )
                     }
                 )
+
                 is NumericResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("numericString", it.numericString)
+                        putString("formType", it.getFormType())
                         putArray(
                             "toggles",
                             nativeArrayOf {
@@ -812,10 +849,12 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                         )
                     }
                 )
+
                 is PhoneResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("phone", it.phone)
+                        putString("formType", it.getFormType())
                         putArray(
                             "toggles",
                             nativeArrayOf {
@@ -826,10 +865,12 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                         )
                     }
                 )
+
                 is SelectionResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("selection", it.selection)
+                        putString("formType", it.getFormType())
                         putArray(
                             "toggles",
                             nativeArrayOf {
@@ -840,10 +881,12 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                         )
                     }
                 )
+
                 is SignatureResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("signatureSvg", it.signatureSvg)
+                        putString("formType", it.getFormType())
                         putArray(
                             "toggles",
                             nativeArrayOf {
@@ -854,10 +897,12 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                         )
                     }
                 )
+
                 is TextResult -> pushMap(
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("text", it.text)
+                        putString("formType", it.getFormType())
                         putArray(
                             "toggles",
                             nativeArrayOf {
@@ -879,7 +924,9 @@ fun mapFromToggleResult(toggleResult: ToggleResult): String {
         ToggleResult.ENABLED -> "enabled"
         ToggleResult.DISABLED -> "disabled"
         ToggleResult.SKIPPED -> "skipped"
-        else -> { "unknown" }
+        else -> {
+            "unknown"
+        }
     }
 }
 
@@ -895,7 +942,9 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
         BatteryStatus.LOW -> "LOW"
         BatteryStatus.NOMINAL -> "NOMINAL"
         BatteryStatus.UNKNOWN -> "UNKNOWN"
-        else -> { "UNKNOWN" }
+        else -> {
+            "UNKNOWN"
+        }
     }
 }
 
