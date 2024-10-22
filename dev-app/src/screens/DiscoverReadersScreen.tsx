@@ -541,5 +541,10 @@ function mapToPlanDisplayName(plan: string) {
 }
 
 function shouldShowDiscoverError(error: StripeError) {
-  return error.code.toString() != 'USER_ERROR.CANCELED';
+  if (Platform.OS === 'android') {
+    return error.code.toString() != 'USER_ERROR.CANCELED';
+  } else if (Platform.OS === 'ios') {
+    return error.code.toString() != 'Canceled';
+  }
+  return true;
 }
