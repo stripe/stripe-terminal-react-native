@@ -364,6 +364,7 @@ export default function DiscoverReadersScreen() {
       {!simulated &&
         (discoveryMethod === 'bluetoothScan' ||
           discoveryMethod === 'usb' ||
+          discoveryMethod === 'localMobile' ||
           discoveryMethod === 'bluetoothProximity') && (
           <List
             bolded={false}
