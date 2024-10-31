@@ -3,3 +3,7 @@ source 'https://rubygems.org'
 ruby '3.2.3'
 gem 'cocoapods', '~> 1.15.2'
 gem 'activesupport', '>= 6.1.7.3', '< 7.1.0'
+
+# https://discuss.bitrise.io/t/sandbox-file-write-create-errors-after-the-xcodeproj-gem-was-auto-updated-to-1-26-0/24643
+# might remove after upgrade to rn 0.76
+gem 'xcodeproj', '1.25.1'
