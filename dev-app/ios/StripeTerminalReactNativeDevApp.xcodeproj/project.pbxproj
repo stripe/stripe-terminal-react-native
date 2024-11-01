@@ -12,6 +12,7 @@
 		2400A4F4282272D1005D6199 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2400A4F3282272D1005D6199 /* AppDelegate.mm */; };
 		24C7E187271805C30025FC13 /* Empty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E186271805C30025FC13 /* Empty.swift */; };
 		4C39C56BAD484C67AA576FFA /* libPods-StripeTerminalReactNativeDevApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */; };
+		53B2CFB5C1C79A99D634B413 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = EC851FEE79120C52E22FDDCB /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 		C251B19429BC224000E3E4A2 /* stripe_terminal_react_native_dev_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = stripe_terminal_react_native_dev_app.entitlements; sourceTree = "<group>"; };
 		CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StripeTerminalReactNativeDevApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E00ACF0FDA8BF921659E2F9A /* Pods-StripeTerminalReactNativeDevApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StripeTerminalReactNativeDevApp.release.xcconfig"; path = "Target Support Files/Pods-StripeTerminalReactNativeDevApp/Pods-StripeTerminalReactNativeDevApp.release.xcconfig"; sourceTree = "<group>"; };
+		EC851FEE79120C52E22FDDCB /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = StripeTerminalReactNativeDevApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -56,6 +58,7 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				24C7E185271805C30025FC13 /* StripeTerminalReactNativeDevApp-Bridging-Header.h */,
+				EC851FEE79120C52E22FDDCB /* PrivacyInfo.xcprivacy */,
 			);
 			name = StripeTerminalReactNativeDevApp;
 			sourceTree = "<group>";
@@ -173,6 +176,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				53B2CFB5C1C79A99D634B413 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,11 +246,13 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-StripeTerminalReactNativeDevApp/Pods-StripeTerminalReactNativeDevApp-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/RNCAsyncStorage/RNCAsyncStorage_resources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/RCTI18nStrings.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNCAsyncStorage_resources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCTI18nStrings.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -324,7 +330,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "$(SRCROOT)/stripe_terminal_react_native_dev_app.entitlements";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Y28TH9SHX7;
+				DEVELOPMENT_TEAM = N9QL4JY23N;
 				INFOPLIST_FILE = StripeTerminalReactNativeDevApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -333,7 +339,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.terminal.reactnative.dev.app;
 				PRODUCT_NAME = StripeTerminalReactNativeDevApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "StripeTerminalReactNativeDevApp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -346,7 +352,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -402,13 +408,10 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -417,7 +420,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -468,13 +471,10 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-Wl",
-					"-ld_classic",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
