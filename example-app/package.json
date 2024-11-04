@@ -29,7 +29,7 @@
     "expo": "~51.0.31",
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
-    "jest": "^29.2.1",
+    "jest": "^29.7.0",
     "postinstall-postinstall": "^2.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -53,5 +53,6 @@
     "stripe": "^8.181.0",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "packageManager": "yarn@3.6.4"
 }
