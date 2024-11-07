@@ -2,7 +2,7 @@ package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
-import com.stripe.stripeterminal.external.callable.ReaderListener
+import com.stripe.stripeterminal.external.callable.MobileReaderListener
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.ReaderEvent
@@ -34,7 +34,7 @@ import com.stripeterminalreactnative.putDoubleOrNull
 class RNBluetoothReaderListener(
     private val context: ReactApplicationContext,
     private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
-) : ReaderListener {
+) : MobileReaderListener {
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
             putMap("result", mapFromReaderSoftwareUpdate(update))

@@ -352,7 +352,7 @@ export type OfflineStatus = {
 
 export type ReaderEvent = 'cardInserted' | 'cardRemoved';
 
-export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected';
+export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected' | 'discovering';
 
 /**
  * @ignore
