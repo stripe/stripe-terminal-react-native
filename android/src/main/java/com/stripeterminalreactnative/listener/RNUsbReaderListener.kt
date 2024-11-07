@@ -2,25 +2,10 @@ package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
-import com.stripe.stripeterminal.external.callable.ReaderListener
-import com.stripe.stripeterminal.external.models.BatteryStatus
-import com.stripe.stripeterminal.external.models.DisconnectReason
-import com.stripe.stripeterminal.external.models.ReaderEvent
-import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
-import com.stripe.stripeterminal.external.models.ReaderInputOptions
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
-import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripe.stripeterminal.external.callable.MobileReaderListener
+import com.stripe.stripeterminal.external.models.*
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
-import com.stripeterminalreactnative.ReactNativeConstants.DISCONNECT
-import com.stripeterminalreactnative.ReactNativeConstants.FINISH_INSTALLING_UPDATE
-import com.stripeterminalreactnative.ReactNativeConstants.REPORT_AVAILABLE_UPDATE
-import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UPDATE_PROGRESS
-import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE
-import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
-import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
-import com.stripeterminalreactnative.ReactNativeConstants.UPDATE_BATTERY_LEVEL
-import com.stripeterminalreactnative.ReactNativeConstants.REPORT_LOW_BATTERY_WARNING
-import com.stripeterminalreactnative.ReactNativeConstants.REPORT_READER_EVENT
+import com.stripeterminalreactnative.ReactNativeConstants.*
 import com.stripeterminalreactnative.mapFromBatteryStatus
 import com.stripeterminalreactnative.mapFromReaderDisconnectReason
 import com.stripeterminalreactnative.mapFromReaderDisplayMessage
@@ -34,7 +19,8 @@ import com.stripeterminalreactnative.putDoubleOrNull
 class RNUsbReaderListener(
     private val context: ReactApplicationContext,
     private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
-) : ReaderListener {
+) : MobileReaderListener {
+
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
             putMap("result", mapFromReaderSoftwareUpdate(update))

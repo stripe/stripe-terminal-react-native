@@ -3,8 +3,9 @@ package com.stripeterminalreactnative.listener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
+import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.TerminalException.TerminalErrorCode
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.READER_RECONNECT_FAIL
 import com.stripeterminalreactnative.ReactNativeConstants.READER_RECONNECT_SUCCEED
@@ -29,7 +30,11 @@ class RNReaderReconnectionListener(
         }
     }
 
-    override fun onReaderReconnectStarted(reader: Reader, cancelReconnect: Cancelable) {
+    override fun onReaderReconnectStarted(
+        reader: Reader,
+        cancelReconnect: Cancelable,
+        reason: DisconnectReason
+    ) {
         onReaderReconnectStarted(cancelReconnect)
         context.sendEvent(START_READER_RECONNECT.listenerName) {
             putMap("reader", mapFromReader(reader))

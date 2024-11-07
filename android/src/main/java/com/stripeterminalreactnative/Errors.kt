@@ -3,8 +3,8 @@ package com.stripeterminalreactnative
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
-import com.stripe.stripeterminal.external.models.TerminalException.TerminalErrorCode
 import kotlinx.coroutines.CancellationException
 import kotlin.jvm.Throws
 

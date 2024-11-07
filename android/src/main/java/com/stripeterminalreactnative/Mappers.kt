@@ -8,62 +8,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
-import com.stripe.stripeterminal.external.models.Address
-import com.stripe.stripeterminal.external.models.AmountDetails
-import com.stripe.stripeterminal.external.models.BatteryStatus
-import com.stripe.stripeterminal.external.models.CardDetails
-import com.stripe.stripeterminal.external.models.CardPresentDetails
-import com.stripe.stripeterminal.external.models.CartLineItem
-import com.stripe.stripeterminal.external.models.Charge
-import com.stripe.stripeterminal.external.models.CollectDataType
-import com.stripe.stripeterminal.external.models.CollectedData
-import com.stripe.stripeterminal.external.models.CollectInputsResult
-import com.stripe.stripeterminal.external.models.ConnectionStatus
-import com.stripe.stripeterminal.external.models.DeviceType
-import com.stripe.stripeterminal.external.models.DisconnectReason
-import com.stripe.stripeterminal.external.models.EmailResult
-import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
-import com.stripe.stripeterminal.external.models.Location
-import com.stripe.stripeterminal.external.models.LocationStatus
-import com.stripe.stripeterminal.external.models.NetworkStatus
-import com.stripe.stripeterminal.external.models.NumericResult
-import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
-import com.stripe.stripeterminal.external.models.OfflineDetails
-import com.stripe.stripeterminal.external.models.OfflineStatus
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentStatus
-import com.stripe.stripeterminal.external.models.PaymentMethod
-import com.stripe.stripeterminal.external.models.PaymentMethodDetails
-import com.stripe.stripeterminal.external.models.PaymentMethodOptions
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.PaymentStatus
-import com.stripe.stripeterminal.external.models.PhoneResult
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.ReaderAccessibility
-import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
-import com.stripe.stripeterminal.external.models.ReaderEvent
-import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
-import com.stripe.stripeterminal.external.models.ReaderSettings
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
-import com.stripe.stripeterminal.external.models.ReaderSupportResult
-import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
-import com.stripe.stripeterminal.external.models.ReceiptDetails
-import com.stripe.stripeterminal.external.models.Refund
-import com.stripe.stripeterminal.external.models.SelectionResult
-import com.stripe.stripeterminal.external.models.SetupAttempt
-import com.stripe.stripeterminal.external.models.SetupAttemptStatus
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
-import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
-import com.stripe.stripeterminal.external.models.SetupIntentStatus
-import com.stripe.stripeterminal.external.models.SetupIntentUsage
-import com.stripe.stripeterminal.external.models.SignatureResult
-import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
-import com.stripe.stripeterminal.external.models.TextResult
-import com.stripe.stripeterminal.external.models.ToggleResult
-import com.stripe.stripeterminal.external.models.Wallet
-import com.stripe.stripeterminal.external.models.WechatPayDetails
 import com.stripe.stripeterminal.log.LogLevel
 
 internal fun getInt(map: ReadableMap, key: String): Int? =
@@ -143,7 +89,6 @@ internal fun mapFromDeviceType(type: DeviceType): String {
     return when (type) {
         DeviceType.CHIPPER_1X -> "chipper1X"
         DeviceType.CHIPPER_2X -> "chipper2X"
-        DeviceType.COTS_DEVICE -> "cotsDevice"
         DeviceType.ETNA -> "etna"
         DeviceType.STRIPE_M2 -> "stripeM2"
         DeviceType.STRIPE_S700 -> "stripeS700"
@@ -157,6 +102,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.WISEPAD_3S -> "wisePad3s"
         DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISEPOS_E_DEVKIT -> "wisePosEDevkit"
+        DeviceType.TAP_TO_PAY_DEVICE -> "tapToPayDevice"
     }
 }
 
@@ -164,7 +110,6 @@ internal fun mapToDeviceType(type: String): DeviceType? {
     return when (type) {
         "chipper1X" -> DeviceType.CHIPPER_1X
         "chipper2X" -> DeviceType.CHIPPER_2X
-        "cotsDevice" -> DeviceType.COTS_DEVICE
         "etna" -> DeviceType.ETNA
         "stripeM2" -> DeviceType.STRIPE_M2
         "stripeS700" -> DeviceType.STRIPE_S700
@@ -177,6 +122,7 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         "wisePad3s" -> DeviceType.WISEPAD_3S
         "wisePosE" -> DeviceType.WISEPOS_E
         "wisePosEDevkit" -> DeviceType.WISEPOS_E_DEVKIT
+        "tapToPayDevice" -> DeviceType.TAP_TO_PAY_DEVICE
         else -> null
     }
 }
@@ -449,6 +395,7 @@ internal fun mapFromConnectionStatus(status: ConnectionStatus): String {
         ConnectionStatus.CONNECTED -> "connected"
         ConnectionStatus.NOT_CONNECTED -> "notConnected"
         ConnectionStatus.CONNECTING -> "connecting"
+        ConnectionStatus.DISCOVERING -> "discovering"
     }
 }
 
@@ -492,18 +439,18 @@ internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): Writabl
             putString("deviceSoftwareVersion", it.version)
             putString(
                 "estimatedUpdateTime",
-                mapFromUpdateTimeEstimate(it.timeEstimate)
+                mapFromUpdateTimeEstimate(it.durationEstimate)
             )
-            putString("requiredAt", it.requiredAt.time.toString())
+            putString("requiredAt", it.requiredAtMs.toString())
         }
     }
 
-internal fun mapFromUpdateTimeEstimate(time: ReaderSoftwareUpdate.UpdateTimeEstimate): String {
+internal fun mapFromUpdateTimeEstimate(time: ReaderSoftwareUpdate.UpdateDurationEstimate): String {
     return when (time) {
-        ReaderSoftwareUpdate.UpdateTimeEstimate.FIVE_TO_FIFTEEN_MINUTES -> "estimate5To15Minutes"
-        ReaderSoftwareUpdate.UpdateTimeEstimate.LESS_THAN_ONE_MINUTE -> "estimateLessThan1Minute"
-        ReaderSoftwareUpdate.UpdateTimeEstimate.ONE_TO_TWO_MINUTES -> "estimate1To2Minutes"
-        ReaderSoftwareUpdate.UpdateTimeEstimate.TWO_TO_FIVE_MINUTES -> "estimate2To5Minutes"
+        ReaderSoftwareUpdate.UpdateDurationEstimate.FIVE_TO_FIFTEEN_MINUTES -> "estimate5To15Minutes"
+        ReaderSoftwareUpdate.UpdateDurationEstimate.LESS_THAN_ONE_MINUTE -> "estimateLessThan1Minute"
+        ReaderSoftwareUpdate.UpdateDurationEstimate.ONE_TO_TWO_MINUTES -> "estimate1To2Minutes"
+        ReaderSoftwareUpdate.UpdateDurationEstimate.TWO_TO_FIVE_MINUTES -> "estimate2To5Minutes"
     }
 }
 
@@ -659,7 +606,7 @@ private fun mapFromWechatPayDetails(wechatPayDetails: WechatPayDetails?): Readab
 private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap? =
     offlineDetails?.let {
         nativeMapOf {
-            putString("storedAt", offlineDetails.storedAt.toString())
+            putString("storedAt", offlineDetails.storedAtMs.toString())
             putBoolean("requiresUpload", offlineDetails.requiresUpload)
             putMap(
                 "cardPresentDetails",
@@ -963,23 +910,23 @@ fun mapFromCollectDataType(type: String): CollectDataType? {
     }
 }
 
-fun mapToTapZoneIndicator(indicator: String?): LocalMobileUxConfiguration.TapZoneIndicator {
+fun mapToTapZoneIndicator(indicator: String?): TapToPayUxConfiguration.TapZoneIndicator {
     return when (indicator) {
-        "default" -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
-        "above" -> LocalMobileUxConfiguration.TapZoneIndicator.ABOVE
-        "below" -> LocalMobileUxConfiguration.TapZoneIndicator.BELOW
-        "front" -> LocalMobileUxConfiguration.TapZoneIndicator.FRONT
-        "behind" -> LocalMobileUxConfiguration.TapZoneIndicator.BEHIND
-        else -> LocalMobileUxConfiguration.TapZoneIndicator.DEFAULT
+        "default" -> TapToPayUxConfiguration.TapZoneIndicator.DEFAULT
+        "above" -> TapToPayUxConfiguration.TapZoneIndicator.ABOVE
+        "below" -> TapToPayUxConfiguration.TapZoneIndicator.BELOW
+        "front" -> TapToPayUxConfiguration.TapZoneIndicator.FRONT
+        "behind" -> TapToPayUxConfiguration.TapZoneIndicator.BEHIND
+        else -> TapToPayUxConfiguration.TapZoneIndicator.DEFAULT
     }
 }
 
-fun mapToDarkMode(mode: String?): LocalMobileUxConfiguration.DarkMode {
+fun mapToDarkMode(mode: String?): TapToPayUxConfiguration.DarkMode {
     return when (mode) {
-        "dark" -> LocalMobileUxConfiguration.DarkMode.DARK
-        "light" -> LocalMobileUxConfiguration.DarkMode.LIGHT
-        "system" -> LocalMobileUxConfiguration.DarkMode.SYSTEM
-        else -> LocalMobileUxConfiguration.DarkMode.LIGHT
+        "dark" -> TapToPayUxConfiguration.DarkMode.DARK
+        "light" -> TapToPayUxConfiguration.DarkMode.LIGHT
+        "system" -> TapToPayUxConfiguration.DarkMode.SYSTEM
+        else -> TapToPayUxConfiguration.DarkMode.LIGHT
     }
 }
 

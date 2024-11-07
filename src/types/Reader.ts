@@ -101,6 +101,7 @@ export namespace Reader {
     | 'stripeS710'
     | 'cotsDevice'
     | 'appleBuiltIn'
+    | 'tapToPayDevice'
     | 'etna';
 
   export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
@@ -117,7 +118,7 @@ export namespace Reader {
     | 'checkMobileDevice'
     | 'cardRemovedTooEarly';
 
-  export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
+  export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected' | 'discovering';
 
   export type DisconnectReason =
     | 'disconnectRequested'

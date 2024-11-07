@@ -19,47 +19,7 @@ import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderListenable
-import com.stripe.stripeterminal.external.models.CaptureMethod
-import com.stripe.stripeterminal.external.models.CardPresentParameters
-import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
-import com.stripe.stripeterminal.external.models.Cart
-import com.stripe.stripeterminal.external.models.CollectConfiguration
-import com.stripe.stripeterminal.external.models.CollectDataConfiguration
-import com.stripe.stripeterminal.external.models.CollectInputsParameters
-import com.stripe.stripeterminal.external.models.ConfirmConfiguration
-import com.stripe.stripeterminal.external.models.CreateConfiguration
-import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
-import com.stripe.stripeterminal.external.models.EmailInput
-import com.stripe.stripeterminal.external.models.Input
-import com.stripe.stripeterminal.external.models.ListLocationsParameters
-import com.stripe.stripeterminal.external.models.LocalMobileUxConfiguration
-import com.stripe.stripeterminal.external.models.NumericInput
-import com.stripe.stripeterminal.external.models.OfflineBehavior
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.PhoneInput
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
-import com.stripe.stripeterminal.external.models.RefundConfiguration
-import com.stripe.stripeterminal.external.models.RefundParameters
-import com.stripe.stripeterminal.external.models.RoutingPriority
-import com.stripe.stripeterminal.external.models.SelectionButton
-import com.stripe.stripeterminal.external.models.SelectionButtonStyle
-import com.stripe.stripeterminal.external.models.SelectionInput
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
-import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
-import com.stripe.stripeterminal.external.models.SetupIntentParameters
-import com.stripe.stripeterminal.external.models.SignatureInput
-import com.stripe.stripeterminal.external.models.SimulatedCard
-import com.stripe.stripeterminal.external.models.SimulatorConfiguration
-import com.stripe.stripeterminal.external.models.TerminalException
-import com.stripe.stripeterminal.external.models.TextInput
-import com.stripe.stripeterminal.external.models.TippingConfiguration
-import com.stripe.stripeterminal.external.models.Toggle
-import com.stripe.stripeterminal.external.models.ToggleValue
+import com.stripe.stripeterminal.external.models.*
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNCollectedDataCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
@@ -230,7 +190,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
-                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(
+                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
                     getBoolean(params, "simulated")
                 ) },
             listener,
@@ -660,7 +620,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
-                customerConsentCollected,
+                AllowRedisplay.ALWAYS,
+//                customerConsentCollected,//TODO: seems removed
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(enableCustomerCancellation)
                     .build(),
@@ -729,7 +690,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 setupIntent,
                 params,
                 RNSetupIntentCallback(promise, uuid) {
-                    setupIntents[setupIntent.id] = null
+                    setupIntents[setupIntent.id.orEmpty()] = null
                 }
             )
         }
@@ -751,7 +712,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             terminal.confirmSetupIntent(
                 setupIntent,
                 RNSetupIntentCallback(promise, uuid) {
-                    setupIntents[it.id] = null
+                    setupIntents[it.id.orEmpty()] = null
                 }
             )
         }
@@ -771,7 +732,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             if (chargeId.isNullOrBlank() == paymentIntentId.isNullOrBlank()) {
                 throw TerminalException(
-                    TerminalException.TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                    TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
                     "You must provide either a charge ID or a payment intent ID."
                 )
             }
@@ -1080,7 +1041,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
-                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.LocalMobileDiscoveryConfiguration(
+                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
                     getBoolean(params, "simulated")
                 ) }
         )
@@ -1091,40 +1052,40 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setLocalMobileUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val localMobileUxConfigurationBuilder = LocalMobileUxConfiguration.Builder()
+        val TapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
 
-        var tapZone: LocalMobileUxConfiguration.TapZone? = null
+        var tapZone: TapToPayUxConfiguration.TapZone? = null
         val tapZoneParam = params.getMap("tapZone")
         tapZoneParam?.let {
             val tapZoneIndicator = mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
 
             val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
-                LocalMobileUxConfiguration.TapZonePosition.Manual(
+                TapToPayUxConfiguration.TapZonePosition.Manual(
                     it.getDouble("xBias").toFloat(),
                     it.getDouble("yBias").toFloat())
-            } ?: LocalMobileUxConfiguration.TapZonePosition.Default
+            } ?: TapToPayUxConfiguration.TapZonePosition.Default
 
-            tapZone = LocalMobileUxConfiguration.TapZone.Manual.Builder()
+            tapZone = TapToPayUxConfiguration.TapZone.Manual.Builder()
                 .indicator(tapZoneIndicator)
                 .position(tapZonePosition)
                 .build()
         }
-        localMobileUxConfigurationBuilder.tapZone(tapZone?:LocalMobileUxConfiguration.TapZone.Default)
+        TapToPayUxConfigurationBuilder.tapZone(tapZone?:TapToPayUxConfiguration.TapZone.Default)
 
         val colorsParam = params.getMap("colors")
         colorsParam?.let {
-            val colorSchemeBuilder = LocalMobileUxConfiguration.ColorScheme.Builder()
+            val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
             colorSchemeBuilder.apply {
                 primary(it.getString("primary").toLocalMobileColor())
                 success(it.getString("success").toLocalMobileColor())
                 error(it.getString("error").toLocalMobileColor())
             }
-            localMobileUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+            TapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
         }
 
-        localMobileUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
+        TapToPayUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
 
-        terminal.setLocalMobileUxConfiguration(localMobileUxConfigurationBuilder.build())
+        terminal.setTapToPayUxConfiguration(TapToPayUxConfigurationBuilder.build())
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
@@ -1134,10 +1095,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise.resolve(BuildConfig.SDK_VERSION_NAME)
     }
 
-    private fun String?.toLocalMobileColor(): LocalMobileUxConfiguration.Color {
+    private fun String?.toLocalMobileColor(): TapToPayUxConfiguration.Color {
         return this
-            ?.let { LocalMobileUxConfiguration.Color.Value(hexToArgb(it)) }
-            ?: LocalMobileUxConfiguration.Color.Default
+            ?.let { TapToPayUxConfiguration.Color.Value(hexToArgb(it)) }
+            ?: TapToPayUxConfiguration.Color.Default
     }
 
     @ReactMethod
