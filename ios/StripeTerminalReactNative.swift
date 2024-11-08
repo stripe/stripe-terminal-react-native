@@ -28,7 +28,8 @@ enum ReactNativeConstants: String, CaseIterable {
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate, OfflineDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReaderDelegate, TerminalDelegate, OfflineDelegate, InternetReaderDelegate, TapToPayReaderDelegate, ReaderDelegate {
+    
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
@@ -61,7 +62,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
-        guard terminal.connectionStatus == .notConnected else { return }
+        guard terminal.connectionStatus == .notConnected || terminal.connectionStatus == .discovering else { return }
 
         sendEvent(withName: ReactNativeConstants.UPDATE_DISCOVERED_READERS.rawValue, body: ["readers": Mappers.mapFromReaders(readers)])
     }
@@ -246,16 +247,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         let connectionConfig: BluetoothConnectionConfiguration
         do {
-            connectionConfig = try BluetoothConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
+            connectionConfig = try BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-                .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
                 .build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
-        Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
+        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
@@ -283,7 +283,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         let connectionConfig: InternetConnectionConfiguration
         do {
-             connectionConfig = try InternetConnectionConfigurationBuilder()
+             connectionConfig = try InternetConnectionConfigurationBuilder(delegate: self)
                 .setFailIfInUse(params["failIfInUse"] as? Bool ?? false)
                 .setAllowCustomerCancel(true)
                 .build()
@@ -292,7 +292,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        Terminal.shared.connectInternetReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
+        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
@@ -322,21 +322,20 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
         let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
 
-        let connectionConfig: LocalMobileConnectionConfiguration
+        let connectionConfig: TapToPayConnectionConfiguration
         do {
-            connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
+            connectionConfig = try TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
                 .setMerchantDisplayName(merchantDisplayName ?? nil)
                 .setOnBehalfOf(onBehalfOf ?? nil)
                 .setTosAcceptancePermitted(tosAcceptancePermitted)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-                .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
                 .build()
         }  catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
-        Terminal.shared.connectLocalMobileReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
+        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
@@ -371,12 +370,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
-    func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
-        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
-        sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
-    }
-
-    func localMobileReaderDidAcceptTermsOfService(_ reader: Reader) {
+    func tapToPayReaderDidAcceptTermsOfService(_ reader: Reader) {
         sendEvent(withName: ReactNativeConstants.ACCEPT_TERMS_OF_SERVICE.rawValue, body: ["reader": reader])
     }
 
@@ -418,7 +412,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setMetadata(metadata)
 
         if !paymentMethodTypes.isEmpty {
-            paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes)
+            paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes.map(Mappers.mapPaymentMethodType))
         }
 
         let cardPresentParamsBuilder = CardPresentParametersBuilder()
@@ -695,7 +689,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
 
-    func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable) {
+    func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable, disconnectReason: DisconnectReason) {
         self.cancelReaderConnectionCancellable = cancelable
         let reader = Mappers.mapFromReader(reader)
         sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reader": reader])
@@ -877,15 +871,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let setupIntentConfiguration: SetupIntentConfiguration
         do {
-            setupIntentConfiguration = try SetupIntentConfigurationBuilder().setEnableCustomerCancellation(enableCustomerCancellation)
+            setupIntentConfiguration = try SetupIntentConfigurationBuilder()
+                .setEnableCustomerCancellation(enableCustomerCancellation)
                 .build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
-
-        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, customerConsentCollected: customerConsentCollected, setupConfig: setupIntentConfiguration) { si, collectError  in
+//TODO
+        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, allowRedisplay: AllowRedisplay.always, setupConfig: setupIntentConfiguration) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
@@ -1433,23 +1428,27 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
     func reader(_ reader: Reader, didDisconnect reason: DisconnectReason) {
+        //TODO: copy from func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader), should we remove this or keep it here?
+//        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
+//        sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
+        
         let result = Mappers.mapFromReaderDisconnectReason(reason)
         sendEvent(withName: ReactNativeConstants.DISCONNECT.rawValue, body: ["reason": result])
     }
 
-    func localMobileReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
+    func tapToPayReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
         self.installUpdateCancelable = cancelable
         sendEvent(withName: ReactNativeConstants.START_INSTALLING_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
 
-    func localMobileReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
+    func tapToPayReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
         let result: [AnyHashable : Any?] = [
             "progress": String(progress),
         ]
         sendEvent(withName: ReactNativeConstants.REPORT_UPDATE_PROGRESS.rawValue, body: ["result": result])
     }
 
-    func localMobileReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
+    func tapToPayReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: (any Error)?) {
         var result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
         if let nsError = error as NSError? {
            let errorAsDictionary = Errors.createError(nsError: nsError)
@@ -1462,12 +1461,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result])
     }
 
-    func localMobileReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
+    func tapToPayReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
         let result = Mappers.mapFromReaderInputOptions(inputOptions)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_INPUT.rawValue, body: ["result": result])
     }
 
-    func localMobileReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
+    func tapToPayReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
     }
