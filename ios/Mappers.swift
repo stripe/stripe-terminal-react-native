@@ -62,7 +62,7 @@ class Mappers {
 
     class func mapFromDeviceType(_ type: DeviceType) -> String {
         switch type {
-        case DeviceType.appleBuiltIn: return "appleBuiltIn"
+        case DeviceType.tapToPay: return "appleBuiltIn"
         case DeviceType.chipper1X: return "chipper1X"
         case DeviceType.chipper2X: return "chipper2X"
         case DeviceType.etna: return "etna"
@@ -80,7 +80,7 @@ class Mappers {
 
     class func mapToDeviceType(_ type: String) -> DeviceType? {
         switch type {
-        case "appleBuiltIn": return DeviceType.appleBuiltIn
+        case "appleBuiltIn": return DeviceType.tapToPay
         case "chipper1X": return DeviceType.chipper1X
         case "chipper2X": return DeviceType.chipper2X
         case "etna": return DeviceType.etna
@@ -133,7 +133,7 @@ class Mappers {
             case "bluetoothProximity": return DiscoveryMethod.bluetoothProximity
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
             case "internet": return DiscoveryMethod.internet
-            case "localMobile": return DiscoveryMethod.localMobile
+            case "localMobile": return DiscoveryMethod.tapToPay
             default: return DiscoveryMethod.internet
             }
         }
@@ -149,7 +149,7 @@ class Mappers {
         case "internet":
             return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
         case "localMobile":
-            return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+            return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
@@ -231,7 +231,7 @@ class Mappers {
             metadataMap = NSDictionary(dictionary: metadata)
         }
         let result: NSDictionary = [
-            "id": setupIntent.stripeId,
+            "id": setupIntent.stripeId ?? NSNull(),
             "sdkUuid": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "customer": setupIntent.customer ?? NSNull(),
@@ -377,7 +377,7 @@ class Mappers {
         }
         let result: [AnyHashable: Any?] = [
             "deviceSoftwareVersion": unwrappedUpdate.deviceSoftwareVersion,
-            "estimatedUpdateTime": mapFromUpdateTimeEstimate(unwrappedUpdate.estimatedUpdateTime),
+            "estimatedUpdateTime": mapFromUpdateTimeEstimate(unwrappedUpdate.durationEstimate),
             "requiredAt": Mappers.convertDateToUnixTimestamp(date: unwrappedUpdate.requiredAt),
         ]
         return result
@@ -527,7 +527,7 @@ class Mappers {
         }
 
         let result: NSDictionary = [
-            "storedAt": convertDateToUnixTimestamp(date: offlineDetails.collectedAt) ?? NSNull(),
+            "storedAt": convertDateToUnixTimestamp(date: offlineDetails.storedAt) ?? NSNull(),
             "requiresUpload": offlineDetails.requiresUpload,
             "cardPresentDetails": offlineCardPresentDetails ?? NSNull(),
             "amountDetails": amountDetails ?? NSNull()
@@ -744,6 +744,7 @@ class Mappers {
         case ConnectionStatus.connected: return "connected"
         case ConnectionStatus.connecting: return "connecting"
         case ConnectionStatus.notConnected: return "notConnected"
+        case ConnectionStatus.discovering: return "discovering"
         default: return "unknown"
         }
     }
@@ -928,6 +929,17 @@ class Mappers {
         ]
         return result
     }
+
+    class func mapPaymentMethodType(_ type: String) -> PaymentMethodType {
+        switch type {
+        case "card": return .card
+        case "cardPresent": return .cardPresent
+        case "interacPresent": return .interacPresent
+        case "wechatPay": return .wechatPay
+        default: return .unknown
+        }
+    }
+    
 }
 
 extension UInt {
