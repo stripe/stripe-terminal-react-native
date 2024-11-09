@@ -190,7 +190,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
-                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
+                DiscoveryMethod.TAP_TO_PAY -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
                     getBoolean(params, "simulated")
                 ) },
             listener,
@@ -231,7 +231,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
-                val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.LOCAL_MOBILE) {
+                val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.TAP_TO_PAY) {
                     getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
                 } else {
                     false
@@ -282,8 +282,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun connectLocalMobileReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.LOCAL_MOBILE)
+    fun connectTapToPayReader(params: ReadableMap, promise: Promise) {
+        connectReader(params, promise, DiscoveryMethod.TAP_TO_PAY)
     }
 
     @ReactMethod
@@ -1041,7 +1041,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
                 DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
-                DiscoveryMethod.LOCAL_MOBILE -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
+                DiscoveryMethod.TAP_TO_PAY -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
                     getBoolean(params, "simulated")
                 ) }
         )
@@ -1051,7 +1051,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setLocalMobileUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+    fun setTapToPayUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         val TapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
 
         var tapZone: TapToPayUxConfiguration.TapZone? = null
@@ -1076,9 +1076,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         colorsParam?.let {
             val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
             colorSchemeBuilder.apply {
-                primary(it.getString("primary").toLocalMobileColor())
-                success(it.getString("success").toLocalMobileColor())
-                error(it.getString("error").toLocalMobileColor())
+                primary(it.getString("primary").toTapToPayColor())
+                success(it.getString("success").toTapToPayColor())
+                error(it.getString("error").toTapToPayColor())
             }
             TapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
         }
@@ -1095,7 +1095,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise.resolve(BuildConfig.SDK_VERSION_NAME)
     }
 
-    private fun String?.toLocalMobileColor(): TapToPayUxConfiguration.Color {
+    private fun String?.toTapToPayColor(): TapToPayUxConfiguration.Color {
         return this
             ?.let { TapToPayUxConfiguration.Color.Value(hexToArgb(it)) }
             ?: TapToPayUxConfiguration.Color.Default

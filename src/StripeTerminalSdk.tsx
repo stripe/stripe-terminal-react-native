@@ -25,7 +25,7 @@ import type {
   ConfirmRefundResultType,
   SetConnectionTokenParams,
   ConnectHandoffParams,
-  ConnectLocalMobileParams,
+  ConnectTapToPayParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
   OfflineStatus,
@@ -39,7 +39,7 @@ import type {
   CancelPaymentMethodParams,
   CollectDataParams,
   CollectDataResultType,
-  LocalMobileUxConfiguration,
+  TapToPayUxConfiguration,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -73,8 +73,8 @@ export interface StripeTerminalSdkType {
   connectHandoffReader(
     params: ConnectHandoffParams
   ): Promise<ConnectReaderResultType>;
-  connectLocalMobileReader(
-    params: ConnectLocalMobileParams
+  connectTapToPayReader(
+    params: ConnectTapToPayParams
   ): Promise<ConnectReaderResultType>;
   // Connect to reader via USB
   connectUsbReader(
@@ -172,7 +172,7 @@ export interface StripeTerminalSdkType {
   supportsReadersOfType(
     params: Reader.ReaderSupportParams
   ): Promise<Reader.ReaderSupportResult>;
-  setLocalMobileUxConfiguration(params: LocalMobileUxConfiguration): Promise<{
+  setTapToPayUxConfiguration(params: TapToPayUxConfiguration): Promise<{
     error?: StripeError;
   }>;
   getNativeSdkVersion(): Promise<string>;

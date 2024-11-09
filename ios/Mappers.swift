@@ -62,7 +62,7 @@ class Mappers {
 
     class func mapFromDeviceType(_ type: DeviceType) -> String {
         switch type {
-        case DeviceType.tapToPay: return "appleBuiltIn"
+        case DeviceType.tapToPay: return "tapToPay"
         case DeviceType.chipper1X: return "chipper1X"
         case DeviceType.chipper2X: return "chipper2X"
         case DeviceType.etna: return "etna"
@@ -80,7 +80,7 @@ class Mappers {
 
     class func mapToDeviceType(_ type: String) -> DeviceType? {
         switch type {
-        case "appleBuiltIn": return DeviceType.tapToPay
+        case "tapToPay": return DeviceType.tapToPay
         case "chipper1X": return DeviceType.chipper1X
         case "chipper2X": return DeviceType.chipper2X
         case "etna": return DeviceType.etna
@@ -133,7 +133,7 @@ class Mappers {
             case "bluetoothProximity": return DiscoveryMethod.bluetoothProximity
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
             case "internet": return DiscoveryMethod.internet
-            case "localMobile": return DiscoveryMethod.tapToPay
+            case "tapToPay": return DiscoveryMethod.tapToPay
             default: return DiscoveryMethod.internet
             }
         }
@@ -148,7 +148,7 @@ class Mappers {
             return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "internet":
             return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
-        case "localMobile":
+        case "tapToPay":
             return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
@@ -933,9 +933,9 @@ class Mappers {
     class func mapPaymentMethodType(_ type: String) -> PaymentMethodType {
         switch type {
         case "card": return .card
-        case "cardPresent": return .cardPresent
-        case "interacPresent": return .interacPresent
-        case "wechatPay": return .wechatPay
+        case "card_present": return .cardPresent
+        case "interac_present": return .interacPresent
+        case "wechat_pay": return .wechatPay
         default: return .unknown
         }
     }

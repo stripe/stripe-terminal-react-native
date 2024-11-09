@@ -25,7 +25,7 @@ import type {
   Reader,
   RefundParams,
   ConfirmRefundResultType,
-  ConnectLocalMobileParams,
+  ConnectTapToPayParams,
   ConnectReaderResultType,
   ConnectHandoffParams,
   CollectPaymentMethodParams,
@@ -40,7 +40,7 @@ import type {
   CancelPaymentMethodParams,
   CollectDataParams,
   CollectDataResultType,
-  LocalMobileUxConfiguration,
+  TapToPayUxConfiguration,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
@@ -172,13 +172,14 @@ export async function connectHandoffReader(
   }, 'connectHandoffReader')(params);
 }
 
-export async function connectLocalMobileReader(
-  params: ConnectLocalMobileParams
+export async function connectTapToPayReader(
+  params: ConnectTapToPayParams
 ): Promise<ConnectReaderResultType> {
   return Logger.traceSdkMethod(async (innerParams) => {
     try {
-      const { error, reader } =
-        await StripeTerminalSdk.connectLocalMobileReader(innerParams);
+      const { error, reader } = await StripeTerminalSdk.connectTapToPayReader(
+        innerParams
+      );
 
       if (error) {
         return {
@@ -195,7 +196,7 @@ export async function connectLocalMobileReader(
         error: error as any,
       };
     }
-  }, 'connectLocalMobileReader')(params);
+  }, 'connectTapToPayReader')(params);
 }
 
 export async function connectInternetReader(
@@ -948,15 +949,15 @@ export async function supportsReadersOfType(
   }, 'supportsReadersOfType')();
 }
 
-export async function setLocalMobileUxConfiguration(
-  params: LocalMobileUxConfiguration
+export async function setTapToPayUxConfiguration(
+  params: TapToPayUxConfiguration
 ): Promise<{
   error?: StripeError;
 }> {
   if (Platform.OS === 'ios') {
     return {
       error: {
-        message: "'setLocalMobileUxConfiguration' is unsupported on iOS",
+        message: "'setTapToPayUxConfiguration' is unsupported on iOS",
         code: CommonError.Failed,
       },
     };
@@ -964,14 +965,14 @@ export async function setLocalMobileUxConfiguration(
 
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.setLocalMobileUxConfiguration(params);
+      await StripeTerminalSdk.setTapToPayUxConfiguration(params);
       return {};
     } catch (error) {
       return {
         error: error as any,
       };
     }
-  }, 'setLocalMobileUxConfiguration')();
+  }, 'setTapToPayUxConfiguration')();
 }
 
 export async function getNativeSdkVersion(): Promise<string> {

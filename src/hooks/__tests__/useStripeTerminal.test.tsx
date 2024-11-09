@@ -159,10 +159,10 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .mockImplementation(connectHandoffReader);
 
   //
-  const connectLocalMobileReader = jest.fn(() => returnWith);
+  const connectTapToPayReader = jest.fn(() => returnWith);
   jest
-    .spyOn(functions, 'connectLocalMobileReader')
-    .mockImplementation(connectLocalMobileReader);
+    .spyOn(functions, 'connectTapToPayReader')
+    .mockImplementation(connectTapToPayReader);
 
   //
   const setSimulatedCard = jest.fn(() => returnWith);
@@ -200,7 +200,7 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent,
     connectHandoffReader,
-    connectLocalMobileReader,
+    connectTapToPayReader,
     setSimulatedCard,
   };
 }
@@ -318,7 +318,7 @@ describe('useStripeTerminal.test.tsx', () => {
           result.current.connectBluetoothReader({} as any);
           result.current.connectHandoffReader({} as any);
           result.current.connectInternetReader({} as any);
-          result.current.connectLocalMobileReader({} as any);
+          result.current.connectTapToPayReader({} as any);
           result.current.connectUsbReader({} as any);
           result.current.createPaymentIntent({} as any);
           result.current.createSetupIntent({} as any);
@@ -370,7 +370,7 @@ describe('useStripeTerminal.test.tsx', () => {
         await result.current.connectBluetoothReader({} as any);
         await result.current.connectHandoffReader({} as any);
         await result.current.connectInternetReader({} as any);
-        await result.current.connectLocalMobileReader({} as any);
+        await result.current.connectTapToPayReader({} as any);
         await result.current.connectUsbReader({} as any);
         await result.current.createPaymentIntent({} as any);
         await result.current.createSetupIntent({} as any);
@@ -458,7 +458,7 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.connectInternetReader({} as any)
       ).resolves.toEqual('_value');
       await expect(
-        result.current.connectLocalMobileReader({} as any)
+        result.current.connectTapToPayReader({} as any)
       ).resolves.toEqual('_value');
       await expect(result.current.connectUsbReader({} as any)).resolves.toEqual(
         '_value'

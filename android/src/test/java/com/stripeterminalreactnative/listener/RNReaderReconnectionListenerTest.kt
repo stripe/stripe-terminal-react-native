@@ -2,6 +2,7 @@ package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
+import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripeterminalreactnative.*
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
@@ -47,7 +48,7 @@ class RNReaderReconnectionListenerTest {
         val mockCancelable = mockk<Cancelable>()
         val reader = mockk<Reader>(relaxed = true)
         val listener = RNReaderReconnectionListener(context,mockOnReaderReconnectStarted)
-        listener.onReaderReconnectStarted(reader,mockCancelable)
+        listener.onReaderReconnectStarted(reader,mockCancelable, DisconnectReason.UNKNOWN)
 
         verify(exactly = 1) { mockOnReaderReconnectStarted.invoke(mockCancelable) }
         verify(exactly = 1) { context.sendEvent(START_READER_RECONNECT.listenerName, any()) }

@@ -76,7 +76,7 @@ describe('functions.test.ts', () => {
         connectUsbReader: jest
           .fn()
           .mockImplementation(() => ({ reader: mockReader })),
-        connectLocalMobileReader: jest
+        connectTapToPayReader: jest
           .fn()
           .mockImplementation(() => ({ reader: mockReader })),
         createPaymentIntent: jest
@@ -355,14 +355,14 @@ describe('functions.test.ts', () => {
       await expect(functions.cancelCollectSetupIntent()).resolves.toEqual({});
     });
 
-    it('connectLocalMobileReader returns a proper value', async () => {
+    it('connectTapToPayReader returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.connectLocalMobileReader({} as any)
-      ).resolves.toEqual({
-        error: undefined,
-        reader: mockReader,
-      });
+      await expect(functions.connectTapToPayReader({} as any)).resolves.toEqual(
+        {
+          error: undefined,
+          reader: mockReader,
+        }
+      );
     });
 
     it('setSimulatedCard returns a proper value', async () => {
@@ -397,7 +397,7 @@ describe('functions.test.ts', () => {
         connectUsbReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
-        connectLocalMobileReader: jest
+        connectTapToPayReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         createPaymentIntent: jest
@@ -635,14 +635,14 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('connectLocalMobileReader returns a proper value', async () => {
+    it('connectTapToPayReader returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.connectLocalMobileReader({} as any)
-      ).resolves.toEqual({
-        error: '_error',
-        reader: undefined,
-      });
+      await expect(functions.connectTapToPayReader({} as any)).resolves.toEqual(
+        {
+          error: '_error',
+          reader: undefined,
+        }
+      );
     });
 
     it('simulateReaderUpdate returns a proper value', async () => {

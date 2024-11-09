@@ -12,7 +12,7 @@ import type {
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
   ConnectHandoffParams,
-  ConnectLocalMobileParams,
+  ConnectTapToPayParams,
   CollectPaymentMethodParams,
   StripeError,
   PaymentStatus,
@@ -27,7 +27,7 @@ import type {
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
   CollectDataParams,
-  LocalMobileUxConfiguration,
+  TapToPayUxConfiguration,
 } from '../types';
 import {
   discoverReaders,
@@ -59,7 +59,7 @@ import {
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
   connectHandoffReader,
-  connectLocalMobileReader,
+  connectTapToPayReader,
   setSimulatedCard,
   cancelCollectRefundPaymentMethod,
   getOfflineStatus,
@@ -73,7 +73,7 @@ import {
   getPaymentStatus,
   getConnectionStatus,
   getConnectedReader,
-  setLocalMobileUxConfiguration,
+  setTapToPayUxConfiguration,
   getNativeSdkVersion,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
@@ -481,15 +481,15 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setConnectedReader, setLoading]
   );
 
-  const _connectLocalMobileReader = useCallback(
-    async (params: ConnectLocalMobileParams) => {
+  const _connectTapToPayReader = useCallback(
+    async (params: ConnectTapToPayParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await connectLocalMobileReader(params);
+      const response = await connectTapToPayReader(params);
 
       if (response.reader) {
         setConnectedReader(response.reader);
@@ -1053,15 +1053,15 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setLoading]
   );
 
-  const _setLocalMobileUxConfiguration = useCallback(
-    async (params: LocalMobileUxConfiguration) => {
+  const _setTapToPayUxConfiguration = useCallback(
+    async (params: TapToPayUxConfiguration) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await setLocalMobileUxConfiguration(params);
+      const response = await setTapToPayUxConfiguration(params);
 
       setLoading(false);
 
@@ -1106,7 +1106,7 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
     connectHandoffReader: _connectHandoffReader,
-    connectLocalMobileReader: _connectLocalMobileReader,
+    connectTapToPayReader: _connectTapToPayReader,
     setSimulatedCard: _setSimulatedCard,
     getOfflineStatus: _getOfflineStatus,
     getPaymentStatus: _getPaymentStatus,
@@ -1119,7 +1119,7 @@ export function useStripeTerminal(props?: Props) {
     collectData: _collectData,
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
-    setLocalMobileUxConfiguration: _setLocalMobileUxConfiguration,
+    setTapToPayUxConfiguration: _setTapToPayUxConfiguration,
     getNativeSdkVersion: _getNativeSdkVersion,
     emitter: emitter,
     discoveredReaders,

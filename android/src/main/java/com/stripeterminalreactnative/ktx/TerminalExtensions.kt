@@ -12,7 +12,6 @@ import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.DiscoveryMethod
-import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.listener.bindReconnectionListener
 import com.stripeterminalreactnative.listener.toTapToPayReaderListener
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -64,7 +63,7 @@ suspend fun Terminal.connectReader(
         connectReader(reader, connConfig)
     }
 
-    DiscoveryMethod.LOCAL_MOBILE -> connectReader(
+    DiscoveryMethod.TAP_TO_PAY -> connectReader(
         reader,
         TapToPayConnectionConfiguration(
             locationId,

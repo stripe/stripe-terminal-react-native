@@ -231,25 +231,25 @@ extension ErrorCode.Code {
         case .invalidCurrency:
             return "InvalidCurrency"
         case .tapToPayReaderTOSAcceptanceRequiresiCloudSignIn:
-            return "AppleBuiltInReaderTOSAcceptanceRequiresiCloudSignIn"
+            return "TapToPayReaderTOSAcceptanceRequiresiCloudSignIn"
         case .tapToPayReaderTOSAcceptanceCanceled:
-            return "AppleBuiltInReaderTOSAcceptanceCanceled"
+            return "TapToPayReaderTOSAcceptanceCanceled"
         case .nfcDisabled:
             return "NfcDisabled"
         case .readerNotAccessibleInBackground:
             return "ReaderNotAccessibleInBackground"
         case .tapToPayReaderFailedToPrepare:
-            return "AppleBuiltInReaderFailedToPrepare"
+            return "TapToPayReaderFailedToPrepare"
         case .tapToPayReaderDeviceBanned:
-            return "AppleBuiltInReaderDeviceBanned"
+            return "TapToPayReaderDeviceBanned"
         case .tapToPayReaderTOSNotYetAccepted:
-            return "AppleBuiltInReaderTOSNotYetAccepted"
+            return "TapToPayReaderTOSNotYetAccepted"
         case .tapToPayReaderTOSAcceptanceFailed:
-            return "AppleBuiltInReaderTOSAcceptanceFailed"
+            return "TapToPayReaderTOSAcceptanceFailed"
         case .tapToPayReaderMerchantBlocked:
-            return "AppleBuiltInReaderMerchantBlocked"
+            return "TapToPayReaderMerchantBlocked"
         case .tapToPayReaderInvalidMerchant:
-            return "AppleBuiltInReaderInvalidMerchant"
+            return "TapToPayReaderInvalidMerchant"
         case .connectionTokenProviderTimedOut:
             return "ConnectionTokenProviderTimedOut"
         case .surchargingNotAvailable:

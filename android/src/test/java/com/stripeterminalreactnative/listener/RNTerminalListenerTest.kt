@@ -28,19 +28,7 @@ class RNTerminalListenerTest {
     }
 
     private val context = mockk<ReactApplicationContext>()
-
-    @Test
-    fun `should send onUnexpectedReaderDisconnect event`() {
-        val listener = RNTerminalListener(context)
-        listener.onUnexpectedReaderDisconnect(mockk())
-
-        verify(exactly = 1) {
-            context.sendEvent(REPORT_UNEXPECTED_READER_DISCONNECT.listenerName, any())
-        }
-
-        assertTrue(typeReplacer.sendEventSlot.captured.hasValue("error"))
-    }
-
+    
     @Test
     fun `should send onConnectionStatusChange event`() {
         val listener = RNTerminalListener(context)
