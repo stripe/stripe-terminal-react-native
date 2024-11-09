@@ -102,7 +102,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.WISEPAD_3S -> "wisePad3s"
         DeviceType.WISEPOS_E -> "wisePosE"
         DeviceType.WISEPOS_E_DEVKIT -> "wisePosEDevkit"
-        DeviceType.TAP_TO_PAY_DEVICE -> "tapToPayDevice"
+        DeviceType.TAP_TO_PAY_DEVICE -> "tapToPay"
     }
 }
 
@@ -122,7 +122,7 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         "wisePad3s" -> DeviceType.WISEPAD_3S
         "wisePosE" -> DeviceType.WISEPOS_E
         "wisePosEDevkit" -> DeviceType.WISEPOS_E_DEVKIT
-        "tapToPayDevice" -> DeviceType.TAP_TO_PAY_DEVICE
+        "tapToPay" -> DeviceType.TAP_TO_PAY_DEVICE
         else -> null
     }
 }
@@ -139,7 +139,7 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
     return when (method) {
         "bluetoothScan" -> DiscoveryMethod.BLUETOOTH_SCAN
         "internet" -> DiscoveryMethod.INTERNET
-        "localMobile" -> DiscoveryMethod.LOCAL_MOBILE
+        "tapToPay" -> DiscoveryMethod.TAP_TO_PAY
         "handoff" -> DiscoveryMethod.HANDOFF
         "usb" -> DiscoveryMethod.USB
         else -> null

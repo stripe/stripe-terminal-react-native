@@ -2,12 +2,8 @@ package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
-import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
-import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
-import com.stripe.stripeterminal.external.models.TerminalException
-import com.stripe.stripeterminal.external.models.TerminalException.TerminalErrorCode
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.FINISH_INSTALLING_UPDATE
 import com.stripeterminalreactnative.ReactNativeConstants.REPORT_AVAILABLE_UPDATE
@@ -46,11 +42,11 @@ class RNUsbReaderListenerTest {
             version
         } returns "1"
         every {
-            timeEstimate
-        } returns ReaderSoftwareUpdate.UpdateTimeEstimate.ONE_TO_TWO_MINUTES
+            durationEstimate
+        } returns ReaderSoftwareUpdate.UpdateDurationEstimate.ONE_TO_TWO_MINUTES
         every {
-            requiredAt
-        } returns Date()
+            requiredAtMs
+        } returns 0
     }
 
     @Test

@@ -62,7 +62,7 @@ export default function DiscoverReadersScreen() {
     connectInternetReader,
     connectUsbReader,
     simulateReaderUpdate,
-    connectLocalMobileReader,
+    connectTapToPayReader,
     connectHandoffReader,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
@@ -198,8 +198,8 @@ export default function DiscoverReadersScreen() {
     ) {
       const result = await handleConnectBluetoothReader(reader);
       error = result.error;
-    } else if (discoveryMethod === 'localMobile') {
-      const result = await handleConnectLocalMobileReader(reader);
+    } else if (discoveryMethod === 'tapToPay') {
+      const result = await handleConnectTapToPayReader(reader);
       error = result.error;
     } else if (discoveryMethod === 'handoff') {
       const result = await handleConnectHandoffReader(reader);
@@ -232,17 +232,17 @@ export default function DiscoverReadersScreen() {
     return { error };
   };
 
-  const handleConnectLocalMobileReader = async (reader: Reader.Type) => {
+  const handleConnectTapToPayReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
-    const { reader: connectedReader, error } = await connectLocalMobileReader({
+    const { reader: connectedReader, error } = await connectTapToPayReader({
       reader,
       locationId: selectedLocation?.id,
       autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     });
 
     if (error) {
-      console.log('connectLocalMobileReader error:', error);
+      console.log('connectTapToPayReader error:', error);
     } else {
       console.log('Reader connected successfully', connectedReader);
     }
@@ -364,7 +364,7 @@ export default function DiscoverReadersScreen() {
       {!simulated &&
         (discoveryMethod === 'bluetoothScan' ||
           discoveryMethod === 'usb' ||
-          discoveryMethod === 'localMobile' ||
+          discoveryMethod === 'tapToPay' ||
           discoveryMethod === 'bluetoothProximity') && (
           <List
             bolded={false}

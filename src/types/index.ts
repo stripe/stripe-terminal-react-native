@@ -47,7 +47,7 @@ export type ConnectUsbReaderParams = {
   autoReconnectOnUnexpectedDisconnect?: boolean;
 };
 
-export type ConnectLocalMobileParams = {
+export type ConnectTapToPayParams = {
   reader: Reader.Type;
   locationId?: string;
   onBehalfOf?: string;
@@ -352,7 +352,11 @@ export type OfflineStatus = {
 
 export type ReaderEvent = 'cardInserted' | 'cardRemoved';
 
-export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected' | 'discovering';
+export type ConnectionStatus =
+  | 'notConnected'
+  | 'connecting'
+  | 'connected'
+  | 'discovering';
 
 /**
  * @ignore
@@ -567,7 +571,7 @@ export type CollectDataResultType =
       error: StripeError;
     };
 
-export type LocalMobileUxConfiguration = {
+export type TapToPayUxConfiguration = {
   tapZone?: TapZone;
   darkMode?: DarkMode;
   colors?: Colors;
