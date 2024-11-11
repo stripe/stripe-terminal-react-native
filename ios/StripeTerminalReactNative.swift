@@ -4,7 +4,6 @@ import Foundation
 enum ReactNativeConstants: String, CaseIterable {
     case UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders"
     case FINISH_DISCOVERING_READERS = "didFinishDiscoveringReaders"
-    case REPORT_UNEXPECTED_READER_DISCONNECT = "didReportUnexpectedReaderDisconnect"
     case REPORT_AVAILABLE_UPDATE = "didReportAvailableUpdate"
     case START_INSTALLING_UPDATE = "didStartInstallingUpdate"
     case REPORT_UPDATE_PROGRESS = "didReportReaderSoftwareUpdateProgress"
@@ -28,7 +27,7 @@ enum ReactNativeConstants: String, CaseIterable {
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReaderDelegate, TerminalDelegate, OfflineDelegate, InternetReaderDelegate, TapToPayReaderDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReaderDelegate, TerminalDelegate, OfflineDelegate, InternetReaderDelegate, TapToPayReaderDelegate, ReaderDelegate {
     
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
@@ -1428,10 +1427,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     }
 
     func reader(_ reader: Reader, didDisconnect reason: DisconnectReason) {
-        //TODO: copy from func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader), should we remove this or keep it here?
-//        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
-//        sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
-        
         let result = Mappers.mapFromReaderDisconnectReason(reason)
         sendEvent(withName: ReactNativeConstants.DISCONNECT.rawValue, body: ["reason": result])
     }

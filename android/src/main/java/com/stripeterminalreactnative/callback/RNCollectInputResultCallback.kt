@@ -3,7 +3,8 @@ package com.stripeterminalreactnative.callback
 import com.facebook.react.bridge.Promise
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.callable.CollectInputsResultCallback
-import com.stripe.stripeterminal.external.models.*
+import com.stripe.stripeterminal.external.models.CollectInputsResult
+import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromCollectInputsResults
 import com.stripeterminalreactnative.nativeMapOf

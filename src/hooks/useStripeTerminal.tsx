@@ -92,7 +92,6 @@ export const {
   REQUEST_READER_DISPLAY_MESSAGE,
   REQUEST_READER_INPUT,
   REPORT_AVAILABLE_UPDATE,
-  REPORT_UNEXPECTED_READER_DISCONNECT,
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
@@ -155,7 +154,6 @@ export function useStripeTerminal(props?: Props) {
     onDidFinishInstallingUpdate,
     onDidReportAvailableUpdate,
     onDidReportReaderSoftwareUpdateProgress,
-    onDidReportUnexpectedReaderDisconnect,
     onDidStartInstallingUpdate,
     onDidRequestReaderInput,
     onDidRequestReaderDisplayMessage,
@@ -205,19 +203,6 @@ export function useStripeTerminal(props?: Props) {
       onFinishDiscoveringReaders?.(result.error);
     },
     [onFinishDiscoveringReaders]
-  );
-
-  const didReportUnexpectedReaderDisconnect = useCallback(
-    ({ error }: { error?: StripeError }) => {
-      setConnectedReader(null);
-      setDiscoveredReaders([]);
-      onDidReportUnexpectedReaderDisconnect?.(error);
-    },
-    [
-      onDidReportUnexpectedReaderDisconnect,
-      setConnectedReader,
-      setDiscoveredReaders,
-    ]
   );
 
   const didReportAvailableUpdate = useCallback(
@@ -330,8 +315,10 @@ export function useStripeTerminal(props?: Props) {
   const didDisconnect = useCallback(
     ({ reason }: { reason?: Reader.DisconnectReason }) => {
       onDidDisconnect?.(reason);
+      setConnectedReader(null);
+      setDiscoveredReaders([]);
     },
-    [onDidDisconnect]
+    [onDidDisconnect, setConnectedReader, setDiscoveredReaders]
   );
 
   const didUpdateBatteryLevel = useCallback(
@@ -363,10 +350,7 @@ export function useStripeTerminal(props?: Props) {
 
   useListener(UPDATE_DISCOVERED_READERS, didUpdateDiscoveredReaders);
   useListener(FINISH_DISCOVERING_READERS, didFinishDiscoveringReaders);
-  useListener(
-    REPORT_UNEXPECTED_READER_DISCONNECT,
-    didReportUnexpectedReaderDisconnect
-  );
+
   useListener(REQUEST_READER_INPUT, didRequestReaderInput);
   useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
