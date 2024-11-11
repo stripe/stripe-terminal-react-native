@@ -3,23 +3,16 @@ package com.stripeterminalreactnative.listener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.MobileReaderListener
+import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
 import com.stripe.stripeterminal.external.models.*
+import com.stripeterminalreactnative.*
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.*
-import com.stripeterminalreactnative.mapFromBatteryStatus
-import com.stripeterminalreactnative.mapFromReaderDisconnectReason
-import com.stripeterminalreactnative.mapFromReaderDisplayMessage
-import com.stripeterminalreactnative.mapFromReaderEvent
-import com.stripeterminalreactnative.mapFromReaderInputOptions
-import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
-import com.stripeterminalreactnative.nativeMapOf
-import com.stripeterminalreactnative.putError
-import com.stripeterminalreactnative.putDoubleOrNull
 
 class RNUsbReaderListener(
     private val context: ReactApplicationContext,
     private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
-) : MobileReaderListener {
+) : MobileReaderListener, ReaderDisconnectListener by readerDisconnectDelete(context) {
 
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName) {
@@ -70,12 +63,6 @@ class RNUsbReaderListener(
     override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
         context.sendEvent(REQUEST_READER_DISPLAY_MESSAGE.listenerName) {
             putString("result", mapFromReaderDisplayMessage(message))
-        }
-    }
-
-    override fun onDisconnect(reason: DisconnectReason) {
-        context.sendEvent(DISCONNECT.listenerName) {
-            putString("reason", mapFromReaderDisconnectReason(reason))
         }
     }
 

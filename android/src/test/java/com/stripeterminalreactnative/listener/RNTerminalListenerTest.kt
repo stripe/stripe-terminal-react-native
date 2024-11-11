@@ -6,10 +6,8 @@ import com.stripe.stripeterminal.external.models.PaymentStatus
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.CHANGE_CONNECTION_STATUS
 import com.stripeterminalreactnative.ReactNativeConstants.CHANGE_PAYMENT_STATUS
-import com.stripeterminalreactnative.ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT
 import com.stripeterminalreactnative.ReactNativeTypeReplacementRule
 import com.stripeterminalreactnative.hasResult
-import com.stripeterminalreactnative.hasValue
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.ClassRule
@@ -28,7 +26,7 @@ class RNTerminalListenerTest {
     }
 
     private val context = mockk<ReactApplicationContext>()
-    
+
     @Test
     fun `should send onConnectionStatusChange event`() {
         val listener = RNTerminalListener(context)

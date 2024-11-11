@@ -7,9 +7,7 @@ import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
-import com.stripeterminalreactnative.ReactNativeConstants.READER_RECONNECT_FAIL
-import com.stripeterminalreactnative.ReactNativeConstants.READER_RECONNECT_SUCCEED
-import com.stripeterminalreactnative.ReactNativeConstants.START_READER_RECONNECT
+import com.stripeterminalreactnative.ReactNativeConstants.*
 import com.stripeterminalreactnative.mapFromReader
 import com.stripeterminalreactnative.nativeMapOf
 

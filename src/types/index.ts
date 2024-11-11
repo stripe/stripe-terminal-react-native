@@ -368,7 +368,6 @@ export type EventResult<T> = {
 export type UserCallbacks = {
   onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
   onFinishDiscoveringReaders?(error?: StripeError): void;
-  onDidReportUnexpectedReaderDisconnect?(error?: StripeError): void;
   onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
   onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
   onDidReportReaderSoftwareUpdateProgress?(progress: string): void;

@@ -8,8 +8,8 @@ import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
 
 fun MobileReaderListener?.bindReconnectionListener(reconnectionListener: ReaderReconnectionListener): MobileReaderListener {
-    if (this@bindReconnectionListener == null) {
-        return reconnectionListener.toMobileReaderListener()
+    if (this == null) {
+        return object : MobileReaderListener, ReaderReconnectionListener by reconnectionListener {}
     }
     return object : MobileReaderListener by this@bindReconnectionListener {
         override fun onReaderReconnectStarted(
@@ -33,15 +33,29 @@ fun MobileReaderListener?.bindReconnectionListener(reconnectionListener: ReaderR
     }
 }
 
-fun ReaderReconnectionListener.toTapToPayReaderListener() : TapToPayReaderListener {
-    return object : TapToPayReaderListener, ReaderReconnectionListener by this@toTapToPayReaderListener {
-
+fun TapToPayReaderListener?.bindReconnectionListener(reconnectionListener: ReaderReconnectionListener): TapToPayReaderListener {
+    if (this == null) {
+        return object : TapToPayReaderListener,
+            ReaderReconnectionListener by reconnectionListener {}
     }
-}
-
-fun ReaderReconnectionListener.toMobileReaderListener(): MobileReaderListener {
-    return object : MobileReaderListener,
-        ReaderReconnectionListener by this@toMobileReaderListener {
-
+    return object : TapToPayReaderListener by this@bindReconnectionListener {
+        override fun onReaderReconnectStarted(
+            reader: Reader,
+            cancelReconnect: Cancelable,
+            reason: DisconnectReason
+        ) {
+            super.onReaderReconnectStarted(reader, cancelReconnect, reason)
+            reconnectionListener.onReaderReconnectStarted(reader, cancelReconnect, reason)
         }
+
+        override fun onReaderReconnectSucceeded(reader: Reader) {
+            super.onReaderReconnectSucceeded(reader)
+            reconnectionListener.onReaderReconnectSucceeded(reader)
+        }
+
+        override fun onReaderReconnectFailed(reader: Reader) {
+            super.onReaderReconnectFailed(reader)
+            reconnectionListener.onReaderReconnectFailed(reader)
+        }
+    }
 }
