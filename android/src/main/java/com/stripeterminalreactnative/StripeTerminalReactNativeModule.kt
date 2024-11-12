@@ -4,7 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
+
 import com.stripe.stripeterminal.BuildConfig
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
@@ -13,14 +20,72 @@ import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
-import com.stripe.stripeterminal.external.models.*
-import com.stripeterminalreactnative.callback.*
+import com.stripe.stripeterminal.external.models.AllowRedisplay
+import com.stripe.stripeterminal.external.models.CaptureMethod
+import com.stripe.stripeterminal.external.models.CardPresentParameters
+import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
+import com.stripe.stripeterminal.external.models.Cart
+import com.stripe.stripeterminal.external.models.CollectConfiguration
+import com.stripe.stripeterminal.external.models.CollectDataConfiguration
+import com.stripe.stripeterminal.external.models.CollectInputsParameters
+import com.stripe.stripeterminal.external.models.ConfirmConfiguration
+import com.stripe.stripeterminal.external.models.CreateConfiguration
+import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
+import com.stripe.stripeterminal.external.models.EmailInput
+import com.stripe.stripeterminal.external.models.Input
+import com.stripe.stripeterminal.external.models.ListLocationsParameters
+import com.stripe.stripeterminal.external.models.NumericInput
+import com.stripe.stripeterminal.external.models.OfflineBehavior
+import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentIntentParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
+import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.PhoneInput
+import com.stripe.stripeterminal.external.models.Reader
+import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
+import com.stripe.stripeterminal.external.models.RefundConfiguration
+import com.stripe.stripeterminal.external.models.RefundParameters
+import com.stripe.stripeterminal.external.models.RoutingPriority
+import com.stripe.stripeterminal.external.models.SelectionButton
+import com.stripe.stripeterminal.external.models.SelectionButtonStyle
+import com.stripe.stripeterminal.external.models.SelectionInput
+import com.stripe.stripeterminal.external.models.SetupIntent
+import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
+import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
+import com.stripe.stripeterminal.external.models.SetupIntentParameters
+import com.stripe.stripeterminal.external.models.SignatureInput
+import com.stripe.stripeterminal.external.models.SimulatedCard
+import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
+import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripe.stripeterminal.external.models.TextInput
+import com.stripe.stripeterminal.external.models.TippingConfiguration
+import com.stripe.stripeterminal.external.models.Toggle
+import com.stripe.stripeterminal.external.models.ToggleValue
+import com.stripeterminalreactnative.callback.NoOpCallback
+import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
+import com.stripeterminalreactnative.callback.RNCollectedDataCallback
+import com.stripeterminalreactnative.callback.RNLocationListCallback
+import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
+import com.stripeterminalreactnative.callback.RNReadSettingsCallback
+import com.stripeterminalreactnative.callback.RNRefundCallback
+import com.stripeterminalreactnative.callback.RNSetupIntentCallback
+
 import com.stripeterminalreactnative.ktx.connectReader
-import com.stripeterminalreactnative.listener.*
+import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
+import com.stripeterminalreactnative.listener.RNDiscoveryListener
+import com.stripeterminalreactnative.listener.RNHandoffReaderListener
+import com.stripeterminalreactnative.listener.RNInternetReaderListener
+import com.stripeterminalreactnative.listener.RNOfflineListener
+import com.stripeterminalreactnative.listener.RNReaderReconnectionListener
+import com.stripeterminalreactnative.listener.RNTapToPayReaderListener
+import com.stripeterminalreactnative.listener.RNTerminalListener
+import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.UUID
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -190,6 +255,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    // TODO: is there a way to find suitable listener for all discovery method or refactor this part to reduce casting the actual type later.
     private fun connectReader(
         params: ReadableMap,
         promise: Promise,
@@ -218,9 +284,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.TAP_TO_PAY) {
                     getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
                 } else {
-                    false
+                    true
                 }
 
+                //TODO: ReaderReconnectionListener is only needed for limit discovery type, is it possible to move this creation to where it really need?
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
                 }

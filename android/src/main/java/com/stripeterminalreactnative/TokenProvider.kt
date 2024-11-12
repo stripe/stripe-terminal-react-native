@@ -6,7 +6,8 @@ import com.stripe.stripeterminal.external.callable.ConnectionTokenProvider
 import com.stripe.stripeterminal.external.models.ConnectionTokenException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
-import java.util.*
+import java.util.Hashtable
+import java.util.UUID
 
 class TokenProvider(private val context: ReactApplicationContext) : ConnectionTokenProvider {
     var callbackMap: Hashtable<String, ConnectionTokenCallback> = Hashtable()

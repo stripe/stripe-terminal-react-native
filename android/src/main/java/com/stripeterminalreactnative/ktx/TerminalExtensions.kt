@@ -1,9 +1,14 @@
 package com.stripeterminalreactnative.ktx
 
 import com.stripe.stripeterminal.Terminal
-import com.stripe.stripeterminal.external.callable.*
+import com.stripe.stripeterminal.external.callable.HandoffReaderListener
+import com.stripe.stripeterminal.external.callable.InternetReaderListener
+import com.stripe.stripeterminal.external.callable.MobileReaderListener
+import com.stripe.stripeterminal.external.callable.ReaderCallback
+import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
+import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
+import com.stripe.stripeterminal.external.callable.TapToPayReaderListener
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration
-import com.stripe.stripeterminal.external.models.ConnectionConfiguration.*
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.DiscoveryMethod
@@ -44,42 +49,50 @@ suspend fun Terminal.connectReader(
     discoveryMethod: DiscoveryMethod,
     reader: Reader,
     locationId: String,
-    autoReconnectOnUnexpectedDisconnect: Boolean = false,
+    autoReconnectOnUnexpectedDisconnect: Boolean = true,
     disconnectListener: ReaderDisconnectListener? = null,
     reconnectionListener: ReaderReconnectionListener,
 ): Reader = when (discoveryMethod) {
     DiscoveryMethod.BLUETOOTH_SCAN -> {
-        val connConfig = BluetoothConnectionConfiguration(
+        val connConfig = ConnectionConfiguration.BluetoothConnectionConfiguration(
             locationId,
             autoReconnectOnUnexpectedDisconnect,
-            (disconnectListener as? MobileReaderListener).bindReconnectionListener(reconnectionListener)
+            (disconnectListener as? MobileReaderListener).bindReconnectionListener(
+                reconnectionListener
+            )
         )
         connectReader(reader, connConfig)
     }
 
     DiscoveryMethod.TAP_TO_PAY -> connectReader(
         reader,
-        TapToPayConnectionConfiguration(
+        ConnectionConfiguration.TapToPayConnectionConfiguration(
             locationId,
             autoReconnectOnUnexpectedDisconnect,
-            (disconnectListener as? TapToPayReaderListener)?.bindReconnectionListener(reconnectionListener)
+            (disconnectListener as? TapToPayReaderListener)?.bindReconnectionListener(
+                reconnectionListener
+            )
         )
     )
 
     DiscoveryMethod.INTERNET -> connectReader(
         reader,
-        InternetConnectionConfiguration(internetReaderListener = (disconnectListener as? InternetReaderListener))
+        ConnectionConfiguration.InternetConnectionConfiguration(internetReaderListener = (disconnectListener as? InternetReaderListener))
     )
 
     DiscoveryMethod.HANDOFF -> {
-        connectReader(reader, HandoffConnectionConfiguration(disconnectListener as? HandoffReaderListener))
+        connectReader(reader,
+            ConnectionConfiguration.HandoffConnectionConfiguration(disconnectListener as? HandoffReaderListener)
+        )
     }
 
     DiscoveryMethod.USB -> {
-        val connConfig = UsbConnectionConfiguration(
+        val connConfig = ConnectionConfiguration.UsbConnectionConfiguration(
             locationId,
             autoReconnectOnUnexpectedDisconnect,
-            (disconnectListener as? MobileReaderListener).bindReconnectionListener(reconnectionListener)
+            (disconnectListener as? MobileReaderListener).bindReconnectionListener(
+                reconnectionListener
+            )
         )
         connectReader(reader, connConfig)
     }
