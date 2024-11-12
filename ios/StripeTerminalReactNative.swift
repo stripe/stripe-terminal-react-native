@@ -690,8 +690,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable, disconnectReason: DisconnectReason) {
         self.cancelReaderConnectionCancellable = cancelable
-        let reader = Mappers.mapFromReader(reader)
-        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reader": reader])
+        let result = Mappers.mapFromReaderDisconnectReason(disconnectReason)
+        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reason": result])
     }
 
     func readerDidSucceedReconnect(_ reader: Reader) {

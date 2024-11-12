@@ -275,9 +275,12 @@ export function useStripeTerminal(props?: Props) {
     [onDidChangeConnectionStatus]
   );
 
-  const didStartReaderReconnect = useCallback(() => {
-    onDidStartReaderReconnect?.();
-  }, [onDidStartReaderReconnect]);
+  const didStartReaderReconnect = useCallback(
+    ({ reason }: { reason?: Reader.DisconnectReason }) => {
+      onDidStartReaderReconnect?.(reason);
+    },
+    [onDidStartReaderReconnect]
+  );
 
   const didSucceedReaderReconnect = useCallback(() => {
     onDidSucceedReaderReconnect?.();
