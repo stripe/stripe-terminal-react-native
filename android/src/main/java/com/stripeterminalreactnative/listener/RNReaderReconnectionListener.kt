@@ -7,7 +7,7 @@ import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
-import com.stripeterminalreactnative.ReactNativeConstants.*
+import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.mapFromReader
 import com.stripeterminalreactnative.nativeMapOf
 
@@ -17,7 +17,7 @@ class RNReaderReconnectionListener(
 ) : ReaderReconnectionListener {
 
     override fun onReaderReconnectFailed(reader: Reader) {
-        context.sendEvent(READER_RECONNECT_FAIL.listenerName) {
+        context.sendEvent(ReactNativeConstants.READER_RECONNECT_FAIL.listenerName) {
             putMap(
                 "error",
                 nativeMapOf {
@@ -34,13 +34,13 @@ class RNReaderReconnectionListener(
         reason: DisconnectReason
     ) {
         onReaderReconnectStarted(cancelReconnect)
-        context.sendEvent(START_READER_RECONNECT.listenerName) {
+        context.sendEvent(ReactNativeConstants.START_READER_RECONNECT.listenerName) {
             putMap("reader", mapFromReader(reader))
         }
     }
 
     override fun onReaderReconnectSucceeded(reader: Reader) {
-        context.sendEvent(READER_RECONNECT_SUCCEED.listenerName) {
+        context.sendEvent(ReactNativeConstants.READER_RECONNECT_SUCCEED.listenerName) {
             putMap("reader", mapFromReader(reader))
         }
     }

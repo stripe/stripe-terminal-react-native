@@ -30,7 +30,7 @@ export namespace Reader {
       | 'bluetoothProximity'
       | 'bluetoothScan'
       | 'internet'
-      | 'taoToPay';
+      | 'tapToPay';
   }
 
   export namespace Android {

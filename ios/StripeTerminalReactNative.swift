@@ -242,7 +242,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         let locationId = params["locationId"] as? String
-        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? true
 
         let connectionConfig: BluetoothConnectionConfiguration
         do {
@@ -319,7 +319,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let onBehalfOf: String? = params["onBehalfOf"] as? String
         let merchantDisplayName: String? = params["merchantDisplayName"] as? String
         let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
-        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? true
 
         let connectionConfig: TapToPayConnectionConfiguration
         do {
