@@ -379,7 +379,7 @@ export type UserCallbacks = {
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
 
-  onDidStartReaderReconnect?(): void;
+  onDidStartReaderReconnect?(reason?: Reader.DisconnectReason): void;
   onDidSucceedReaderReconnect?(): void;
   onDidFailReaderReconnect?(): void;
 

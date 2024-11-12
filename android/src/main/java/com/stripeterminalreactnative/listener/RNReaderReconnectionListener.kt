@@ -9,6 +9,7 @@ import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.mapFromReader
+import com.stripeterminalreactnative.mapFromReaderDisconnectReason
 import com.stripeterminalreactnative.nativeMapOf
 
 class RNReaderReconnectionListener(
@@ -35,7 +36,7 @@ class RNReaderReconnectionListener(
     ) {
         onReaderReconnectStarted(cancelReconnect)
         context.sendEvent(ReactNativeConstants.START_READER_RECONNECT.listenerName) {
-            putMap("reader", mapFromReader(reader))
+            putString("reason", mapFromReaderDisconnectReason(reason))
         }
     }
 

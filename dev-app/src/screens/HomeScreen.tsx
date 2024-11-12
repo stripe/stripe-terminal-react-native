@@ -106,7 +106,9 @@ export default function HomeScreen() {
         'Reader disconnected with reason ' + reason
       );
     },
-    onDidStartReaderReconnect() {
+    onDidStartReaderReconnect(reason) {
+      console.log('onDidStartReaderReconnect ' + reason);
+
       setShowDisconnectAlert(true);
       setShowReconnectAlert(false);
     },

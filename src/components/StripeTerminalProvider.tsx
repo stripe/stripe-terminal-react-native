@@ -182,9 +182,9 @@ export function StripeTerminalProvider({
   );
 
   const didStartReaderReconnect = useCallback(
-    ({ reader }: { reader: Reader.Type }) => {
-      log('didStartReaderReconnect', reader);
-      emitter?.emit(START_READER_RECONNECT, reader);
+    ({ reason }: { reason: Reader.DisconnectReason }) => {
+      log('didStartReaderReconnect', reason);
+      emitter?.emit(START_READER_RECONNECT, reason);
     },
     [log]
   );
