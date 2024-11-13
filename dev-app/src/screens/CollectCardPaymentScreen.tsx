@@ -171,13 +171,7 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
-    if (
-      enableInterac &&
-      !resolvedPaymentMethodTypes.includes('interac_present')
-    ) {
-      resolvedPaymentMethodTypes.push('interac_present');
-    }
+
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
     };
@@ -197,7 +191,7 @@ export default function CollectCardPaymentScreen() {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: resolvedPaymentMethodTypes,
+        payment_method_types: enabledPaymentMethodTypes,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,
@@ -264,7 +258,7 @@ export default function CollectCardPaymentScreen() {
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: resolvedPaymentMethodTypes,
+        paymentMethodTypes: enabledPaymentMethodTypes,
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount
@@ -650,7 +644,27 @@ export default function CollectCardPaymentScreen() {
               <Switch
                 testID="enable-interac"
                 value={enableInterac}
-                onValueChange={(value) => setEnableInterac(value)}
+                onValueChange={(value) => {
+                  setEnableInterac(value);
+                  if (
+                    value &&
+                    !enabledPaymentMethodTypes.includes('interac_present')
+                  ) {
+                    setEnabledPaymentMethodTypes([
+                      ...enabledPaymentMethodTypes,
+                      'interac_present',
+                    ]);
+                  } else if (
+                    !value &&
+                    enabledPaymentMethodTypes.includes('interac_present')
+                  ) {
+                    setEnabledPaymentMethodTypes(
+                      enabledPaymentMethodTypes.filter(
+                        (type) => type !== 'interac_present'
+                      )
+                    );
+                  }
+                }}
               />
             }
           />
@@ -666,6 +680,9 @@ export default function CollectCardPaymentScreen() {
                 enabledPaymentMethodTypes: enabledPaymentMethodTypes,
                 onChange: (newPaymentMethodTypes: string[]) => {
                   setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                  setEnableInterac(
+                    newPaymentMethodTypes.includes('interac_present')
+                  );
                 },
               })
             }
