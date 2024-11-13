@@ -906,7 +906,7 @@ export async function collectData(
     try {
       const response = await StripeTerminalSdk.collectData(params);
       return {
-        collectedData: response
+        collectedData: response,
       };
     } catch (error) {
       return {
