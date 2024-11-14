@@ -352,7 +352,7 @@ export default function CollectCardPaymentScreen() {
       updatePaymentIntent: enableUpdatePaymentIntent,
       enableCustomerCancellation: enableCustomerCancellation,
       requestDynamicCurrencyConversion: requestDcc,
-      surchargeNotice: surchargeNotice,
+      surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
     });
 
     if (error) {
