@@ -660,7 +660,7 @@ private fun mapFromWechatPayDetails(wechatPayDetails: WechatPayDetails?): Readab
 private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap? =
     offlineDetails?.let {
         nativeMapOf {
-            putString("storedAt", offlineDetails.storedAtMs.toString())
+            putString("storedAtMs", offlineDetails.storedAtMs.toString())
             putBoolean("requiresUpload", offlineDetails.requiresUpload)
             putMap(
                 "cardPresentDetails",
