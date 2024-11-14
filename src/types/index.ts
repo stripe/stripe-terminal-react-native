@@ -520,7 +520,7 @@ export enum ToggleResult {
 }
 
 export type OfflineDetails = {
-  storedAt: string;
+  storedAtMs: string;
   requiresUpload: boolean;
   cardPresentDetails: OfflineCardPresentDetails;
   amountDetails: AmountDetails;
