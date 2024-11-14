@@ -8,8 +8,10 @@ import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.mapFromReaderEvent
 
-class RNHandoffReaderListener(private val context: ReactApplicationContext) :
-    HandoffReaderListener, ReaderDisconnectListener by readerDisconnectDelete(context) {
+class RNHandoffReaderListener(
+    private val context: ReactApplicationContext,
+    private val readerDisconnectListener: ReaderDisconnectListener
+) : HandoffReaderListener, ReaderDisconnectListener by readerDisconnectListener {
     override fun onReportReaderEvent(event: ReaderEvent) {
         context.sendEvent(REQUEST_READER_INPUT.listenerName) {
             putString("event", mapFromReaderEvent(event))

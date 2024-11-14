@@ -11,7 +11,6 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
-
 import com.stripe.stripeterminal.BuildConfig
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
@@ -19,7 +18,6 @@ import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
-import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
 import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
@@ -29,6 +27,7 @@ import com.stripe.stripeterminal.external.models.CollectConfiguration
 import com.stripe.stripeterminal.external.models.CollectDataConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
 import com.stripe.stripeterminal.external.models.ConfirmConfiguration
+import com.stripe.stripeterminal.external.models.ConnectionConfiguration
 import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.EmailInput
@@ -71,17 +70,16 @@ import com.stripeterminalreactnative.callback.RNPaymentIntentCallback
 import com.stripeterminalreactnative.callback.RNReadSettingsCallback
 import com.stripeterminalreactnative.callback.RNRefundCallback
 import com.stripeterminalreactnative.callback.RNSetupIntentCallback
-
 import com.stripeterminalreactnative.ktx.connectReader
-import com.stripeterminalreactnative.listener.RNBluetoothReaderListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
 import com.stripeterminalreactnative.listener.RNHandoffReaderListener
 import com.stripeterminalreactnative.listener.RNInternetReaderListener
+import com.stripeterminalreactnative.listener.RNMobileReaderListener
 import com.stripeterminalreactnative.listener.RNOfflineListener
+import com.stripeterminalreactnative.listener.RNReaderDisconnectListener
 import com.stripeterminalreactnative.listener.RNReaderReconnectionListener
 import com.stripeterminalreactnative.listener.RNTapToPayReaderListener
 import com.stripeterminalreactnative.listener.RNTerminalListener
-import com.stripeterminalreactnative.listener.RNUsbReaderListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -255,12 +253,74 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    // TODO: is there a way to find suitable listener for all discovery method or refactor this part to reduce casting the actual type later.
+    private fun getConnectionConfig(
+        discoveryMethod: DiscoveryMethod,
+        locationId: String,
+        autoReconnectOnUnexpectedDisconnect: Boolean
+    ): ConnectionConfiguration {
+        val disconnectListener = RNReaderDisconnectListener(context)
+        return when (discoveryMethod) {
+            DiscoveryMethod.BLUETOOTH_SCAN -> {
+                val reconnectionListener = RNReaderReconnectionListener(context) {
+                    cancelReaderConnectionCancellable = it
+                }
+                val listener =
+                    RNMobileReaderListener(context, reconnectionListener, disconnectListener) {
+                        installUpdateCancelable = it
+                    }
+                ConnectionConfiguration.BluetoothConnectionConfiguration(
+                    locationId,
+                    autoReconnectOnUnexpectedDisconnect,
+                    listener
+                )
+            }
+
+            DiscoveryMethod.TAP_TO_PAY -> {
+                val reconnectionListener = RNReaderReconnectionListener(context) {
+                    cancelReaderConnectionCancellable = it
+                }
+                val listener = RNTapToPayReaderListener(disconnectListener, reconnectionListener)
+                ConnectionConfiguration.TapToPayConnectionConfiguration(
+                    locationId,
+                    autoReconnectOnUnexpectedDisconnect,
+                    listener
+                )
+            }
+
+            DiscoveryMethod.INTERNET -> {
+                val listener = RNInternetReaderListener(disconnectListener)
+                ConnectionConfiguration.InternetConnectionConfiguration(
+                    internetReaderListener = listener
+                )
+            }
+
+            DiscoveryMethod.HANDOFF -> {
+                ConnectionConfiguration.HandoffConnectionConfiguration(
+                    RNHandoffReaderListener(context, disconnectListener)
+                )
+            }
+
+            DiscoveryMethod.USB -> {
+                val reconnectionListener = RNReaderReconnectionListener(context) {
+                    cancelReaderConnectionCancellable = it
+                }
+                val listener =
+                    RNMobileReaderListener(context, reconnectionListener, disconnectListener) {
+                        installUpdateCancelable = it
+                    }
+                ConnectionConfiguration.UsbConnectionConfiguration(
+                    locationId,
+                    autoReconnectOnUnexpectedDisconnect,
+                    listener
+                )
+            }
+        }
+    }
+
     private fun connectReader(
         params: ReadableMap,
         promise: Promise,
-        discoveryMethod: DiscoveryMethod,
-        listener: ReaderDisconnectListener? = null
+        discoveryMethod: DiscoveryMethod
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             withSuspendExceptionResolver(promise) {
@@ -281,25 +341,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val locationId =
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
-                val autoReconnectOnUnexpectedDisconnect = if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.TAP_TO_PAY) {
-                    getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
-                } else {
-                    true
-                }
+                val autoReconnectOnUnexpectedDisconnect =
+                    if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.TAP_TO_PAY) {
+                        getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
+                    } else {
+                        false
+                    }
 
-                //TODO: ReaderReconnectionListener is only needed for limit discovery type, is it possible to move this creation to where it really need?
-                val reconnectionListener = RNReaderReconnectionListener(context) {
-                    cancelReaderConnectionCancellable = it
-                }
-                val connectedReader =
-                    terminal.connectReader(
-                        discoveryMethod,
-                        selectedReader,
-                        locationId,
-                        autoReconnectOnUnexpectedDisconnect,
-                        listener,
-                        reconnectionListener
-                    )
+                val connConfig = getConnectionConfig(
+                    discoveryMethod,
+                    locationId,
+                    autoReconnectOnUnexpectedDisconnect
+                )
+                val connectedReader = terminal.connectReader(selectedReader, connConfig)
                 promise.resolve(
                     nativeMapOf {
                         putMap("reader", mapFromReader(connectedReader))
@@ -312,40 +366,31 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
-        val listener = RNBluetoothReaderListener(context) {
-            installUpdateCancelable = it
-        }
-        connectReader(params, promise, DiscoveryMethod.BLUETOOTH_SCAN, listener)
+        connectReader(params, promise, DiscoveryMethod.BLUETOOTH_SCAN)
     }
 
     @ReactMethod
     @Suppress("unused")
     fun connectHandoffReader(params: ReadableMap, promise: Promise) {
-        val listener = RNHandoffReaderListener(context)
-        connectReader(params, promise, DiscoveryMethod.HANDOFF, listener)
+        connectReader(params, promise, DiscoveryMethod.HANDOFF)
     }
 
     @ReactMethod
     @Suppress("unused")
     fun connectInternetReader(params: ReadableMap, promise: Promise) {
-        val listener = RNInternetReaderListener(context)
-        connectReader(params, promise, DiscoveryMethod.INTERNET, listener)
+        connectReader(params, promise, DiscoveryMethod.INTERNET)
     }
 
     @ReactMethod
     @Suppress("unused")
     fun connectTapToPayReader(params: ReadableMap, promise: Promise) {
-        val listener = RNTapToPayReaderListener(context)
-        connectReader(params, promise, DiscoveryMethod.TAP_TO_PAY, listener)
+        connectReader(params, promise, DiscoveryMethod.TAP_TO_PAY)
     }
 
     @ReactMethod
     @Suppress("unused")
     fun connectUsbReader(params: ReadableMap, promise: Promise) {
-        val listener = RNUsbReaderListener(context) {
-            installUpdateCancelable = it
-        }
-        connectReader(params, promise, DiscoveryMethod.USB, listener)
+        connectReader(params, promise, DiscoveryMethod.USB)
     }
 
     @ReactMethod

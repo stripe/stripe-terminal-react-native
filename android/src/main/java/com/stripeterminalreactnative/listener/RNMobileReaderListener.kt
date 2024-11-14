@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.MobileReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
+import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderEvent
@@ -21,10 +22,13 @@ import com.stripeterminalreactnative.nativeMapOf
 import com.stripeterminalreactnative.putDoubleOrNull
 import com.stripeterminalreactnative.putError
 
-class RNBluetoothReaderListener(
+class RNMobileReaderListener(
     private val context: ReactApplicationContext,
+    private val readerReconnectionListener: ReaderReconnectionListener,
+    private val readerDisconnectListener: ReaderDisconnectListener,
     private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
-) : MobileReaderListener, ReaderDisconnectListener by readerDisconnectDelete(context) {
+) : MobileReaderListener, ReaderDisconnectListener by readerDisconnectListener,
+    ReaderReconnectionListener by readerReconnectionListener {
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(ReactNativeConstants.REPORT_AVAILABLE_UPDATE.listenerName) {
             putMap("result", mapFromReaderSoftwareUpdate(update))
@@ -86,7 +90,7 @@ class RNBluetoothReaderListener(
             putMap(
                 "result",
                 nativeMapOf {
-                    putDoubleOrNull(this,"batteryLevel", batteryLevel.toDouble())
+                    putDoubleOrNull(this, "batteryLevel", batteryLevel.toDouble())
                     putString("batteryStatus", mapFromBatteryStatus(batteryStatus))
                     putBoolean("isCharging", isCharging)
                 }
