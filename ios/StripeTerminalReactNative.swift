@@ -543,10 +543,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setUpdatePaymentIntent(updatePaymentIntent)
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
-
-        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
-            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
-        }
+            .setSurchargeNotice(surchargeNotice)
 
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
             do {
