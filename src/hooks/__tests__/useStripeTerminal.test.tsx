@@ -14,10 +14,8 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .spyOn(functions, 'createSetupIntent')
     .mockImplementation(createSetupIntent);
   //
-  const connectBluetoothReader = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'connectBluetoothReader')
-    .mockImplementation(connectBluetoothReader);
+  const connectReader = jest.fn(() => returnWith);
+  jest.spyOn(functions, 'connectReader').mockImplementation(connectReader);
   //
   const discoverReaders = jest.fn(() => returnWith);
   jest.spyOn(functions, 'discoverReaders').mockImplementation(discoverReaders);
@@ -26,16 +24,6 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
   jest
     .spyOn(functions, 'cancelDiscovering')
     .mockImplementation(cancelDiscovering);
-  //
-  const connectInternetReader = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'connectInternetReader')
-    .mockImplementation(connectInternetReader);
-  //
-  const connectUsbReader = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'connectUsbReader')
-    .mockImplementation(connectUsbReader);
   //
   const createPaymentIntent = jest.fn(() => returnWith);
   jest
@@ -153,18 +141,6 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .mockImplementation(cancelCollectSetupIntent);
 
   //
-  const connectHandoffReader = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'connectHandoffReader')
-    .mockImplementation(connectHandoffReader);
-
-  //
-  const connectTapToPayReader = jest.fn(() => returnWith);
-  jest
-    .spyOn(functions, 'connectTapToPayReader')
-    .mockImplementation(connectTapToPayReader);
-
-  //
   const setSimulatedCard = jest.fn(() => returnWith);
   jest
     .spyOn(functions, 'setSimulatedCard')
@@ -173,11 +149,9 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
   return {
     discoverReaders,
     cancelDiscovering,
-    connectBluetoothReader,
+    connectReader,
     disconnectReader,
     rebootReader,
-    connectInternetReader,
-    connectUsbReader,
     createPaymentIntent,
     collectPaymentMethod,
     retrievePaymentIntent,
@@ -199,8 +173,6 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent,
-    connectHandoffReader,
-    connectTapToPayReader,
     setSimulatedCard,
   };
 }
@@ -315,11 +287,7 @@ describe('useStripeTerminal.test.tsx', () => {
           result.current.collectRefundPaymentMethod({} as any);
           result.current.collectSetupIntentPaymentMethod({} as any);
           result.current.confirmSetupIntent({} as any);
-          result.current.connectBluetoothReader({} as any);
-          result.current.connectHandoffReader({} as any);
-          result.current.connectInternetReader({} as any);
-          result.current.connectTapToPayReader({} as any);
-          result.current.connectUsbReader({} as any);
+          result.current.connectReader({} as any, {} as any);
           result.current.createPaymentIntent({} as any);
           result.current.createSetupIntent({} as any);
           result.current.disconnectReader();
@@ -354,7 +322,7 @@ describe('useStripeTerminal.test.tsx', () => {
       });
 
       try {
-        await result.current.connectBluetoothReader({} as any);
+        await result.current.connectReader({} as any, {} as any);
         await result.current.discoverReaders({} as any);
         await result.current.cancelCollectPaymentMethod();
         await result.current.cancelDiscovering();
@@ -367,11 +335,7 @@ describe('useStripeTerminal.test.tsx', () => {
         await result.current.collectRefundPaymentMethod({} as any);
         await result.current.collectSetupIntentPaymentMethod({} as any);
         await result.current.confirmSetupIntent({} as any);
-        await result.current.connectBluetoothReader({} as any);
-        await result.current.connectHandoffReader({} as any);
-        await result.current.connectInternetReader({} as any);
-        await result.current.connectTapToPayReader({} as any);
-        await result.current.connectUsbReader({} as any);
+        await result.current.connectReader({} as any, {} as any);
         await result.current.createPaymentIntent({} as any);
         await result.current.createSetupIntent({} as any);
         await result.current.disconnectReader();
@@ -413,7 +377,7 @@ describe('useStripeTerminal.test.tsx', () => {
       });
 
       await expect(
-        result.current.connectBluetoothReader({} as any)
+        result.current.connectReader({} as any, {} as any)
       ).resolves.toEqual('_value');
       await expect(result.current.discoverReaders({} as any)).resolves.toEqual(
         '_value'
@@ -451,18 +415,6 @@ describe('useStripeTerminal.test.tsx', () => {
       await expect(
         result.current.confirmSetupIntent({} as any)
       ).resolves.toEqual('_value');
-      await expect(
-        result.current.connectHandoffReader({} as any)
-      ).resolves.toEqual('_value');
-      await expect(
-        result.current.connectInternetReader({} as any)
-      ).resolves.toEqual('_value');
-      await expect(
-        result.current.connectTapToPayReader({} as any)
-      ).resolves.toEqual('_value');
-      await expect(result.current.connectUsbReader({} as any)).resolves.toEqual(
-        '_value'
-      );
       await expect(
         result.current.createPaymentIntent({} as any)
       ).resolves.toEqual('_value');

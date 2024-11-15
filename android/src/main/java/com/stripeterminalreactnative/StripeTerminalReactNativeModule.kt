@@ -317,10 +317,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    private fun connectReader(
+    private fun innerConnectReader(
         params: ReadableMap,
-        promise: Promise,
-        discoveryMethod: DiscoveryMethod
+        discoveryMethod: DiscoveryMethod,
+        promise: Promise
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             withSuspendExceptionResolver(promise) {
@@ -365,32 +365,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun connectBluetoothReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.BLUETOOTH_SCAN)
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun connectHandoffReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.HANDOFF)
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun connectInternetReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.INTERNET)
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun connectTapToPayReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.TAP_TO_PAY)
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun connectUsbReader(params: ReadableMap, promise: Promise) {
-        connectReader(params, promise, DiscoveryMethod.USB)
+    fun connectReader(params: ReadableMap, discoveryMethod: String, promise: Promise) {
+        mapToDiscoveryMethod(discoveryMethod)?.let {
+            innerConnectReader(params, it, promise)
+        } ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod")))
     }
 
     @ReactMethod
@@ -713,13 +691,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
-            val customerConsentCollected = getBoolean(params, "customerConsentCollected")
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
-                AllowRedisplay.ALWAYS,
-//                customerConsentCollected,//TODO: seems removed
+                AllowRedisplay.ALWAYS, //TODO change
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(enableCustomerCancellation)
                     .build(),

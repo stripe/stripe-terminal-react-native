@@ -6,12 +6,9 @@ import type {
   InitializeResultType,
   DiscoverReadersParams,
   DiscoverReadersResultType,
-  ConnectBluetoothReaderParams,
   CancelDiscoveringResultType,
   DisconnectReaderResultType,
   RebootReaderResultType,
-  ConnectInternetReaderParams,
-  ConnectUsbReaderParams,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
@@ -25,9 +22,7 @@ import type {
   Reader,
   RefundParams,
   ConfirmRefundResultType,
-  ConnectTapToPayParams,
   ConnectReaderResultType,
-  ConnectHandoffParams,
   CollectPaymentMethodParams,
   OfflineStatus,
   ICollectInputsParameters,
@@ -41,6 +36,7 @@ import type {
   CollectDataParams,
   CollectDataResultType,
   TapToPayUxConfiguration,
+  ConnectReaderParams,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
@@ -118,13 +114,15 @@ export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> 
   }, 'cancelDiscoverReaders')();
 }
 
-export async function connectBluetoothReader(
-  params: ConnectBluetoothReaderParams
+export async function connectReader(
+  params: ConnectReaderParams,
+  discoveryMethod: Reader.DiscoveryMethod
 ): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
+  return Logger.traceSdkMethod(async (innerParams, discoveryMethod) => {
     try {
-      const { error, reader } = await StripeTerminalSdk.connectBluetoothReader(
-        innerParams
+      const { error, reader } = await StripeTerminalSdk.connectReader(
+        innerParams,
+        discoveryMethod
       );
 
       if (error) {
@@ -142,115 +140,7 @@ export async function connectBluetoothReader(
         error: error as any,
       };
     }
-  }, 'connectBluetoothReader')(params);
-}
-
-export async function connectHandoffReader(
-  params: ConnectHandoffParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectHandoffReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectHandoffReader')(params);
-}
-
-export async function connectTapToPayReader(
-  params: ConnectTapToPayParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectTapToPayReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectTapToPayReader')(params);
-}
-
-export async function connectInternetReader(
-  params: ConnectInternetReaderParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectInternetReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectInternetReader')(params);
-}
-
-export async function connectUsbReader(
-  params: ConnectUsbReaderParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectUsbReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectUsbReader')(params);
+  }, 'connectReader')(params, discoveryMethod);
 }
 
 export async function disconnectReader(): Promise<DisconnectReaderResultType> {

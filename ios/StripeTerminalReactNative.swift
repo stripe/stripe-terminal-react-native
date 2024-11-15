@@ -225,8 +225,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     }
 
 
-    @objc(connectBluetoothReader:resolver:rejecter:)
-    func connectBluetoothReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(connectReader:discoveryMethod:resolver:rejecter:)
+    func connectReader(params: NSDictionary, discoveryMethod: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let reader = params["reader"] as? NSDictionary else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
             return
@@ -234,7 +234,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         // since simulated readers don't contain `id` property we take serialNumber as a fallback
         let readerId = reader["serialNumber"] as? String
-
+        let discoveryMethodType = Mappers.mapToDiscoveryMethod(discoveryMethod)
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
             return
@@ -243,12 +243,22 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         let locationId = params["locationId"] as? String
         let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? true
-
-        let connectionConfig: BluetoothConnectionConfiguration
+        let failIfInUse: Bool = params["failIfInUse"] as? Bool ?? false
+        let onBehalfOf: String? = params["onBehalfOf"] as? String
+        let merchantDisplayName: String? = params["merchantDisplayName"] as? String
+        let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
+        
+        let connectionConfig: ConnectionConfiguration
         do {
-            connectionConfig = try BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
-                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-                .build()
+            connectionConfig = try getConnectionConfig(
+                selectedReader: selectedReader,
+                locationId: locationId,
+                autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+                failIfInUse: failIfInUse,
+                merchantDisplayName: merchantDisplayName,
+                onBehalfOf: onBehalfOf,
+                tosAcceptancePermitted: tosAcceptancePermitted,
+                discoveryMethod: discoveryMethodType)! // TODO find way to !
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
@@ -264,84 +274,36 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             }
         }
     }
-
-    @objc(connectInternetReader:resolver:rejecter:)
-    func connectInternetReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
-            return
-        }
-
-        // since simulated readers don't contain `id` property we take serialNumber as a fallback
-        let readerId = reader["serialNumber"] as? String
-
-        guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
-            return
-        }
-
-        let connectionConfig: InternetConnectionConfiguration
-        do {
-             connectionConfig = try InternetConnectionConfigurationBuilder(delegate: self)
-                .setFailIfInUse(params["failIfInUse"] as? Bool ?? false)
+    
+    private func getConnectionConfig(
+        selectedReader: Reader,
+        locationId: String?,
+        autoReconnectOnUnexpectedDisconnect: Bool,
+        failIfInUse: Bool,
+        merchantDisplayName: String?,
+        onBehalfOf: String?,
+        tosAcceptancePermitted: Bool,
+        discoveryMethod: DiscoveryMethod) throws -> ConnectionConfiguration? {
+        switch discoveryMethod {
+        case .bluetoothScan, .bluetoothProximity:
+            return try BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+               .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
+               .build()
+        case .internet:
+            return try InternetConnectionConfigurationBuilder(delegate: self)
+                .setFailIfInUse(failIfInUse)
                 .setAllowCustomerCancel(true)
                 .build()
-        }  catch {
-            resolve(Errors.createError(nsError: error as NSError))
-            return
-        }
-
-        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
-            if let reader = reader {
-                resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
-            }
-        }
-    }
-
-    @objc(connectTapToPayReader:resolver:rejecter:)
-    func connectTapToPayReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
-            return
-        }
-
-        // since simulated readers don't contain `id` property we take serialNumber as a fallback
-        let readerId = reader["serialNumber"] as? String
-
-        guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
-            return
-        }
-
-        let locationId = params["locationId"] as? String
-        let onBehalfOf: String? = params["onBehalfOf"] as? String
-        let merchantDisplayName: String? = params["merchantDisplayName"] as? String
-        let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
-        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? true
-
-        let connectionConfig: TapToPayConnectionConfiguration
-        do {
-            connectionConfig = try TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+        case .tapToPay:
+            return try TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
                 .setMerchantDisplayName(merchantDisplayName ?? nil)
                 .setOnBehalfOf(onBehalfOf ?? nil)
                 .setTosAcceptancePermitted(tosAcceptancePermitted)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                 .build()
-        }  catch {
-            resolve(Errors.createError(nsError: error as NSError))
-            return
-        }
-
-        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
-            if let reader = reader {
-                resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
-            } else {
-                resolve([:])
-            }
+        case .
+        @unknown default:
+            return nil
         }
     }
 
