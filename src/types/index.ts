@@ -35,31 +35,35 @@ export type GetLocationsParams = {
   startingAfter?: string;
 };
 
-export type ConnectBluetoothReaderParams = {
+export interface ConnectReaderParams {
   reader: Reader.Type;
+}
+
+export interface ConnectBluetoothReaderParams extends ConnectReaderParams {
   locationId?: string;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-};
+}
 
-export type ConnectUsbReaderParams = {
-  reader: Reader.Type;
+export interface ConnectUsbReaderParams extends ConnectReaderParams {
   locationId?: string;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-};
+}
 
-export type ConnectTapToPayParams = {
-  reader: Reader.Type;
+export interface ConnectTapToPayParams extends ConnectReaderParams {
   locationId?: string;
   onBehalfOf?: string;
   merchantDisplayName?: string;
   tosAcceptancePermitted?: boolean;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-};
+}
 
-export type ConnectHandoffParams = {
-  reader: Reader.Type;
+export interface ConnectHandoffParams extends ConnectReaderParams {
   locationId?: string;
-};
+}
+
+export interface ConnectInternetReaderParams extends ConnectReaderParams {
+  failIfInUse?: boolean;
+}
 
 export type LineItem = {
   displayName: string;
@@ -72,11 +76,6 @@ export type Cart = {
   tax: number;
   total: number;
   lineItems: LineItem[];
-};
-
-export type ConnectInternetReaderParams = {
-  reader: Reader.Type;
-  failIfInUse?: boolean;
 };
 
 export enum CommonError {

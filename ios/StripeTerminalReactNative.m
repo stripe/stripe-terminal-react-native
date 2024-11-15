@@ -21,19 +21,8 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  connectBluetoothReader:(NSDictionary *)params
-                  resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
-                  )
-
-RCT_EXTERN_METHOD(
-                  connectInternetReader:(NSDictionary *)params
-                  resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
-                  )
-
-RCT_EXTERN_METHOD(
-                  connectTapToPayReader:(NSDictionary *)params
+                  connectReader:(NSDictionary *)params
+                  discoveryMethod: (NSString *)discoveryMethod
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

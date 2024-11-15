@@ -5,12 +5,9 @@ import type {
   DiscoverReadersParams,
   DiscoverReadersResultType,
   CancelDiscoveringResultType,
-  ConnectBluetoothReaderParams,
   DisconnectReaderResultType,
   RebootReaderResultType,
   Reader,
-  ConnectInternetReaderParams,
-  ConnectUsbReaderParams,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
@@ -24,8 +21,6 @@ import type {
   CollectRefundPaymentMethodType,
   ConfirmRefundResultType,
   SetConnectionTokenParams,
-  ConnectHandoffParams,
-  ConnectTapToPayParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
   OfflineStatus,
@@ -40,6 +35,7 @@ import type {
   CollectDataParams,
   CollectDataResultType,
   TapToPayUxConfiguration,
+  ConnectReaderParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -63,22 +59,9 @@ export interface StripeTerminalSdkType {
   // Cancel discovering readers
   cancelDiscovering(): CancelDiscoveringResultType;
   // Connect to reader via bluetooth
-  connectBluetoothReader(
-    params: ConnectBluetoothReaderParams
-  ): Promise<ConnectReaderResultType>;
-  // Connect to reader via internet
-  connectInternetReader(
-    params: ConnectInternetReaderParams
-  ): Promise<ConnectReaderResultType>;
-  connectHandoffReader(
-    params: ConnectHandoffParams
-  ): Promise<ConnectReaderResultType>;
-  connectTapToPayReader(
-    params: ConnectTapToPayParams
-  ): Promise<ConnectReaderResultType>;
-  // Connect to reader via USB
-  connectUsbReader(
-    params: ConnectUsbReaderParams
+  connectReader(
+    params: ConnectReaderParams,
+    discoveryMethod: Reader.DiscoveryMethod
   ): Promise<ConnectReaderResultType>;
   // Disconnect reader
   disconnectReader(): Promise<DisconnectReaderResultType>;
