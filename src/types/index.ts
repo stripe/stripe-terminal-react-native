@@ -220,10 +220,12 @@ export type CancelSetupIntentMethodParams = {
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
-  customerConsentCollected?: boolean;
+  allowRedisplay?: AllowRedisplay;
   enableCustomerCancellation?: boolean;
   setupIntent: SetupIntent.Type;
 };
+
+export type AllowRedisplay = 'always' | 'limited';
 
 export type CreateSetupIntentParams = {
   customer?: string;

@@ -561,6 +561,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             if (params.hasKey("surchargeNotice")) {
                 configBuilder.setSurchargeNotice(params.getString("surchargeNotice"))
             }
+            if (params.hasKey("allowRedisplay")) {
+                configBuilder.setAllowRedisplay(mapToAllowRedisplay(params.getString("allowRedisplay")))
+            }
+
             val config = configBuilder.build()
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
@@ -690,12 +694,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val setupIntent = requireParam(setupIntents[uuid]) {
                 "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
-
+            val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
-                AllowRedisplay.ALWAYS, //TODO change
+                allowRedisplay,
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(enableCustomerCancellation)
                     .build(),

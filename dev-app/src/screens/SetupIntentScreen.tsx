@@ -119,7 +119,7 @@ export default function SetupIntentScreen() {
     });
     const { setupIntent, error } = await collectSetupIntentPaymentMethod({
       setupIntent: si,
-      customerConsentCollected: true,
+      allowRedisplay: 'limited',
       enableCustomerCancellation: enableCustomerCancellation,
     });
     if (error) {
