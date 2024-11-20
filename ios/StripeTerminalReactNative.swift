@@ -301,7 +301,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 .setTosAcceptancePermitted(tosAcceptancePermitted)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                 .build()
-        case .
         @unknown default:
             return nil
         }
@@ -501,6 +500,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             .setSurchargeNotice(surchargeNotice)
 
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
+            print("jintin tip: \( eligibleAmount)")
             do {
                 let tippingConfig = try TippingConfigurationBuilder()
                     .setEligibleAmount(eligibleAmount)

@@ -9,6 +9,7 @@ import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.Address
+import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.CardDetails
@@ -197,6 +198,14 @@ internal fun mapToDiscoveryMethod(method: String?): DiscoveryMethod? {
         "handoff" -> DiscoveryMethod.HANDOFF
         "usb" -> DiscoveryMethod.USB
         else -> null
+    }
+}
+
+internal fun mapToAllowRedisplay(method: String?): AllowRedisplay {
+    return when (method) {
+        "always" -> AllowRedisplay.ALWAYS
+        "limited" -> AllowRedisplay.LIMITED
+        else -> AllowRedisplay.UNSPECIFIED
     }
 }
 
