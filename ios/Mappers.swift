@@ -538,7 +538,7 @@ class Mappers {
 
     class func mapFromAmountDetails(_ amountDetails: SCPAmountDetails?) -> NSDictionary {
         let amount: NSDictionary = [
-            "amount": amountDetails?.tip ?? NSNull(),
+            "amount": amountDetails?.tip?.amount ?? NSNull(),
         ]
 
         let result: NSDictionary = [
