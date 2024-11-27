@@ -36,7 +36,7 @@ workflows:
   complete_all:
     steps:
       - save-npm-cache@1: {}
-      - save-cocoapods-cache@1: {}
+      # - save-cocoapods-cache@1: {}
   deploy-firebase-android:
     steps:
       - fastlane@3:
@@ -169,7 +169,7 @@ workflows:
       - activate-ssh-key@4: {}
       - git-clone@6: {}
       - restore-npm-cache@1: {}
-      - restore-cocoapods-cache@1: {}
+      # - restore-cocoapods-cache@1: {}
       - script@1:
           inputs:
             - content: |-
@@ -215,7 +215,7 @@ workflows:
                 set -e
                 # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
                 cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
-                gem install cocoapods -v 1.15.2 && pod install && cd - && \
+                # gem install cocoapods -v 1.16.2 && pod install && cd - && \
                 npm rebuild detox
                 echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
                 git diff --exit-code
@@ -261,22 +261,32 @@ workflows:
       - complete_all
   unit-ios:
     steps:
-      - xcode-test@5:
+      
+      - xcode-start-simulator:
+          inputs:
+            - destination: platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5
+            - wait_for_boot_timeout: 90
+      - xcode-test:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5
+            - destination-timeout: 90
             - command: yarn unit-test:ios
             - cache_local_deps: 'yes'
+            - testPlan: UnitTests
+            - headless_mode: 'no'
           title: xcodebuild iOS Unit Tests
+      - deploy-to-bitrise-io:
     before_run:
       - prep_all
+      - cocoapods-install
       - setup_cocoapods
     after_run:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-15.2.x
+    stack: osx-xcode-15.4.x
     machine_type_id: g2.mac.large
 app:
   envs:
