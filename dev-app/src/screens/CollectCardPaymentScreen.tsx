@@ -16,6 +16,7 @@ import {
   PaymentIntent,
   StripeError,
   CommonError,
+  AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -57,6 +58,12 @@ const OFFLINE_BEHAVIOR = [
   { value: 'prefer_online', label: 'prefer_online' },
   { value: 'require_online', label: 'require_online' },
   { value: 'force_offline', label: 'force_offline' },
+];
+
+const ALLOW_REDISPLAY = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'limited', label: 'limited' },
+  { value: 'always', label: 'always' },
 ];
 
 export default function CollectCardPaymentScreen() {
@@ -107,6 +114,8 @@ export default function CollectCardPaymentScreen() {
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
     DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
   );
+  const [allowRedisplay, setAllowRedisplay] =
+    useState<AllowRedisplay>('unspecified');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod, deviceType } = params;
@@ -353,6 +362,7 @@ export default function CollectCardPaymentScreen() {
       enableCustomerCancellation: enableCustomerCancellation,
       requestDynamicCurrencyConversion: requestDcc,
       surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
+      allowRedisplay: allowRedisplay,
     });
 
     if (error) {
@@ -688,7 +698,26 @@ export default function CollectCardPaymentScreen() {
             }
           />
         </List>
-
+        <List bolded={false} topSpacing={false} title="Set Allow Redisplay">
+          <Picker
+            selectedValue={allowRedisplay}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-allow-redisplay"
+            onValueChange={(value) =>
+              setAllowRedisplay(value as AllowRedisplay)
+            }
+          >
+            {ALLOW_REDISPLAY.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
         <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
           <Picker
             selectedValue={inputValues?.requestedPriority}

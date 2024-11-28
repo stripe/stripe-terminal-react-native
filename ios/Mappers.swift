@@ -13,7 +13,6 @@ class Mappers {
     }
 
     class func mapFromReader(_ reader: Reader) -> NSDictionary {
-        print("jintin: reader lable \(reader.label)")
         let result: NSDictionary = [
             "label": reader.label ?? NSNull(),
             "batteryLevel": reader.batteryLevel ?? NSNull(),
@@ -463,6 +462,14 @@ class Mappers {
         return nil
     }
 
+    class func mapToAllowRedisplay(allowToredisplay: String) -> AllowRedisplay {
+        switch allowToredisplay {
+        case "always": return AllowRedisplay.always
+        case "limited": return AllowRedisplay.limited
+        default: return AllowRedisplay.unspecified
+        }
+    }
+
     class func mapToSimulateReaderUpdate(_ update: String) -> SimulateReaderUpdate {
         switch update {
         case "available": return SimulateReaderUpdate.available
@@ -545,7 +552,6 @@ class Mappers {
         let result: NSDictionary = [
             "tip": amount
         ]
-        print("jintin result: \(result)")
         return result
     }
 

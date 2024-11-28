@@ -499,8 +499,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
             .setSurchargeNotice(surchargeNotice)
 
+        if let allowRedisplay = params["allowRedisplay"] as? String {
+            collectConfigBuilder.setAllowRedisplay(Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay))
+        }
+        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
+            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
+        }
+
         if let eligibleAmount = params["tipEligibleAmount"] as? Int {
-            print("jintin tip: \( eligibleAmount)")
             do {
                 let tippingConfig = try TippingConfigurationBuilder()
                     .setEligibleAmount(eligibleAmount)
@@ -828,8 +834,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        let customerConsentCollected = params["customerConsentCollected"] as? Bool ?? false
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        let allowRedisplay = params["allowRedisplay"] as? String ?? "unspecified"
         let setupIntentConfiguration: SetupIntentConfiguration
         do {
             setupIntentConfiguration = try SetupIntentConfigurationBuilder()
@@ -840,8 +846,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-//TODO
-        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, allowRedisplay: AllowRedisplay.always, setupConfig: setupIntentConfiguration) { si, collectError  in
+        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, allowRedisplay: Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay), setupConfig: setupIntentConfiguration) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
