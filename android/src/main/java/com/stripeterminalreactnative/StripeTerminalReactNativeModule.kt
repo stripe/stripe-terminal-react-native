@@ -18,7 +18,6 @@ import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
-import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
@@ -342,10 +341,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
 
                 val autoReconnectOnUnexpectedDisconnect =
-                    if (discoveryMethod == DiscoveryMethod.BLUETOOTH_SCAN || discoveryMethod == DiscoveryMethod.USB || discoveryMethod == DiscoveryMethod.TAP_TO_PAY) {
-                        getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
-                    } else {
-                        false
+                    when (discoveryMethod) {
+                        DiscoveryMethod.TAP_TO_PAY -> {
+                            getBoolean(params, "autoReconnectOnUnexpectedDisconnect", true)
+                        }
+                        DiscoveryMethod.BLUETOOTH_SCAN, DiscoveryMethod.USB -> {
+                            getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
+                        }
+                        else -> {
+                            false
+                        }
                     }
 
                 val connConfig = getConnectionConfig(

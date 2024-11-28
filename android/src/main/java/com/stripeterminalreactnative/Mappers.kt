@@ -73,6 +73,9 @@ internal fun getInt(map: ReadableMap, key: String): Int? =
 internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
     if (map?.hasKey(key) == true) map.getBoolean(key) else false
 
+internal fun getBoolean(map: ReadableMap?, key: String, defaultValue: Boolean): Boolean =
+    if (map?.hasKey(key) == true) map.getBoolean(key) else defaultValue
+
 internal fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
         mapTarget.putDouble(key, it)
