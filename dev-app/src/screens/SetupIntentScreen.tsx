@@ -34,7 +34,7 @@ export default function SetupIntentScreen() {
     useState(false);
 
   const [allowRedisplay, setAllowRedisplay] =
-    useState<AllowRedisplay>('unspecified');
+    useState<AllowRedisplay>('always');
 
   const {
     createSetupIntent,
