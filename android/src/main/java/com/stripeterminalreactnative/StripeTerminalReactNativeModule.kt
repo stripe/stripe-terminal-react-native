@@ -936,7 +936,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val toggles = ArrayList<Toggle>()
         toggleList.let { array ->
             for (i in 0 until array.size()) {
-                val toggle = array.getMap(i)
+                val toggle = array.getMap(i) ?: continue // complained by unit test
                 toggles.add(
                     Toggle(
                         toggle.getString("title"),
@@ -962,7 +962,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
         val listInput = ArrayList<Input>()
         for (i in 0 until collectInputs.size()) {
-            val collectInput = collectInputs.getMap(i)
+            val collectInput = collectInputs.getMap(i) ?: continue // complained by unit test
             when (collectInput.getString("formType")) {
                 "text" -> {
                     collectInput.let {
@@ -1058,7 +1058,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         val listSelectionButtons = ArrayList<SelectionButton>()
                         selectionButtons?.let { array ->
                             for (i in 0 until array.size()) {
-                                val button = array.getMap(i)
+                                val button = array.getMap(i) ?: continue // complained by unit test
                                 listSelectionButtons.add(
                                     SelectionButton(
                                         if (button.getString("style") == "primary") {
