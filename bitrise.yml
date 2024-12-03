@@ -103,6 +103,7 @@ workflows:
           title: test detox
     before_run:
       - prep_all
+      - cocoapods-install
       - setup_cocoapods
     after_run:
       - complete_all
@@ -261,22 +262,29 @@ workflows:
       - complete_all
   unit-ios:
     steps:
-      - xcode-test@5:
+      - xcode-start-simulator@0: 
+          inputs:
+            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
+      - xcode-test@4:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
+            - test_repetition_mode: "retry_on_failure"
+            - maximun_test_repetitions: '3'
             - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
             - command: yarn unit-test:ios
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
+      - deploy-to-bitrise-io@2: {}
     before_run:
       - prep_all
+      - cocoapods-install
       - setup_cocoapods
     after_run:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-15.2.x
+    stack: osx-xcode-16.0.x
     machine_type_id: g2.mac.large
 app:
   envs:
