@@ -261,7 +261,7 @@ workflows:
       - complete_all
   unit-ios:
     steps:
-      - xcode-test@5:
+      - xcode-test@6:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
