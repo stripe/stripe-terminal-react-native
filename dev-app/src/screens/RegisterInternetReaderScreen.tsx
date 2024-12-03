@@ -37,7 +37,7 @@ export default function RegisterInternetReaderScreen() {
     label: '',
   });
 
-  const { cancelDiscovering, discoverReaders, connectInternetReader } =
+  const { cancelDiscovering, discoverReaders, connectReader } =
     useStripeTerminal({
       onFinishDiscoveringReaders: (finishError) => {
         if (finishError) {
@@ -95,9 +95,10 @@ export default function RegisterInternetReaderScreen() {
   }, [navigation, discoverReaders, handleGoBack]);
 
   const handleConnectInternetReader = async (reader: Reader.Type) => {
-    const { reader: connectedReader, error } = await connectInternetReader({
-      reader,
-    });
+    const { reader: connectedReader, error } = await connectReader(
+      { reader },
+      'internet'
+    );
 
     if (error) {
       console.log('connectInternetReader error:', error);

@@ -64,19 +64,7 @@ describe('functions.test.ts', () => {
 
         discoverReaders: jest.fn().mockImplementation(() => ({})),
         cancelDiscovering: jest.fn().mockImplementation(() => ({})),
-        connectBluetoothReader: jest
-          .fn()
-          .mockImplementation(() => ({ reader: mockReader })),
-        connectHandoffReader: jest
-          .fn()
-          .mockImplementation(() => ({ reader: mockReader })),
-        connectInternetReader: jest
-          .fn()
-          .mockImplementation(() => ({ reader: mockReader })),
-        connectUsbReader: jest
-          .fn()
-          .mockImplementation(() => ({ reader: mockReader })),
-        connectLocalMobileReader: jest
+        connectReader: jest
           .fn()
           .mockImplementation(() => ({ reader: mockReader })),
         createPaymentIntent: jest
@@ -156,37 +144,11 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('connectBluetoothReader returns a proper value', async () => {
+    it('connectReader returns a proper value', async () => {
       const functions = require('../functions');
       await expect(
-        functions.connectBluetoothReader({} as any)
+        functions.connectReader({} as any, 'bluetooth')
       ).resolves.toEqual({
-        error: undefined,
-        reader: mockReader,
-      });
-    });
-
-    it('connectHandoffReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectHandoffReader({} as any)).resolves.toEqual({
-        error: undefined,
-        reader: mockReader,
-      });
-    });
-
-    it('connectInternetReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectInternetReader({} as any)).resolves.toEqual(
-        {
-          error: undefined,
-          reader: mockReader,
-        }
-      );
-    });
-
-    it('connectUsbReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectUsbReader({} as any)).resolves.toEqual({
         error: undefined,
         reader: mockReader,
       });
@@ -355,16 +317,6 @@ describe('functions.test.ts', () => {
       await expect(functions.cancelCollectSetupIntent()).resolves.toEqual({});
     });
 
-    it('connectLocalMobileReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(
-        functions.connectLocalMobileReader({} as any)
-      ).resolves.toEqual({
-        error: undefined,
-        reader: mockReader,
-      });
-    });
-
     it('setSimulatedCard returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.setSimulatedCard('_number')).resolves.toEqual({});
@@ -381,25 +333,13 @@ describe('functions.test.ts', () => {
         cancelDiscovering: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
-        connectBluetoothReader: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-        connectHandoffReader: jest
+        connectReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         disconnectReader: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         rebootReader: jest.fn().mockImplementation(() => ({ error: '_error' })),
-        connectInternetReader: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-        connectUsbReader: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-        connectLocalMobileReader: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
         createPaymentIntent: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
@@ -485,34 +425,11 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('connectBluetoothReader returns a proper value', async () => {
+    it('connectReader returns a proper value', async () => {
       const functions = require('../functions');
       await expect(
-        functions.connectBluetoothReader({} as any)
+        functions.connectReader({} as any, 'bluetooth')
       ).resolves.toEqual({
-        error: '_error',
-      });
-    });
-
-    it('connectHandoffReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectHandoffReader({} as any)).resolves.toEqual({
-        error: '_error',
-      });
-    });
-
-    it('connectInternetReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectInternetReader({} as any)).resolves.toEqual(
-        {
-          error: '_error',
-        }
-      );
-    });
-
-    it('connectUsbReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.connectUsbReader({} as any)).resolves.toEqual({
         error: '_error',
       });
     });
@@ -632,16 +549,6 @@ describe('functions.test.ts', () => {
       await expect(functions.confirmRefund()).resolves.toEqual({
         error: '_error',
         refund: undefined,
-      });
-    });
-
-    it('connectLocalMobileReader returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(
-        functions.connectLocalMobileReader({} as any)
-      ).resolves.toEqual({
-        error: '_error',
-        reader: undefined,
       });
     });
 

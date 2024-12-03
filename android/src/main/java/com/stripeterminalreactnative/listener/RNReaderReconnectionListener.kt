@@ -3,13 +3,13 @@ package com.stripeterminalreactnative.listener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
+import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.TerminalException.TerminalErrorCode
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
-import com.stripeterminalreactnative.ReactNativeConstants.READER_RECONNECT_FAIL
-import com.stripeterminalreactnative.ReactNativeConstants.READER_RECONNECT_SUCCEED
-import com.stripeterminalreactnative.ReactNativeConstants.START_READER_RECONNECT
+import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.mapFromReader
+import com.stripeterminalreactnative.mapFromReaderDisconnectReason
 import com.stripeterminalreactnative.nativeMapOf
 
 class RNReaderReconnectionListener(
@@ -18,7 +18,7 @@ class RNReaderReconnectionListener(
 ) : ReaderReconnectionListener {
 
     override fun onReaderReconnectFailed(reader: Reader) {
-        context.sendEvent(READER_RECONNECT_FAIL.listenerName) {
+        context.sendEvent(ReactNativeConstants.READER_RECONNECT_FAIL.listenerName) {
             putMap(
                 "error",
                 nativeMapOf {
@@ -29,15 +29,19 @@ class RNReaderReconnectionListener(
         }
     }
 
-    override fun onReaderReconnectStarted(reader: Reader, cancelReconnect: Cancelable) {
+    override fun onReaderReconnectStarted(
+        reader: Reader,
+        cancelReconnect: Cancelable,
+        reason: DisconnectReason
+    ) {
         onReaderReconnectStarted(cancelReconnect)
-        context.sendEvent(START_READER_RECONNECT.listenerName) {
-            putMap("reader", mapFromReader(reader))
+        context.sendEvent(ReactNativeConstants.START_READER_RECONNECT.listenerName) {
+            putString("reason", mapFromReaderDisconnectReason(reason))
         }
     }
 
     override fun onReaderReconnectSucceeded(reader: Reader) {
-        context.sendEvent(READER_RECONNECT_SUCCEED.listenerName) {
+        context.sendEvent(ReactNativeConstants.READER_RECONNECT_SUCCEED.listenerName) {
             putMap("reader", mapFromReader(reader))
         }
     }

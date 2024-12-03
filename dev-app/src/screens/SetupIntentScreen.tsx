@@ -1,11 +1,12 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useCallback, useContext, useState } from 'react';
-import { StyleSheet, Switch } from 'react-native';
+import { StyleSheet, Switch, Platform } from 'react-native';
 import {
   SetupIntent,
   useStripeTerminal,
   CommonError,
   StripeError,
+  AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -15,6 +16,13 @@ import type { RouteParamList } from '../App';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import { Picker } from '@react-native-picker/picker';
+
+const ALLOW_REDISPLAY = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'limited', label: 'limited' },
+  { value: 'always', label: 'always' },
+];
 
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
@@ -24,6 +32,9 @@ export default function SetupIntentScreen() {
   const { discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+
+  const [allowRedisplay, setAllowRedisplay] =
+    useState<AllowRedisplay>('always');
 
   const {
     createSetupIntent,
@@ -119,7 +130,7 @@ export default function SetupIntentScreen() {
     });
     const { setupIntent, error } = await collectSetupIntentPaymentMethod({
       setupIntent: si,
-      customerConsentCollected: true,
+      allowRedisplay: allowRedisplay,
       enableCustomerCancellation: enableCustomerCancellation,
     });
     if (error) {
@@ -278,7 +289,23 @@ export default function SetupIntentScreen() {
           />
         </List>
       )}
-      <List bolded={false} topSpacing={false} title=" ">
+      <List bolded={false} topSpacing={false} title="Set Allow Redisplay">
+        <Picker
+          selectedValue={allowRedisplay}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-allow-redisplay"
+          onValueChange={(value) => setAllowRedisplay(value as AllowRedisplay)}
+        >
+          {ALLOW_REDISPLAY.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
         <ListItem
           color={colors.blue}
           title="Collect setupIntent"
@@ -297,5 +324,20 @@ const styles = StyleSheet.create({
   },
   json: {
     paddingHorizontal: 16,
+  },
+  picker: {
+    width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+        fontSize: 13,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.white,
+      },
+    }),
+  },
+  pickerItem: {
+    fontSize: 16,
   },
 });
