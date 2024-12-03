@@ -265,7 +265,7 @@ workflows:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 15,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 15,OS=17.2
             - command: yarn unit-test:ios
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
