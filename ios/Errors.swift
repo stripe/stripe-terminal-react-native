@@ -254,6 +254,10 @@ extension ErrorCode.Code {
             return "ConnectionTokenProviderTimedOut"
         case .surchargingNotAvailable:
             return "SurchargingNotAvailable"
+        case .cancelFailedUnavailable:
+            return "CancelFailedUnavailable"
+        case .invalidConnectionConfiguration:
+            return "InvalidConnectionConfiguration"
         case .invalidRequiredParameterOnBehalfOf:
             return "InvalidRequiredParameterOnBehalfOf"
         case .requestDynamicCurrencyConversionRequiresUpdatePaymentIntent:
@@ -264,6 +268,8 @@ extension ErrorCode.Code {
             return "SurchargeNoticeRequiresUpdatePaymentIntent"
         case .surchargeUnavailableWithDynamicCurrencyConversion:
             return "SurchargeUnavailableWithDynamicCurrencyConversion"
+        case .canceledDueToIntegrationError:
+            return "CanceledDueToIntegrationError"
         case .collectInputsInvalidParameter:
             return "CollectInputsInvalidParameter"
         case .collectInputsUnsupported:
@@ -276,8 +282,8 @@ extension ErrorCode.Code {
             return "CollectInputsTimedOut"
         case .usbDiscoveryTimedOut:
             return "UsbDiscoveryTimedOut"
-        case .appleBuiltInReaderAccountDeactivated:
-            return "AppleBuiltInReaderAccountDeactivated"
+        case .tapToPayReaderAccountDeactivated:
+            return "TapToPayReaderAccountDeactivated"
         case .readerMissingEncryptionKeys:
             return "ReaderMissingEncryptionKeys"
         case .usbDisconnected:
@@ -288,6 +294,10 @@ extension ErrorCode.Code {
             return "EncryptionKeyStillInitializing"
         case .collectInputsApplicationError:
             return "CollectInputsApplicationError"
+        case .genericReaderError:
+            return "GenericReaderError"
+        case .commandInvalidAllowRedisplay:
+            return "CommandInvalidAllowRedisplay"
         case .onlinePinNotSupportedOffline:
             return "OnlinePinNotSupportedOffline"
         case .offlineTestCardInLivemode:
