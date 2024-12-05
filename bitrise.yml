@@ -206,6 +206,51 @@ workflows:
                 echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
                 git diff --exit-code
           title: Check for diffs in yarn lockfile
+  prep_all2:
+    steps:
+      - set-java-version@1:
+          inputs:
+            - set_java_version: '17'
+      - activate-ssh-key@4: {}
+      - git-clone@6: {}
+      # - restore-npm-cache@1: {}
+      # - restore-cocoapods-cache@1: {}
+      - script@1:
+          inputs:
+            - content: |-
+                # asdf install nodejs 20.9.0
+                # asdf global nodejs 20.9.0
+                # npm install -g yarn
+                # echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
+                # source $BASH_ENV
+                # brew update >/dev/null
+                # brew bundle install >/dev/null
+                # touch .watchmanconfig
+                # npm install --global expo-cli
+          title: Misc prep steps
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - workdir: example-app
+            - command: install
+          title: yarn install example-app
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - workdir: dev-app
+            - command: install
+          title: yarn install dev-app
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: install
+          title: yarn install
+      - script@1:
+          inputs:
+            - content: |-
+                echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
+                git diff --exit-code
+          title: Check for diffs in yarn lockfile
   setup_cocoapods:
     steps:
       - bundler@0: {}
@@ -278,7 +323,7 @@ workflows:
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
     before_run:
-      # - prep_all
+      - prep_all2
       # - setup_cocoapods
     after_run:
       - complete_all
