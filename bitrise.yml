@@ -261,6 +261,14 @@ workflows:
       - complete_all
   unit-ios:
     steps:
+      - script@1:
+          inputs:
+            - content: |-
+                xcrun simctl list
+                sleep 10
+                xcrun simctl list
+                sleep 10
+          title: Test Script
       - xcode-test@5:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
@@ -270,8 +278,8 @@ workflows:
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
     before_run:
-      - prep_all
-      - setup_cocoapods
+      # - prep_all
+      # - setup_cocoapods
     after_run:
       - complete_all
 meta:
