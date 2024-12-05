@@ -218,15 +218,15 @@ workflows:
       - script@1:
           inputs:
             - content: |-
-                # asdf install nodejs 20.9.0
-                # asdf global nodejs 20.9.0
-                # npm install -g yarn
-                # echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
-                # source $BASH_ENV
-                # brew update >/dev/null
-                # brew bundle install >/dev/null
-                # touch .watchmanconfig
-                # npm install --global expo-cli
+                asdf install nodejs 20.9.0
+                asdf global nodejs 20.9.0
+                npm install -g yarn
+                echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
+                source $BASH_ENV
+                brew update >/dev/null
+                brew bundle install >/dev/null
+                touch .watchmanconfig
+                npm install --global expo-cli
           title: Misc prep steps
       - yarn@0:
           inputs:
