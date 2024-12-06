@@ -274,6 +274,40 @@ workflows:
       - setup_cocoapods
     after_run:
       - complete_all
+  lex_test_unit_ios:
+    steps:
+      - script@1:
+          title: Run Xcodebuild command
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+                set -o pipefail
+                # debug log
+                set -x
+
+                # write your script here
+                xcodebuild test -workspace /Users/vagrant/git/dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 15' -scheme UnitTests
+
+                # or run a script from your repository, like:
+                # bash ./path/to/script.sh
+                # not just bash, e.g.:
+                # ruby ./path/to/script.rb
+      - xcode-test@6:
+          inputs:
+            - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
+            - scheme: UnitTests
+            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
+            - command: yarn unit-test:ios
+            - cache_local_deps: 'yes'
+          title: xcodebuild iOS Unit Tests
+    before_run:
+      - prep_all
+      - setup_cocoapods
+    after_run:
+      - complete_all
 meta:
   bitrise.io:
     stack: osx-xcode-15.2.x
