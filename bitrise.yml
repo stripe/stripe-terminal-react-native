@@ -1,333 +1,333 @@
-format_version: "11"
+format_version: '11'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: react-native
 pipelines:
   main-trigger-pipeline:
     stages:
-    - stage-trigger-run-main: {}
+      - stage-trigger-run-main: {}
   pr-trigger-pipeline:
     stages:
-    - stage-trigger-run-pr: {}
+      - stage-trigger-run-pr: {}
 stages:
   stage-trigger-run-pr:
     workflows:
-    - lint: {}
-    - typescript: {}
-    - unit-js: {}
-    - unit-android: {}
-    - unit-ios: {}
-    - example-build-ios: {}
-    - example-build-android: {}
-    - e2e-android: {}
-    - e2e-ios: {}
+      - lint: {}
+      - typescript: {}
+      - unit-js: {}
+      - unit-android: {}
+      - unit-ios: {}
+      - example-build-ios: {}
+      - example-build-android: {}
+      - e2e-android: {}
+      - e2e-ios: {}
   stage-trigger-run-main:
     workflows:
-    - lint: {}
-    - typescript: {}
-    - unit-js: {}
-    - unit-android: {}
-    - unit-ios: {}
-    - example-build-ios: {}
-    - example-build-android: {}
-    - e2e-android: {}
-    - e2e-ios: {}
-    - deploy-firebase-android: {}
+      - lint: {}
+      - typescript: {}
+      - unit-js: {}
+      - unit-android: {}
+      - unit-ios: {}
+      - example-build-ios: {}
+      - example-build-android: {}
+      - e2e-android: {}
+      - e2e-ios: {}
+      - deploy-firebase-android: {}
 workflows:
   complete_all:
     steps:
-    - save-npm-cache@1: {}
-    - save-cocoapods-cache@1: {}
+      - save-npm-cache@1: {}
+      - save-cocoapods-cache@1: {}
   deploy-firebase-android:
     steps:
-    - fastlane@3:
-        inputs:
-        - connection: "off"
-        - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
-        title: fastlane increment version
-    - yarn@0:
-        inputs:
-        - command: dev-app:build:android:release
-        - cache_local_deps: "yes"
-        title: Build app for Firebase deploy
-    - fastlane@3:
-        inputs:
-        - connection: "off"
-        - lane: publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
-        title: fastlane distribute app
+      - fastlane@3:
+          inputs:
+            - connection: 'off'
+            - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
+          title: fastlane increment version
+      - yarn@0:
+          inputs:
+            - command: dev-app:build:android:release
+            - cache_local_deps: 'yes'
+          title: Build app for Firebase deploy
+      - fastlane@3:
+          inputs:
+            - connection: 'off'
+            - lane: publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
+          title: fastlane distribute app
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
   e2e-android:
     steps:
-    - avd-manager@1:
-        inputs:
-        - emulator_id: TestingAVD
-        - tag: default
-        - abi: x86_64
-        - api_level: "34"
-    - yarn@0:
-        inputs:
-        - command: install --frozen-lockfile
-        - cache_local_deps: "yes"
-        title: yarn install --frozen-lockfile
-    - yarn@0:
-        inputs:
-        - command: e2e:build:android:release
-        - cache_local_deps: "yes"
-        title: build for detox
-    - yarn@0:
-        inputs:
-        - command: e2e:test:android:release
-        - cache_local_deps: "yes"
-        title: test detox
+      - avd-manager@1:
+          inputs:
+            - emulator_id: TestingAVD
+            - tag: default
+            - abi: x86_64
+            - api_level: '34'
+      - yarn@0:
+          inputs:
+            - command: install --frozen-lockfile
+            - cache_local_deps: 'yes'
+          title: yarn install --frozen-lockfile
+      - yarn@0:
+          inputs:
+            - command: e2e:build:android:release
+            - cache_local_deps: 'yes'
+          title: build for detox
+      - yarn@0:
+          inputs:
+            - command: e2e:test:android:release
+            - cache_local_deps: 'yes'
+          title: test detox
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
   e2e-ios:
     steps:
-    - yarn@0:
-        inputs:
-        - command: e2e:build:ios:release
-        - cache_local_deps: "yes"
-        title: build for detox
-    - yarn@0:
-        inputs:
-        - command: e2e:test:ios:release
-        - cache_local_deps: "yes"
-        title: test detox
+      - yarn@0:
+          inputs:
+            - command: e2e:build:ios:release
+            - cache_local_deps: 'yes'
+          title: build for detox
+      - yarn@0:
+          inputs:
+            - command: e2e:test:ios:release
+            - cache_local_deps: 'yes'
+          title: test detox
     before_run:
-    - prep_all
-    - setup_cocoapods
+      - prep_all
+      - setup_cocoapods
     after_run:
-    - complete_all
+      - complete_all
   example-build-android:
     steps:
-    - avd-manager@1:
-        inputs:
-        - emulator_id: TestingAVD
-        - tag: default
-        - abi: x86_64
-        - api_level: "34"
-    - yarn@0:
-        inputs:
-        - command: e2e:build:example:android
-        - cache_local_deps: "yes"
-        title: yarn e2e:build:example:android
+      - avd-manager@1:
+          inputs:
+            - emulator_id: TestingAVD
+            - tag: default
+            - abi: x86_64
+            - api_level: '34'
+      - yarn@0:
+          inputs:
+            - command: e2e:build:example:android
+            - cache_local_deps: 'yes'
+          title: yarn e2e:build:example:android
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
   example-build-ios:
     steps:
-    - script@1:
-        inputs:
-        - content: |-
-            cd example-app/ios
-            pod update hermes-engine --no-repo-update
-            pod update RCT-Folly --no-repo-update
-            pod install
-        title: Pod install
-    - yarn@0:
-        inputs:
-        - command: e2e:build:example:ios
-        - cache_local_deps: "yes"
-        title: yarn e2e:build:example:ios
+      - script@1:
+          inputs:
+            - content: |-
+                cd example-app/ios
+                pod update hermes-engine --no-repo-update
+                pod update RCT-Folly --no-repo-update
+                pod install
+          title: Pod install
+      - yarn@0:
+          inputs:
+            - command: e2e:build:example:ios
+            - cache_local_deps: 'yes'
+          title: yarn e2e:build:example:ios
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
   lint:
     steps:
-    - yarn@0:
-        inputs:
-        - cache_local_deps: "yes"
-        - command: lint
-        title: yarn lint
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: lint
+          title: yarn lint
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: standard
   prep_all:
     steps:
-    - set-java-version@1:
-        inputs:
-        - set_java_version: "17"
-    - activate-ssh-key@4: {}
-    - git-clone@6: {}
-    - restore-npm-cache@1: {}
-    - restore-cocoapods-cache@1: {}
-    - script@1:
-        inputs:
-        - content: |-
-            asdf install nodejs 20.9.0
-            asdf global nodejs 20.9.0
-            npm install -g yarn
-            echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
-            source $BASH_ENV
-            brew update >/dev/null
-            brew bundle install >/dev/null
-            touch .watchmanconfig
-            npm install --global expo-cli
-        title: Misc prep steps
-    - yarn@0:
-        inputs:
-        - cache_local_deps: "yes"
-        - workdir: example-app
-        - command: install
-        title: yarn install example-app
-    - yarn@0:
-        inputs:
-        - cache_local_deps: "yes"
-        - workdir: dev-app
-        - command: install
-        title: yarn install dev-app
-    - yarn@0:
-        inputs:
-        - cache_local_deps: "yes"
-        - command: install
-        title: yarn install
-    - script@1:
-        inputs:
-        - content: |-
-            echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
-            git diff --exit-code
-        title: Check for diffs in yarn lockfile
+      - set-java-version@1:
+          inputs:
+            - set_java_version: '17'
+      - activate-ssh-key@4: {}
+      - git-clone@6: {}
+      - restore-npm-cache@1: {}
+      - restore-cocoapods-cache@1: {}
+      - script@1:
+          inputs:
+            - content: |-
+                asdf install nodejs 20.9.0
+                asdf global nodejs 20.9.0
+                npm install -g yarn
+                echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
+                source $BASH_ENV
+                brew update >/dev/null
+                brew bundle install >/dev/null
+                touch .watchmanconfig
+                npm install --global expo-cli
+          title: Misc prep steps
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - workdir: example-app
+            - command: install
+          title: yarn install example-app
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - workdir: dev-app
+            - command: install
+          title: yarn install dev-app
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: install
+          title: yarn install
+      - script@1:
+          inputs:
+            - content: |-
+                echo "Checking for diffs in yarn lockfile, if this fails please ensure all dependencies are up to date"
+                git diff --exit-code
+          title: Check for diffs in yarn lockfile
   setup_cocoapods:
     steps:
-    - bundler@0: {}
-    - script@1:
-        inputs:
-        - content: |-
-            set -e
-            # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
-            cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
-            gem install cocoapods -v 1.15.2 && pod install && cd - && \
-            npm rebuild detox
-            echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
-            git diff --exit-code
-        title: Set up cocoapods
+      - bundler@0: {}
+      - script@1:
+          inputs:
+            - content: |-
+                set -e
+                # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
+                cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
+                gem install cocoapods -v 1.15.2 && pod install && cd - && \
+                npm rebuild detox
+                echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
+                git diff --exit-code
+          title: Set up cocoapods
   typescript:
     steps:
-    - yarn@0:
-        inputs:
-        - cache_local_deps: "yes"
-        - command: typescript
-        title: yarn typescript
-    - yarn@0:
-        inputs:
-        - workdir: example-app
-        - cache_local_deps: "yes"
-        - command: typescript
-        title: yarn typescript example-app
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: typescript
+          title: yarn typescript
+      - yarn@0:
+          inputs:
+            - workdir: example-app
+            - cache_local_deps: 'yes'
+            - command: typescript
+          title: yarn typescript example-app
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
   unit-android:
     steps:
-    - yarn@0:
-        inputs:
-        - command: unit-test:android
-        - cache_local_deps: "yes"
-        title: yarn unit-test:android
+      - yarn@0:
+          inputs:
+            - command: unit-test:android
+            - cache_local_deps: 'yes'
+          title: yarn unit-test:android
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
   unit-js:
     steps:
-    - yarn@0:
-        inputs:
-        - command: unit-test:js --coverage
-        - cache_local_deps: "yes"
-        title: yarn unit-test:js --coverage
+      - yarn@0:
+          inputs:
+            - command: unit-test:js --coverage
+            - cache_local_deps: 'yes'
+          title: yarn unit-test:js --coverage
     before_run:
-    - prep_all
+      - prep_all
     after_run:
-    - complete_all
+      - complete_all
   unit-ios:
     steps:
-    - xcode-test@5:
-        inputs:
-        - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
-        - scheme: UnitTests
-        - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
-        - command: yarn unit-test:ios
-        - cache_local_deps: "yes"
-        title: xcodebuild iOS Unit Tests
+      - xcode-test@5:
+          inputs:
+            - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
+            - scheme: UnitTests
+            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
+            - command: yarn unit-test:ios
+            - cache_local_deps: 'yes'
+          title: xcodebuild iOS Unit Tests
     before_run:
-    - prep_all
-    - setup_cocoapods
+      - prep_all
+      - setup_cocoapods
     after_run:
-    - complete_all
+      - complete_all
   Bitrise_lex_unit_ios_test:
     steps:
-    - script@1:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            # fail if any commands fails
-            set -e
-            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
-            set -o pipefail
-            # debug log
-            set -x
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # fail if any commands fails
+                set -e
+                # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+                set -o pipefail
+                # debug log
+                set -x
 
-            # write your script here
-            xcodebuild test -workspace /Users/vagrant/git/dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 15' -scheme UnitTests
+                # write your script here
+                xcodebuild test -workspace /Users/vagrant/git/dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 15' -scheme UnitTests
 
-            # or run a script from your repository, like:
-            # bash ./path/to/script.sh
-            # not just bash, e.g.:
-            # ruby ./path/to/script.rb
-        title: xcodebuild test command
-    - xcode-test@6:
-        inputs:
-        - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
-        - scheme: UnitTests
-        - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
-        - command: yarn unit-test:ios
-        - cache_local_deps: "yes"
-        title: xcodebuild iOS Unit Tests
+                # or run a script from your repository, like:
+                # bash ./path/to/script.sh
+                # not just bash, e.g.:
+                # ruby ./path/to/script.rb
+          title: xcodebuild test command
+      - xcode-test@6:
+          inputs:
+            - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
+            - scheme: UnitTests
+            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
+            - command: yarn unit-test:ios
+            - cache_local_deps: 'yes'
+          title: xcodebuild iOS Unit Tests
     before_run:
-    - prep_all
-    - setup_cocoapods
+      - prep_all
+      - setup_cocoapods
     after_run:
-    - complete_all
+      - complete_all
 meta:
   bitrise.io:
     stack: osx-xcode-15.2.x
     machine_type_id: g2.mac.large
 app:
   envs:
-  - opts:
-      is_expand: false
-    PLATFORM: all
-  - opts:
-      is_expand: false
-    API_CA_URL_ANDROID: http://10.0.2.2:3003
-  - opts:
-      is_expand: false
-    API_URL: http://127.0.0.1:3002
-  - opts:
-      is_expand: false
-    API_URL_ANDROID: http://10.0.2.2:3002
+    - opts:
+        is_expand: false
+      PLATFORM: all
+    - opts:
+        is_expand: false
+      API_CA_URL_ANDROID: http://10.0.2.2:3003
+    - opts:
+        is_expand: false
+      API_URL: http://127.0.0.1:3002
+    - opts:
+        is_expand: false
+      API_URL_ANDROID: http://10.0.2.2:3002
 trigger_map:
-- push_branch: '*'
-  pipeline: main-trigger-pipeline
-- pull_request_source_branch: '*'
-  pipeline: pr-trigger-pipeline
+  - push_branch: '*'
+    pipeline: main-trigger-pipeline
+  - pull_request_source_branch: '*'
+    pipeline: pr-trigger-pipeline
