@@ -306,6 +306,9 @@ workflows:
       - complete_all
   unit-ios:
     steps:
+      - xcode-start-simulator:
+          inputs:
+            - destination: platform=iOS Simulator,name=iPhone 15,OS=latest
       - script@1:
           inputs:
             - content: |-
@@ -314,11 +317,11 @@ workflows:
                 xcrun simctl list
                 sleep 10
           title: Test Script
-      - xcode-test@5:
+      - xcode-test@6:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 15,OS=latest
+            - destination: $BITRISE_XCODE_DESTINATION
             - command: yarn unit-test:ios
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
@@ -329,7 +332,7 @@ workflows:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-15.2.x
+    stack: osx-xcode-15.4.x
     machine_type_id: g2.mac.large
 app:
   envs:
