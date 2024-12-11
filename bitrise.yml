@@ -288,6 +288,7 @@ workflows:
             - command: yarn unit-test:ios
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
+      - deploy-to-bitrise-io@2: {}
     before_run:
       - prep_all
       - setup_cocoapods
