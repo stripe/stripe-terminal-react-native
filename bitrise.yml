@@ -261,21 +261,6 @@ workflows:
       - complete_all
   unit-ios:
     steps:
-      - xcode-test@5:
-          inputs:
-            - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
-            - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 14,OS=latest
-            - command: yarn unit-test:ios
-            - cache_local_deps: 'yes'
-          title: xcodebuild iOS Unit Tests
-    before_run:
-      - prep_all
-      - setup_cocoapods
-    after_run:
-      - complete_all
-  lex_test_unit_ios:
-    steps:
       - script@1:
           title: Run Xcodebuild command
           inputs:
