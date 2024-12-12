@@ -254,6 +254,44 @@ extension ErrorCode.Code {
             return "ConnectionTokenProviderTimedOut"
         case .surchargingNotAvailable:
             return "SurchargingNotAvailable"
+        case .invalidRequiredParameterOnBehalfOf:
+            return "InvalidRequiredParameterOnBehalfOf"
+        case .requestDynamicCurrencyConversionRequiresUpdatePaymentIntent:
+            return "RequestDynamicCurrencyConversionRequiresUpdatePaymentIntent"
+        case .dynamicCurrencyConversionNotAvailable:
+            return "DynamicCurrencyConversionNotAvailable"
+        case .surchargeNoticeRequiresUpdatePaymentIntent:
+            return "SurchargeNoticeRequiresUpdatePaymentIntent"
+        case .surchargeUnavailableWithDynamicCurrencyConversion:
+            return "SurchargeUnavailableWithDynamicCurrencyConversion"
+        case .collectInputsInvalidParameter:
+            return "CollectInputsInvalidParameter"
+        case .collectInputsUnsupported:
+            return "CollectInputsUnsupported"
+        case .readerConnectionOfflineNeedsUpdate:
+            return "ReaderConnectionOfflineNeedsUpdate"
+        case .readerConnectionOfflinePairingUnseenDisabled:
+            return "ReaderConnectionOfflinePairingUnseenDisabled"
+        case .collectInputsTimedOut:
+            return "CollectInputsTimedOut"
+        case .usbDiscoveryTimedOut:
+            return "UsbDiscoveryTimedOut"
+        case .appleBuiltInReaderAccountDeactivated:
+            return "AppleBuiltInReaderAccountDeactivated"
+        case .readerMissingEncryptionKeys:
+            return "ReaderMissingEncryptionKeys"
+        case .usbDisconnected:
+            return "UsbDisconnected"
+        case .encryptionKeyFailure:
+            return "EncryptionKeyFailure"
+        case .encryptionKeyStillInitializing:
+            return "EncryptionKeyStillInitializing"
+        case .collectInputsApplicationError:
+            return "CollectInputsApplicationError"
+        case .onlinePinNotSupportedOffline:
+            return "OnlinePinNotSupportedOffline"
+        case .offlineTestCardInLivemode:
+            return "OfflineTestCardInLivemode"
         @unknown default:
             return "Unknown"
         }
