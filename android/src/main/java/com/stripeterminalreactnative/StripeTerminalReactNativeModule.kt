@@ -895,9 +895,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val toggle = array.getMap(i)
                 toggles.add(
                     Toggle(
-                        toggle.getString("title"),
-                        toggle.getString("description"),
-                        if (toggle.getString("defaultValue") == "enabled") {
+                        toggle?.getString("title"),
+                        toggle?.getString("description"),
+                        if (toggle?.getString("defaultValue") == "enabled") {
                             ToggleValue.ENABLED
                         } else {
                             ToggleValue.DISABLED
@@ -919,7 +919,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listInput = ArrayList<Input>()
         for (i in 0 until collectInputs.size()) {
             val collectInput = collectInputs.getMap(i)
-            when (collectInput.getString("formType")) {
+            when (collectInput?.getString("formType")) {
                 "text" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
@@ -1012,12 +1012,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                                 val button = array.getMap(i)
                                 listSelectionButtons.add(
                                     SelectionButton(
-                                        if (button.getString("style") == "primary") {
+                                        if (button?.getString("style") == "primary") {
                                             SelectionButtonStyle.PRIMARY
                                         } else {
                                             SelectionButtonStyle.SECONDARY
                                         },
-                                        button.getString("text") ?: ""
+                                        button?.getString("text") ?: ""
                                     )
                                 )
                             }
