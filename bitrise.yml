@@ -192,14 +192,8 @@ workflows:
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
-            - workdir: dev-app
-            - command: install
-          title: yarn install dev-app
-      - yarn@0:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: install
-          title: yarn install
+            - command: bootstrap
+          title: yarn bootstrap SDK and dev-app
       - script@1:
           inputs:
             - content: |-
