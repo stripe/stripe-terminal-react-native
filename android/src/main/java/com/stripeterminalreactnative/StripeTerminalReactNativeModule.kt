@@ -1125,6 +1125,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         localMobileUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
 
         terminal.setLocalMobileUxConfiguration(localMobileUxConfigurationBuilder.build())
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
