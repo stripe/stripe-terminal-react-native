@@ -2,17 +2,12 @@ import { useCallback, useContext } from 'react';
 import type {
   DiscoverReadersParams,
   Reader,
-  ConnectInternetReaderParams,
   CreatePaymentIntentParams,
-  ConnectBluetoothReaderParams,
-  ConnectUsbReaderParams,
   GetLocationsParams,
   Cart,
   CreateSetupIntentParams,
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
-  ConnectHandoffParams,
-  ConnectLocalMobileParams,
   CollectPaymentMethodParams,
   StripeError,
   PaymentStatus,
@@ -27,16 +22,15 @@ import type {
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
   CollectDataParams,
-  LocalMobileUxConfiguration,
+  TapToPayUxConfiguration,
+  ConnectReaderParams,
 } from '../types';
 import {
   discoverReaders,
   cancelDiscovering,
-  connectBluetoothReader,
+  connectReader,
   disconnectReader,
   rebootReader,
-  connectInternetReader,
-  connectUsbReader,
   createPaymentIntent,
   collectPaymentMethod,
   retrievePaymentIntent,
@@ -58,8 +52,6 @@ import {
   clearCachedCredentials,
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
-  connectHandoffReader,
-  connectLocalMobileReader,
   setSimulatedCard,
   cancelCollectRefundPaymentMethod,
   getOfflineStatus,
@@ -73,7 +65,7 @@ import {
   getPaymentStatus,
   getConnectionStatus,
   getConnectedReader,
-  setLocalMobileUxConfiguration,
+  setTapToPayUxConfiguration,
   getNativeSdkVersion,
 } from '../functions';
 import { StripeTerminalContext } from '../components/StripeTerminalContext';
@@ -92,7 +84,6 @@ export const {
   REQUEST_READER_DISPLAY_MESSAGE,
   REQUEST_READER_INPUT,
   REPORT_AVAILABLE_UPDATE,
-  REPORT_UNEXPECTED_READER_DISCONNECT,
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
@@ -155,7 +146,6 @@ export function useStripeTerminal(props?: Props) {
     onDidFinishInstallingUpdate,
     onDidReportAvailableUpdate,
     onDidReportReaderSoftwareUpdateProgress,
-    onDidReportUnexpectedReaderDisconnect,
     onDidStartInstallingUpdate,
     onDidRequestReaderInput,
     onDidRequestReaderDisplayMessage,
@@ -205,19 +195,6 @@ export function useStripeTerminal(props?: Props) {
       onFinishDiscoveringReaders?.(result.error);
     },
     [onFinishDiscoveringReaders]
-  );
-
-  const didReportUnexpectedReaderDisconnect = useCallback(
-    ({ error }: { error?: StripeError }) => {
-      setConnectedReader(null);
-      setDiscoveredReaders([]);
-      onDidReportUnexpectedReaderDisconnect?.(error);
-    },
-    [
-      onDidReportUnexpectedReaderDisconnect,
-      setConnectedReader,
-      setDiscoveredReaders,
-    ]
   );
 
   const didReportAvailableUpdate = useCallback(
@@ -290,9 +267,12 @@ export function useStripeTerminal(props?: Props) {
     [onDidChangeConnectionStatus]
   );
 
-  const didStartReaderReconnect = useCallback(() => {
-    onDidStartReaderReconnect?.();
-  }, [onDidStartReaderReconnect]);
+  const didStartReaderReconnect = useCallback(
+    ({ reason }: { reason?: Reader.DisconnectReason }) => {
+      onDidStartReaderReconnect?.(reason);
+    },
+    [onDidStartReaderReconnect]
+  );
 
   const didSucceedReaderReconnect = useCallback(() => {
     onDidSucceedReaderReconnect?.();
@@ -330,8 +310,10 @@ export function useStripeTerminal(props?: Props) {
   const didDisconnect = useCallback(
     ({ reason }: { reason?: Reader.DisconnectReason }) => {
       onDidDisconnect?.(reason);
+      setConnectedReader(null);
+      setDiscoveredReaders([]);
     },
-    [onDidDisconnect]
+    [onDidDisconnect, setConnectedReader, setDiscoveredReaders]
   );
 
   const didUpdateBatteryLevel = useCallback(
@@ -363,10 +345,7 @@ export function useStripeTerminal(props?: Props) {
 
   useListener(UPDATE_DISCOVERED_READERS, didUpdateDiscoveredReaders);
   useListener(FINISH_DISCOVERING_READERS, didFinishDiscoveringReaders);
-  useListener(
-    REPORT_UNEXPECTED_READER_DISCONNECT,
-    didReportUnexpectedReaderDisconnect
-  );
+
   useListener(REQUEST_READER_INPUT, didRequestReaderInput);
   useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);
@@ -421,15 +400,18 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [setLoading, setDiscoveredReaders, _isInitialized]);
 
-  const _connectBluetoothReader = useCallback(
-    async (params: ConnectBluetoothReaderParams) => {
+  const _connectReader = useCallback(
+    async (
+      params: ConnectReaderParams,
+      discoveryMethod: Reader.DiscoveryMethod
+    ) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await connectBluetoothReader(params);
+      const response = await connectReader(params, discoveryMethod);
 
       if (response.reader && !response.error) {
         setConnectedReader(response.reader);
@@ -439,86 +421,6 @@ export function useStripeTerminal(props?: Props) {
       return response;
     },
     [setConnectedReader, setLoading, _isInitialized]
-  );
-
-  const _connectInternetReader = useCallback(
-    async (params: ConnectInternetReaderParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await connectInternetReader(params);
-
-      if (response.reader) {
-        setConnectedReader(response.reader);
-      }
-      setLoading(false);
-
-      return response;
-    },
-    [setConnectedReader, setLoading, _isInitialized]
-  );
-
-  const _connectUsbReader = useCallback(
-    async (params: ConnectUsbReaderParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await connectUsbReader(params);
-
-      if (response.reader && !response.error) {
-        setConnectedReader(response.reader);
-      }
-      setLoading(false);
-
-      return response;
-    },
-    [_isInitialized, setConnectedReader, setLoading]
-  );
-
-  const _connectLocalMobileReader = useCallback(
-    async (params: ConnectLocalMobileParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await connectLocalMobileReader(params);
-
-      if (response.reader) {
-        setConnectedReader(response.reader);
-      }
-      setLoading(false);
-
-      return response;
-    },
-    [_isInitialized, setConnectedReader, setLoading]
-  );
-
-  const _connectHandoffReader = useCallback(
-    async (params: ConnectHandoffParams) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await connectHandoffReader(params);
-
-      if (response.reader) {
-        setConnectedReader(response.reader);
-      }
-      setLoading(false);
-
-      return response;
-    },
-    [_isInitialized, setConnectedReader, setLoading]
   );
 
   const _disconnectReader = useCallback(async () => {
@@ -1053,15 +955,15 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setLoading]
   );
 
-  const _setLocalMobileUxConfiguration = useCallback(
-    async (params: LocalMobileUxConfiguration) => {
+  const _setTapToPayUxConfiguration = useCallback(
+    async (params: TapToPayUxConfiguration) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await setLocalMobileUxConfiguration(params);
+      const response = await setTapToPayUxConfiguration(params);
 
       setLoading(false);
 
@@ -1078,11 +980,9 @@ export function useStripeTerminal(props?: Props) {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
     cancelDiscovering: _cancelDiscovering,
-    connectBluetoothReader: _connectBluetoothReader,
+    connectReader: _connectReader,
     disconnectReader: _disconnectReader,
     rebootReader: _rebootReader,
-    connectInternetReader: _connectInternetReader,
-    connectUsbReader: _connectUsbReader,
     createPaymentIntent: _createPaymentIntent,
     collectPaymentMethod: _collectPaymentMethod,
     retrievePaymentIntent: _retrievePaymentIntent,
@@ -1105,8 +1005,6 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
-    connectHandoffReader: _connectHandoffReader,
-    connectLocalMobileReader: _connectLocalMobileReader,
     setSimulatedCard: _setSimulatedCard,
     getOfflineStatus: _getOfflineStatus,
     getPaymentStatus: _getPaymentStatus,
@@ -1119,7 +1017,7 @@ export function useStripeTerminal(props?: Props) {
     collectData: _collectData,
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
-    setLocalMobileUxConfiguration: _setLocalMobileUxConfiguration,
+    setTapToPayUxConfiguration: _setTapToPayUxConfiguration,
     getNativeSdkVersion: _getNativeSdkVersion,
     emitter: emitter,
     discoveredReaders,

@@ -35,31 +35,35 @@ export type GetLocationsParams = {
   startingAfter?: string;
 };
 
-export type ConnectBluetoothReaderParams = {
+export interface ConnectReaderParams {
   reader: Reader.Type;
+}
+
+export interface ConnectBluetoothReaderParams extends ConnectReaderParams {
   locationId?: string;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-};
+}
 
-export type ConnectUsbReaderParams = {
-  reader: Reader.Type;
+export interface ConnectUsbReaderParams extends ConnectReaderParams {
   locationId?: string;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-};
+}
 
-export type ConnectLocalMobileParams = {
-  reader: Reader.Type;
+export interface ConnectTapToPayParams extends ConnectReaderParams {
   locationId?: string;
   onBehalfOf?: string;
   merchantDisplayName?: string;
   tosAcceptancePermitted?: boolean;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-};
+}
 
-export type ConnectHandoffParams = {
-  reader: Reader.Type;
+export interface ConnectHandoffParams extends ConnectReaderParams {
   locationId?: string;
-};
+}
+
+export interface ConnectInternetReaderParams extends ConnectReaderParams {
+  failIfInUse?: boolean;
+}
 
 export type LineItem = {
   displayName: string;
@@ -72,11 +76,6 @@ export type Cart = {
   tax: number;
   total: number;
   lineItems: LineItem[];
-};
-
-export type ConnectInternetReaderParams = {
-  reader: Reader.Type;
-  failIfInUse?: boolean;
 };
 
 export enum CommonError {
@@ -201,6 +200,7 @@ export type CollectPaymentMethodParams = {
   enableCustomerCancellation?: boolean;
   requestDynamicCurrencyConversion?: boolean;
   surchargeNotice?: string;
+  allowRedisplay?: AllowRedisplay;
 };
 
 export type ConfirmPaymentMethodParams = {
@@ -221,10 +221,12 @@ export type CancelSetupIntentMethodParams = {
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
-  customerConsentCollected?: boolean;
+  allowRedisplay?: AllowRedisplay;
   enableCustomerCancellation?: boolean;
   setupIntent: SetupIntent.Type;
 };
+
+export type AllowRedisplay = 'always' | 'limited' | 'unspecified';
 
 export type CreateSetupIntentParams = {
   customer?: string;
@@ -352,7 +354,11 @@ export type OfflineStatus = {
 
 export type ReaderEvent = 'cardInserted' | 'cardRemoved';
 
-export type ConnectionStatus = 'notConnected' | 'connecting' | 'connected';
+export type ConnectionStatus =
+  | 'notConnected'
+  | 'connecting'
+  | 'connected'
+  | 'discovering';
 
 /**
  * @ignore
@@ -364,7 +370,6 @@ export type EventResult<T> = {
 export type UserCallbacks = {
   onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
   onFinishDiscoveringReaders?(error?: StripeError): void;
-  onDidReportUnexpectedReaderDisconnect?(error?: StripeError): void;
   onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
   onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
   onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
@@ -376,7 +381,7 @@ export type UserCallbacks = {
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
 
-  onDidStartReaderReconnect?(): void;
+  onDidStartReaderReconnect?(reason?: Reader.DisconnectReason): void;
   onDidSucceedReaderReconnect?(): void;
   onDidFailReaderReconnect?(): void;
 
@@ -517,7 +522,7 @@ export enum ToggleResult {
 }
 
 export type OfflineDetails = {
-  storedAt: string;
+  storedAtMs: string;
   requiresUpload: boolean;
   cardPresentDetails: OfflineCardPresentDetails;
   amountDetails: AmountDetails;
@@ -567,7 +572,7 @@ export type CollectDataResultType =
       error: StripeError;
     };
 
-export type LocalMobileUxConfiguration = {
+export type TapToPayUxConfiguration = {
   tapZone?: TapZone;
   darkMode?: DarkMode;
   colors?: Colors;
