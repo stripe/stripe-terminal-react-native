@@ -16,6 +16,7 @@ import {
   PaymentIntent,
   StripeError,
   CommonError,
+  AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -57,6 +58,12 @@ const OFFLINE_BEHAVIOR = [
   { value: 'prefer_online', label: 'prefer_online' },
   { value: 'require_online', label: 'require_online' },
   { value: 'force_offline', label: 'force_offline' },
+];
+
+const ALLOW_REDISPLAY = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'limited', label: 'limited' },
+  { value: 'always', label: 'always' },
 ];
 
 export default function CollectCardPaymentScreen() {
@@ -108,6 +115,8 @@ export default function CollectCardPaymentScreen() {
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
     DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
   );
+  const [allowRedisplay, setAllowRedisplay] =
+    useState<AllowRedisplay>('unspecified');
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
   const { simulated, discoveryMethod } = params;
@@ -172,13 +181,7 @@ export default function CollectCardPaymentScreen() {
         },
       ],
     });
-    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
-    if (
-      enableInterac &&
-      !resolvedPaymentMethodTypes.includes('interac_present')
-    ) {
-      resolvedPaymentMethodTypes.push('interac_present');
-    }
+
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,
     };
@@ -198,7 +201,7 @@ export default function CollectCardPaymentScreen() {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        payment_method_types: resolvedPaymentMethodTypes,
+        payment_method_types: enabledPaymentMethodTypes,
         payment_method_options: paymentMethodOptions,
         capture_method: inputValues?.captureMethod,
         on_behalf_of: inputValues?.connectedAccountId,
@@ -265,7 +268,7 @@ export default function CollectCardPaymentScreen() {
       const response = await createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
-        paymentMethodTypes: resolvedPaymentMethodTypes,
+        paymentMethodTypes: enabledPaymentMethodTypes,
         onBehalfOf: inputValues.connectedAccountId,
         transferDataDestination: inputValues.connectedAccountId,
         applicationFeeAmount: inputValues.applicationFeeAmount
@@ -359,7 +362,8 @@ export default function CollectCardPaymentScreen() {
       updatePaymentIntent: enableUpdatePaymentIntent,
       enableCustomerCancellation: enableCustomerCancellation,
       requestDynamicCurrencyConversion: requestDcc,
-      surchargeNotice: surchargeNotice,
+      surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
+      allowRedisplay: allowRedisplay,
     });
 
     if (error) {
@@ -651,7 +655,27 @@ export default function CollectCardPaymentScreen() {
               <Switch
                 testID="enable-interac"
                 value={enableInterac}
-                onValueChange={(value) => setEnableInterac(value)}
+                onValueChange={(value) => {
+                  setEnableInterac(value);
+                  if (
+                    value &&
+                    !enabledPaymentMethodTypes.includes('interac_present')
+                  ) {
+                    setEnabledPaymentMethodTypes([
+                      ...enabledPaymentMethodTypes,
+                      'interac_present',
+                    ]);
+                  } else if (
+                    !value &&
+                    enabledPaymentMethodTypes.includes('interac_present')
+                  ) {
+                    setEnabledPaymentMethodTypes(
+                      enabledPaymentMethodTypes.filter(
+                        (type) => type !== 'interac_present'
+                      )
+                    );
+                  }
+                }}
               />
             }
           />
@@ -667,12 +691,14 @@ export default function CollectCardPaymentScreen() {
                 enabledPaymentMethodTypes: enabledPaymentMethodTypes,
                 onChange: (newPaymentMethodTypes: string[]) => {
                   setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                  setEnableInterac(
+                    newPaymentMethodTypes.includes('interac_present')
+                  );
                 },
               })
             }
           />
         </List>
-
         <List bolded={false} topSpacing={false} title="BACKEND PI">
           <ListItem
             title="Create PI on the backend"
@@ -685,7 +711,26 @@ export default function CollectCardPaymentScreen() {
             }
           />
         </List>
-
+        <List bolded={false} topSpacing={false} title="Set Allow Redisplay">
+          <Picker
+            selectedValue={allowRedisplay}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-allow-redisplay"
+            onValueChange={(value) =>
+              setAllowRedisplay(value as AllowRedisplay)
+            }
+          >
+            {ALLOW_REDISPLAY.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
         <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
           <Picker
             selectedValue={inputValues?.requestedPriority}

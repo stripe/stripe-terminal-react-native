@@ -230,30 +230,78 @@ extension ErrorCode.Code {
             return "InvalidAmount"
         case .invalidCurrency:
             return "InvalidCurrency"
-        case .appleBuiltInReaderTOSAcceptanceRequiresiCloudSignIn:
-            return "AppleBuiltInReaderTOSAcceptanceRequiresiCloudSignIn"
-        case .appleBuiltInReaderTOSAcceptanceCanceled:
-            return "AppleBuiltInReaderTOSAcceptanceCanceled"
+        case .tapToPayReaderTOSAcceptanceRequiresiCloudSignIn:
+            return "TapToPayReaderTOSAcceptanceRequiresiCloudSignIn"
+        case .tapToPayReaderTOSAcceptanceCanceled:
+            return "TapToPayReaderTOSAcceptanceCanceled"
         case .nfcDisabled:
             return "NfcDisabled"
         case .readerNotAccessibleInBackground:
             return "ReaderNotAccessibleInBackground"
-        case .appleBuiltInReaderFailedToPrepare:
-            return "AppleBuiltInReaderFailedToPrepare"
-        case .appleBuiltInReaderDeviceBanned:
-            return "AppleBuiltInReaderDeviceBanned"
-        case .appleBuiltInReaderTOSNotYetAccepted:
-            return "AppleBuiltInReaderTOSNotYetAccepted"
-        case .appleBuiltInReaderTOSAcceptanceFailed:
-            return "AppleBuiltInReaderTOSAcceptanceFailed"
-        case .appleBuiltInReaderMerchantBlocked:
-            return "AppleBuiltInReaderMerchantBlocked"
-        case .appleBuiltInReaderInvalidMerchant:
-            return "AppleBuiltInReaderInvalidMerchant"
+        case .tapToPayReaderFailedToPrepare:
+            return "TapToPayReaderFailedToPrepare"
+        case .tapToPayReaderDeviceBanned:
+            return "TapToPayReaderDeviceBanned"
+        case .tapToPayReaderTOSNotYetAccepted:
+            return "TapToPayReaderTOSNotYetAccepted"
+        case .tapToPayReaderTOSAcceptanceFailed:
+            return "TapToPayReaderTOSAcceptanceFailed"
+        case .tapToPayReaderMerchantBlocked:
+            return "TapToPayReaderMerchantBlocked"
+        case .tapToPayReaderInvalidMerchant:
+            return "TapToPayReaderInvalidMerchant"
         case .connectionTokenProviderTimedOut:
             return "ConnectionTokenProviderTimedOut"
         case .surchargingNotAvailable:
             return "SurchargingNotAvailable"
+        case .cancelFailedUnavailable:
+            return "CancelFailedUnavailable"
+        case .invalidConnectionConfiguration:
+            return "InvalidConnectionConfiguration"
+        case .invalidRequiredParameterOnBehalfOf:
+            return "InvalidRequiredParameterOnBehalfOf"
+        case .requestDynamicCurrencyConversionRequiresUpdatePaymentIntent:
+            return "RequestDynamicCurrencyConversionRequiresUpdatePaymentIntent"
+        case .dynamicCurrencyConversionNotAvailable:
+            return "DynamicCurrencyConversionNotAvailable"
+        case .surchargeNoticeRequiresUpdatePaymentIntent:
+            return "SurchargeNoticeRequiresUpdatePaymentIntent"
+        case .surchargeUnavailableWithDynamicCurrencyConversion:
+            return "SurchargeUnavailableWithDynamicCurrencyConversion"
+        case .canceledDueToIntegrationError:
+            return "CanceledDueToIntegrationError"
+        case .collectInputsInvalidParameter:
+            return "CollectInputsInvalidParameter"
+        case .collectInputsUnsupported:
+            return "CollectInputsUnsupported"
+        case .readerConnectionOfflineNeedsUpdate:
+            return "ReaderConnectionOfflineNeedsUpdate"
+        case .readerConnectionOfflinePairingUnseenDisabled:
+            return "ReaderConnectionOfflinePairingUnseenDisabled"
+        case .collectInputsTimedOut:
+            return "CollectInputsTimedOut"
+        case .usbDiscoveryTimedOut:
+            return "UsbDiscoveryTimedOut"
+        case .tapToPayReaderAccountDeactivated:
+            return "TapToPayReaderAccountDeactivated"
+        case .readerMissingEncryptionKeys:
+            return "ReaderMissingEncryptionKeys"
+        case .usbDisconnected:
+            return "UsbDisconnected"
+        case .encryptionKeyFailure:
+            return "EncryptionKeyFailure"
+        case .encryptionKeyStillInitializing:
+            return "EncryptionKeyStillInitializing"
+        case .collectInputsApplicationError:
+            return "CollectInputsApplicationError"
+        case .genericReaderError:
+            return "GenericReaderError"
+        case .commandInvalidAllowRedisplay:
+            return "CommandInvalidAllowRedisplay"
+        case .onlinePinNotSupportedOffline:
+            return "OnlinePinNotSupportedOffline"
+        case .offlineTestCardInLivemode:
+            return "OfflineTestCardInLivemode"
         @unknown default:
             return "Unknown"
         }

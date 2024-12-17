@@ -25,7 +25,6 @@ const {
   REQUEST_READER_DISPLAY_MESSAGE,
   REQUEST_READER_INPUT,
   REPORT_AVAILABLE_UPDATE,
-  REPORT_UNEXPECTED_READER_DISCONNECT,
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
@@ -116,14 +115,6 @@ export function StripeTerminalProvider({
     [log]
   );
 
-  const didReportUnexpectedReaderDisconnect = useCallback(
-    ({ error }: { error?: StripeError }) => {
-      log('didReportUnexpectedReaderDisconnect', error);
-      emitter?.emit(REPORT_UNEXPECTED_READER_DISCONNECT, error);
-    },
-    [log]
-  );
-
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
       log('didReportAvailableUpdate', result);
@@ -191,9 +182,9 @@ export function StripeTerminalProvider({
   );
 
   const didStartReaderReconnect = useCallback(
-    ({ reader }: { reader: Reader.Type }) => {
-      log('didStartReaderReconnect', reader);
-      emitter?.emit(START_READER_RECONNECT, reader);
+    ({ reason }: { reason: Reader.DisconnectReason }) => {
+      log('didStartReaderReconnect', reason);
+      emitter?.emit(START_READER_RECONNECT, reason);
     },
     [log]
   );
@@ -282,10 +273,7 @@ export function StripeTerminalProvider({
 
   useListener(UPDATE_DISCOVERED_READERS, didUpdateDiscoveredReaders);
   useListener(FINISH_DISCOVERING_READERS, didFinishDiscoveringReaders);
-  useListener(
-    REPORT_UNEXPECTED_READER_DISCONNECT,
-    didReportUnexpectedReaderDisconnect
-  );
+
   useListener(REQUEST_READER_INPUT, didRequestReaderInput);
   useListener(REQUEST_READER_DISPLAY_MESSAGE, didRequestReaderDisplayMessage);
   useListener(CHANGE_PAYMENT_STATUS, didChangePaymentStatus);

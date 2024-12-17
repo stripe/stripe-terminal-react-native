@@ -106,7 +106,9 @@ export default function HomeScreen() {
         'Reader disconnected with reason ' + reason
       );
     },
-    onDidStartReaderReconnect() {
+    onDidStartReaderReconnect(reason) {
+      console.log('onDidStartReaderReconnect ' + reason);
+
       setShowDisconnectAlert(true);
       setShowReconnectAlert(false);
     },
@@ -466,8 +468,8 @@ function mapFromDiscoveryMethod(method: Reader.DiscoveryMethod) {
       return 'Internet';
     case 'handoff':
       return 'Handoff';
-    case 'localMobile':
-      return 'Local mobile';
+    case 'tapToPay':
+      return 'Tap To Pay';
     case 'usb':
       return 'USB';
     default:

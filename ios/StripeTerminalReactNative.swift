@@ -4,7 +4,6 @@ import Foundation
 enum ReactNativeConstants: String, CaseIterable {
     case UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders"
     case FINISH_DISCOVERING_READERS = "didFinishDiscoveringReaders"
-    case REPORT_UNEXPECTED_READER_DISCONNECT = "didReportUnexpectedReaderDisconnect"
     case REPORT_AVAILABLE_UPDATE = "didReportAvailableUpdate"
     case START_INSTALLING_UPDATE = "didStartInstallingUpdate"
     case REPORT_UPDATE_PROGRESS = "didReportReaderSoftwareUpdateProgress"
@@ -28,7 +27,8 @@ enum ReactNativeConstants: String, CaseIterable {
 }
 
 @objc(StripeTerminalReactNative)
-class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothReaderDelegate, LocalMobileReaderDelegate, TerminalDelegate, ReconnectionDelegate, OfflineDelegate {
+class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReaderDelegate, TerminalDelegate, OfflineDelegate, InternetReaderDelegate, TapToPayReaderDelegate, ReaderDelegate {
+    
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
@@ -61,7 +61,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
-        guard terminal.connectionStatus == .notConnected else { return }
+        guard terminal.connectionStatus == .notConnected || terminal.connectionStatus == .discovering else { return }
 
         sendEvent(withName: ReactNativeConstants.UPDATE_DISCOVERED_READERS.rawValue, body: ["readers": Mappers.mapFromReaders(readers)])
     }
@@ -225,8 +225,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
     }
 
 
-    @objc(connectBluetoothReader:resolver:rejecter:)
-    func connectBluetoothReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(connectReader:discoveryMethod:resolver:rejecter:)
+    func connectReader(params: NSDictionary, discoveryMethod: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let reader = params["reader"] as? NSDictionary else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
             return
@@ -234,7 +234,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
 
         // since simulated readers don't contain `id` property we take serialNumber as a fallback
         let readerId = reader["serialNumber"] as? String
-
+        let discoveryMethodType = Mappers.mapToDiscoveryMethod(discoveryMethod)
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
             return
@@ -242,20 +242,29 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
 
         let locationId = params["locationId"] as? String
-        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
-
-        let connectionConfig: BluetoothConnectionConfiguration
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? true
+        let failIfInUse: Bool = params["failIfInUse"] as? Bool ?? false
+        let onBehalfOf: String? = params["onBehalfOf"] as? String
+        let merchantDisplayName: String? = params["merchantDisplayName"] as? String
+        let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
+        
+        let connectionConfig: ConnectionConfiguration
         do {
-            connectionConfig = try BluetoothConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
-                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-                .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
-                .build()
+            connectionConfig = try getConnectionConfig(
+                selectedReader: selectedReader,
+                locationId: locationId,
+                autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+                failIfInUse: failIfInUse,
+                merchantDisplayName: merchantDisplayName,
+                onBehalfOf: onBehalfOf,
+                tosAcceptancePermitted: tosAcceptancePermitted,
+                discoveryMethod: discoveryMethodType)! // TODO find way to !
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
-        Terminal.shared.connectBluetoothReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
+        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
             if let reader = reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
@@ -265,85 +274,35 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             }
         }
     }
-
-    @objc(connectInternetReader:resolver:rejecter:)
-    func connectInternetReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
-            return
-        }
-
-        // since simulated readers don't contain `id` property we take serialNumber as a fallback
-        let readerId = reader["serialNumber"] as? String
-
-        guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
-            return
-        }
-
-        let connectionConfig: InternetConnectionConfiguration
-        do {
-             connectionConfig = try InternetConnectionConfigurationBuilder()
-                .setFailIfInUse(params["failIfInUse"] as? Bool ?? false)
+    
+    private func getConnectionConfig(
+        selectedReader: Reader,
+        locationId: String?,
+        autoReconnectOnUnexpectedDisconnect: Bool,
+        failIfInUse: Bool,
+        merchantDisplayName: String?,
+        onBehalfOf: String?,
+        tosAcceptancePermitted: Bool,
+        discoveryMethod: DiscoveryMethod) throws -> ConnectionConfiguration? {
+        switch discoveryMethod {
+        case .bluetoothScan, .bluetoothProximity:
+            return try BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+               .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
+               .build()
+        case .internet:
+            return try InternetConnectionConfigurationBuilder(delegate: self)
+                .setFailIfInUse(failIfInUse)
                 .setAllowCustomerCancel(true)
                 .build()
-        }  catch {
-            resolve(Errors.createError(nsError: error as NSError))
-            return
-        }
-
-        Terminal.shared.connectInternetReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
-            if let reader = reader {
-                resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
-            }
-        }
-    }
-
-    @objc(connectLocalMobileReader:resolver:rejecter:)
-    func connectLocalMobileReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
-            return
-        }
-
-        // since simulated readers don't contain `id` property we take serialNumber as a fallback
-        let readerId = reader["serialNumber"] as? String
-
-        guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
-            return
-        }
-
-        let locationId = params["locationId"] as? String
-        let onBehalfOf: String? = params["onBehalfOf"] as? String
-        let merchantDisplayName: String? = params["merchantDisplayName"] as? String
-        let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
-        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? false
-
-        let connectionConfig: LocalMobileConnectionConfiguration
-        do {
-            connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: locationId ?? selectedReader.locationId ?? "")
+        case .tapToPay:
+            return try TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
                 .setMerchantDisplayName(merchantDisplayName ?? nil)
                 .setOnBehalfOf(onBehalfOf ?? nil)
                 .setTosAcceptancePermitted(tosAcceptancePermitted)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-                .setAutoReconnectionDelegate(autoReconnectOnUnexpectedDisconnect ? self : nil)
                 .build()
-        }  catch {
-            resolve(Errors.createError(nsError: error as NSError))
-            return
-        }
-
-        Terminal.shared.connectLocalMobileReader(selectedReader, delegate: self, connectionConfig: connectionConfig) { reader, error in
-            if let reader = reader {
-                resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error as NSError? {
-                resolve(Errors.createError(nsError: error))
-            } else {
-                resolve([:])
-            }
+        @unknown default:
+            return nil
         }
     }
 
@@ -371,12 +330,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         }
     }
 
-    func terminal(_ terminal: Terminal, didReportUnexpectedReaderDisconnect reader: Reader) {
-        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader has been disconnected unexpectedly")
-        sendEvent(withName: ReactNativeConstants.REPORT_UNEXPECTED_READER_DISCONNECT.rawValue, body: error)
-    }
-
-    func localMobileReaderDidAcceptTermsOfService(_ reader: Reader) {
+    func tapToPayReaderDidAcceptTermsOfService(_ reader: Reader) {
         sendEvent(withName: ReactNativeConstants.ACCEPT_TERMS_OF_SERVICE.rawValue, body: ["reader": reader])
     }
 
@@ -418,7 +372,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setMetadata(metadata)
 
         if !paymentMethodTypes.isEmpty {
-            paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes)
+            paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes.map(Mappers.mapPaymentMethodType))
         }
 
         let cardPresentParamsBuilder = CardPresentParametersBuilder()
@@ -543,7 +497,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             .setUpdatePaymentIntent(updatePaymentIntent)
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
+            .setSurchargeNotice(surchargeNotice)
 
+        if let allowRedisplay = params["allowRedisplay"] as? String {
+            collectConfigBuilder.setAllowRedisplay(Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay))
+        }
         if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
             collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
         }
@@ -698,10 +656,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
 
-    func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable) {
+    func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable, disconnectReason: DisconnectReason) {
         self.cancelReaderConnectionCancellable = cancelable
-        let reader = Mappers.mapFromReader(reader)
-        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reader": reader])
+        let result = Mappers.mapFromReaderDisconnectReason(disconnectReason)
+        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reason": result])
     }
 
     func readerDidSucceedReconnect(_ reader: Reader) {
@@ -876,19 +834,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
             return
         }
 
-        let customerConsentCollected = params["customerConsentCollected"] as? Bool ?? false
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        let allowRedisplay = params["allowRedisplay"] as? String ?? "unspecified"
         let setupIntentConfiguration: SetupIntentConfiguration
         do {
-            setupIntentConfiguration = try SetupIntentConfigurationBuilder().setEnableCustomerCancellation(enableCustomerCancellation)
+            setupIntentConfiguration = try SetupIntentConfigurationBuilder()
+                .setEnableCustomerCancellation(enableCustomerCancellation)
                 .build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
         }
 
-
-        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, customerConsentCollected: customerConsentCollected, setupConfig: setupIntentConfiguration) { si, collectError  in
+        self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, allowRedisplay: Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay), setupConfig: setupIntentConfiguration) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
@@ -1440,19 +1398,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         sendEvent(withName: ReactNativeConstants.DISCONNECT.rawValue, body: ["reason": result])
     }
 
-    func localMobileReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
+    func tapToPayReader(_ reader: Reader, didStartInstallingUpdate update: ReaderSoftwareUpdate, cancelable: Cancelable?) {
         self.installUpdateCancelable = cancelable
         sendEvent(withName: ReactNativeConstants.START_INSTALLING_UPDATE.rawValue, body: ["result": Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]])
     }
 
-    func localMobileReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
+    func tapToPayReader(_ reader: Reader, didReportReaderSoftwareUpdateProgress progress: Float) {
         let result: [AnyHashable : Any?] = [
             "progress": String(progress),
         ]
         sendEvent(withName: ReactNativeConstants.REPORT_UPDATE_PROGRESS.rawValue, body: ["result": result])
     }
 
-    func localMobileReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: Error?) {
+    func tapToPayReader(_ reader: Reader, didFinishInstallingUpdate update: ReaderSoftwareUpdate?, error: (any Error)?) {
         var result = Mappers.mapFromReaderSoftwareUpdate(update) ?? [:]
         if let nsError = error as NSError? {
            let errorAsDictionary = Errors.createError(nsError: nsError)
@@ -1465,12 +1423,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, BluetoothRe
         sendEvent(withName: ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue, body: ["result": result])
     }
 
-    func localMobileReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
+    func tapToPayReader(_ reader: Reader, didRequestReaderInput inputOptions: ReaderInputOptions = []) {
         let result = Mappers.mapFromReaderInputOptions(inputOptions)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_INPUT.rawValue, body: ["result": result])
     }
 
-    func localMobileReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
+    func tapToPayReader(_ reader: Reader, didRequestReaderDisplayMessage displayMessage: ReaderDisplayMessage) {
         let result = Mappers.mapFromReaderDisplayMessage(displayMessage)
         sendEvent(withName: ReactNativeConstants.REQUEST_READER_DISPLAY_MESSAGE.rawValue, body: ["result": result])
     }

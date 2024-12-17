@@ -1,6 +1,5 @@
 package com.stripeterminalreactnative.callback
 
-import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.callable.CollectedDataCallback

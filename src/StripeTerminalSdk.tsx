@@ -5,12 +5,9 @@ import type {
   DiscoverReadersParams,
   DiscoverReadersResultType,
   CancelDiscoveringResultType,
-  ConnectBluetoothReaderParams,
   DisconnectReaderResultType,
   RebootReaderResultType,
   Reader,
-  ConnectInternetReaderParams,
-  ConnectUsbReaderParams,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
@@ -24,8 +21,6 @@ import type {
   CollectRefundPaymentMethodType,
   ConfirmRefundResultType,
   SetConnectionTokenParams,
-  ConnectHandoffParams,
-  ConnectLocalMobileParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
   OfflineStatus,
@@ -39,7 +34,8 @@ import type {
   CancelPaymentMethodParams,
   CollectDataParams,
   CollectDataResultType,
-  LocalMobileUxConfiguration,
+  TapToPayUxConfiguration,
+  ConnectReaderParams,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -63,22 +59,9 @@ export interface StripeTerminalSdkType {
   // Cancel discovering readers
   cancelDiscovering(): CancelDiscoveringResultType;
   // Connect to reader via bluetooth
-  connectBluetoothReader(
-    params: ConnectBluetoothReaderParams
-  ): Promise<ConnectReaderResultType>;
-  // Connect to reader via internet
-  connectInternetReader(
-    params: ConnectInternetReaderParams
-  ): Promise<ConnectReaderResultType>;
-  connectHandoffReader(
-    params: ConnectHandoffParams
-  ): Promise<ConnectReaderResultType>;
-  connectLocalMobileReader(
-    params: ConnectLocalMobileParams
-  ): Promise<ConnectReaderResultType>;
-  // Connect to reader via USB
-  connectUsbReader(
-    params: ConnectUsbReaderParams
+  connectReader(
+    params: ConnectReaderParams,
+    discoveryMethod: Reader.DiscoveryMethod
   ): Promise<ConnectReaderResultType>;
   // Disconnect reader
   disconnectReader(): Promise<DisconnectReaderResultType>;
@@ -172,7 +155,7 @@ export interface StripeTerminalSdkType {
   supportsReadersOfType(
     params: Reader.ReaderSupportParams
   ): Promise<Reader.ReaderSupportResult>;
-  setLocalMobileUxConfiguration(params: LocalMobileUxConfiguration): Promise<{
+  setTapToPayUxConfiguration(params: TapToPayUxConfiguration): Promise<{
     error?: StripeError;
   }>;
   getNativeSdkVersion(): Promise<string>;

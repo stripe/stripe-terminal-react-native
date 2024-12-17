@@ -3,7 +3,7 @@ package com.stripeterminalreactnative
 enum class DiscoveryMethod {
     BLUETOOTH_SCAN,
     INTERNET,
-    LOCAL_MOBILE,
+    TAP_TO_PAY,
     HANDOFF,
     USB
 }

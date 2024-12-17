@@ -22,7 +22,15 @@ import {
   Reader,
 } from '@stripe/stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
-import type { StripeError } from '@stripe/stripe-terminal-react-native';
+import type {
+  ConnectBluetoothReaderParams,
+  ConnectHandoffParams,
+  ConnectInternetReaderParams,
+  ConnectTapToPayParams,
+  ConnectUsbReaderParams,
+  ConnectReaderParams,
+  StripeError,
+} from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
@@ -57,13 +65,9 @@ export default function DiscoverReadersScreen() {
   const {
     cancelDiscovering,
     discoverReaders,
-    connectBluetoothReader,
+    connectReader,
     discoveredReaders,
-    connectInternetReader,
-    connectUsbReader,
     simulateReaderUpdate,
-    connectLocalMobileReader,
-    connectHandoffReader,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
       if (finishError) {
@@ -189,24 +193,33 @@ export default function DiscoverReadersScreen() {
 
   const handleConnectReader = async (reader: Reader.Type) => {
     let error: StripeError | undefined;
+
+    setConnectingReader(reader);
     if (discoveryMethod === 'internet') {
-      const result = await handleConnectInternetReader(reader);
-      error = result.error;
+      error = await connectReaderWrapper(
+        getInternetParams(reader),
+        discoveryMethod
+      );
     } else if (
       discoveryMethod === 'bluetoothScan' ||
       discoveryMethod === 'bluetoothProximity'
     ) {
-      const result = await handleConnectBluetoothReader(reader);
-      error = result.error;
-    } else if (discoveryMethod === 'localMobile') {
-      const result = await handleConnectLocalMobileReader(reader);
-      error = result.error;
+      error = await connectReaderWrapper(
+        getBluetoothParams(reader),
+        discoveryMethod
+      );
+    } else if (discoveryMethod === 'tapToPay') {
+      error = await connectReaderWrapper(
+        getTapToPayParams(reader),
+        discoveryMethod
+      );
     } else if (discoveryMethod === 'handoff') {
-      const result = await handleConnectHandoffReader(reader);
-      error = result.error;
+      error = await connectReaderWrapper(
+        getHandoffParams(reader),
+        discoveryMethod
+      );
     } else if (discoveryMethod === 'usb') {
-      const result = await handleConnectUsbReader(reader);
-      error = result.error;
+      error = await connectReaderWrapper(getUsbParams(reader), discoveryMethod);
     }
     if (error) {
       setConnectingReader(undefined);
@@ -216,86 +229,49 @@ export default function DiscoverReadersScreen() {
     }
   };
 
-  const handleConnectHandoffReader = async (reader: Reader.Type) => {
-    setConnectingReader(reader);
+  const getBluetoothParams = (
+    reader: Reader.Type
+  ): ConnectBluetoothReaderParams => ({
+    reader,
+    locationId: selectedLocation?.id || reader?.location?.id,
+    autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+  });
 
-    const { reader: connectedReader, error } = await connectHandoffReader({
-      reader,
-      locationId: selectedLocation?.id,
-    });
+  const getInternetParams = (
+    reader: Reader.Type
+  ): ConnectInternetReaderParams => ({
+    reader,
+  });
 
-    if (error) {
-      console.log('connectHandoffReader error:', error);
-    } else {
-      console.log('Reader connected successfully', connectedReader);
-    }
-    return { error };
-  };
+  const getUsbParams = (reader: Reader.Type): ConnectUsbReaderParams => ({
+    reader,
+    locationId: selectedLocation?.id || reader?.location?.id,
+    autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+  });
 
-  const handleConnectLocalMobileReader = async (reader: Reader.Type) => {
-    setConnectingReader(reader);
+  const getTapToPayParams = (reader: Reader.Type): ConnectTapToPayParams => ({
+    reader,
+    locationId: selectedLocation?.id || reader?.location?.id,
+    autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+  });
 
-    const { reader: connectedReader, error } = await connectLocalMobileReader({
-      reader,
-      locationId: selectedLocation?.id,
-      autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
-    });
+  const getHandoffParams = (reader: Reader.Type): ConnectHandoffParams => ({
+    reader,
+    locationId: selectedLocation?.id || reader?.location?.id,
+  });
 
-    if (error) {
-      console.log('connectLocalMobileReader error:', error);
-    } else {
-      console.log('Reader connected successfully', connectedReader);
-    }
-    return { error };
-  };
-
-  const handleConnectBluetoothReader = async (reader: Reader.Type) => {
-    setConnectingReader(reader);
-
-    const { reader: connectedReader, error } = await connectBluetoothReader({
-      reader,
-      locationId: selectedLocation?.id || reader?.location?.id,
-      autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
-    });
+  const connectReaderWrapper = async (
+    params: ConnectReaderParams,
+    discoveryMethod: Reader.DiscoveryMethod
+  ) => {
+    const { reader, error } = await connectReader(params, discoveryMethod);
 
     if (error) {
-      console.log('connectBluetoothReader error:', error);
+      console.log('connect Reader error:', error);
     } else {
-      console.log('Reader connected successfully', connectedReader);
+      console.log('Reader connected successfully', reader);
     }
-    return { error };
-  };
-
-  const handleConnectInternetReader = async (reader: Reader.Type) => {
-    setConnectingReader(reader);
-
-    const { reader: connectedReader, error } = await connectInternetReader({
-      reader,
-    });
-
-    if (error) {
-      console.log('connectInternetReader error:', error);
-    } else {
-      console.log('Reader connected successfully', connectedReader);
-    }
-    return { error };
-  };
-
-  const handleConnectUsbReader = async (reader: Reader.Type) => {
-    setConnectingReader(reader);
-
-    const { reader: connectedReader, error } = await connectUsbReader({
-      reader,
-      locationId: selectedLocation?.id || reader?.location?.id,
-      autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
-    });
-
-    if (error) {
-      console.log('connectUsbReader error:', error);
-    } else {
-      console.log('Reader connected successfully', connectedReader);
-    }
-    return { error };
+    return error;
   };
 
   const handleChangeUpdatePlan = async (plan: Reader.SimulateUpdateType) => {
@@ -364,6 +340,7 @@ export default function DiscoverReadersScreen() {
       {!simulated &&
         (discoveryMethod === 'bluetoothScan' ||
           discoveryMethod === 'usb' ||
+          discoveryMethod === 'tapToPay' ||
           discoveryMethod === 'bluetoothProximity') && (
           <List
             bolded={false}
@@ -541,5 +518,10 @@ function mapToPlanDisplayName(plan: string) {
 }
 
 function shouldShowDiscoverError(error: StripeError) {
-  return error.code.toString() != 'USER_ERROR.CANCELED';
+  if (Platform.OS === 'android') {
+    return error.code.toString() != 'USER_ERROR.CANCELED';
+  } else if (Platform.OS === 'ios') {
+    return error.code.toString() != 'Canceled';
+  }
+  return true;
 }

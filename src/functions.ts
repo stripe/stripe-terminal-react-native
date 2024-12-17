@@ -6,12 +6,9 @@ import type {
   InitializeResultType,
   DiscoverReadersParams,
   DiscoverReadersResultType,
-  ConnectBluetoothReaderParams,
   CancelDiscoveringResultType,
   DisconnectReaderResultType,
   RebootReaderResultType,
-  ConnectInternetReaderParams,
-  ConnectUsbReaderParams,
   CreatePaymentIntentParams,
   CollectSetupIntentPaymentMethodParams,
   PaymentIntentResultType,
@@ -25,9 +22,7 @@ import type {
   Reader,
   RefundParams,
   ConfirmRefundResultType,
-  ConnectLocalMobileParams,
   ConnectReaderResultType,
-  ConnectHandoffParams,
   CollectPaymentMethodParams,
   OfflineStatus,
   ICollectInputsParameters,
@@ -40,7 +35,8 @@ import type {
   CancelPaymentMethodParams,
   CollectDataParams,
   CollectDataResultType,
-  LocalMobileUxConfiguration,
+  TapToPayUxConfiguration,
+  ConnectReaderParams,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
@@ -118,13 +114,15 @@ export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> 
   }, 'cancelDiscoverReaders')();
 }
 
-export async function connectBluetoothReader(
-  params: ConnectBluetoothReaderParams
+export async function connectReader(
+  params: ConnectReaderParams,
+  discoveryMethod: Reader.DiscoveryMethod
 ): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
+  return Logger.traceSdkMethod(async (innerParams, discoveryMethod) => {
     try {
-      const { error, reader } = await StripeTerminalSdk.connectBluetoothReader(
-        innerParams
+      const { error, reader } = await StripeTerminalSdk.connectReader(
+        innerParams,
+        discoveryMethod
       );
 
       if (error) {
@@ -142,114 +140,7 @@ export async function connectBluetoothReader(
         error: error as any,
       };
     }
-  }, 'connectBluetoothReader')(params);
-}
-
-export async function connectHandoffReader(
-  params: ConnectHandoffParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectHandoffReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectHandoffReader')(params);
-}
-
-export async function connectLocalMobileReader(
-  params: ConnectLocalMobileParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } =
-        await StripeTerminalSdk.connectLocalMobileReader(innerParams);
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectLocalMobileReader')(params);
-}
-
-export async function connectInternetReader(
-  params: ConnectInternetReaderParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectInternetReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectInternetReader')(params);
-}
-
-export async function connectUsbReader(
-  params: ConnectUsbReaderParams
-): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams) => {
-    try {
-      const { error, reader } = await StripeTerminalSdk.connectUsbReader(
-        innerParams
-      );
-
-      if (error) {
-        return {
-          error,
-          reader: undefined,
-        };
-      }
-      return {
-        reader: reader!,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'connectUsbReader')(params);
+  }, 'connectReader')(params, discoveryMethod);
 }
 
 export async function disconnectReader(): Promise<DisconnectReaderResultType> {
@@ -905,7 +796,9 @@ export async function collectData(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectData(params);
-      return response;
+      return {
+        collectedData: response,
+      };
     } catch (error) {
       return {
         error: error as any,
@@ -946,15 +839,15 @@ export async function supportsReadersOfType(
   }, 'supportsReadersOfType')();
 }
 
-export async function setLocalMobileUxConfiguration(
-  params: LocalMobileUxConfiguration
+export async function setTapToPayUxConfiguration(
+  params: TapToPayUxConfiguration
 ): Promise<{
   error?: StripeError;
 }> {
   if (Platform.OS === 'ios') {
     return {
       error: {
-        message: "'setLocalMobileUxConfiguration' is unsupported on iOS",
+        message: "'setTapToPayUxConfiguration' is unsupported on iOS",
         code: CommonError.Failed,
       },
     };
@@ -962,14 +855,14 @@ export async function setLocalMobileUxConfiguration(
 
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.setLocalMobileUxConfiguration(params);
+      await StripeTerminalSdk.setTapToPayUxConfiguration(params);
       return {};
     } catch (error) {
       return {
         error: error as any,
       };
     }
-  }, 'setLocalMobileUxConfiguration')();
+  }, 'setTapToPayUxConfiguration')();
 }
 
 export async function getNativeSdkVersion(): Promise<string> {

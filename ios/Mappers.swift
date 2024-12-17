@@ -62,7 +62,7 @@ class Mappers {
 
     class func mapFromDeviceType(_ type: DeviceType) -> String {
         switch type {
-        case DeviceType.appleBuiltIn: return "appleBuiltIn"
+        case DeviceType.tapToPay: return "tapToPay"
         case DeviceType.chipper1X: return "chipper1X"
         case DeviceType.chipper2X: return "chipper2X"
         case DeviceType.etna: return "etna"
@@ -80,7 +80,7 @@ class Mappers {
 
     class func mapToDeviceType(_ type: String) -> DeviceType? {
         switch type {
-        case "appleBuiltIn": return DeviceType.appleBuiltIn
+        case "tapToPay": return DeviceType.tapToPay
         case "chipper1X": return DeviceType.chipper1X
         case "chipper2X": return DeviceType.chipper2X
         case "etna": return DeviceType.etna
@@ -133,7 +133,7 @@ class Mappers {
             case "bluetoothProximity": return DiscoveryMethod.bluetoothProximity
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
             case "internet": return DiscoveryMethod.internet
-            case "localMobile": return DiscoveryMethod.localMobile
+            case "tapToPay": return DiscoveryMethod.tapToPay
             default: return DiscoveryMethod.internet
             }
         }
@@ -148,8 +148,8 @@ class Mappers {
             return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "internet":
             return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
-        case "localMobile":
-            return try LocalMobileDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "tapToPay":
+            return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
@@ -231,7 +231,7 @@ class Mappers {
             metadataMap = NSDictionary(dictionary: metadata)
         }
         let result: NSDictionary = [
-            "id": setupIntent.stripeId,
+            "id": setupIntent.stripeId ?? NSNull(),
             "sdkUuid": uuid,
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "customer": setupIntent.customer ?? NSNull(),
@@ -377,7 +377,7 @@ class Mappers {
         }
         let result: [AnyHashable: Any?] = [
             "deviceSoftwareVersion": unwrappedUpdate.deviceSoftwareVersion,
-            "estimatedUpdateTime": mapFromUpdateTimeEstimate(unwrappedUpdate.estimatedUpdateTime),
+            "estimatedUpdateTime": mapFromUpdateTimeEstimate(unwrappedUpdate.durationEstimate),
             "requiredAt": Mappers.convertDateToUnixTimestamp(date: unwrappedUpdate.requiredAt),
         ]
         return result
@@ -462,6 +462,14 @@ class Mappers {
         return nil
     }
 
+    class func mapToAllowRedisplay(allowToredisplay: String) -> AllowRedisplay {
+        switch allowToredisplay {
+        case "always": return AllowRedisplay.always
+        case "limited": return AllowRedisplay.limited
+        default: return AllowRedisplay.unspecified
+        }
+    }
+
     class func mapToSimulateReaderUpdate(_ update: String) -> SimulateReaderUpdate {
         switch update {
         case "available": return SimulateReaderUpdate.available
@@ -527,7 +535,7 @@ class Mappers {
         }
 
         let result: NSDictionary = [
-            "storedAt": convertDateToUnixTimestamp(date: offlineDetails.collectedAt) ?? NSNull(),
+            "storedAtMs": convertDateToUnixTimestamp(date: offlineDetails.storedAt) ?? NSNull(),
             "requiresUpload": offlineDetails.requiresUpload,
             "cardPresentDetails": offlineCardPresentDetails ?? NSNull(),
             "amountDetails": amountDetails ?? NSNull()
@@ -538,13 +546,12 @@ class Mappers {
 
     class func mapFromAmountDetails(_ amountDetails: SCPAmountDetails?) -> NSDictionary {
         let amount: NSDictionary = [
-            "amount": amountDetails?.tip ?? NSNull(),
+            "amount": amountDetails?.tip?.amount ?? NSNull(),
         ]
 
         let result: NSDictionary = [
             "tip": amount
         ]
-
         return result
     }
 
@@ -744,6 +751,7 @@ class Mappers {
         case ConnectionStatus.connected: return "connected"
         case ConnectionStatus.connecting: return "connecting"
         case ConnectionStatus.notConnected: return "notConnected"
+        case ConnectionStatus.discovering: return "discovering"
         default: return "unknown"
         }
     }
@@ -853,32 +861,50 @@ class Mappers {
         return list
     }
 
+    class func mapFormType(result: CollectInputsResult) -> String {
+        return if result is EmailResult {
+            "email"
+        } else if result is PhoneResult {
+            "phone"
+        } else if result is TextResult {
+            "text"
+        } else if result is NumericResult {
+            "numeric"
+        } else if result is SignatureResult {
+            "signature"
+        } else if result is SelectionResult {
+            "selection"
+        } else {
+            ""
+        }
+    }
+
     class func mapFromCollectInputsResults(_ results: [CollectInputsResult]) -> NSDictionary {
         var collectInputResults: [NSDictionary] = []
         for result in results {
             if result is EmailResult {
                 let result = result as! EmailResult
-                var emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? "", "toggles": mapFromToggleResultList(result.toggles)]
+                let emailResult: NSDictionary = ["skipped": result.skipped, "email": result.email ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(emailResult)
             } else if result is PhoneResult {
                 let result = result as! PhoneResult
-                var phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? "", "toggles": mapFromToggleResultList(result.toggles)]
+                let phoneResult: NSDictionary = ["skipped": result.skipped, "phone": result.phone ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(phoneResult)
             } else if result is TextResult {
                 let result = result as! TextResult
-                var textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? "", "toggles": mapFromToggleResultList(result.toggles)]
+                let textResult: NSDictionary = ["skipped": result.skipped, "text": result.text ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(textResult)
             } else if result is NumericResult {
                 let result = result as! NumericResult
-                var numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? "", "toggles": mapFromToggleResultList(result.toggles)]
+                let numericResult: NSDictionary = ["skipped": result.skipped, "numericString": result.numericString ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(numericResult)
             } else if result is SignatureResult {
                 let result = result as! SignatureResult
-                var signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? "", "toggles": mapFromToggleResultList(result.toggles)]
+                let signatureResult: NSDictionary = ["skipped": result.skipped, "signatureSvg": result.signatureSvg ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(signatureResult)
             } else if result is SelectionResult {
                 let result = result as! SelectionResult
-                var selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "toggles": mapFromToggleResultList(result.toggles)]
+                let selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(selectionResult)
             }
         }
@@ -910,6 +936,17 @@ class Mappers {
         ]
         return result
     }
+
+    class func mapPaymentMethodType(_ type: String) -> PaymentMethodType {
+        switch type {
+        case "card": return .card
+        case "card_present": return .cardPresent
+        case "interac_present": return .interacPresent
+        case "wechat_pay": return .wechatPay
+        default: return .unknown
+        }
+    }
+    
 }
 
 extension UInt {

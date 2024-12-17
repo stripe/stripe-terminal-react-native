@@ -30,7 +30,7 @@ export namespace Reader {
       | 'bluetoothProximity'
       | 'bluetoothScan'
       | 'internet'
-      | 'localMobile';
+      | 'tapToPay';
   }
 
   export namespace Android {
@@ -51,7 +51,7 @@ export namespace Reader {
     export type DiscoveryMethod =
       | 'bluetoothScan'
       | 'internet'
-      | 'localMobile'
+      | 'tapToPay'
       | 'handoff'
       | 'usb';
   }
@@ -100,7 +100,7 @@ export namespace Reader {
     | 'stripeS710Devkit'
     | 'stripeS710'
     | 'cotsDevice'
-    | 'appleBuiltIn'
+    | 'tapToPay'
     | 'etna';
 
   export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
@@ -117,7 +117,11 @@ export namespace Reader {
     | 'checkMobileDevice'
     | 'cardRemovedTooEarly';
 
-  export type ConnectionStatus = 'connected' | 'connecting' | 'notConnected';
+  export type ConnectionStatus =
+    | 'connected'
+    | 'connecting'
+    | 'notConnected'
+    | 'discovering';
 
   export type DisconnectReason =
     | 'disconnectRequested'
