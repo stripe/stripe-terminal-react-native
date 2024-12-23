@@ -131,6 +131,15 @@ export interface StripeTerminalSdkType {
   cancelCollectSetupIntent(): Promise<{
     error?: StripeError;
   }>;
+  cancelConfirmPaymentIntent(): Promise<{
+    error?: StripeError;
+  }>;
+  cancelConfirmSetupIntent(): Promise<{
+    error?: StripeError;
+  }>;
+  cancelConfirmRefund(): Promise<{
+    error?: StripeError;
+  }>;
   setSimulatedCard(cardNumber: string): Promise<{
     error?: StripeError;
   }>;

@@ -54,6 +54,7 @@ export default function RefundPaymentScreen() {
     collectRefundPaymentMethod,
     cancelCollectRefundPaymentMethod,
     confirmRefund,
+    cancelConfirmRefund,
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
@@ -144,6 +145,7 @@ export default function RefundPaymentScreen() {
       events: [
         {
           name: 'Processing',
+          onBack: cancelConfirmRefund,
           description: 'terminal.confirmRefund',
           metadata: _refundMetadata,
         },

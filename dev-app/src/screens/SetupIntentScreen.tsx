@@ -40,6 +40,7 @@ export default function SetupIntentScreen() {
     createSetupIntent,
     collectSetupIntentPaymentMethod,
     confirmSetupIntent,
+    cancelConfirmSetupIntent,
     retrieveSetupIntent,
     cancelCollectSetupIntent,
   } = useStripeTerminal({
@@ -75,6 +76,7 @@ export default function SetupIntentScreen() {
         events: [
           {
             name: 'Process',
+            onBack: cancelConfirmSetupIntent,
             description: 'terminal.confirmSetupIntent',
             metadata: { setupIntentId: si.id },
           },
@@ -113,7 +115,7 @@ export default function SetupIntentScreen() {
         });
       }
     },
-    [addLogs, confirmSetupIntent]
+    [addLogs, confirmSetupIntent, cancelConfirmSetupIntent]
   );
 
   const _collectSetupMethod = async (si: SetupIntent.Type) => {
