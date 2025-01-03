@@ -9,9 +9,8 @@
     "bootstrap": "cd .. && yarn bootstrap",
     "ios": "react-native run-ios",
     "ios:all": "concurrently \"yarn start\" \"yarn ios\"",
-    "postinstall": "scripts/fixRN.sh",
-    "start": "react-native start",
-    "postinstall": "patch-package"
+    "postinstall": "scripts/fixRN.sh && patch-package",
+    "start": "react-native start"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.19.5",
