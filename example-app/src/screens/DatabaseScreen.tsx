@@ -13,14 +13,20 @@ export default function DatabaseScreen() {
     useState<OfflineStatus | null>(null);
   const currencySymbols = [
     { value: 'usd', label: '$' },
-    { value: 'gbp', label: '￡' },
-    { value: 'cad', label: 'C$' },
-    { value: 'sgd', label: 'S$' },
-    { value: 'eur', label: '€' },
     { value: 'aud', label: 'A$' },
+    { value: 'cad', label: 'CA$' },
+    { value: 'chf', label: 'CHF' },
+    { value: 'czk', label: 'CZK' },
+    { value: 'dkk', label: 'DKK' },
+    { value: 'eur', label: '€' },
+    { value: 'gbp', label: '£' },
+    { value: 'hkd', label: 'HK$' },
+    { value: 'myr', label: 'MYR' },
+    { value: 'nok', label: 'NOK' },
     { value: 'nzd', label: 'NZ$' },
-    { value: 'dkk', label: 'DKr' },
-    { value: 'sek', label: 'Kr' },
+    { value: 'pln', label: 'PLN' },
+    { value: 'sek', label: 'SEK' },
+    { value: 'sgd', label: 'SGD' },
   ];
   const { getOfflineStatus } = useStripeTerminal();
   function getCurrencySymbols(currency: string): string {
