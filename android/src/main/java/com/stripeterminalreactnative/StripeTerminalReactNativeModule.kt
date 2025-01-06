@@ -16,6 +16,7 @@ import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.CollectInputs
+import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
@@ -560,7 +561,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
     }
 
-    @OptIn(OfflineMode::class)
+    @OptIn(InternalApi::class)
     @ReactMethod
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
@@ -605,6 +606,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             if (params.hasKey("allowRedisplay")) {
                 configBuilder.setAllowRedisplay(mapToAllowRedisplay(params.getString("allowRedisplay")))
+            }
+            if (params.hasKey("moto")) {
+                configBuilder.setMoto(params.getBoolean("moto"))
             }
 
             val config = configBuilder.build()
@@ -723,6 +727,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             )
         }
 
+    @OptIn(InternalApi::class)
     @ReactMethod
     @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
@@ -738,12 +743,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
+            val moto = getBoolean(params, "moto")
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 allowRedisplay,
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(enableCustomerCancellation)
+                    .setMoto(moto)
                     .build(),
                 RNSetupIntentCallback(promise, uuid) { setupIntents[uuid] = it }
             )

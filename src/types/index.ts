@@ -201,6 +201,7 @@ export type CollectPaymentMethodParams = {
   requestDynamicCurrencyConversion?: boolean;
   surchargeNotice?: string;
   allowRedisplay?: AllowRedisplay;
+  moto?: boolean;
 };
 
 export type ConfirmPaymentMethodParams = {
@@ -224,6 +225,7 @@ export type CollectSetupIntentPaymentMethodParams = {
   allowRedisplay?: AllowRedisplay;
   enableCustomerCancellation?: boolean;
   setupIntent: SetupIntent.Type;
+  moto?: boolean;
 };
 
 export type AllowRedisplay = 'always' | 'limited' | 'unspecified';
