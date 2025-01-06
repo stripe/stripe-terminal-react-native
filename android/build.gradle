@@ -29,7 +29,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 
-def terminalAndroidSdkVersion = '4.0.0'
+def terminalAndroidSdkVersion = '4.1.0'
 def reactNativeSdkVersion = getVersionFromNpm()
 
 android {
