@@ -32,6 +32,7 @@ export default function SetupIntentScreen() {
   const { discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+  const [moto, setMoto] = useState(false);
 
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('always');
@@ -132,6 +133,7 @@ export default function SetupIntentScreen() {
       setupIntent: si,
       allowRedisplay: allowRedisplay,
       enableCustomerCancellation: enableCustomerCancellation,
+      moto: moto,
     });
     if (error) {
       addLogs({
@@ -306,12 +308,24 @@ export default function SetupIntentScreen() {
             />
           ))}
         </Picker>
+      </List>
+      <List bolded={false} topSpacing={false} title="Moto">
         <ListItem
-          color={colors.blue}
-          title="Collect setupIntent"
-          onPress={_createSetupIntent}
+          title="Enable Moto"
+          rightElement={
+            <Switch
+              testID="moto"
+              value={moto}
+              onValueChange={(value) => setMoto(value)}
+            />
+          }
         />
       </List>
+      <ListItem
+        color={colors.blue}
+        title="Collect setupIntent"
+        onPress={_createSetupIntent}
+      />
     </KeyboardAwareScrollView>
   );
 }
