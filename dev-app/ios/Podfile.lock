@@ -440,11 +440,11 @@ PODS:
   - SocketRocket (0.6.1)
   - stripe-terminal-react-native (0.0.1-beta.23):
     - React-Core
-    - StripeTerminal (~> 4.0.0)
+    - StripeTerminal
   - stripe-terminal-react-native/Tests (0.0.1-beta.23):
     - React-Core
-    - StripeTerminal (~> 4.0.0)
-  - StripeTerminal (4.0.0)
+    - StripeTerminal
+  - StripeTerminal (4.2.0-isabel-1736196416)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -495,6 +495,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - stripe-terminal-react-native (from `../..`)
   - stripe-terminal-react-native/Tests (from `../..`)
+  - StripeTerminal (from `../../../stripe-terminal-ios/build`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -502,7 +503,6 @@ SPEC REPOS:
     - fmt
     - libevent
     - SocketRocket
-    - StripeTerminal
 
 EXTERNAL SOURCES:
   boost:
@@ -594,11 +594,13 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   stripe-terminal-react-native:
     :path: "../.."
+  StripeTerminal:
+    :path: "../../../stripe-terminal-ios/build"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: 5fbbff1d7734827299274638deb8ba3024f6c597
   FBReactNativeSpec: 638095fe8a01506634d77b260ef8a322019ac671
@@ -644,10 +646,10 @@ SPEC CHECKSUMS:
   RNGestureHandler: 32a01c29ecc9bb0b5bf7bc0a33547f61b4dc2741
   RNScreens: 3c2d122f5e08c192e254c510b212306da97d2581
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  stripe-terminal-react-native: 2ddb51910cbd52e8c4c040cf2de205b9c2de7fb5
-  StripeTerminal: b8a0f7bc10534eb060f676c9b3b813b2613a137b
+  stripe-terminal-react-native: 405f1bf0b546d6fecb105e5b0c15310823d6e428
+  StripeTerminal: ec9048f0f974fed19de4cdcfb64d89ec32dddc63
   Yoga: 4c3aa327e4a6a23eeacd71f61c81df1bcdf677d5
 
-PODFILE CHECKSUM: 0fc269c07f7b9dd0472ad32eab1e1fd0e4e866f6
+PODFILE CHECKSUM: a3e678aa8c296c17f0b5e530f3a8f186b4f8eb11
 
 COCOAPODS: 1.16.2
