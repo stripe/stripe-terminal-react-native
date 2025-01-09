@@ -185,7 +185,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     
     @ReactMethod
     @Suppress("unused")
-    fun setSimulatedCard(simulatedOffline: Boolean, promise: Promise) {
+    fun setSimulatedOfflineMode(simulatedOffline: Boolean, promise: Promise) {
         terminal.simulatorConfiguration = SimulatorConfiguration(
             update = terminal.simulatorConfiguration.update,
             offlineEnabled = simulatedOffline

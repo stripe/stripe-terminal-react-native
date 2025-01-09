@@ -581,7 +581,7 @@ export async function setSimulatedOfflineMode(
   simulatedOffline: boolean
 ): Promise<{ error?: StripeError }> {
   try {
-    await StripeTerminalSdk.simulatedOfflineMode(simulatedOffline);
+    await StripeTerminalSdk.setSimulatedOfflineMode(simulatedOffline);
 
     return {};
   } catch (error) {
