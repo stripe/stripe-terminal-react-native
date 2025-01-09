@@ -577,6 +577,20 @@ export async function setSimulatedCard(
   }, 'setSimulatedCard')(cardNumber);
 }
 
+export async function setSimulatedOfflineMode(
+  simulatedOffline: boolean
+): Promise<{ error?: StripeError }> {
+  try {
+    await StripeTerminalSdk.simulatedOfflineMode(simulatedOffline);
+
+    return {};
+  } catch (error) {
+    return {
+      error: error as any,
+    };
+  }
+}
+
 export async function collectRefundPaymentMethod(
   params: RefundParams
 ): Promise<{

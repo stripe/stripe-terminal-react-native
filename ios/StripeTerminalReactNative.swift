@@ -160,6 +160,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.simulatorConfiguration.simulatedCard = SimulatedCard(testCardNumber: cardNumber)
         resolve([:])
     }
+  
+    @objc(setSimulatedOfflineMode:resolver:rejecter:)
+    func setSimulatedOfflineMode(simulatedOffline: Bool, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        Terminal.shared.simulatorConfiguration.offlineEnabled = simulatedOffline;
+        resolve([:])
+    }
 
     @objc(setConnectionToken:resolver:rejecter:)
     func setConnectionToken(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {

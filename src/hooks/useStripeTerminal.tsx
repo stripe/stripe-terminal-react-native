@@ -53,6 +53,7 @@ import {
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
   setSimulatedCard,
+  setSimulatedOfflineMode,
   cancelCollectRefundPaymentMethod,
   getOfflineStatus,
   getReaderSettings,
@@ -714,6 +715,22 @@ export function useStripeTerminal(props?: Props) {
     },
     [_isInitialized, setLoading]
   );
+  
+  const _setSimulatedOfflineMode = useCallback(
+    async (simulatedOffline: boolean) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await setSimulatedOfflineMode(simulatedOffline);
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
 
   const _simulateReaderUpdate = useCallback(
     async (update: Reader.SimulateUpdateType) => {
@@ -1006,6 +1023,7 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
     setSimulatedCard: _setSimulatedCard,
+    setSimulatedOfflineMode: _setSimulatedOfflineMode,
     getOfflineStatus: _getOfflineStatus,
     getPaymentStatus: _getPaymentStatus,
     getConnectionStatus: _getConnectionStatus,
