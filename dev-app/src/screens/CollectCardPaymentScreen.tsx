@@ -128,6 +128,7 @@ export default function CollectCardPaymentScreen() {
     confirmPaymentIntent,
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
+    cancelConfirmPaymentIntent,
     setSimulatedCard,
     getOfflineStatus,
   } = useStripeTerminal({
@@ -449,6 +450,7 @@ export default function CollectCardPaymentScreen() {
       events: [
         {
           name: 'Process',
+          onBack: cancelConfirmPaymentIntent,
           description: 'terminal.confirmPaymentIntent',
           metadata: { paymentIntentId: collectedPaymentIntent.id },
         },

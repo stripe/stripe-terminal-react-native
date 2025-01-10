@@ -57,6 +57,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     var readReusableCardCancelable: Cancelable? = nil
     var cancelReaderConnectionCancellable: Cancelable? = nil
     var collectInputsCancellable: Cancelable? = nil
+    var confirmPaymentIntentCancelable: Cancelable? = nil
+    var confirmSetupIntentCancelable: Cancelable? = nil
+    var confirmRefundCancelable: Cancelable? = nil
     var loggingToken: String? = nil
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
@@ -129,6 +132,57 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 resolve([:])
             }
             self.collectRefundPaymentMethodCancelable = nil
+        }
+    }
+
+    @objc(cancelConfirmPaymentIntent:rejecter:)
+    func cancelConfirmPaymentIntent(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = confirmPaymentIntentCancelable else {
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "cancelConfirmPaymentIntent could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            }
+            else {
+                resolve([:])
+            }
+            self.confirmPaymentIntentCancelable = nil
+        }
+    }
+
+    @objc(cancelConfirmSetupIntent:rejecter:)
+    func cancelConfirmSetupIntent(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = confirmSetupIntentCancelable else {
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "cancelConfirmSetupIntent could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            }
+            else {
+                resolve([:])
+            }
+            self.confirmSetupIntentCancelable = nil
+        }
+    }
+
+    @objc(cancelConfirmRefund:rejecter:)
+    func cancelConfirmRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = confirmRefundCancelable else {
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "cancelConfirmRefund could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            }
+            else {
+                resolve([:])
+            }
+            self.confirmRefundCancelable = nil
         }
     }
 
@@ -628,7 +682,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
+        self.confirmPaymentIntentCancelable = Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
             if let error = error as NSError? {
                 var result = Errors.createError(nsError: error)
                 if let pi {
@@ -871,8 +925,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-
-        Terminal.shared.confirmSetupIntent(setupIntent) { si, collectError  in
+        self.confirmSetupIntentCancelable = Terminal.shared.confirmSetupIntent(setupIntent) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else if let setupIntent = si {
@@ -943,7 +996,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(confirmRefund:rejecter:)
     func confirmRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        Terminal.shared.confirmRefund() { rf, error in
+        self.confirmRefundCancelable = Terminal.shared.confirmRefund() { rf, error in
             if let error = error as NSError? {
                 resolve(Errors.createError(nsError: error))
             } else {
