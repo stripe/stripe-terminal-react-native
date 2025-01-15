@@ -13,7 +13,7 @@ export type WithStripeTerminalProps = ReturnType<typeof useStripeTerminal>;
  *  export default withStripeTerminal(YourScreenComponent);
  * ```
  * @param __namedParameters WithStripeTerminalProps
- * @returns JSX.Element
+ * @returns React.JSX.Element
  * @category ReactComponents
  */
 export function withStripeTerminal<Props>(
