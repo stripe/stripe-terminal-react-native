@@ -1,14 +1,14 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import {
-  Reader,
-  LogLevel,
+  type Reader,
+  type LogLevel,
   CommonError,
-  StripeError,
-  EventResult,
-  PaymentStatus,
-  OfflineStatus,
-  PaymentIntent,
-  ReaderEvent,
+  type StripeError,
+  type EventResult,
+  type PaymentStatus,
+  type OfflineStatus,
+  type PaymentIntent,
+  type ReaderEvent,
 } from '../types';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';

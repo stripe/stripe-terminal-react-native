@@ -178,7 +178,7 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
 }
 
 const createContextWrapper =
-  (providerProps: any): React.FC =>
+  (providerProps: any): React.FC<{ children: React.ReactNode }> =>
   ({ children }) =>
     (
       <StripeTerminalContext.Provider
