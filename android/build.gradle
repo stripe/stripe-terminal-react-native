@@ -32,7 +32,9 @@ def terminalAndroidSdkVersion = '4.1.0'
 def reactNativeSdkVersion = getVersionFromNpm()
 
 android {
-    compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+    buildToolsVersion getExtOrDefault('buildToolsVersion')
+    compileSdk getExtOrIntegerDefault('compileSdkVersion')
+
     namespace 'com.stripeterminalreactnative'
     defaultConfig {
         manifestPlaceholders = [REACT_NATIVE_SDK_VERSION: reactNativeSdkVersion]
