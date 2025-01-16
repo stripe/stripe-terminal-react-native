@@ -33,14 +33,20 @@ import {
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
-  { value: 'gbp', label: 'GBP' },
-  { value: 'cad', label: 'CAD' },
-  { value: 'sgd', label: 'SGD' },
-  { value: 'eur', label: 'EUR' },
   { value: 'aud', label: 'AUD' },
-  { value: 'nzd', label: 'NZD' },
+  { value: 'cad', label: 'CAD' },
+  { value: 'chf', label: 'CHF' },
+  { value: 'czk', label: 'CZK' },
   { value: 'dkk', label: 'DKK' },
+  { value: 'eur', label: 'EUR' },
+  { value: 'gbp', label: 'GBP' },
+  { value: 'hkd', label: 'HKD' },
+  { value: 'myr', label: 'MYR' },
+  { value: 'nok', label: 'NOK' },
+  { value: 'nzd', label: 'NZD' },
+  { value: 'pln', label: 'PLN' },
   { value: 'sek', label: 'SEK' },
+  { value: 'sgd', label: 'SGD' },
 ];
 
 const CAPTURE_METHODS = [
