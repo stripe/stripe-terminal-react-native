@@ -18,8 +18,8 @@ import {
 } from 'react-native';
 import {
   useStripeTerminal,
-  Location,
-  Reader,
+  type Location,
+  type Reader,
 } from '@stripe/stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
 import type {
@@ -32,7 +32,11 @@ import type {
   StripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp
+} from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
 import List from '../components/List';

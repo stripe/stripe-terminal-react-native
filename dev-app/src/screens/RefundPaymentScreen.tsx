@@ -1,4 +1,4 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/core';
 import React, { useContext, useRef, useState } from 'react';
 import {
   Modal,

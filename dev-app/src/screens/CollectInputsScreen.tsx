@@ -4,7 +4,7 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import {
   FormType,
-  ICollectInputsParameters,
+  type ICollectInputsParameters,
   SelectionButtonStyle,
   ToggleValue,
   useStripeTerminal,

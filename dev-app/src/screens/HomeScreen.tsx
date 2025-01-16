@@ -21,8 +21,8 @@ import {
   setDiscoveryMethod as setStoredDiscoveryMethod,
 } from '../util/merchantStorage';
 import {
-  OfflineStatus,
-  Reader,
+  type OfflineStatus,
+  type Reader,
   useStripeTerminal,
   getSdkVersion,
 } from '@stripe/stripe-terminal-react-native';

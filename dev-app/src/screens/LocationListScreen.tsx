@@ -1,8 +1,12 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute
+} from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import {
-  Location,
+  type Location,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';

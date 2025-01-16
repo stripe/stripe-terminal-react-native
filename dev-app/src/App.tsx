@@ -8,13 +8,18 @@ import React, {
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
-  HeaderBackButton,
   TransitionPresets,
 } from '@react-navigation/stack';
+import {HeaderBackButton} from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
-import { LogContext, Log, Event, CancelType } from './components/LogContext';
+import {
+  LogContext,
+  type Log,
+  type Event,
+  type CancelType
+} from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
 import LocationListScreen from './screens/LocationListScreen';
@@ -33,8 +38,8 @@ import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import PaymentMethodSelectScreen from './screens/PaymentMethodSelectScreen';
 import {
-  Reader,
-  Location,
+  type Reader,
+  type Location,
   useStripeTerminal,
   requestNeededAndroidPermissions,
 } from '@stripe/stripe-terminal-react-native';

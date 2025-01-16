@@ -1619,7 +1619,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.35.0):
+  - RNScreens (4.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1640,9 +1640,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.35.0)
+    - RNScreens/common (= 4.5.0)
     - Yoga
-  - RNScreens/common (3.35.0):
+  - RNScreens/common (4.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1961,7 +1961,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: fe98f1b459a87b80f12207da80c50b3a3abb6081
   RNCPicker: 529d564911e93598cc399b56cc0769ce3675f8c8
   RNGestureHandler: 8ce7a079c513f96f9b580bcb2ecee621d511361f
-  RNScreens: e389d6a6a66a4f0d3662924ecae803073ccce8ec
+  RNScreens: b02af14099030cc1e63f74f2791574e909fc1541
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stripe-terminal-react-native: 376838b370c6ed8c6bcb8387ce7591ef77dd3da7
   StripeTerminal: e393c25fd8262bd99986785f7ecc91625755d65f

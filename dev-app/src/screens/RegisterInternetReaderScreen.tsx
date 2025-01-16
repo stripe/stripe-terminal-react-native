@@ -1,6 +1,6 @@
 import React, { useState, useContext, useCallback } from 'react';
 import {
-  Reader,
+  type Reader,
   useStripeTerminal,
   type Location,
 } from '@stripe/stripe-terminal-react-native';

@@ -1,12 +1,12 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { type RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useCallback, useContext, useState } from 'react';
 import { StyleSheet, Switch, Platform } from 'react-native';
 import {
-  SetupIntent,
+  type SetupIntent,
   useStripeTerminal,
   CommonError,
-  StripeError,
-  AllowRedisplay,
+  type StripeError,
+  type AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';

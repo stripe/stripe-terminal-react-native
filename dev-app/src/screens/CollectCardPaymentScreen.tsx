@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import {
   useStripeTerminal,
-  PaymentIntent,
-  StripeError,
+  type PaymentIntent,
+  type StripeError,
   CommonError,
-  AllowRedisplay,
+  type AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';

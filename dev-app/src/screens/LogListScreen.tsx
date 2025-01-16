@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { HeaderBackButton } from '@react-navigation/stack';
+import { HeaderBackButton } from '@react-navigation/elements';
 
 const LogListScreen = () => {
   const { logs, cancel, setCancel } = useContext(LogContext);

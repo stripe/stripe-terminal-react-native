@@ -1,4 +1,8 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute
+} from '@react-navigation/core';
 import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import type { Reader } from '@stripe/stripe-terminal-react-native';

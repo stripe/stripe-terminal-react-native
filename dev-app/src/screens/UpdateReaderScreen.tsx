@@ -1,4 +1,4 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { type RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
