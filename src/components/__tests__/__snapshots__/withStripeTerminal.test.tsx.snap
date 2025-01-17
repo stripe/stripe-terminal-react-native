@@ -3,7 +3,7 @@
 exports[`withStripeTerminal.tsx renders correctly 1`] = `
 <View
   accessibilityState={
-    Object {
+    {
       "busy": undefined,
       "checked": undefined,
       "disabled": undefined,
@@ -12,7 +12,7 @@ exports[`withStripeTerminal.tsx renders correctly 1`] = `
     }
   }
   accessibilityValue={
-    Object {
+    {
       "max": undefined,
       "min": undefined,
       "now": undefined,
@@ -30,7 +30,7 @@ exports[`withStripeTerminal.tsx renders correctly 1`] = `
   onResponderTerminationRequest={[Function]}
   onStartShouldSetResponder={[Function]}
   style={
-    Object {
+    {
       "opacity": 1,
     }
   }
