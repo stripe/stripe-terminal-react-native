@@ -43,6 +43,7 @@ import List from '../components/List';
 
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
+import type { NavigationProp } from '@react-navigation/native';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -53,8 +54,8 @@ const SIMULATED_UPDATE_PLANS = [
 ];
 
 export default function DiscoverReadersScreen() {
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReaders'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
@@ -92,7 +93,7 @@ export default function DiscoverReadersScreen() {
     onDidStartInstallingUpdate: (update) => {
       navigation.navigate('UpdateReaderScreen', {
         update,
-        reader: connectingReader,
+        reader: connectingReader!,
         onDidUpdate: () => {
           setPendingUpdateInfo(null);
           setTimeout(() => {

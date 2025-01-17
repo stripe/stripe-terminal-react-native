@@ -11,7 +11,7 @@ import type { RouteParamList } from '../App';
 
 export default function UpdateReaderScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'UpdateReader'>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'UpdateReaderScreen'>>();
   const updateInfo = params?.update;
   const reader = params?.reader;
   const started = params?.started;
@@ -49,7 +49,7 @@ export default function UpdateReaderScreen() {
         <View style={styles.imageContainer}>
           <Image source={icon} style={styles.image} />
         </View>
-        <Text style={styles.readerName}>{reader.serialNumber}</Text>
+        <Text style={styles.readerName}>{reader?.serialNumber}</Text>
         <Text style={styles.connecting}>
           {connectedReader ? 'Connected' : 'Connecting...'}
         </Text>
@@ -58,7 +58,7 @@ export default function UpdateReaderScreen() {
       <List title="CURRENT VERSION">
         <ListItem
           title={
-            reader.deviceSoftwareVersion
+            reader?.deviceSoftwareVersion
               ? reader.deviceSoftwareVersion
               : 'unknown'
           }
@@ -66,7 +66,7 @@ export default function UpdateReaderScreen() {
       </List>
 
       <List title="TARGET VERSION">
-        <ListItem title={updateInfo.deviceSoftwareVersion} />
+        <ListItem title={updateInfo?.deviceSoftwareVersion ? updateInfo.deviceSoftwareVersion : ''} />
       </List>
 
       <List>

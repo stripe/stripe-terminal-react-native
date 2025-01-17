@@ -17,6 +17,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { Picker } from '@react-native-picker/picker';
+import type { NavigationProp } from '@react-navigation/native';
 
 const ALLOW_REDISPLAY = [
   { value: 'unspecified', label: 'unspecified' },
@@ -27,8 +28,8 @@ const ALLOW_REDISPLAY = [
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
   const { discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
@@ -166,7 +167,7 @@ export default function SetupIntentScreen() {
 
   const _createSetupIntent = async () => {
     clearLogs();
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
 
     addLogs({
       name: 'Create Setup Intent',

@@ -1,4 +1,4 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import { useNavigation, useRoute, type RouteProp, type NavigationProp } from '@react-navigation/core';
 import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -117,10 +117,10 @@ export default function CollectCardPaymentScreen() {
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('unspecified');
   const { params } =
-    useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
+    useRoute<RouteProp<RouteParamList, 'CollectCardPaymentScreen'>>();
   const { simulated, discoveryMethod, deviceType } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
   const {
     createPaymentIntent,
@@ -170,7 +170,7 @@ export default function CollectCardPaymentScreen() {
       isDisabled: false,
       action: cancelCollectPaymentMethod,
     });
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
     addLogs({
       name: 'Create Payment Intent',
       events: [
@@ -688,15 +688,15 @@ export default function CollectCardPaymentScreen() {
             testID="payment-method-button"
             onPress={() =>
               navigation.navigate('PaymentMethodSelectScreen', {
-                paymentMethodTypes: paymentMethodTypes,
-                enabledPaymentMethodTypes: enabledPaymentMethodTypes,
-                onChange: (newPaymentMethodTypes: string[]) => {
-                  setEnabledPaymentMethodTypes(newPaymentMethodTypes);
-                  setEnableInterac(
-                    newPaymentMethodTypes.includes('interac_present')
-                  );
-                },
-              })
+                              paymentMethodTypes: paymentMethodTypes,
+                              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+                              onChange: (newPaymentMethodTypes: string[]) => {
+                                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                                setEnableInterac(
+                                  newPaymentMethodTypes.includes('interac_present')
+                                );
+                              },
+                            })
             }
           />
         </List>

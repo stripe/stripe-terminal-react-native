@@ -7,10 +7,12 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { HeaderBackButton } from '@react-navigation/elements';
+import type { NavigationProp } from '@react-navigation/native';
+import type { RouteParamList } from '../App';
 
 const LogListScreen = () => {
   const { logs, cancel, setCancel } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
   useEffect(() => {
     navigation.setOptions({
@@ -28,7 +30,7 @@ const LogListScreen = () => {
       latestEvent.onBack();
     }
     setCancel(null);
-    navigation.navigate('Terminal');
+    navigation.navigate('HomeScreen', {});
     return true;
   };
 

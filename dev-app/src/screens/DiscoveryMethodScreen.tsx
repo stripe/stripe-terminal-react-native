@@ -13,7 +13,7 @@ import type { RouteParamList } from '../App';
 
 export default function DiscoveryMethodScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoveryMethod'>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoveryMethodScreen'>>();
   const onChange = params?.onChange;
 
   const onSelect = (method: Reader.DiscoveryMethod) => {

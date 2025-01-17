@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
@@ -28,9 +28,10 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AlertDialog from '../components/AlertDialog';
+import type { RouteParamList } from '../App';
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
   const [online, setOnline] = useState<boolean>(true);
@@ -189,20 +190,20 @@ export default function HomeScreen() {
             navigation.navigate('CollectCardPaymentScreen', {
               simulated,
               discoveryMethod,
-              deviceType,
+              deviceType: deviceType,
             });
           }}
         />
         <ListItem
           title="Set reader display"
           onPress={() => {
-            navigation.navigate('ReaderDisplayScreen');
+            navigation.navigate('ReaderDisplayScreen', {});
           }}
         />
         <ListItem
           title="Reader settings"
           onPress={() => {
-            navigation.navigate('ReaderSettingsScreen');
+            navigation.navigate('ReaderSettingsScreen', {});
           }}
         />
         <ListItem
@@ -247,14 +248,14 @@ export default function HomeScreen() {
       <ListItem
         title="Collect Data"
         onPress={() => {
-          navigation.navigate('CollectDataScreen');
+          navigation.navigate('CollectDataScreen', {});
         }}
       />
       <List title="DATABASE">
         <ListItem
           title="Database"
           onPress={async () => {
-            navigation.navigate('DatabaseScreen');
+            navigation.navigate('DatabaseScreen', {});
           }}
         />
       </List>
@@ -338,7 +339,7 @@ export default function HomeScreen() {
               title="Set Merchant"
               color={colors.blue}
               onPress={() => {
-                navigation.navigate('MerchantSelectScreen');
+                navigation.navigate('MerchantSelectScreen', {});
               }}
             />
             <ListItem
@@ -351,8 +352,8 @@ export default function HomeScreen() {
                   simulated,
                   discoveryMethod,
                   discoveryTimeout: timeout,
-                  setPendingUpdateInfo: (value: Reader.SoftwareUpdate) => {
-                    setPendingUpdate(value);
+                  setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => {
+                    setPendingUpdate(update);
                   },
                 });
               }}
@@ -363,7 +364,7 @@ export default function HomeScreen() {
               disabled={!account}
               color={colors.blue}
               onPress={() => {
-                navigation.navigate('RegisterInternetReader');
+                navigation.navigate('RegisterInternetReaderScreen', {});
               }}
             />
           </List>
@@ -374,7 +375,7 @@ export default function HomeScreen() {
               testID="database"
               color={colors.blue}
               onPress={async () => {
-                navigation.navigate('DatabaseScreen');
+                navigation.navigate('DatabaseScreen', {});
               }}
             />
           </List>
