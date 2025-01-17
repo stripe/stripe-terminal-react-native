@@ -1963,7 +1963,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 8ce7a079c513f96f9b580bcb2ecee621d511361f
   RNScreens: b02af14099030cc1e63f74f2791574e909fc1541
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: 376838b370c6ed8c6bcb8387ce7591ef77dd3da7
+  stripe-terminal-react-native: 3c6efe908e0c0abdd56aec23ae44a4170040a810
   StripeTerminal: e393c25fd8262bd99986785f7ecc91625755d65f
   Yoga: be6f55a028e86c83ae066f018e9b5d24ffc45436
 
