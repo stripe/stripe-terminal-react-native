@@ -66,7 +66,6 @@
     "@types/base-64": "^1.0.0",
     "@types/jest": "^29.5.11",
     "@types/react": "^18.2.6",
-    "@types/react-native": "0.63.18",
     "@types/react-test-renderer": "^18.0.0",
     "commitlint": "^11.0.0",
     "detox": "^20.17.0",
@@ -181,17 +180,24 @@
       ]
     ]
   },
+  "codegenConfig": {
+     "name": "NativeStripeTerminalSpec",
+     "type": "modules",
+     "jsSrcsDir": "src/specs",
+     "android": {
+       "javaPackageName": "com.stripeterminalreactnative"
+     }
+   },
   "dependencies": {
     "@testing-library/react-native": "^12.4.0",
-    "base-64": "^1.0.0",
-    "react-native-gradle-plugin": "^0.71.19"
+    "base-64": "^1.0.0"
   },
   "rnx-kit": {
     "kitType": "library",
     "alignDeps": {
       "requirements": {
         "development": [
-          "react-native@0.72"
+          "react-native@0.76"
         ],
         "production": [
           "react-native@*"

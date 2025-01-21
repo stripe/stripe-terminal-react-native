@@ -1,53 +1,52 @@
 import { NativeModules } from 'react-native';
 import type {
-  InitParams,
-  StripeError,
-  DiscoverReadersParams,
-  DiscoverReadersResultType,
-  CancelDiscoveringResultType,
-  DisconnectReaderResultType,
-  RebootReaderResultType,
-  Reader,
-  CreatePaymentIntentParams,
-  CollectSetupIntentPaymentMethodParams,
-  PaymentIntentResultType,
-  Cart,
-  SetupIntentResultType,
-  CreateSetupIntentParams,
-  ClearReaderDisplayResultType,
-  GetLocationsParams,
-  GetLocationsResultType,
-  RefundParams,
-  CollectRefundPaymentMethodType,
-  ConfirmRefundResultType,
-  SetConnectionTokenParams,
-  ConnectReaderResultType,
-  CollectPaymentMethodParams,
-  OfflineStatus,
-  ICollectInputsParameters,
-  ICollectInputsResults,
-  PaymentStatus,
-  ConnectionStatus,
-  ConfirmPaymentMethodParams,
-  ConfirmSetupIntentMethodParams,
-  CancelSetupIntentMethodParams,
-  CancelPaymentMethodParams,
-  CollectDataParams,
-  CollectDataResultType,
-  TapToPayUxConfiguration,
-  ConnectReaderParams,
-} from './types';
-
+    InitParams,
+    StripeError,
+    DiscoverReadersParams,
+    DiscoverReadersResultType,
+    CancelDiscoveringResultType,
+    DisconnectReaderResultType,
+    RebootReaderResultType,
+    Reader,
+    CreatePaymentIntentParams,
+    CollectSetupIntentPaymentMethodParams,
+    PaymentIntentResultType,
+    Cart,
+    SetupIntentResultType,
+    CreateSetupIntentParams,
+    ClearReaderDisplayResultType,
+    GetLocationsParams,
+    GetLocationsResultType,
+    RefundParams,
+    CollectRefundPaymentMethodType,
+    ConfirmRefundResultType,
+    SetConnectionTokenParams,
+    ConnectReaderResultType,
+    CollectPaymentMethodParams,
+    OfflineStatus,
+    ICollectInputsParameters,
+    ICollectInputsResults,
+    PaymentStatus,
+    ConnectionStatus,
+    ConfirmPaymentMethodParams,
+    ConfirmSetupIntentMethodParams,
+    CancelSetupIntentMethodParams,
+    CancelPaymentMethodParams,
+    CollectDataParams,
+    CollectDataResultType,
+    TapToPayUxConfiguration,
+    ConnectReaderParams,
+    } from './types';
 const { StripeTerminalReactNative } = NativeModules;
 
 type InitializeResultNativeType = Promise<{
-  error?: StripeError;
-  reader?: Reader.Type;
-}>;
-
-interface InternalInitParams extends InitParams {
-  reactNativeVersion: string;
-}
+    error?: StripeError;
+    reader?: Reader.Type;
+  }>;
+  
+  interface InternalInitParams extends InitParams {
+    reactNativeVersion: string;
+  }
 
 export interface StripeTerminalSdkType {
   // Initialize StripeTerminalSdk native module

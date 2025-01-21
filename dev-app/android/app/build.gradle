@@ -111,7 +111,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.facebook.soloader:soloader:0.10.4+'
 
     androidTestImplementation('com.wix:detox:+'){
         exclude group: 'com.google.android.material'

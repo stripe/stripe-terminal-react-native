@@ -14,9 +14,12 @@ buildscript {
         // noinspection DifferentKotlinGradleVersion
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.codehaus.groovy:groovy-json:3.0.10'
+        classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }
 
+apply plugin: "com.facebook.react.rootproject"
+apply plugin: "com.facebook.react"
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
@@ -140,7 +143,7 @@ def kotlin_version = getExtOrDefault('kotlinVersion')
 dependencies {
     // noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
-    api 'com.facebook.react:react-android:+'
+    implementation("com.facebook.react:react-android")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.stripe:stripeterminal-core:$terminalAndroidSdkVersion"
     implementation "com.stripe:stripeterminal-taptopay:$terminalAndroidSdkVersion"

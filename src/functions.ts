@@ -1,4 +1,5 @@
 import Logger from './logger';
+
 import StripeTerminalSdk from './StripeTerminalSdk';
 import * as PackageJson from '../package.json';
 import type {
@@ -40,6 +41,7 @@ import type {
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
+import NativeStripeTerminal from './specs/NativeStripeTerminal';
 
 export async function initialize(
   params: InitParams
@@ -913,7 +915,7 @@ export async function setTapToPayUxConfiguration(
 export async function getNativeSdkVersion(): Promise<string> {
   return Logger.traceSdkMethod(async () => {
     try {
-      return await StripeTerminalSdk.getNativeSdkVersion();
+      return await NativeStripeTerminal.getNativeSdkVersion2();
     } catch (error) {
       return '';
     }
