@@ -6,7 +6,7 @@ const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY, {
     : null,
 });
 
-export const cleanPaymentMethods = async () => {
+const cleanPaymentMethods = async () => {
   await stripe.paymentMethods.list(
     { customer: 'cus_OXIcxa1cyMcDWD', type: 'card', limit: 100 },
     (err, cards) => {
@@ -27,4 +27,9 @@ export const cleanPaymentMethods = async () => {
       );
     }
   );
+};
+
+// Export the function for use in other files
+module.exports = {
+  cleanPaymentMethods,
 };
