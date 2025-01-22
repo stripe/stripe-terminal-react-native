@@ -189,7 +189,6 @@ export default function HomeScreen() {
             navigation.navigate('CollectCardPaymentScreen', {
               simulated,
               discoveryMethod,
-              deviceType,
             });
           }}
         />
