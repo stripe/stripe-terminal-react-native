@@ -4399,10 +4399,10 @@ builtins@^1.0.3:
   resolved "https://registry.yarnpkg.com/builtins/-/builtins-1.0.3.tgz#cb94faeb61c8696451db36534e1422f94f0aee88"
   integrity sha1-y5T662HIaWRR2zZTThQi+U8K7og=
 
-bunyamin@^1.5.0:
-  version "1.5.2"
-  resolved "https://registry.npmjs.org/bunyamin/-/bunyamin-1.5.2.tgz#681db204c0b16531369d5c1f6c89dc8d760b7558"
-  integrity sha512-Xp2nfqk33zt3nX90OSTkLVOc5N+1zdR3MWvfLHoIrm3cGRkdxPTPYB9CCgrDV8oum5rbghJjAbmXFXOrRXvMtg==
+bunyamin@^1.5.2:
+  version "1.6.3"
+  resolved "https://registry.npmjs.org/bunyamin/-/bunyamin-1.6.3.tgz#fd319bae316223014390386ecdb00739bebacc68"
+  integrity sha512-m1hAijFhu8pFiidsVc0XEDic46uxPK+mKNLqkb5mluNx0nTolNzx/DjwMqHChQWCgfOLMjKYJJ2uPTQLE6t4Ng==
   dependencies:
     "@flatten-js/interval-tree" "^1.1.2"
     multi-sort-stream "^1.0.4"
@@ -5234,10 +5234,15 @@ detect-newline@^3.0.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-detox@^20.17.0:
-  version "20.17.0"
-  resolved "https://registry.npmjs.org/detox/-/detox-20.17.0.tgz#836d2ebb193572e1f4a97e44af343891a5658f7b"
-  integrity sha512-IasYgexfkrCoZuJTaqqKHQ2yflK+tnqifzdLwrp4hdTWlXUlG9j/YcM1Dn3ThSs3b6VNMtbSe6xoPkKD0oNiIQ==
+detox-copilot@^0.0.27:
+  version "0.0.27"
+  resolved "https://registry.npmjs.org/detox-copilot/-/detox-copilot-0.0.27.tgz#350ee91ae6ba77acac78513ccbda7aafcb3c6faf"
+  integrity sha512-H2febTNp0arVx2A8rvM1C2BwDiBEP/2Ya8Hd1mVyV66rR5u8om1gdIypaRGm+plpTLCHhlefe4+7qLtHgVzpng==
+
+detox@^20.32.0:
+  version "20.32.0"
+  resolved "https://registry.npmjs.org/detox/-/detox-20.32.0.tgz#d10f4ba91ed1c4b2c39eaf9db01935560b2e962a"
+  integrity sha512-xi2FSkoZ+8XYbfOFaMpC1uMKiuRlx0AXjnzTwuCGxjCsntM+YIU/zlACRjmsIAH4pHt7yVlJeV8xZyVGqIeeOg==
   dependencies:
     ajv "^8.6.3"
     bunyan "^1.8.12"
@@ -5245,13 +5250,14 @@ detox@^20.17.0:
     caf "^15.0.1"
     chalk "^4.0.0"
     child-process-promise "^2.2.0"
+    detox-copilot "^0.0.27"
     execa "^5.1.1"
     find-up "^5.0.0"
     fs-extra "^11.0.0"
     funpermaproxy "^1.1.0"
     glob "^8.0.3"
     ini "^1.3.4"
-    jest-environment-emit "^1.0.5"
+    jest-environment-emit "^1.0.8"
     json-cycle "^1.3.0"
     lodash "^4.17.11"
     multi-sort-stream "^1.0.3"
@@ -7386,12 +7392,12 @@ jest-each@^29.7.0:
     jest-util "^29.7.0"
     pretty-format "^29.7.0"
 
-jest-environment-emit@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/jest-environment-emit/-/jest-environment-emit-1.0.5.tgz#e6f33451f98b88ccd48e9e1188bb535880f03c1b"
-  integrity sha512-OsQ08AhYxkkyDBTIow+9ogNmJheQIGWQKp0Nku+1ToLWjAj2Pd6LmypN8HgUIqYHs4HFcqkQ25kaf1qExmoZpg==
+jest-environment-emit@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.npmjs.org/jest-environment-emit/-/jest-environment-emit-1.0.8.tgz#ab0dad2c1dd04d3ca092762a99080607b0eef10b"
+  integrity sha512-WNqvxBLH0yNojHJQ99Y21963aT7UTavxV3PgiBQFi8zwrlnKU6HvkB6LOvQrbk5I8mI8JEKvcoOrQOvBVMLIXQ==
   dependencies:
-    bunyamin "^1.5.0"
+    bunyamin "^1.5.2"
     bunyan "^2.0.5"
     bunyan-debug-stream "^3.1.0"
     funpermaproxy "^1.1.0"

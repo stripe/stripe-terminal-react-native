@@ -721,20 +721,7 @@
     "@babel/parser" "^7.25.9"
     "@babel/types" "^7.25.9"
 
-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
-  version "7.26.5"
-  resolved "https://registry.npmjs.org/@babel/traverse/-/traverse-7.26.5.tgz#6d0be3e772ff786456c1a37538208286f6e79021"
-  integrity sha512-rkOSPOw+AXbgtwUga3U4u8RpoK9FEFWBNAlTpcnkLFjL5CT+oyHNuUUC/xx6XefEJ16r38r8Bc/lfp6rYuHeJQ==
-  dependencies:
-    "@babel/code-frame" "^7.26.2"
-    "@babel/generator" "^7.26.5"
-    "@babel/parser" "^7.26.5"
-    "@babel/template" "^7.25.9"
-    "@babel/types" "^7.26.5"
-    debug "^4.3.1"
-    globals "^11.1.0"
-
-"@babel/traverse@^7.25.2", "@babel/traverse@^7.25.3", "@babel/traverse@^7.25.9", "@babel/traverse@^7.26.5":
+"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.25.2", "@babel/traverse@^7.25.3", "@babel/traverse@^7.25.9", "@babel/traverse@^7.26.5":
   version "7.26.5"
   resolved "https://registry.npmjs.org/@babel/traverse/-/traverse-7.26.5.tgz#6d0be3e772ff786456c1a37538208286f6e79021"
   integrity sha512-rkOSPOw+AXbgtwUga3U4u8RpoK9FEFWBNAlTpcnkLFjL5CT+oyHNuUUC/xx6XefEJ16r38r8Bc/lfp6rYuHeJQ==
@@ -2549,7 +2536,7 @@ detox-copilot@^0.0.27:
   resolved "https://registry.npmjs.org/detox-copilot/-/detox-copilot-0.0.27.tgz#350ee91ae6ba77acac78513ccbda7aafcb3c6faf"
   integrity sha512-H2febTNp0arVx2A8rvM1C2BwDiBEP/2Ya8Hd1mVyV66rR5u8om1gdIypaRGm+plpTLCHhlefe4+7qLtHgVzpng==
 
-detox@^20.17.0:
+detox@^20.32.0:
   version "20.32.0"
   resolved "https://registry.npmjs.org/detox/-/detox-20.32.0.tgz#d10f4ba91ed1c4b2c39eaf9db01935560b2e962a"
   integrity sha512-xi2FSkoZ+8XYbfOFaMpC1uMKiuRlx0AXjnzTwuCGxjCsntM+YIU/zlACRjmsIAH4pHt7yVlJeV8xZyVGqIeeOg==
