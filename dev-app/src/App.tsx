@@ -242,7 +242,7 @@ export default function App() {
 
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions}>
-            <Stack.Screen name="Terminal" component={HomeScreen} />
+            <Stack.Screen name="HomeScreen" component={HomeScreen} />
             <Stack.Screen
               name="MerchantSelectScreen"
               options={{ headerTitle: 'Merchant Select' }}

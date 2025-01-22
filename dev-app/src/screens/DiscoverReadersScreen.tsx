@@ -480,6 +480,7 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     fontSize: 16,
+    color: colors.slate,
   },
   text: {
     paddingHorizontal: 12,
