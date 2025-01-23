@@ -50,6 +50,14 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "codegenConfig": {
+     "name": "NativeStripeTerminal",
+     "type": "module",
+     "jsSrcsDir": "src/specs",
+     "android": {
+       "javaPackageName": "com.stripeterminalreactnative"
+     }
+   },
   "devDependencies": {
     "@babel/traverse": "^7.26.5",
     "@commitlint/config-conventional": "^11.0.0",
@@ -183,8 +191,10 @@
   },
   "dependencies": {
     "@testing-library/react-native": "^12.4.0",
-    "base-64": "^1.0.0",
-    "react-native-gradle-plugin": "^0.71.19"
+    "base-64": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "rnx-kit": {
     "kitType": "library",

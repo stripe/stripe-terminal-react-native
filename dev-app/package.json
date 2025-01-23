@@ -13,7 +13,7 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^2.0.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/native": "^6.0.8",
     "@react-navigation/stack": "^6.3.21",
@@ -50,6 +50,9 @@
     "metro-config": "^0.81.0",
     "metro-runtime": "^0.81.0",
     "stripe": "^12.8.0"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "rnx-kit": {
     "kitType": "app",

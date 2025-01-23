@@ -1229,7 +1229,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getNativeSdkVersion(promise: Promise) {
-        promise.resolve(BuildConfig.SDK_VERSION_NAME)
+        promise.resolve("0")
     }
 
     private fun String?.toTapToPayColor(): TapToPayUxConfiguration.Color {
