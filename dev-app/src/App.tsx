@@ -137,7 +137,6 @@ const screenOptions: StackNavigationOptions = {
     color: colors.white,
   },
   cardOverlayEnabled: true,
-  gestureEnabled: true,
   ...Platform.select({
     ios: {
       ...TransitionPresets.ModalPresentationIOS,
