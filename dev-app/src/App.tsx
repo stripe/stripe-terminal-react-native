@@ -258,7 +258,7 @@ export default function App() {
               component={DiscoverReadersScreen}
             />
             <Stack.Screen
-              name="RegisterInternetReader"
+              name="RegisterInternetReaderScreen"
               options={{
                 headerTitle: 'Register Reader',
               }}
