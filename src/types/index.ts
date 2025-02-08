@@ -152,7 +152,8 @@ export type PaymentMethodType =
   | 'cardPresent'
   | 'interacPresent'
   | 'card'
-  | 'wechatPay';
+  | 'wechatPay'
+  | 'affirm';
 
 export interface Charge {
   id: string;
@@ -206,6 +207,7 @@ export type CollectPaymentMethodParams = {
 export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
   amountSurcharge?: number;
+  returnUrl?: string;
 };
 
 export type CancelPaymentMethodParams = {
@@ -313,6 +315,12 @@ export type WechatPayDetails = {
   transactionId?: string;
 };
 
+export type AffirmDetails = {
+  location?: string;
+  reader?: string;
+  transactionId?: string;
+};
+
 export type ReceiptDetails = {
   accountType: string;
   applicationCryptogram: string;
@@ -334,6 +342,7 @@ export type PaymentMethodDetails = {
   cardPresentDetails?: CardPresentDetails;
   interacPresentDetails?: CardPresentDetails;
   wechatPayDetails?: WechatPayDetails;
+  affirmDetails?: AffirmDetails;
 };
 
 export type ConfirmRefundResultType = {
@@ -409,6 +418,7 @@ export namespace PaymentMethod {
     interacPresentDetails: CardPresentDetails;
     cardPresentDetails: CardPresentDetails;
     wechatPayDetails: WechatPayDetails;
+    affirmDetails: AffirmDetails;
     metadata?: Record<string, string>;
   };
 }
