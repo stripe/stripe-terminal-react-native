@@ -9,6 +9,7 @@ import com.facebook.react.bridge.WritableNativeArray
 import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.models.Address
+import com.stripe.stripeterminal.external.models.AffirmDetails
 import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.BatteryStatus
@@ -586,6 +587,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "wechatPayDetails",
                 mapFromWechatPayDetails(it.wechatPayDetails)
             )
+            putMap(
+                "affirmDetails",
+                mapFromAffirmDetails(it.affirmDetails)
+            )
             putString("customer", it.customer)
             putString("id", it.id)
             putString("type", mapFromPaymentMethodDetailsType(it.type))
@@ -619,6 +624,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "wechatPayDetails",
             mapFromWechatPayDetails(paymentMethodDetails?.wechatPayDetails)
         )
+        putMap(
+            "affirmDetails",
+            mapFromAffirmDetails(paymentMethodDetails?.affirmDetails)
+        )
         putString("type", mapFromPaymentMethodDetailsType(paymentMethodDetails?.type))
     }
 
@@ -628,6 +637,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.CARD_PRESENT -> "cardPresent"
         PaymentMethodType.INTERAC_PRESENT -> "interacPresent"
         PaymentMethodType.WECHAT_PAY -> "wechatPay"
+        PaymentMethodType.AFFIRM -> "affirm"
         else -> "unknown"
     }
 }
@@ -662,6 +672,15 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
 
 private fun mapFromWechatPayDetails(wechatPayDetails: WechatPayDetails?): ReadableMap? =
     wechatPayDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
+            putString("transactionId", it.transactionId)
+        }
+    }
+
+private fun mapFromAffirmDetails(affirmDetails: AffirmDetails?): ReadableMap? =
+    affirmDetails?.let {
         nativeMapOf {
             putString("location", it.location)
             putString("reader", it.reader)

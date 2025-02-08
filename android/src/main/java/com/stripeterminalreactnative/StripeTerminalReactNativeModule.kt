@@ -650,6 +650,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val amountSurcharge = getInt(params, "amountSurcharge")?.toLong()
             configBuilder.amountSurcharge(amountSurcharge)
         }
+        if (params.hasKey("returnUrl")) {
+            val returnUrl = params.getString("returnUrl")
+            configBuilder.setReturnUrl(returnUrl)
+        }
         val config = configBuilder.build()
 
         confirmPaymentIntentCancelable = terminal.confirmPaymentIntent(
