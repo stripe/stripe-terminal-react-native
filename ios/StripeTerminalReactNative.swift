@@ -28,7 +28,7 @@ enum ReactNativeConstants: String, CaseIterable {
 
 @objc(StripeTerminalReactNative)
 class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReaderDelegate, TerminalDelegate, OfflineDelegate, InternetReaderDelegate, TapToPayReaderDelegate, ReaderDelegate {
-    
+
     var discoveredReadersList: [Reader]? = nil
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
@@ -301,7 +301,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let onBehalfOf: String? = params["onBehalfOf"] as? String
         let merchantDisplayName: String? = params["merchantDisplayName"] as? String
         let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
-        
+
         let connectionConfig: ConnectionConfiguration
         do {
             connectionConfig = try getConnectionConfig(
@@ -328,7 +328,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             }
         }
     }
-    
+
     private func getConnectionConfig(
         selectedReader: Reader,
         locationId: String?,
@@ -669,9 +669,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         let amountSurcharge = params["amountSurcharge"] as? NSNumber
+        let returnUrl = params["returnUrl"] as? String
+
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
         if let amountSurchargeValue = amountSurcharge {
             confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
+        }
+        if let returnUrlValue = returnUrl {
+            confirmConfigBuilder.setReturnUrl(returnUrlValue)
         }
 
         let confirmConfig: ConfirmConfiguration

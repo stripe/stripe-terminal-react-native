@@ -523,6 +523,15 @@ class Mappers {
         return result
     }
 
+    class func mapFromAffirm(_ affirm: AffirmDetails) -> NSDictionary {
+        let result: NSDictionary = [
+            "location": affirm.location ?? NSNull(),
+            "reader": affirm.reader ?? NSNull(),
+            "transactionId": affirm.transactionId ?? NSNull(),
+        ]
+        return result
+    }
+
     class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
         var offlineCardPresentDetails: NSDictionary?
         if let cardPresentDetails = offlineDetails.cardPresentDetails {
@@ -640,6 +649,7 @@ class Mappers {
         case PaymentMethodType.cardPresent: return "cardPresent"
         case PaymentMethodType.interacPresent: return "interacPresent"
         case PaymentMethodType.wechatPay: return "wechatPay"
+        case PaymentMethodType.affirm: return "affirm"
         default: return "unknown"
         }
     }
@@ -657,12 +667,17 @@ class Mappers {
         if let wechatPay = paymentMethodDetails.wechatPay{
             wechatPayMapped = mapFromWechatPay(wechatPay)
         }
+        var affirmMapped: NSDictionary?
+        if let affirm = paymentMethodDetails.affirm{
+            affirmMapped = mapFromAffirm(affirm)
+        }
 
         let result: NSDictionary = [
             "type": mapFromPaymentMethodDetailsType(paymentMethodDetails.type),
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
+            "affirmDetails": affirmMapped ?? NSNull(),
         ]
         return result
     }
@@ -723,11 +738,16 @@ class Mappers {
         if let wechatPay = paymentMethod.wechatPay{
             wechatPayMapped = mapFromWechatPay(wechatPay)
         }
+        var affirmMapped: NSDictionary?
+        if let affirm = paymentMethod.affirm{
+            affirmMapped = mapFromAffirm(affirm)
+        }
 
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
+            "affirmDetails": affirmMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
@@ -943,10 +963,11 @@ class Mappers {
         case "card_present": return .cardPresent
         case "interac_present": return .interacPresent
         case "wechat_pay": return .wechatPay
+        case "affirm": return .affirm
         default: return .unknown
         }
     }
-    
+
 }
 
 extension UInt {
