@@ -40,6 +40,8 @@ import type {
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
+import { useCallback } from 'react';
+import StripeTerminalReactNative from './StripeTerminalSdk';
 
 export async function initialize(
   params: InitParams
@@ -918,4 +920,31 @@ export async function getNativeSdkVersion(): Promise<string> {
       return '';
     }
   }, 'getNativeSdkVersion')();
+}
+
+export function useTapToPayEducationView(props) {
+  const { onTapToPayEducationViewSuccess, onTapToPayEducationViewError } =
+    props || {};
+
+  const promptTapToPayEducationView = useCallback(async () => {
+    try {
+      const response =
+        await StripeTerminalReactNative.promptTapToPayEducationView();
+
+      if (onTapToPayEducationViewSuccess) {
+        onTapToPayEducationViewSuccess(response);
+      }
+
+      return response;
+    } catch (error) {
+      if (onTapToPayEducationViewError) {
+        onTapToPayEducationViewError(error);
+      }
+
+      console.error('Failed to show Tap to Pay Education View', error);
+      throw error;
+    }
+  }, [onTapToPayEducationViewSuccess, onTapToPayEducationViewError]);
+
+  return { promptTapToPayEducationView };
 }

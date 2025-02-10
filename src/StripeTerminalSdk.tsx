@@ -49,6 +49,11 @@ interface InternalInitParams extends InitParams {
   reactNativeVersion: string;
 }
 
+interface PromptTapToPayEducationResult {
+  status: string;
+  message: string;
+}
+
 export interface StripeTerminalSdkType {
   // Initialize StripeTerminalSdk native module
   initialize(params: InternalInitParams): InitializeResultNativeType;
@@ -168,6 +173,7 @@ export interface StripeTerminalSdkType {
     error?: StripeError;
   }>;
   getNativeSdkVersion(): Promise<string>;
+  promptTapToPayEducationView(): Promise<PromptTapToPayEducationResult>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;

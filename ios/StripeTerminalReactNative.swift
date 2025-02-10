@@ -1,5 +1,6 @@
 import StripeTerminal
 import Foundation
+import ProximityReader
 
 enum ReactNativeConstants: String, CaseIterable {
     case UPDATE_DISCOVERED_READERS = "didUpdateDiscoveredReaders"
@@ -1405,6 +1406,36 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(getNativeSdkVersion:rejecter:)
     func getNativeSdkVersion(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolve(SCPSDKVersion)
+    }
+
+    @objc(promptTapToPayEducationView:resolver:rejecter:)
+    func promptTapToPayEducationView(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 18.0, *) {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+                reject("ERR_NO_WINDOW_SCENE", "No available window scene", nil)
+                return
+            }
+
+            guard let rootViewController = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+                reject("ERR_NO_VIEW_CONTROLLER", "No available view controller", nil)
+                return
+            }
+
+            let proximityReaderDiscovery = ProximityReaderDiscovery()
+
+            Task {
+                do {
+                    let content = try await proximityReaderDiscovery.content(for: ProximityReaderDiscovery.Topic.payment(.howToTap))
+                    try await proximityReaderDiscovery.presentContent(content, from: rootViewController)
+
+                    resolve(["status": "success", "message": "Tap to Pay education view displayed successfully"])
+                } catch {
+                    reject("ERR_PROMPT_FAILED", "Failed to display Tap to Pay education view", error)
+                }
+            }
+        } else {
+            reject("ERR_UNSUPPORTED_IOS", "ProximityReaderDiscovery is only available on iOS 18.0 or newer", nil)
+        }
     }
 
     func reader(_ reader: Reader, didReportAvailableUpdate update: ReaderSoftwareUpdate) {
