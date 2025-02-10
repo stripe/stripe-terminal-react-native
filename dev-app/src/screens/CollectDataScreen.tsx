@@ -11,16 +11,18 @@ import { LogContext } from '../components/LogContext';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import type { NavigationProp } from '@react-navigation/native';
+import type { RouteParamList } from '../App';
 
 export default function CollectDataScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
   const { collectData } = useStripeTerminal();
 
   const _collectMagstripeData = async () => {
     clearLogs();
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
 
     addLogs({
       name: 'Collect Data',

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 
 import {
   StripeTerminalProvider,
-  Location,
+  type Location,
 } from '@stripe/stripe-terminal-react-native';
 import App from './App';
 import { AppContext, api } from './AppContext';

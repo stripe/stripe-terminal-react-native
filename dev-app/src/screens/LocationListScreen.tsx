@@ -1,8 +1,12 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute
+} from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import {
-  Location,
+  type Location,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -16,7 +20,7 @@ export default function LocationListScreen() {
   const { cachedLocations, setCachedLocations } = useContext(AppContext);
 
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'LocationList'>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'LocationListScreen'>>();
 
   const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>(cachedLocations);

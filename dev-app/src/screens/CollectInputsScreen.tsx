@@ -4,19 +4,20 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import {
   FormType,
-  ICollectInputsParameters,
+  type ICollectInputsParameters,
   SelectionButtonStyle,
   ToggleValue,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import type { RouteParamList } from '../App';
 
 export default function CollectInputsScreen() {
   const { collectInputs, cancelCollectInputs } = useStripeTerminal();
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
   const _collectInputs = async (params: ICollectInputsParameters) => {
     clearLogs();
@@ -25,7 +26,7 @@ export default function CollectInputsScreen() {
       isDisabled: false,
       action: cancelCollectInputs,
     });
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
     addLogs({
       name: 'Collect Inputs',
       events: [

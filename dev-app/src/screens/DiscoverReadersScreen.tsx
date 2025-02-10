@@ -18,8 +18,8 @@ import {
 } from 'react-native';
 import {
   useStripeTerminal,
-  Location,
-  Reader,
+  type Location,
+  type Reader,
 } from '@stripe/stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
 import type {
@@ -32,13 +32,18 @@ import type {
   StripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp
+} from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
 
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
+import type { NavigationProp } from '@react-navigation/native';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -49,8 +54,8 @@ const SIMULATED_UPDATE_PLANS = [
 ];
 
 export default function DiscoverReadersScreen() {
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReaders'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
@@ -88,7 +93,7 @@ export default function DiscoverReadersScreen() {
     onDidStartInstallingUpdate: (update) => {
       navigation.navigate('UpdateReaderScreen', {
         update,
-        reader: connectingReader,
+        reader: connectingReader!,
         onDidUpdate: () => {
           setPendingUpdateInfo(null);
           setTimeout(() => {
@@ -475,6 +480,7 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     fontSize: 16,
+    color: colors.slate,
   },
   text: {
     paddingHorizontal: 12,

@@ -4,12 +4,12 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
     ext {
-        buildToolsVersion = "33.0.1"
+        buildToolsVersion = "35.0.0"
         minSdkVersion = 26
-        compileSdkVersion = 34
+        compileSdkVersion = 35
         targetSdkVersion = 35
          // We use NDK 23 which has both M1 support and is the side-by-side NDK version from AGP.
-        ndkVersion = "23.1.7779620"
+        ndkVersion = "26.1.10909125"
         kotlinVersion = findProperty('android.kotlinVersion') ?: "1.8.21"
     }
     repositories {
@@ -22,6 +22,8 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }
 }
+
+apply plugin: "com.facebook.react.rootproject"
 
 allprojects {
     repositories {

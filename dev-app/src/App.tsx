@@ -8,13 +8,19 @@ import React, {
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
-  HeaderBackButton,
   TransitionPresets,
+  type StackNavigationOptions
 } from '@react-navigation/stack';
+import {HeaderBackButton} from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
-import { LogContext, Log, Event, CancelType } from './components/LogContext';
+import {
+  LogContext,
+  type Log,
+  type Event,
+  type CancelType
+} from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
 import LocationListScreen from './screens/LocationListScreen';
@@ -33,8 +39,8 @@ import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import PaymentMethodSelectScreen from './screens/PaymentMethodSelectScreen';
 import {
-  Reader,
-  Location,
+  type Reader,
+  type Location,
   useStripeTerminal,
   requestNeededAndroidPermissions,
 } from '@stripe/stripe-terminal-react-native';
@@ -43,53 +49,64 @@ import { Alert, LogBox } from 'react-native';
 import { AppContext } from './AppContext';
 
 export type RouteParamList = {
-  UpdateReader: {
-    update: Reader.SoftwareUpdate;
-    reader: Reader.Type;
+  UpdateReaderScreen: {
+    update: Reader.SoftwareUpdate | null;
+    reader: Reader.Type | null | undefined;
     onDidUpdate: () => void;
     started: boolean;
   };
-  LocationList: {
+  LocationListScreen: {
     onSelect: (location: Location) => void;
     showDummyLocation: boolean;
   };
-  DiscoveryMethod: {
+  DiscoveryMethodScreen: {
     onChange: (method: Reader.DiscoveryMethod) => void;
   };
-  SetupIntent: {
+  SetupIntentScreen: {
     discoveryMethod: Reader.DiscoveryMethod;
   };
-  DiscoverReaders: {
+  DiscoverReadersScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
     discoveryTimeout: number;
     setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
   };
-  MerchantSelect: {
-    onSelectMerchant: ({
+  MerchantSelectScreen: {
+    onSelectMerchant?: ({
       selectedAccountKey,
     }: {
       selectedAccountKey: string;
     }) => void;
   };
-  CollectCardPayment: {
+  CollectCardPaymentScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
-    deviceType: Reader.DeviceType;
+    deviceType: Reader.DeviceType | undefined;
   };
-  RefundPayment: {
+  RefundPaymentScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
   };
-  Log: {
+  LogScreen: {
     event: Event;
     log: Log;
   };
-  PaymentMethodSelect: {
+  PaymentMethodSelectScreen: {
     paymentMethodTypes: string[];
     enabledPaymentMethodTypes: string[];
     onChange: (paymentMethodTypes: string[]) => void;
   };
+  CollectInputsScreen: {
+    simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  LogListScreen: {};
+  DatabaseScreen: {};
+  RegisterInternetReaderScreen: {};
+  CollectDataScreen: {};
+  ReaderSettingsScreen: {};
+  ReaderDisplayScreen: {};
+  HomeScreen: {};
 };
 
 LogBox.ignoreLogs([
@@ -104,7 +121,8 @@ LogBox.ignoreLogs([
 
 const Stack = createStackNavigator();
 
-const screenOptions = {
+const screenOptions: StackNavigationOptions = {
+  presentation: 'modal',
   headerTintColor: colors.white,
   headerStyle: {
     shadowOpacity: 0,
@@ -119,7 +137,6 @@ const screenOptions = {
     color: colors.white,
   },
   cardOverlayEnabled: true,
-  gesturesEnabled: true,
   ...Platform.select({
     ios: {
       ...TransitionPresets.ModalPresentationIOS,
@@ -223,8 +240,8 @@ export default function App() {
         />
 
         <NavigationContainer>
-          <Stack.Navigator screenOptions={screenOptions} mode="modal">
-            <Stack.Screen name="Terminal" component={HomeScreen} />
+          <Stack.Navigator screenOptions={screenOptions}>
+            <Stack.Screen name="HomeScreen" component={HomeScreen} />
             <Stack.Screen
               name="MerchantSelectScreen"
               options={{ headerTitle: 'Merchant Select' }}
@@ -241,7 +258,7 @@ export default function App() {
               component={DiscoverReadersScreen}
             />
             <Stack.Screen
-              name="RegisterInternetReader"
+              name="RegisterInternetReaderScreen"
               options={{
                 headerTitle: 'Register Reader',
               }}
@@ -323,7 +340,7 @@ export default function App() {
                 headerBackAccessibilityLabel: 'logs-back',
                 headerLeft: () => (
                   <HeaderBackButton
-                    onPress={() => navigation.navigate('Terminal')}
+                    onPress={() => navigation.navigate('HomeScreen')}
                   />
                 ),
               })}

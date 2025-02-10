@@ -1,4 +1,4 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { type RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { colors } from '../colors';
@@ -14,7 +14,7 @@ type PaymentMethodTypeWrapper = {
 export default function PaymentMethodSelectScreen() {
   const navigation = useNavigation();
   const { params } =
-    useRoute<RouteProp<RouteParamList, 'PaymentMethodSelect'>>();
+    useRoute<RouteProp<RouteParamList, 'PaymentMethodSelectScreen'>>();
 
   const [paymentMethodTypes, setPaymentMethodTypes] = React.useState<
     PaymentMethodTypeWrapper[]

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useCallback } from 'react';
 import {
-  Reader,
+  type Reader,
   useStripeTerminal,
   type Location,
 } from '@stripe/stripe-terminal-react-native';
@@ -19,7 +19,8 @@ import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import type { NavigationAction } from '@react-navigation/native';
+import type { NavigationAction, NavigationProp } from '@react-navigation/native';
+import type { RouteParamList } from '../App';
 
 type InputValuesType = {
   registration_code: string;
@@ -28,7 +29,7 @@ type InputValuesType = {
 
 export default function RegisterInternetReaderScreen() {
   const { api } = useContext(AppContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [status, setStatus] = useState<string>('');
   const [readerId, setReaderId] = useState<string>('');
