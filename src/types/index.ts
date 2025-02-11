@@ -581,7 +581,7 @@ export type TapToPayUxConfiguration = {
 export type PromptTapToPayEducationResult = {
   status: string;
   message: string;
-}
+};
 
 export type TapZone = {
   tapZoneIndicator?: TapZoneIndicator;
