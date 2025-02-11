@@ -632,6 +632,22 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
     }
 }
 
+internal fun mapToPaymentMethodDetailsType(array: ReadableArray): List<PaymentMethodType> {
+    return array.toArrayList()
+        .filterIsInstance<String>()
+        .mapNotNull(::mapToPaymentMethodDetailsType)
+}
+
+internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
+    return when (type) {
+        "card" -> PaymentMethodType.CARD
+        "cardPresent" -> PaymentMethodType.CARD_PRESENT
+        "interacPresent" -> PaymentMethodType.INTERAC_PRESENT
+        "wechatPay" -> PaymentMethodType.WECHAT_PAY
+        else -> null
+    }
+}
+
 private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap? =
     cardPresentDetails?.let {
         nativeMapOf {

@@ -247,9 +247,13 @@ export default function SetupIntentScreen() {
         });
         return;
       }
-
+      var parameterMethodTypes: string[] = [];
+      if (moto) {
+        parameterMethodTypes.push('card');
+      }
       const response = await createSetupIntent({
         customer: resp.id,
+        paymentMethodTypes: parameterMethodTypes,
       });
       setupIntent = response.setupIntent;
       setupIntentError = response.error;

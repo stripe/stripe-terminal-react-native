@@ -132,6 +132,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
+        println("jintin kotlin init")
         val result = if (!Terminal.isInitialized()) {
             Terminal.initTerminal(
                 this.context.applicationContext,
@@ -170,7 +171,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun cancelCollectRefundPaymentMethod(promise: Promise) {
-        cancelOperation(promise, collectRefundPaymentMethodCancelable, "collectRefundPaymentMethod") {
+        cancelOperation(
+            promise,
+            collectRefundPaymentMethodCancelable,
+            "collectRefundPaymentMethod"
+        ) {
             collectRefundPaymentMethodCancelable = null
         }
     }
@@ -409,7 +414,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun connectReader(params: ReadableMap, discoveryMethod: String, promise: Promise) {
         mapToDiscoveryMethod(discoveryMethod)?.let {
             innerConnectReader(params, it, promise)
-        } ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod")))
+        }
+            ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod")))
     }
 
     @ReactMethod
@@ -679,13 +685,21 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
-        val intentParams = params.getString("customer")?.let { customerId ->
-            SetupIntentParameters.Builder().setCustomer(customerId).build()
-        } ?: SetupIntentParameters.NULL
-
+        val builder = SetupIntentParameters.Builder().apply {
+            params.getString("customer")?.let(::setCustomer)
+            params.getString("description")?.let(::setDescription)
+            params.getArray("paymentMethodTypes")?.let { list ->
+                setPaymentMethodTypes(mapToPaymentMethodDetailsType(list))
+            }
+            params.getMap("metadata")?.let { map ->
+                setMetadata(map.toHashMap() as? HashMap<String, String>)
+            }
+            params.getString("onBehalfOf")?.let(::setOnBehalfOf)
+            params.getString("usage")?.let(::setUsage)
+        }
         val uuid = UUID.randomUUID().toString()
         terminal.createSetupIntent(
-            intentParams,
+            builder.build(),
             RNSetupIntentCallback(promise, uuid) {
                 setupIntents[uuid] = it
             }
@@ -1191,47 +1205,48 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setTapToPayUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val tapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
+    fun setTapToPayUxConfiguration(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val tapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
 
-        var tapZone: TapToPayUxConfiguration.TapZone? = null
-        val tapZoneParam = params.getMap("tapZone")
-        tapZoneParam?.let {
-            val tapZoneIndicator =
-                mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
+            var tapZone: TapToPayUxConfiguration.TapZone? = null
+            val tapZoneParam = params.getMap("tapZone")
+            tapZoneParam?.let {
+                val tapZoneIndicator =
+                    mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
 
-            val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
-                TapToPayUxConfiguration.TapZonePosition.Manual(
-                    it.getDouble("xBias").toFloat(),
-                    it.getDouble("yBias").toFloat()
-                )
-            } ?: TapToPayUxConfiguration.TapZonePosition.Default
+                val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
+                    TapToPayUxConfiguration.TapZonePosition.Manual(
+                        it.getDouble("xBias").toFloat(),
+                        it.getDouble("yBias").toFloat()
+                    )
+                } ?: TapToPayUxConfiguration.TapZonePosition.Default
 
-            tapZone = TapToPayUxConfiguration.TapZone.Manual.Builder()
-                .indicator(tapZoneIndicator)
-                .position(tapZonePosition)
-                .build()
-        }
-        tapToPayUxConfigurationBuilder.tapZone(
-            tapZone ?: TapToPayUxConfiguration.TapZone.Default
-        )
-
-        val colorsParam = params.getMap("colors")
-        colorsParam?.let {
-            val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
-            colorSchemeBuilder.apply {
-                primary(it.getString("primary").toTapToPayColor())
-                success(it.getString("success").toTapToPayColor())
-                error(it.getString("error").toTapToPayColor())
+                tapZone = TapToPayUxConfiguration.TapZone.Manual.Builder()
+                    .indicator(tapZoneIndicator)
+                    .position(tapZonePosition)
+                    .build()
             }
-            tapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+            tapToPayUxConfigurationBuilder.tapZone(
+                tapZone ?: TapToPayUxConfiguration.TapZone.Default
+            )
+
+            val colorsParam = params.getMap("colors")
+            colorsParam?.let {
+                val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
+                colorSchemeBuilder.apply {
+                    primary(it.getString("primary").toTapToPayColor())
+                    success(it.getString("success").toTapToPayColor())
+                    error(it.getString("error").toTapToPayColor())
+                }
+                tapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+            }
+
+            tapToPayUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
+
+            terminal.setTapToPayUxConfiguration(tapToPayUxConfigurationBuilder.build())
+            promise.resolve(NativeTypeFactory.writableNativeMap())
         }
-
-        tapToPayUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
-
-        terminal.setTapToPayUxConfiguration(tapToPayUxConfigurationBuilder.build())
-        promise.resolve(NativeTypeFactory.writableNativeMap())
-    }
 
     @ReactMethod
     @Suppress("unused")

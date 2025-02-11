@@ -232,6 +232,11 @@ export type AllowRedisplay = 'always' | 'limited' | 'unspecified';
 
 export type CreateSetupIntentParams = {
   customer?: string;
+  description?: string;
+  metadata?: Record<string, string>;
+  onBehalfOf?: string;
+  paymentMethodTypes?: string[];
+  usage?: string;
 };
 
 export type PaymentIntentResultType =
