@@ -1408,8 +1408,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         resolve(SCPSDKVersion)
     }
 
-    @objc(promptTapToPayEducationView:resolver:rejecter:)
-    func promptTapToPayEducationView(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(promptTapToPayEducationView:rejecter:)
+    func promptTapToPayEducationView(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if #available(iOS 18.0, *) {
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
                 reject("ERR_NO_WINDOW_SCENE", "No available window scene", nil)

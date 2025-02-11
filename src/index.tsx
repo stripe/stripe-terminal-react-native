@@ -44,4 +44,4 @@ export {
 export { requestNeededAndroidPermissions } from './utils/androidPermissionsUtils';
 
 //screens
-export { useTapToPayEducationView } from './functions';
+export { promptTapToPayEducationView } from './functions';
