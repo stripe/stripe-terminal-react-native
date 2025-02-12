@@ -19,6 +19,42 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapFromLocationStatus(.notSet), "notSet")
     }
 
+    func testMapToSetupIntent() {
+        let params: NSDictionary = [
+            "customer" : "fakeCustomer",
+            "description" : "fakeDescription",
+            "onBehalfOf" : "fakeOnBehalfOf",
+            "paymentMethodTypes" : ["card", "cardPresent"],
+            "usage" : "onSession"
+        ]
+        let setupIntent = try? Mappers.mapToSetupIntent(params).build()
+
+        XCTAssertEqual(setupIntent?.customer, "fakeCustomer")
+        XCTAssertEqual(setupIntent?.stripeDescription, "fakeDescription")
+        XCTAssertEqual(setupIntent?.onBehalfOf, "fakeOnBehalfOf")
+        XCTAssertEqual(setupIntent?.customer, "fakeCustomer")
+        XCTAssertEqual(setupIntent?.paymentMethodTypes, [PaymentMethodType.card, PaymentMethodType.cardPresent])
+        XCTAssertEqual(setupIntent?.usage, SetupIntentUsage.onSession)
+    }
+
+    func testMapSetupIntentUsage() {
+        XCTAssertEqual(Mappers.mapSetupIntentUsage("onSession"), SetupIntentUsage.onSession)
+        XCTAssertEqual(Mappers.mapSetupIntentUsage("offSession"), SetupIntentUsage.offSession)
+    }
+
+    func testMapToPaymentMethodTypeArray() {
+        let array : NSArray = ["card", "cardPresent"]
+        XCTAssertEqual(Mappers.mapToPaymentMethodTypeArray(array), [PaymentMethodType.card, PaymentMethodType.cardPresent])
+    }
+
+    func testMapToPaymentMethodType() {
+        XCTAssertEqual(Mappers.mapToPaymentMethodType("card"), PaymentMethodType.card)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType("cardPresent"), PaymentMethodType.cardPresent)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType("interacPresent"), PaymentMethodType.interacPresent)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType("wechatPay"), PaymentMethodType.wechatPay)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType("adbPay"), PaymentMethodType.unknown)
+    }
+
     func testCollectInputsReturnsMapper() {
         let textResult = TestableTextResult(skipped: false, text: "Written text from the reader", toggles: [
             ToggleResult.enabled.rawValue as NSNumber,

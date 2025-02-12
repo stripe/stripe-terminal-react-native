@@ -7,6 +7,7 @@ import {
   CommonError,
   type StripeError,
   type AllowRedisplay,
+  type SetupIntentResultType,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -18,6 +19,7 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { Picker } from '@react-native-picker/picker';
 import type { NavigationProp } from '@react-navigation/native';
+import type { CreateSetupIntentParams } from 'lib/typescript/src';
 
 const ALLOW_REDISPLAY = [
   { value: 'unspecified', label: 'unspecified' },
@@ -247,18 +249,22 @@ export default function SetupIntentScreen() {
         });
         return;
       }
-      var parameterMethodTypes: string[] = [];
+      var parameter: CreateSetupIntentParams;
       if (moto) {
-        parameterMethodTypes.push('card');
+        parameter = {
+          customer: resp.id,
+          paymentMethodTypes: ['card'],
+        }
+      } else {
+        parameter = {
+          customer: resp.id,
+        }
       }
-      const response = await createSetupIntent({
-        customer: resp.id,
-        paymentMethodTypes: parameterMethodTypes,
-      });
+      const response = await createSetupIntent(parameter);
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     }
-
+// proper-thanks-popular
     if (setupIntentError) {
       addLogs({
         name: 'Create Setup Intent',

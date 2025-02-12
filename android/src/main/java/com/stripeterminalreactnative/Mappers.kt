@@ -55,6 +55,7 @@ import com.stripe.stripeterminal.external.models.SetupAttempt
 import com.stripe.stripeterminal.external.models.SetupAttemptStatus
 import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
+import com.stripe.stripeterminal.external.models.SetupIntentParameters
 import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
 import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
@@ -630,6 +631,22 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.WECHAT_PAY -> "wechatPay"
         else -> "unknown"
     }
+}
+
+internal fun mapToSetupIntentParameters(params: ReadableMap): SetupIntentParameters {
+    val builder = SetupIntentParameters.Builder().apply {
+        params.getString("customer")?.let(::setCustomer)
+        params.getString("description")?.let(::setDescription)
+        params.getArray("paymentMethodTypes")?.let { list ->
+            setPaymentMethodTypes(mapToPaymentMethodDetailsType(list))
+        }
+        params.getMap("metadata")?.let { map ->
+            setMetadata(map.toHashMap() as? HashMap<String, String>)
+        }
+        params.getString("onBehalfOf")?.let(::setOnBehalfOf)
+        params.getString("usage")?.let(::setUsage)
+    }
+    return builder.build()
 }
 
 internal fun mapToPaymentMethodDetailsType(array: ReadableArray): List<PaymentMethodType> {

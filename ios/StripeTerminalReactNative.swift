@@ -505,9 +505,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     func createSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let setupIntentParams: SetupIntentParameters
         do {
-            setupIntentParams = try SetupIntentParametersBuilder()
-                .setCustomer(params["customer"] as? String)
-                .build()
+            setupIntentParams = try Mappers.mapToSetupIntent(params).build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return

@@ -685,21 +685,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
-        val builder = SetupIntentParameters.Builder().apply {
-            params.getString("customer")?.let(::setCustomer)
-            params.getString("description")?.let(::setDescription)
-            params.getArray("paymentMethodTypes")?.let { list ->
-                setPaymentMethodTypes(mapToPaymentMethodDetailsType(list))
-            }
-            params.getMap("metadata")?.let { map ->
-                setMetadata(map.toHashMap() as? HashMap<String, String>)
-            }
-            params.getString("onBehalfOf")?.let(::setOnBehalfOf)
-            params.getString("usage")?.let(::setUsage)
-        }
         val uuid = UUID.randomUUID().toString()
         terminal.createSetupIntent(
-            builder.build(),
+            mapToSetupIntentParameters(params),
             RNSetupIntentCallback(promise, uuid) {
                 setupIntents[uuid] = it
             }

@@ -225,6 +225,53 @@ class Mappers {
         return result
     }
 
+    class func mapToSetupIntent(_ params: NSDictionary) -> SetupIntentParametersBuilder {
+            let builder = SetupIntentParametersBuilder()
+                .setCustomer(params["customer"] as? String)
+                .setStripeDescription(params["description"] as? String)
+                .setOnBehalfOf(params["onBehalfOf"] as? String)
+                .setPaymentMethodTypes(
+                  mapToPaymentMethodTypeArray(params["paymentMethodTypes"] as? NSArray)
+                )
+                .setMetadata(params["metadata"] as? [String: String])
+            if let usage = mapSetupIntentUsage(params["usage"] as? String) {
+                builder.setUsage(usage)
+            }
+            return builder
+    }
+
+    class func mapSetupIntentUsage(_ usage: String?) -> SetupIntentUsage? {
+        switch usage {
+        case "offSession":
+            return SetupIntentUsage.offSession
+        case "onSession":
+            return SetupIntentUsage.onSession
+        default:
+            return nil
+        }
+    }
+
+    class func mapToPaymentMethodTypeArray(_ paymentMethodType: NSArray?) -> [PaymentMethodType] {
+        return paymentMethodType?.map({
+            mapToPaymentMethodType($0 as? String ?? "")
+        }) ?? []
+    }
+
+    class func mapToPaymentMethodType(_ paymentMethodType: String) -> PaymentMethodType {
+        switch paymentMethodType {
+        case "card":
+            return PaymentMethodType.card
+        case "cardPresent":
+            return PaymentMethodType.cardPresent
+        case "interacPresent":
+            return PaymentMethodType.interacPresent
+        case "wechatPay":
+            return PaymentMethodType.wechatPay
+        default:
+            return PaymentMethodType.unknown
+        }
+    }
+
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         var metadataMap: NSDictionary?
         if let metadata = setupIntent.metadata {
