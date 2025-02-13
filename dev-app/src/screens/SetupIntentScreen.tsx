@@ -7,7 +7,6 @@ import {
   CommonError,
   type StripeError,
   type AllowRedisplay,
-  type SetupIntentResultType,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -264,7 +263,7 @@ export default function SetupIntentScreen() {
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     }
-// proper-thanks-popular
+
     if (setupIntentError) {
       addLogs({
         name: 'Create Setup Intent',

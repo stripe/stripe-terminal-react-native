@@ -226,21 +226,22 @@ class Mappers {
     }
 
     class func mapToSetupIntent(_ params: NSDictionary) -> SetupIntentParametersBuilder {
-            let builder = SetupIntentParametersBuilder()
-                .setCustomer(params["customer"] as? String)
-                .setStripeDescription(params["description"] as? String)
-                .setOnBehalfOf(params["onBehalfOf"] as? String)
-                .setPaymentMethodTypes(
-                  mapToPaymentMethodTypeArray(params["paymentMethodTypes"] as? NSArray)
-                )
-                .setMetadata(params["metadata"] as? [String: String])
-            if let usage = mapSetupIntentUsage(params["usage"] as? String) {
-                builder.setUsage(usage)
-            }
-            return builder
+        let builder = SetupIntentParametersBuilder()
+            .setCustomer(params["customer"] as? String)
+            .setStripeDescription(params["description"] as? String)
+            .setOnBehalfOf(params["onBehalfOf"] as? String)
+            .setMetadata(params["metadata"] as? [String: String])
+        if let paymentMethodTypes = mapToPaymentMethodTypeArray(params["paymentMethodTypes"] as? NSArray) {
+            _ = builder.setPaymentMethodTypes(paymentMethodTypes)
+        }
+
+        if let usage = mapToSetupIntentUsage(params["usage"] as? String) {
+            builder.setUsage(usage)
+        }
+        return builder
     }
 
-    class func mapSetupIntentUsage(_ usage: String?) -> SetupIntentUsage? {
+    class func mapToSetupIntentUsage(_ usage: String?) -> SetupIntentUsage? {
         switch usage {
         case "offSession":
             return SetupIntentUsage.offSession
@@ -251,10 +252,10 @@ class Mappers {
         }
     }
 
-    class func mapToPaymentMethodTypeArray(_ paymentMethodType: NSArray?) -> [PaymentMethodType] {
+    class func mapToPaymentMethodTypeArray(_ paymentMethodType: NSArray?) -> [PaymentMethodType]? {
         return paymentMethodType?.map({
             mapToPaymentMethodType($0 as? String ?? "")
-        }) ?? []
+        })
     }
 
     class func mapToPaymentMethodType(_ paymentMethodType: String) -> PaymentMethodType {
@@ -267,6 +268,8 @@ class Mappers {
             return PaymentMethodType.interacPresent
         case "wechatPay":
             return PaymentMethodType.wechatPay
+        case "affirm":
+            return PaymentMethodType.affirm
         default:
             return PaymentMethodType.unknown
         }

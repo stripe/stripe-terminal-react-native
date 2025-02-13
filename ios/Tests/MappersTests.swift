@@ -37,9 +37,9 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(setupIntent?.usage, SetupIntentUsage.onSession)
     }
 
-    func testMapSetupIntentUsage() {
-        XCTAssertEqual(Mappers.mapSetupIntentUsage("onSession"), SetupIntentUsage.onSession)
-        XCTAssertEqual(Mappers.mapSetupIntentUsage("offSession"), SetupIntentUsage.offSession)
+    func testMapToSetupIntentUsage() {
+        XCTAssertEqual(Mappers.mapToSetupIntentUsage("onSession"), SetupIntentUsage.onSession)
+        XCTAssertEqual(Mappers.mapToSetupIntentUsage("offSession"), SetupIntentUsage.offSession)
     }
 
     func testMapToPaymentMethodTypeArray() {

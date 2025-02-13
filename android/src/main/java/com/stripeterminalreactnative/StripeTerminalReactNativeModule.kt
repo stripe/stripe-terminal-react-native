@@ -132,7 +132,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
-        println("jintin kotlin init")
         val result = if (!Terminal.isInitialized()) {
             Terminal.initTerminal(
                 this.context.applicationContext,

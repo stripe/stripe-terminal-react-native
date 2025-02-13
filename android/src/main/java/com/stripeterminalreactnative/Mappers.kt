@@ -661,6 +661,7 @@ internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
         "cardPresent" -> PaymentMethodType.CARD_PRESENT
         "interacPresent" -> PaymentMethodType.INTERAC_PRESENT
         "wechatPay" -> PaymentMethodType.WECHAT_PAY
+        "affirm" -> PaymentMethodType.AFFIRM
         else -> null
     }
 }
