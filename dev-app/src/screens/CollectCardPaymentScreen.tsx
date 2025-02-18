@@ -116,6 +116,7 @@ export default function CollectCardPaymentScreen() {
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const [amountSurcharge, setAmountSurcharge] = useState('');
+  const [returnUrl, setReturnUrl] = useState('');
   const paymentMethodTypes = PAYMENT_METHOD_TYPES;
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
     DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
@@ -466,6 +467,7 @@ export default function CollectCardPaymentScreen() {
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
       amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
+      returnUrl: returnUrl.trim() ? returnUrl : undefined,
     });
 
     if (error) {
@@ -882,6 +884,18 @@ export default function CollectCardPaymentScreen() {
             value={amountSurcharge}
             onChangeText={(value: string) => setAmountSurcharge(value)}
             placeholder="Amount Surcharge"
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="RETURN URL">
+          <TextInput
+            testID="Return URL"
+            keyboardType="default"
+            style={styles.input}
+            value={returnUrl}
+            onChangeText={(value: string) => setReturnUrl(value)}
+            autoCorrect={false}
+            autoCapitalize={'none'}
           />
         </List>
 
