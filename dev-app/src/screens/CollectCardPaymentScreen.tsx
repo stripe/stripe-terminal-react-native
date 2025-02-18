@@ -123,6 +123,7 @@ export default function CollectCardPaymentScreen() {
   );
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('unspecified');
+  const [moto, setMoto] = useState(false);
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPaymentScreen'>>();
   const { simulated, discoveryMethod, deviceType } = params;
@@ -371,6 +372,7 @@ export default function CollectCardPaymentScreen() {
       requestDynamicCurrencyConversion: requestDcc,
       surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
       allowRedisplay: allowRedisplay,
+      moto: moto,
     });
 
     if (error) {
@@ -727,6 +729,18 @@ export default function CollectCardPaymentScreen() {
               />
             ))}
           </Picker>
+        </List>
+        <List bolded={false} topSpacing={false} title="Moto">
+          <ListItem
+            title="Enable Moto"
+            rightElement={
+              <Switch
+                testID="moto"
+                value={moto}
+                onValueChange={(value) => setMoto(value)}
+              />
+            }
+          />
         </List>
         <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
           <Picker

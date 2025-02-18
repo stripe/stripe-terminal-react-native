@@ -18,6 +18,7 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { Picker } from '@react-native-picker/picker';
 import type { NavigationProp } from '@react-navigation/native';
+import type { CreateSetupIntentParams } from 'lib/typescript/src';
 
 const ALLOW_REDISPLAY = [
   { value: 'unspecified', label: 'unspecified' },
@@ -33,6 +34,7 @@ export default function SetupIntentScreen() {
   const { discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+  const [moto, setMoto] = useState(false);
 
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('always');
@@ -135,6 +137,7 @@ export default function SetupIntentScreen() {
       setupIntent: si,
       allowRedisplay: allowRedisplay,
       enableCustomerCancellation: enableCustomerCancellation,
+      moto: moto,
     });
     if (error) {
       addLogs({
@@ -245,10 +248,18 @@ export default function SetupIntentScreen() {
         });
         return;
       }
-
-      const response = await createSetupIntent({
-        customer: resp.id,
-      });
+      var parameter: CreateSetupIntentParams;
+      if (moto) {
+        parameter = {
+          customer: resp.id,
+          paymentMethodTypes: ['card'],
+        }
+      } else {
+        parameter = {
+          customer: resp.id,
+        }
+      }
+      const response = await createSetupIntent(parameter);
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     }
@@ -309,12 +320,24 @@ export default function SetupIntentScreen() {
             />
           ))}
         </Picker>
+      </List>
+      <List bolded={false} topSpacing={false} title="Moto">
         <ListItem
-          color={colors.blue}
-          title="Collect setupIntent"
-          onPress={_createSetupIntent}
+          title="Enable Moto"
+          rightElement={
+            <Switch
+              testID="moto"
+              value={moto}
+              onValueChange={(value) => setMoto(value)}
+            />
+          }
         />
       </List>
+      <ListItem
+        color={colors.blue}
+        title="Collect setupIntent"
+        onPress={_createSetupIntent}
+      />
     </KeyboardAwareScrollView>
   );
 }

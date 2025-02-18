@@ -16,6 +16,7 @@ import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.CollectInputs
+import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
@@ -169,7 +170,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun cancelCollectRefundPaymentMethod(promise: Promise) {
-        cancelOperation(promise, collectRefundPaymentMethodCancelable, "collectRefundPaymentMethod") {
+        cancelOperation(
+            promise,
+            collectRefundPaymentMethodCancelable,
+            "collectRefundPaymentMethod"
+        ) {
             collectRefundPaymentMethodCancelable = null
         }
     }
@@ -408,7 +413,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun connectReader(params: ReadableMap, discoveryMethod: String, promise: Promise) {
         mapToDiscoveryMethod(discoveryMethod)?.let {
             innerConnectReader(params, it, promise)
-        } ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod")))
+        }
+            ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod")))
     }
 
     @ReactMethod
@@ -560,7 +566,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
     }
 
-    @OptIn(OfflineMode::class)
+    @OptIn(InternalApi::class)
     @ReactMethod
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
@@ -605,6 +611,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             if (params.hasKey("allowRedisplay")) {
                 configBuilder.setAllowRedisplay(mapToAllowRedisplay(params.getString("allowRedisplay")))
+            }
+            if (params.hasKey("moto")) {
+                configBuilder.setMoto(params.getBoolean("moto"))
             }
 
             val config = configBuilder.build()
@@ -679,13 +688,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun createSetupIntent(params: ReadableMap, promise: Promise) {
-        val intentParams = params.getString("customer")?.let { customerId ->
-            SetupIntentParameters.Builder().setCustomer(customerId).build()
-        } ?: SetupIntentParameters.NULL
-
         val uuid = UUID.randomUUID().toString()
         terminal.createSetupIntent(
-            intentParams,
+            mapToSetupIntentParameters(params),
             RNSetupIntentCallback(promise, uuid) {
                 setupIntents[uuid] = it
             }
@@ -727,6 +732,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             )
         }
 
+    @OptIn(InternalApi::class)
     @ReactMethod
     @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
@@ -742,12 +748,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
+            val moto = getBoolean(params, "moto")
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 allowRedisplay,
                 SetupIntentConfiguration.Builder()
                     .setEnableCustomerCancellation(enableCustomerCancellation)
+                    .setMoto(moto)
                     .build(),
                 RNSetupIntentCallback(promise, uuid) { setupIntents[uuid] = it }
             )
@@ -1188,47 +1196,48 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setTapToPayUxConfiguration(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val tapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
+    fun setTapToPayUxConfiguration(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val tapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
 
-        var tapZone: TapToPayUxConfiguration.TapZone? = null
-        val tapZoneParam = params.getMap("tapZone")
-        tapZoneParam?.let {
-            val tapZoneIndicator =
-                mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
+            var tapZone: TapToPayUxConfiguration.TapZone? = null
+            val tapZoneParam = params.getMap("tapZone")
+            tapZoneParam?.let {
+                val tapZoneIndicator =
+                    mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
 
-            val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
-                TapToPayUxConfiguration.TapZonePosition.Manual(
-                    it.getDouble("xBias").toFloat(),
-                    it.getDouble("yBias").toFloat()
-                )
-            } ?: TapToPayUxConfiguration.TapZonePosition.Default
+                val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
+                    TapToPayUxConfiguration.TapZonePosition.Manual(
+                        it.getDouble("xBias").toFloat(),
+                        it.getDouble("yBias").toFloat()
+                    )
+                } ?: TapToPayUxConfiguration.TapZonePosition.Default
 
-            tapZone = TapToPayUxConfiguration.TapZone.Manual.Builder()
-                .indicator(tapZoneIndicator)
-                .position(tapZonePosition)
-                .build()
-        }
-        tapToPayUxConfigurationBuilder.tapZone(
-            tapZone ?: TapToPayUxConfiguration.TapZone.Default
-        )
-
-        val colorsParam = params.getMap("colors")
-        colorsParam?.let {
-            val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
-            colorSchemeBuilder.apply {
-                primary(it.getString("primary").toTapToPayColor())
-                success(it.getString("success").toTapToPayColor())
-                error(it.getString("error").toTapToPayColor())
+                tapZone = TapToPayUxConfiguration.TapZone.Manual.Builder()
+                    .indicator(tapZoneIndicator)
+                    .position(tapZonePosition)
+                    .build()
             }
-            tapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+            tapToPayUxConfigurationBuilder.tapZone(
+                tapZone ?: TapToPayUxConfiguration.TapZone.Default
+            )
+
+            val colorsParam = params.getMap("colors")
+            colorsParam?.let {
+                val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
+                colorSchemeBuilder.apply {
+                    primary(it.getString("primary").toTapToPayColor())
+                    success(it.getString("success").toTapToPayColor())
+                    error(it.getString("error").toTapToPayColor())
+                }
+                tapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+            }
+
+            tapToPayUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
+
+            terminal.setTapToPayUxConfiguration(tapToPayUxConfigurationBuilder.build())
+            promise.resolve(NativeTypeFactory.writableNativeMap())
         }
-
-        tapToPayUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
-
-        terminal.setTapToPayUxConfiguration(tapToPayUxConfigurationBuilder.build())
-        promise.resolve(NativeTypeFactory.writableNativeMap())
-    }
 
     @ReactMethod
     @Suppress("unused")

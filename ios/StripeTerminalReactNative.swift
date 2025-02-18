@@ -505,9 +505,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     func createSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let setupIntentParams: SetupIntentParameters
         do {
-            setupIntentParams = try SetupIntentParametersBuilder()
-                .setCustomer(params["customer"] as? String)
-                .build()
+            setupIntentParams = try Mappers.mapToSetupIntent(params).build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
@@ -545,6 +543,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let requestDynamicCurrencyConversion = params["requestDynamicCurrencyConversion"] as? Bool ?? false
         let surchargeNotice = params["surchargeNotice"] as? String
+        let moto = params["moto"] as? Bool ?? false
 
         let collectConfigBuilder = CollectConfigurationBuilder()
             .setSkipTipping(skipTipping)
@@ -552,6 +551,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             .setEnableCustomerCancellation(enableCustomerCancellation)
             .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
             .setSurchargeNotice(surchargeNotice)
+            .setMoto(moto)
 
         if let allowRedisplay = params["allowRedisplay"] as? String {
             collectConfigBuilder.setAllowRedisplay(Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay))
@@ -894,11 +894,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        let moto = params["moto"] as? Bool ?? false
         let allowRedisplay = params["allowRedisplay"] as? String ?? "unspecified"
         let setupIntentConfiguration: SetupIntentConfiguration
         do {
             setupIntentConfiguration = try SetupIntentConfigurationBuilder()
                 .setEnableCustomerCancellation(enableCustomerCancellation)
+                .setMoto(moto)
                 .build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
