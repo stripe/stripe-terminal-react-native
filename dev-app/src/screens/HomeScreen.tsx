@@ -434,8 +434,8 @@ export default function HomeScreen() {
                 />
               }
             />
-           
-           {simulated ? (<ListItem
+
+            {simulated ? (<ListItem
                         title="Simulate Offline Mode"
                         rightElement={
                           <Switch
@@ -446,7 +446,7 @@ export default function HomeScreen() {
                           }}
                           />
                         }
-                        />) : null}
+                        />) : <></>}
 
             <Text style={styles.infoText}>
               The SDK comes with the ability to simulate behavior without using

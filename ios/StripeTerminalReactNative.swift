@@ -1261,7 +1261,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                                 let style = it["style"] as! String
                                 let text = it["text"] as! String
                                 let button = try SelectionButtonBuilder(style: (style == "primary") ? .primary : .secondary,
-                                                                        text: text).build()
+                                                                        text: text, id : "selectionButton").build()
                                 selectionButtons.append(button)
                             } catch {
                                 resolve(Errors.createError(nsError: error as NSError))
