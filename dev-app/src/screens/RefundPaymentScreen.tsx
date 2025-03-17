@@ -1,4 +1,4 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/core';
 import React, { useContext, useRef, useState } from 'react';
 import {
   Modal,
@@ -19,6 +19,7 @@ import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 import type { RouteParamList } from '../App';
 import { Picker } from '@react-native-picker/picker';
+import type { NavigationProp } from '@react-navigation/native';
 
 export default function RefundPaymentScreen() {
   const {
@@ -43,8 +44,8 @@ export default function RefundPaymentScreen() {
     reverseTransfer: false,
     enableCustomerCancellation: false,
   });
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'RefundPaymentScreen'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
 
   const { simulated, discoveryMethod } = params;
@@ -54,6 +55,7 @@ export default function RefundPaymentScreen() {
     collectRefundPaymentMethod,
     cancelCollectRefundPaymentMethod,
     confirmRefund,
+    cancelConfirmRefund,
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
@@ -89,7 +91,7 @@ export default function RefundPaymentScreen() {
       await setSimulatedCard(testCardNumber);
     }
 
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
     addLogs({
       name: 'Collect Refund Payment Method',
       events: [
@@ -144,6 +146,7 @@ export default function RefundPaymentScreen() {
       events: [
         {
           name: 'Processing',
+          onBack: cancelConfirmRefund,
           description: 'terminal.confirmRefund',
           metadata: _refundMetadata,
         },
@@ -454,6 +457,7 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     fontSize: 16,
+    color: colors.slate,
   },
   pickerContainer: {
     position: 'absolute',

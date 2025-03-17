@@ -1,13 +1,13 @@
 import React from 'react';
 import { ScrollView, Text, StyleSheet, Dimensions } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/core';
+import { useRoute, type RouteProp } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import type { RouteParamList } from '../App';
 
 const LogScreen = () => {
-  const { params } = useRoute<RouteProp<RouteParamList, 'Log'>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'LogScreen'>>();
   const { event, log } = params;
   const { metadata } = event;
 

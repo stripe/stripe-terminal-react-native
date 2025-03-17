@@ -9,7 +9,7 @@ export const getSdkVersion = () => {
 // hooks
 export {
   useStripeTerminal,
-  Props as UseStripeTerminalProps,
+  type Props as UseStripeTerminalProps,
   FETCH_TOKEN_PROVIDER,
   CHANGE_CONNECTION_STATUS,
   CHANGE_PAYMENT_STATUS,
@@ -32,12 +32,12 @@ export {
 // components
 export {
   StripeTerminalProvider,
-  Props as StripeTerminalProviderProps,
+  type Props as StripeTerminalProviderProps,
 } from './components/StripeTerminalProvider';
 
 export {
   withStripeTerminal,
-  WithStripeTerminalProps,
+  type WithStripeTerminalProps,
 } from './components/withStripeTerminal';
 
 // utils

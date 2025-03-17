@@ -1,11 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`functions.test.ts Functions snapshot ensure there are no unexpected changes to the functions exports 1`] = `
-Object {
+{
   "cancelCollectInputs": [Function],
   "cancelCollectPaymentMethod": [Function],
   "cancelCollectRefundPaymentMethod": [Function],
   "cancelCollectSetupIntent": [Function],
+  "cancelConfirmPaymentIntent": [Function],
+  "cancelConfirmRefund": [Function],
+  "cancelConfirmSetupIntent": [Function],
   "cancelDiscovering": [Function],
   "cancelInstallingUpdate": [Function],
   "cancelPaymentIntent": [Function],

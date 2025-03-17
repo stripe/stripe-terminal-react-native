@@ -1,12 +1,12 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { type RouteProp, useNavigation, useRoute } from '@react-navigation/core';
 import React, { useCallback, useContext, useState } from 'react';
 import { StyleSheet, Switch, Platform } from 'react-native';
 import {
-  SetupIntent,
+  type SetupIntent,
   useStripeTerminal,
   CommonError,
-  StripeError,
-  AllowRedisplay,
+  type StripeError,
+  type AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -17,6 +17,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { Picker } from '@react-native-picker/picker';
+import type { NavigationProp } from '@react-navigation/native';
+import type { CreateSetupIntentParams } from 'lib/typescript/src';
 
 const ALLOW_REDISPLAY = [
   { value: 'unspecified', label: 'unspecified' },
@@ -27,11 +29,12 @@ const ALLOW_REDISPLAY = [
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
   const { discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+  const [moto, setMoto] = useState(false);
 
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('always');
@@ -40,6 +43,7 @@ export default function SetupIntentScreen() {
     createSetupIntent,
     collectSetupIntentPaymentMethod,
     confirmSetupIntent,
+    cancelConfirmSetupIntent,
     retrieveSetupIntent,
     cancelCollectSetupIntent,
   } = useStripeTerminal({
@@ -75,6 +79,7 @@ export default function SetupIntentScreen() {
         events: [
           {
             name: 'Process',
+            onBack: cancelConfirmSetupIntent,
             description: 'terminal.confirmSetupIntent',
             metadata: { setupIntentId: si.id },
           },
@@ -113,7 +118,7 @@ export default function SetupIntentScreen() {
         });
       }
     },
-    [addLogs, confirmSetupIntent]
+    [addLogs, confirmSetupIntent, cancelConfirmSetupIntent]
   );
 
   const _collectSetupMethod = async (si: SetupIntent.Type) => {
@@ -132,6 +137,7 @@ export default function SetupIntentScreen() {
       setupIntent: si,
       allowRedisplay: allowRedisplay,
       enableCustomerCancellation: enableCustomerCancellation,
+      moto: moto,
     });
     if (error) {
       addLogs({
@@ -164,7 +170,7 @@ export default function SetupIntentScreen() {
 
   const _createSetupIntent = async () => {
     clearLogs();
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
 
     addLogs({
       name: 'Create Setup Intent',
@@ -242,10 +248,18 @@ export default function SetupIntentScreen() {
         });
         return;
       }
-
-      const response = await createSetupIntent({
-        customer: resp.id,
-      });
+      var parameter: CreateSetupIntentParams;
+      if (moto) {
+        parameter = {
+          customer: resp.id,
+          paymentMethodTypes: ['card'],
+        }
+      } else {
+        parameter = {
+          customer: resp.id,
+        }
+      }
+      const response = await createSetupIntent(parameter);
       setupIntent = response.setupIntent;
       setupIntentError = response.error;
     }
@@ -306,12 +320,24 @@ export default function SetupIntentScreen() {
             />
           ))}
         </Picker>
+      </List>
+      <List bolded={false} topSpacing={false} title="Moto">
         <ListItem
-          color={colors.blue}
-          title="Collect setupIntent"
-          onPress={_createSetupIntent}
+          title="Enable Moto"
+          rightElement={
+            <Switch
+              testID="moto"
+              value={moto}
+              onValueChange={(value) => setMoto(value)}
+            />
+          }
         />
       </List>
+      <ListItem
+        color={colors.blue}
+        title="Collect setupIntent"
+        onPress={_createSetupIntent}
+      />
     </KeyboardAwareScrollView>
   );
 }
@@ -339,5 +365,6 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     fontSize: 16,
+    color: colors.slate,
   },
 });

@@ -52,6 +52,9 @@ import {
   clearCachedCredentials,
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
+  cancelConfirmPaymentIntent,
+  cancelConfirmSetupIntent,
+  cancelConfirmRefund,
   setSimulatedCard,
   setSimulatedOfflineMode,
   cancelCollectRefundPaymentMethod,
@@ -831,6 +834,48 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
+  const _cancelConfirmPaymentIntent = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelConfirmPaymentIntent();
+
+    setLoading(false);
+
+    return response;
+  }, [_isInitialized, setLoading]);
+
+  const _cancelConfirmSetupIntent = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelConfirmSetupIntent();
+
+    setLoading(false);
+
+    return response;
+  }, [_isInitialized, setLoading]);
+
+  const _cancelConfirmRefund = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelConfirmRefund();
+
+    setLoading(false);
+
+    return response;
+  }, [_isInitialized, setLoading]);
+
   const _getOfflineStatus = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -1022,6 +1067,9 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
     cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
+    cancelConfirmPaymentIntent: _cancelConfirmPaymentIntent,
+    cancelConfirmSetupIntent: _cancelConfirmSetupIntent,
+    cancelConfirmRefund: _cancelConfirmRefund,
     setSimulatedCard: _setSimulatedCard,
     setSimulatedOfflineMode: _setSimulatedOfflineMode,
     getOfflineStatus: _getOfflineStatus,

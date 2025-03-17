@@ -694,6 +694,51 @@ export async function cancelCollectSetupIntent(): Promise<{
   }, 'cancelCollectSetupIntent')();
 }
 
+export async function cancelConfirmPaymentIntent(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelConfirmPaymentIntent();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelConfirmPaymentIntent')();
+}
+
+export async function cancelConfirmSetupIntent(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelConfirmSetupIntent();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelConfirmSetupIntent')();
+}
+
+export async function cancelConfirmRefund(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelConfirmRefund();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelConfirmRefund')();
+}
+
 export async function getOfflineStatus(): Promise<OfflineStatus> {
   return Logger.traceSdkMethod(async () => {
     try {

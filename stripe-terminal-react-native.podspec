@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package['license']
   s.authors      = package['author']
 
-  s.platforms    = { ios: '14.0' }
+  s.platforms    = { ios: '15.1' }
   s.source       = { git: 'https://github.com/stripe/stripe-terminal-react-native.git', tag: s.version.to_s }
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
   end
 
   s.dependency 'React-Core'
-  s.dependency 'StripeTerminal', '~> 4.0.0'
+  s.dependency 'StripeTerminal', '~> 4.1.0'
 end

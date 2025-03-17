@@ -1,4 +1,4 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import { useNavigation, useRoute, type RouteProp, type NavigationProp } from '@react-navigation/core';
 import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import {
   useStripeTerminal,
-  PaymentIntent,
-  StripeError,
+  type PaymentIntent,
+  type StripeError,
   CommonError,
-  AllowRedisplay,
+  type AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -33,14 +33,20 @@ import {
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
-  { value: 'gbp', label: 'GBP' },
-  { value: 'cad', label: 'CAD' },
-  { value: 'sgd', label: 'SGD' },
-  { value: 'eur', label: 'EUR' },
   { value: 'aud', label: 'AUD' },
-  { value: 'nzd', label: 'NZD' },
+  { value: 'cad', label: 'CAD' },
+  { value: 'chf', label: 'CHF' },
+  { value: 'czk', label: 'CZK' },
   { value: 'dkk', label: 'DKK' },
+  { value: 'eur', label: 'EUR' },
+  { value: 'gbp', label: 'GBP' },
+  { value: 'hkd', label: 'HKD' },
+  { value: 'myr', label: 'MYR' },
+  { value: 'nok', label: 'NOK' },
+  { value: 'nzd', label: 'NZD' },
+  { value: 'pln', label: 'PLN' },
   { value: 'sek', label: 'SEK' },
+  { value: 'sgd', label: 'SGD' },
 ];
 
 const CAPTURE_METHODS = [
@@ -110,17 +116,19 @@ export default function CollectCardPaymentScreen() {
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
   const [amountSurcharge, setAmountSurcharge] = useState('');
+  const [returnUrl, setReturnUrl] = useState('');
   const paymentMethodTypes = PAYMENT_METHOD_TYPES;
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
     DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
   );
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('unspecified');
+  const [moto, setMoto] = useState(false);
   const { params } =
-    useRoute<RouteProp<RouteParamList, 'CollectCardPayment'>>();
+    useRoute<RouteProp<RouteParamList, 'CollectCardPaymentScreen'>>();
   const { simulated, discoveryMethod, deviceType } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
   const {
     createPaymentIntent,
@@ -128,6 +136,7 @@ export default function CollectCardPaymentScreen() {
     confirmPaymentIntent,
     retrievePaymentIntent,
     cancelCollectPaymentMethod,
+    cancelConfirmPaymentIntent,
     setSimulatedCard,
     getOfflineStatus,
   } = useStripeTerminal({
@@ -169,7 +178,7 @@ export default function CollectCardPaymentScreen() {
       isDisabled: false,
       action: cancelCollectPaymentMethod,
     });
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
     addLogs({
       name: 'Create Payment Intent',
       events: [
@@ -363,6 +372,7 @@ export default function CollectCardPaymentScreen() {
       requestDynamicCurrencyConversion: requestDcc,
       surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
       allowRedisplay: allowRedisplay,
+      moto: moto,
     });
 
     if (error) {
@@ -449,6 +459,7 @@ export default function CollectCardPaymentScreen() {
       events: [
         {
           name: 'Process',
+          onBack: cancelConfirmPaymentIntent,
           description: 'terminal.confirmPaymentIntent',
           metadata: { paymentIntentId: collectedPaymentIntent.id },
         },
@@ -458,6 +469,7 @@ export default function CollectCardPaymentScreen() {
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
       amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
+      returnUrl: returnUrl.trim() ? returnUrl : undefined,
     });
 
     if (error) {
@@ -686,15 +698,15 @@ export default function CollectCardPaymentScreen() {
             testID="payment-method-button"
             onPress={() =>
               navigation.navigate('PaymentMethodSelectScreen', {
-                paymentMethodTypes: paymentMethodTypes,
-                enabledPaymentMethodTypes: enabledPaymentMethodTypes,
-                onChange: (newPaymentMethodTypes: string[]) => {
-                  setEnabledPaymentMethodTypes(newPaymentMethodTypes);
-                  setEnableInterac(
-                    newPaymentMethodTypes.includes('interac_present')
-                  );
-                },
-              })
+                              paymentMethodTypes: paymentMethodTypes,
+                              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+                              onChange: (newPaymentMethodTypes: string[]) => {
+                                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                                setEnableInterac(
+                                  newPaymentMethodTypes.includes('interac_present')
+                                );
+                              },
+                            })
             }
           />
         </List>
@@ -717,6 +729,18 @@ export default function CollectCardPaymentScreen() {
               />
             ))}
           </Picker>
+        </List>
+        <List bolded={false} topSpacing={false} title="Moto">
+          <ListItem
+            title="Enable Moto"
+            rightElement={
+              <Switch
+                testID="moto"
+                value={moto}
+                onValueChange={(value) => setMoto(value)}
+              />
+            }
+          />
         </List>
         <List bolded={false} topSpacing={false} title="ROUTING PRIORITY">
           <Picker
@@ -874,6 +898,18 @@ export default function CollectCardPaymentScreen() {
             value={amountSurcharge}
             onChangeText={(value: string) => setAmountSurcharge(value)}
             placeholder="Amount Surcharge"
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="RETURN URL">
+          <TextInput
+            testID="Return URL"
+            keyboardType="default"
+            style={styles.input}
+            value={returnUrl}
+            onChangeText={(value: string) => setReturnUrl(value)}
+            autoCorrect={false}
+            autoCapitalize={'none'}
           />
         </List>
 
@@ -1128,6 +1164,7 @@ const styles = StyleSheet.create({
   },
   pickerItem: {
     fontSize: 16,
+    color: colors.slate,
   },
   pickerContainer: {
     position: 'absolute',

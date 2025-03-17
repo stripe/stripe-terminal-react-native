@@ -1,12 +1,12 @@
 /* eslint-env detox/detox, jest */
 
-export const navigateTo = async (buttonText) => {
+const navigateTo = async (buttonText) => {
   const button = element(by.text(buttonText));
   await waitFor(button).toBeVisible().withTimeout(16000);
   await button.tap();
 };
 
-export const connectReader = async (name = 'chipper2X') => {
+const connectReader = async (name = 'chipper2X') => {
   await waitFor(element(by.text(`SimulatorID - ${name}`)))
     .toBeVisible()
     .withTimeout(16000);
@@ -14,7 +14,7 @@ export const connectReader = async (name = 'chipper2X') => {
   await button.tap();
 };
 
-export const setSelectedMerchant = async (
+const setSelectedMerchant = async (
   acctId = 'CI US TEST ACCT (acct_1234)'
 ) => {
   const picker = element(by.id('select-merchant-picker'));
@@ -31,7 +31,7 @@ export const setSelectedMerchant = async (
   await element(by.id('header-back')).tap();
 };
 
-export const setSelectedCurrency = async (currency = 'USD') => {
+const setSelectedCurrency = async (currency = 'USD') => {
   const picker = element(by.id('select-currency-picker'));
   await waitFor(picker).toBeVisible().withTimeout(16000);
 
@@ -48,7 +48,7 @@ export const setSelectedCurrency = async (currency = 'USD') => {
   }
 };
 
-export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
+const setSimulatedUpdatePlan = async (plan = 'Update required') => {
   const picker = element(by.id('update-plan-picker'));
   const touchable = element(by.id('close-picker'));
   await picker.tap();
@@ -61,7 +61,7 @@ export const setSimulatedUpdatePlan = async (plan = 'Update required') => {
   }
 };
 
-export const checkIfConnected = async ({
+const checkIfConnected = async ({
   timeout = 32000,
   device = 'chipper2X',
 } = {}) => {
@@ -74,7 +74,7 @@ export const checkIfConnected = async ({
     .withTimeout(timeout);
 };
 
-export const disconnectReader = async () => {
+const disconnectReader = async () => {
   const disconnectButton = element(by.id('disconnect-button'));
   await waitFor(disconnectButton).toBeVisible().withTimeout(16000);
   await disconnectButton.tap();
@@ -83,7 +83,7 @@ export const disconnectReader = async () => {
     .withTimeout(16000);
 };
 
-export const checkIfLogExist = async (log) => {
+const checkIfLogExist = async (log) => {
   await element(by.id('scroll-view')).scrollTo('bottom');
   await waitFor(element(by.text(log)))
     .toBeVisible()
@@ -96,7 +96,7 @@ const discBtnMap = {
   'Bluetooth Proximity': 'bt-prox-btn',
 };
 
-export const changeDiscoveryMethod = async (method) => {
+const changeDiscoveryMethod = async (method) => {
   await waitFor(element(by.id('online-indicator')))
     .toBeVisible()
     .withTimeout(10000);
@@ -119,7 +119,7 @@ export const changeDiscoveryMethod = async (method) => {
     .withTimeout(10000);
 };
 
-export const goBack = async (label) => {
+const goBack = async (label) => {
   if (device.getPlatform() === 'android') {
     await device.pressBack();
   } else {
@@ -133,7 +133,7 @@ export const goBack = async (label) => {
   }
 };
 
-export const createInteracPayment = async (reader = 'wisePad3') => {
+const createInteracPayment = async (reader = 'wisePad3') => {
   await navigateTo('Set Merchant');
   await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
@@ -191,7 +191,7 @@ export const createInteracPayment = async (reader = 'wisePad3') => {
   await checkIfLogExist('Confirmed');
 };
 
-export const collectInteracRefund = async () => {
+const collectInteracRefund = async () => {
   await waitFor(element(by.text('In-Person Refund')))
     .toBeVisible()
     .withTimeout(10000);
@@ -220,4 +220,20 @@ export const collectInteracRefund = async () => {
   await checkIfLogExist('Collected');
   await checkIfLogExist('Processing');
   await checkIfLogExist('Succeeded');
+};
+
+// Export functions for external use
+module.exports = {
+  navigateTo,
+  connectReader,
+  setSelectedMerchant,
+  setSelectedCurrency,
+  setSimulatedUpdatePlan,
+  checkIfConnected,
+  disconnectReader,
+  checkIfLogExist,
+  changeDiscoveryMethod,
+  goBack,
+  createInteracPayment,
+  collectInteracRefund
 };

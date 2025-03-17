@@ -1,16 +1,20 @@
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+
 rootProject.name = 'StripeTerminalReactNativeDevApp'
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 
 include ':stripeterminalreactnative'
 project(':stripeterminalreactnative').projectDir = new File(rootProject.projectDir, '../../android')
 
-def buildCacheDir = System.getenv("ANDROID_BUILD_CACHE") ?: "/var/tmp/stripe-internal-android-rn-build-cache"
-
-buildCache {
-    local {
-        enabled = true
-        directory = buildCacheDir
-    }
-}
+//def buildCacheDir = System.getenv("ANDROID_BUILD_CACHE") ?: "/var/tmp/stripe-internal-android-rn-build-cache"
+//
+//buildCache {
+//    local {
+//        enabled = true
+//        directory = buildCacheDir
+//    }
+//}

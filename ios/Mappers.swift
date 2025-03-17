@@ -225,6 +225,56 @@ class Mappers {
         return result
     }
 
+    class func mapToSetupIntent(_ params: NSDictionary) -> SetupIntentParametersBuilder {
+        let builder = SetupIntentParametersBuilder()
+            .setCustomer(params["customer"] as? String)
+            .setStripeDescription(params["description"] as? String)
+            .setOnBehalfOf(params["onBehalfOf"] as? String)
+            .setMetadata(params["metadata"] as? [String: String])
+        if let paymentMethodTypes = mapToPaymentMethodTypeArray(params["paymentMethodTypes"] as? NSArray) {
+            _ = builder.setPaymentMethodTypes(paymentMethodTypes)
+        }
+
+        if let usage = mapToSetupIntentUsage(params["usage"] as? String) {
+            builder.setUsage(usage)
+        }
+        return builder
+    }
+
+    class func mapToSetupIntentUsage(_ usage: String?) -> SetupIntentUsage? {
+        switch usage {
+        case "offSession":
+            return SetupIntentUsage.offSession
+        case "onSession":
+            return SetupIntentUsage.onSession
+        default:
+            return nil
+        }
+    }
+
+    class func mapToPaymentMethodTypeArray(_ paymentMethodType: NSArray?) -> [PaymentMethodType]? {
+        return paymentMethodType?.map({
+            mapToPaymentMethodType($0 as? String ?? "")
+        })
+    }
+
+    class func mapToPaymentMethodType(_ paymentMethodType: String) -> PaymentMethodType {
+        switch paymentMethodType {
+        case "card":
+            return PaymentMethodType.card
+        case "cardPresent":
+            return PaymentMethodType.cardPresent
+        case "interacPresent":
+            return PaymentMethodType.interacPresent
+        case "wechatPay":
+            return PaymentMethodType.wechatPay
+        case "affirm":
+            return PaymentMethodType.affirm
+        default:
+            return PaymentMethodType.unknown
+        }
+    }
+
     class func mapFromSetupIntent(_ setupIntent: SetupIntent, uuid: String) -> NSDictionary {
         var metadataMap: NSDictionary?
         if let metadata = setupIntent.metadata {
@@ -523,6 +573,15 @@ class Mappers {
         return result
     }
 
+    class func mapFromAffirm(_ affirm: AffirmDetails) -> NSDictionary {
+        let result: NSDictionary = [
+            "location": affirm.location ?? NSNull(),
+            "reader": affirm.reader ?? NSNull(),
+            "transactionId": affirm.transactionId ?? NSNull(),
+        ]
+        return result
+    }
+
     class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
         var offlineCardPresentDetails: NSDictionary?
         if let cardPresentDetails = offlineDetails.cardPresentDetails {
@@ -640,6 +699,7 @@ class Mappers {
         case PaymentMethodType.cardPresent: return "cardPresent"
         case PaymentMethodType.interacPresent: return "interacPresent"
         case PaymentMethodType.wechatPay: return "wechatPay"
+        case PaymentMethodType.affirm: return "affirm"
         default: return "unknown"
         }
     }
@@ -657,12 +717,17 @@ class Mappers {
         if let wechatPay = paymentMethodDetails.wechatPay{
             wechatPayMapped = mapFromWechatPay(wechatPay)
         }
+        var affirmMapped: NSDictionary?
+        if let affirm = paymentMethodDetails.affirm{
+            affirmMapped = mapFromAffirm(affirm)
+        }
 
         let result: NSDictionary = [
             "type": mapFromPaymentMethodDetailsType(paymentMethodDetails.type),
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
+            "affirmDetails": affirmMapped ?? NSNull(),
         ]
         return result
     }
@@ -723,11 +788,16 @@ class Mappers {
         if let wechatPay = paymentMethod.wechatPay{
             wechatPayMapped = mapFromWechatPay(wechatPay)
         }
+        var affirmMapped: NSDictionary?
+        if let affirm = paymentMethod.affirm{
+            affirmMapped = mapFromAffirm(affirm)
+        }
 
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
+            "affirmDetails": affirmMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
@@ -943,10 +1013,11 @@ class Mappers {
         case "card_present": return .cardPresent
         case "interac_present": return .interacPresent
         case "wechat_pay": return .wechatPay
+        case "affirm": return .affirm
         default: return .unknown
         }
     }
-    
+
 }
 
 extension UInt {
