@@ -580,15 +580,17 @@ export async function setSimulatedCard(
 export async function setSimulatedOfflineMode(
   simulatedOffline: boolean
 ): Promise<{ error?: StripeError }> {
-  try {
-    await StripeTerminalSdk.setSimulatedOfflineMode(simulatedOffline);
+  return Logger.traceSdkMethod(async (innerSimulatedOffline) => {
+    try {
+      await StripeTerminalSdk.setSimulatedOfflineMode(innerSimulatedOffline);
 
-    return {};
-  } catch (error) {
-    return {
-      error: error as any,
-    };
-  }
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'setSimulatedOfflineMode')(simulatedOffline);
 }
 
 export async function collectRefundPaymentMethod(
