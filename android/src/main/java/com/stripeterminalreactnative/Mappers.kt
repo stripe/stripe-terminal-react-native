@@ -214,6 +214,14 @@ internal fun mapToAllowRedisplay(method: String?): AllowRedisplay {
     }
 }
 
+internal fun mapToSetupIntentCollectionReason(method: String?): AllowRedisplay {
+    return when (method) {
+        "always" -> AllowRedisplay.ALWAYS
+        "limited" -> AllowRedisplay.LIMITED
+        else -> AllowRedisplay.UNSPECIFIED
+    }
+}
+
 @OptIn(OfflineMode::class)
 internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap =
     nativeMapOf {
