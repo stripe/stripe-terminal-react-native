@@ -228,9 +228,12 @@ export type CollectSetupIntentPaymentMethodParams = {
   enableCustomerCancellation?: boolean;
   setupIntent: SetupIntent.Type;
   moto?: boolean;
+  collectionReason?: CollectionReason; // only for ios now
 };
 
 export type AllowRedisplay = 'always' | 'limited' | 'unspecified';
+
+export type CollectionReason = 'saveCard' | 'verify' | 'unspecified';
 
 export type CreateSetupIntentParams = {
   customer?: string;
