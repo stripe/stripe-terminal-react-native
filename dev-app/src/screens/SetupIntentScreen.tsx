@@ -31,7 +31,7 @@ export default function SetupIntentScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
-  const { discoveryMethod } = params;
+  const { deviceType, discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
   const [moto, setMoto] = useState(false);
@@ -185,7 +185,7 @@ export default function SetupIntentScreen() {
     let setupIntent: SetupIntent.Type | undefined;
     let setupIntentError: StripeError<CommonError> | undefined;
 
-    if (discoveryMethod === 'internet') {
+    if (deviceType === 'verifoneP400') {
       const resp = await api.createSetupIntent({});
 
       if ('error' in resp) {
