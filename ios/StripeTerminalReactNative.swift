@@ -1038,7 +1038,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 if let error = error as NSError? {
                     resolve(Errors.createError(nsError: error))
                 } else if let collectedData {
-                    resolve(Mappers.mapFromCollectedData(collectedData))
+                    resolve(["collectedData": Mappers.mapFromCollectedData(collectedData)])
                 } else {
                     resolve([:])
                 }
