@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Toast from 'react-native-root-toast';
 import {
@@ -10,6 +10,7 @@ import {
   TextInput,
   Switch,
   Alert,
+  AppState,
 } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
@@ -30,6 +31,10 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import AlertDialog from '../components/AlertDialog';
 import type { RouteParamList } from '../App';
 
+type DelayedAlert = {
+  title: string;
+  message: string;
+};
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { account } = useContext(AppContext);
@@ -45,6 +50,9 @@ export default function HomeScreen() {
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const [discoveryTimeout, setDiscoveryTimeout] = useState<number>(0);
   const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
+  const [delayedAlert, setDelayedAlert] = useState<DelayedAlert | null>(null);
   const {
     disconnectReader,
     connectedReader,
@@ -102,10 +110,14 @@ export default function HomeScreen() {
     },
     onDidDisconnect(reason) {
       setPendingUpdate(null);
-      Alert.alert(
-        'Reader disconnected!',
-        'Reader disconnected with reason ' + reason
-      );
+      if (appStateVisible === 'active') {
+        Alert.alert(
+          'Reader disconnected!',
+          'Reader disconnected with reason ' + reason
+        );
+      } else {
+        setDelayedAlert({title: 'Reader disconnected!', message: 'Reader disconnected with reason ' + reason});
+      }
     },
     onDidStartReaderReconnect(reason) {
       console.log('onDidStartReaderReconnect ' + reason);
@@ -123,6 +135,31 @@ export default function HomeScreen() {
       setShowReconnectAlert(false);
     },
   });
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
+      }
+
+      appState.current = nextAppState;
+      setAppStateVisible(appState.current);
+      console.log('AppState', appState.current);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+  if (appState.current === 'active' && delayedAlert != null) {
+    Alert.alert(
+      delayedAlert.title,
+      delayedAlert.message
+    );
+    setDelayedAlert(null);
+  }
   useEffect(() => {
     const getVersion = async () => {
       const version = await getNativeSdkVersion();
