@@ -127,6 +127,7 @@ export default function CollectCardPaymentScreen() {
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPaymentScreen'>>();
   const { simulated, discoveryMethod, deviceType } = params;
+  const [enableClientSideCreate, setClientSideCreate] = useState(deviceType !== 'verifoneP400');
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
@@ -205,7 +206,7 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
 
-    if (deviceType === 'verifoneP400') {
+    if (deviceType === 'verifoneP400' || !enableClientSideCreate) {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
@@ -686,6 +687,21 @@ export default function CollectCardPaymentScreen() {
                       )
                     );
                   }
+                }}
+              />
+            }
+          />
+        </List>
+        <List bolded={false} topSpacing={false} title="CLIENT SIDE">
+          <ListItem
+            title="Enable Client Side Create"
+            rightElement={
+              <Switch
+                testID="enable-client-side-create"
+                value={enableClientSideCreate}
+                disabled={deviceType === 'verifoneP400'}
+                onValueChange={(value) => {
+                  setClientSideCreate(value);
                 }}
               />
             }
