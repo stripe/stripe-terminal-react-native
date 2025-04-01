@@ -1684,10 +1684,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - stripe-terminal-react-native (0.0.1-beta.23):
+  - stripe-terminal-react-native (0.0.1-beta.24):
     - React-Core
     - StripeTerminal (~> 4.2.0)
-  - stripe-terminal-react-native/Tests (0.0.1-beta.23):
+  - stripe-terminal-react-native/Tests (0.0.1-beta.24):
     - React-Core
     - StripeTerminal (~> 4.2.0)
   - StripeTerminal (4.2.0)

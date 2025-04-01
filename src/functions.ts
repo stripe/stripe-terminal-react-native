@@ -841,9 +841,7 @@ export async function collectData(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectData(params);
-      return {
-        collectedData: response,
-      };
+      return response;
     } catch (error) {
       return {
         error: error as any,

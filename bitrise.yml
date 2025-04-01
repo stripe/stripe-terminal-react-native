@@ -87,7 +87,7 @@ workflows:
       - complete_all
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   e2e-ios:
     steps:
@@ -125,7 +125,7 @@ workflows:
       - complete_all
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   example-build-ios:
     steps:
@@ -159,7 +159,7 @@ workflows:
       - complete_all
     meta:
       bitrise.io:
-        stack: linux-docker-android-20.04
+        stack: linux-docker-android-22.04
         machine_type_id: standard
   prep_all:
     steps:
