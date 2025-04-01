@@ -88,6 +88,8 @@ describe('Internet reader', () => {
 
     await navigateTo('Store card via Setup Intents');
 
+await element(by.id('setup-intent-scroll-view")).scrollTo('bottom');
+
     const button = element(by.text('Collect setupIntent'));
 
     await button.tap();
