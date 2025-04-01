@@ -20,6 +20,7 @@ import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
+import com.stripe.stripeterminal.external.models.CardPresentCaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
 import com.stripe.stripeterminal.external.models.Cart
@@ -462,6 +463,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val incrementalAuth =
             getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
+        val cardPresentCaptureMethod = paymentMethodOptions?.getString("captureMethod")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
@@ -532,6 +534,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             .setRequestExtendedAuthorization(extendedAuth)
             .setRequestIncrementalAuthorizationSupport(incrementalAuth)
             .setRouting(routingPriority)
+
+        cardPresentCaptureMethod?.let {
+            when (it) {
+                "manual" -> cardPresentParams.setCaptureMethod(CardPresentCaptureMethod.Manual)
+                "manual_preferred" -> cardPresentParams.setCaptureMethod(CardPresentCaptureMethod.ManualPreferred)
+                else -> { }
+            }
+        }
 
         intentParams.setPaymentMethodOptionsParameters(
             PaymentMethodOptionsParameters.Builder()
