@@ -84,11 +84,11 @@ describe('Internet reader', () => {
     await connectReader(readerName);
 
     await checkIfConnected({ device: readerName });
-    await element(by.id('home-screen')).scroll(700, 'down');
+    await element(by.id('home-screen')).scrollTo('bottom');
 
     await navigateTo('Store card via Setup Intents');
 
-await element(by.id('setup-intent-scroll-view")).scrollTo('bottom');
+    await element(by.id('setup-intent-scroll-view')).scroll(700, 'down');
 
     const button = element(by.text('Collect setupIntent'));
 
