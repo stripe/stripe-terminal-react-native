@@ -43,7 +43,7 @@ export default function SetupIntentScreen() {
     useState(false);
   const [collectReason, setCollectReason] = useState<CollectionReason>('unspecified');
   const [moto, setMoto] = useState(false);
-
+const [createSIServerSide, setServerSideCreate] = useState(deviceType === 'verifoneP400');
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('always');
 
@@ -194,7 +194,7 @@ export default function SetupIntentScreen() {
     let setupIntent: SetupIntent.Type | undefined;
     let setupIntentError: StripeError<CommonError> | undefined;
 
-    if (deviceType === 'verifoneP400') {
+    if (createSIServerSide) {
       const resp = await api.createSetupIntent({});
 
       if ('error' in resp) {
@@ -360,11 +360,28 @@ export default function SetupIntentScreen() {
           }
         />
       </List>
-      <ListItem
-        color={colors.blue}
-        title="Collect setupIntent"
-        onPress={_createSetupIntent}
-      />
+      <List bolded={false} topSpacing={false} title="Create Server Side">
+        <ListItem
+          title="Enable Server Side Create"
+          rightElement={
+            <Switch
+              testID="enable-server-side-create"
+              value={createSIServerSide}
+              disabled={deviceType === 'verifoneP400'}
+              onValueChange={(value) => {
+                setServerSideCreate(value);
+              }}
+            />
+          }
+        />
+      </List>
+      <List bolded={false} topSpacing={true}>
+        <ListItem
+          color={colors.blue}
+          title="Collect setupIntent"
+          onPress={_createSetupIntent}
+        />
+      </List>
     </KeyboardAwareScrollView>
   );
 }
