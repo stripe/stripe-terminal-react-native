@@ -127,6 +127,7 @@ export default function CollectCardPaymentScreen() {
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPaymentScreen'>>();
   const { simulated, discoveryMethod, deviceType } = params;
+  const [createPIServerSide, setServerSideCreate] = useState(deviceType === 'verifoneP400');
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
@@ -205,7 +206,7 @@ export default function CollectCardPaymentScreen() {
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError<CommonError> | undefined;
 
-    if (deviceType === 'verifoneP400') {
+    if (createPIServerSide) {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
         currency: inputValues.currency,
@@ -686,6 +687,21 @@ export default function CollectCardPaymentScreen() {
                       )
                     );
                   }
+                }}
+              />
+            }
+          />
+        </List>
+        <List bolded={false} topSpacing={false} title="Create Server Side">
+          <ListItem
+            title="Enable Server Side Create"
+            rightElement={
+              <Switch
+                testID="enable-server-side-create"
+                value={createPIServerSide}
+                disabled={deviceType === 'verifoneP400'}
+                onValueChange={(value) => {
+                  setServerSideCreate(value);
                 }}
               />
             }
