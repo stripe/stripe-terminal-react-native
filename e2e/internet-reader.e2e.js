@@ -32,14 +32,14 @@ describe('Internet reader', () => {
   it('Connect and disconnect', async () => {
     await changeDiscoveryMethod('Internet');
     await navigateTo('Discover Readers');
-    await connectReader('verifoneP400');
-    await checkIfConnected({ device: 'verifoneP400' });
+    await connectReader('wisePosE');
+    await checkIfConnected({ device: 'wisePosE' });
   });
 
   it('Collect card payment', async () => {
     await changeDiscoveryMethod('Internet');
     await navigateTo('Discover Readers');
-    await connectReader('verifoneP400');
+    await connectReader('wisePosE');
 
     await navigateTo('Collect card payment');
 
@@ -78,8 +78,7 @@ describe('Internet reader', () => {
   it('Store card via SetupIntent', async () => {
     // Store card via SetupIntent is not available for verifoneP400 on iOS
     // while this is the only available simulated reader on Android
-    const readerName =
-      device.getPlatform() === 'ios' ? 'wisePosE' : 'verifoneP400';
+    const readerName = 'wisePosE';
     await changeDiscoveryMethod('Internet');
     await navigateTo('Discover Readers');
     await connectReader(readerName);
@@ -104,15 +103,14 @@ describe('Internet reader', () => {
   });
 
   it('setReaderDisplay/clearReaderDisplay', async () => {
-    // The only available verifoneP400 reader doesn't support setReaderDisplay funtionality in simulated mode.
     if (device.getPlatform() === 'android') {
       return;
     }
     await changeDiscoveryMethod('Internet');
     await navigateTo('Discover Readers');
-    await connectReader('verifoneP400');
+    await connectReader('wisePosE');
 
-    await checkIfConnected({ device: 'verifoneP400' });
+    await checkIfConnected({ device: 'wisePosE' });
     await element(by.id('home-screen')).scrollTo('bottom');
 
     await navigateTo('Set reader display');
