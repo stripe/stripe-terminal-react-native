@@ -225,7 +225,7 @@ export default function HomeScreen() {
         <ListItem
           title="Store card via Setup Intents"
           onPress={() => {
-            navigation.navigate('SetupIntentScreen', { discoveryMethod });
+            navigation.navigate('SetupIntentScreen', { discoveryMethod, deviceType: deviceType, });
           }}
         />
         <ListItem

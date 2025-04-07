@@ -5,5 +5,5 @@ module.exports = {
   displayName: 'eslint',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/*'],
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/lib'],
+  testPathIgnorePatterns: ['/node_modules/', '/coverage/', '<rootDir>/lib'],
 };

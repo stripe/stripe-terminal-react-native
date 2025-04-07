@@ -904,10 +904,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let allowRedisplay = params["allowRedisplay"] as? String ?? "unspecified"
         let setupIntentConfiguration: SetupIntentConfiguration
         do {
-            setupIntentConfiguration = try SetupIntentConfigurationBuilder()
+            let builder = SetupIntentConfigurationBuilder()
                 .setEnableCustomerCancellation(enableCustomerCancellation)
                 .setMoto(moto)
-                .build()
+            if let collectionReason = Mappers.mapToSetupIntentCollectionReason(params["collectionReason"] as? String) {
+                builder.setCollectionReason(collectionReason)
+            }
+            setupIntentConfiguration = try builder.build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
             return
@@ -1044,7 +1047,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 if let error = error as NSError? {
                     resolve(Errors.createError(nsError: error))
                 } else if let collectedData {
-                    resolve(Mappers.mapFromCollectedData(collectedData))
+                    resolve(["collectedData": Mappers.mapFromCollectedData(collectedData)])
                 } else {
                     resolve([:])
                 }

@@ -759,6 +759,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
             val moto = getBoolean(params, "moto")
+            val collectionReason = mapToSetupIntentCollectionReason(params.getString("collectionReason"))
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,

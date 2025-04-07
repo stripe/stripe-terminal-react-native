@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1'
+        classpath 'com.android.tools.build:gradle:8.7.2'
         // noinspection DifferentKotlinGradleVersion
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.codehaus.groovy:groovy-json:3.0.10'
@@ -28,7 +28,7 @@ def getExtOrIntegerDefault(name) {
     return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['StripeTerminalReactNative_' + name]).toInteger()
 }
 
-def terminalAndroidSdkVersion = '4.1.0'
+def terminalAndroidSdkVersion = '4.2.0'
 def reactNativeSdkVersion = getVersionFromNpm()
 
 android {

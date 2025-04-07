@@ -64,6 +64,7 @@ export type RouteParamList = {
   };
   SetupIntentScreen: {
     discoveryMethod: Reader.DiscoveryMethod;
+    deviceType: Reader.DeviceType | undefined;
   };
   DiscoverReadersScreen: {
     simulated: boolean;
