@@ -257,6 +257,17 @@ class Mappers {
             mapToPaymentMethodType($0 as? String ?? "")
         })
     }
+    
+    class func mapToSetupIntentCollectionReason(_ reason: String?) -> SetupIntentCollectionReason? {
+        switch reason {
+        case "saveCard":
+            return SetupIntentCollectionReason.saveCard
+        case "verify":
+            return SetupIntentCollectionReason.verify
+        default:
+            return nil
+        }
+    }
 
     class func mapToPaymentMethodType(_ paymentMethodType: String) -> PaymentMethodType {
         switch paymentMethodType {

@@ -7,6 +7,7 @@ import {
   CommonError,
   type StripeError,
   type AllowRedisplay,
+  type CollectionReason,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -26,6 +27,12 @@ const ALLOW_REDISPLAY = [
   { value: 'always', label: 'always' },
 ];
 
+const COLLECTION_REASON = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'saveCard', label: 'saveCard' },
+  { value: 'verify', label: 'verify' },
+];
+
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
@@ -34,6 +41,7 @@ export default function SetupIntentScreen() {
   const { deviceType, discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
+  const [collectReason, setCollectReason] = useState<CollectionReason>('unspecified');
   const [moto, setMoto] = useState(false);
 
   const [allowRedisplay, setAllowRedisplay] =
@@ -138,6 +146,7 @@ export default function SetupIntentScreen() {
       allowRedisplay: allowRedisplay,
       enableCustomerCancellation: enableCustomerCancellation,
       moto: moto,
+      collectionReason: collectReason,
     });
     if (error) {
       addLogs({
@@ -312,6 +321,24 @@ export default function SetupIntentScreen() {
           onValueChange={(value) => setAllowRedisplay(value as AllowRedisplay)}
         >
           {ALLOW_REDISPLAY.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
+      <List bolded={false} topSpacing={false} title="Set Collection Reason">
+        <Picker
+          selectedValue={collectReason}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-collection-reason"
+          onValueChange={(value) => setCollectReason(value as CollectionReason)}
+        >
+          {COLLECTION_REASON.map((a) => (
             <Picker.Item
               key={a.value}
               label={a.label}
