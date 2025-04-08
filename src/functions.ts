@@ -583,7 +583,6 @@ export async function setSimulatedOfflineMode(
   return Logger.traceSdkMethod(async (innerSimulatedOffline) => {
     try {
       await StripeTerminalSdk.setSimulatedOfflineMode(innerSimulatedOffline);
-
       return {};
     } catch (error) {
       return {
@@ -591,6 +590,20 @@ export async function setSimulatedOfflineMode(
       };
     }
   }, 'setSimulatedOfflineMode')(simulatedOffline);
+}
+
+export async function setSimulatedCollectInputsResult(
+): Promise<{ error?: StripeError }> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.setSimulatedCollectInputsResult();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'setSimulatedCollectInputsResult')();
 }
 
 export async function collectRefundPaymentMethod(

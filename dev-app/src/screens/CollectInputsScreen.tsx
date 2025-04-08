@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Platform } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import {
@@ -11,11 +11,14 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 import type { RouteParamList } from '../App';
 
 export default function CollectInputsScreen() {
-  const { collectInputs, cancelCollectInputs } = useStripeTerminal();
+  const { params } = useRoute<RouteProp<RouteParamList, 'CollectInputsScreen'>>();
+  const { simulated } = params;
+
+  const { collectInputs, cancelCollectInputs, setSimulatedCollectInputsResult } = useStripeTerminal();
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
@@ -38,6 +41,35 @@ export default function CollectInputsScreen() {
       ],
     });
 
+    if (simulated && Platform.OS === 'android') { // only android support it now
+      const simulateResultResponse = await setSimulatedCollectInputsResult();
+      if (simulateResultResponse.error) {
+        addLogs({
+          name: 'Simulate Collect Inputs Result',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.simulateCollectInputs',
+              metadata: {
+                errorCode: simulateResultResponse.error?.code,
+                errorMessage: simulateResultResponse.error?.message,
+              },
+            },
+          ],
+        });
+        return;
+      } else {
+        addLogs({
+          name: 'Simulate Collect Inputs Result',
+          events: [
+            {
+              name: 'Succeeded',
+              description: 'terminal.simulateCollectInputs',
+            },
+          ],
+        });
+      }
+    }
     const response = await collectInputs(params);
 
     if (response.error) {

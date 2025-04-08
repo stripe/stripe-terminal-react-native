@@ -146,6 +146,9 @@ export interface StripeTerminalSdkType {
   setSimulatedOfflineMode(simulatedOffline: boolean): Promise<{
     error?: StripeError;
     }>;
+  setSimulatedCollectInputsResult(): Promise<{
+    error?: StripeError;
+  }>;
   getOfflineStatus(): Promise<OfflineStatus>;
   getPaymentStatus(): Promise<PaymentStatus>;
   getConnectionStatus(): Promise<ConnectionStatus>;

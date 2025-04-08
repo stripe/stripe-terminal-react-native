@@ -50,6 +50,7 @@ exports[`useStripeTerminal.test.tsx Public API snapshot ensure there are no unex
     "setReaderDisplay": [Function],
     "setReaderSettings": [Function],
     "setSimulatedCard": [Function],
+    "setSimulatedCollectInputsResult": [Function],
     "setSimulatedOfflineMode": [Function],
     "setTapToPayUxConfiguration": [Function],
     "simulateReaderUpdate": [Function],

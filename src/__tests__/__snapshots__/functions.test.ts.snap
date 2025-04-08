@@ -45,6 +45,7 @@ exports[`functions.test.ts Functions snapshot ensure there are no unexpected cha
   "setReaderDisplay": [Function],
   "setReaderSettings": [Function],
   "setSimulatedCard": [Function],
+  "setSimulatedCollectInputsResult": [Function],
   "setSimulatedOfflineMode": [Function],
   "setTapToPayUxConfiguration": [Function],
   "simulateReaderUpdate": [Function],
