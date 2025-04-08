@@ -53,6 +53,8 @@ import com.stripe.stripeterminal.external.models.SetupIntentCancellationParamete
 import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
@@ -1023,7 +1025,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val listInput = ArrayList<Input>()
         for (i in 0 until collectInputs.size()) {
             val collectInput = collectInputs.getMap(i)
-            when (collectInput?.getString("formType")) {
+            when (collectInput.getString("formType")) {
                 "text" -> {
                     collectInput.let {
                         var toggles = ArrayList<Toggle>()
@@ -1121,13 +1123,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                                 val button = array.getMap(i)
                                 listSelectionButtons.add(
                                     SelectionButton(
-                                        if (button?.getString("style") == "primary") {
+                                        if (button.getString("style") == "primary") {
                                             SelectionButtonStyle.PRIMARY
                                         } else {
                                             SelectionButtonStyle.SECONDARY
                                         },
-                                        button?.getString("text") ?: "",
-                                        button?.getString("id") ?: "",
+                                        button.getString("text") ?: "",
+                                        button.getString("id") ?: "",
                                     )
                                 )
                             }
