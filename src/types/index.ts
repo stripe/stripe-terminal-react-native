@@ -517,7 +517,7 @@ export interface NumericResult extends ICollectInputsResult {
 export interface ISelectionButton {
   style: SelectionButtonStyle;
   text: string;
-  id?: string;
+  id: string;
 }
 
 export enum SelectionButtonStyle {
