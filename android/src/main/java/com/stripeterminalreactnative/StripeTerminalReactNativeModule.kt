@@ -51,7 +51,6 @@ import com.stripe.stripeterminal.external.models.SelectionInput
 import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
 import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
-import com.stripe.stripeterminal.external.models.SetupIntentParameters
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
@@ -1127,7 +1126,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                                         } else {
                                             SelectionButtonStyle.SECONDARY
                                         },
-                                        button?.getString("text") ?: ""
+                                        button?.getString("text") ?: "",
+                                        button?.getString("id") ?: "",
                                     )
                                 )
                             }

@@ -105,8 +105,8 @@ export default function CollectInputsScreen() {
                   required: false,
                   description: 'Were you happy with customer service?',
                   selectionButtons: [
-                    { style: SelectionButtonStyle.PRIMARY, text: 'Yes' },
-                    { style: SelectionButtonStyle.SECONDARY, text: 'No' },
+                    { style: SelectionButtonStyle.PRIMARY, text: 'Yes', id: "1" },
+                    { style: SelectionButtonStyle.SECONDARY, text: 'No', id: "2" },
                   ],
                 },
               ],
