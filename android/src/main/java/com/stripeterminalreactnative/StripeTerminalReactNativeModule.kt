@@ -220,6 +220,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
+    
+    @ReactMethod
+    @Suppress("unused")
+    fun setSimulatedOfflineMode(simulatedOffline: Boolean, promise: Promise) {
+        terminal.simulatorConfiguration = SimulatorConfiguration(
+            update = terminal.simulatorConfiguration.update,
+            offlineEnabled = simulatedOffline
+        )
+        promise.resolve(NativeTypeFactory.writableNativeMap())
+    }
 
     @ReactMethod
     @Suppress("unused")

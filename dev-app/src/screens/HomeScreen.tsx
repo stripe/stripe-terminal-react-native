@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { account } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
+  const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
   const [showReconnectAlert, setShowReconnectAlert] = useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] =
@@ -51,6 +52,7 @@ export default function HomeScreen() {
     rebootReader,
     cancelReaderReconnection,
     getNativeSdkVersion,
+    setSimulatedOfflineMode,
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
@@ -432,6 +434,19 @@ export default function HomeScreen() {
                 />
               }
             />
+
+            {simulated ? (<ListItem
+                        title="Simulate Offline Mode"
+                        rightElement={
+                          <Switch
+                          value={simulatedOffline}
+                          onValueChange={async (value) => {
+                            setSimulatedOffline(value);
+                            await setSimulatedOfflineMode(value);
+                          }}
+                          />
+                        }
+                        />) : <></>}
 
             <Text style={styles.infoText}>
               The SDK comes with the ability to simulate behavior without using
