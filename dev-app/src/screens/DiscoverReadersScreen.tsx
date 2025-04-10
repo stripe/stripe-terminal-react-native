@@ -378,11 +378,12 @@ export default function DiscoverReadersScreen() {
         loading={discoveringLoading}
         description={connectingReader ? 'Connecting...' : undefined}
       >
-        {discoveredReaders.map((reader) => (
+        {discoveredReaders.map((reader, index) => (
           <ListItem
             key={reader.serialNumber}
             onPress={() => handleConnectReader(reader)}
             title={getReaderDisplayName(reader)}
+            testID={`reader-${index}`}
             disabled={!isBTReader(reader) && reader.status === 'offline'}
           />
         ))}

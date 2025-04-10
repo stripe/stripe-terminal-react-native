@@ -1,0 +1,4 @@
+appId: com.dev.app.stripeterminalreactnative
+---
+tapOn: "Collect card payment"
+tapOn: "Collect payment"
