@@ -37,9 +37,11 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PromptTapToPayEducationResult,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
+import StripeTerminalReactNative from './StripeTerminalSdk';
 
 export async function initialize(
   params: InitParams
@@ -212,9 +214,8 @@ export async function createSetupIntent(
 ): Promise<SetupIntentResultType> {
   return Logger.traceSdkMethod(async (innerParams) => {
     try {
-      const { error, setupIntent } = await StripeTerminalSdk.createSetupIntent(
-        innerParams
-      );
+      const { error, setupIntent } =
+        await StripeTerminalSdk.createSetupIntent(innerParams);
 
       if (error) {
         return {
@@ -600,9 +601,8 @@ export async function collectRefundPaymentMethod(
 }> {
   return Logger.traceSdkMethod(async (innerParams) => {
     try {
-      const { error } = await StripeTerminalSdk.collectRefundPaymentMethod(
-        innerParams
-      );
+      const { error } =
+        await StripeTerminalSdk.collectRefundPaymentMethod(innerParams);
       return {
         error,
       };
@@ -886,9 +886,8 @@ export async function supportsReadersOfType(
 ): Promise<Reader.ReaderSupportResult> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const supportReaderResult = await StripeTerminalSdk.supportsReadersOfType(
-        params
-      );
+      const supportReaderResult =
+        await StripeTerminalSdk.supportsReadersOfType(params);
       return supportReaderResult;
     } catch (error) {
       return {
@@ -932,4 +931,13 @@ export async function getNativeSdkVersion(): Promise<string> {
       return '';
     }
   }, 'getNativeSdkVersion')();
+}
+
+export function promptTapToPayEducationView(): Promise<PromptTapToPayEducationResult> {
+  try {
+    const response = StripeTerminalReactNative.promptTapToPayEducationView();
+    return response;
+  } catch (error) {
+    throw error;
+  }
 }
