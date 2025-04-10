@@ -80,13 +80,14 @@ workflows:
           inputs:
             - content: |-
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                export PATH="$PATH":"$HOME/.maestro/bin"
-                which maestro
-                ~/.maestro/bin/maestro -h
+                $HOME/.maestro/bin/maestro test .maesto/app.yml
+                # export PATH="$PATH":"$HOME/.maestro/bin"
+                maestro test .maesto/app.yml
           title: install maestro
-      - yarn@0:
+      - script@1:
           inputs:
-            - command: e2e:test:android:release
+            - content: |-
+                maestro test .maesto/app.yml
             - cache_local_deps: 'yes'
           title: test detox
     before_run:
