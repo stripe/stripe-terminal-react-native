@@ -81,6 +81,8 @@ workflows:
             - content: |-
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
                 export PATH="$PATH":"$HOME/.maestro/bin"
+                which maestro
+                ~/.maestro/bin/maestro -h
           title: install maestro
       - yarn@0:
           inputs:
