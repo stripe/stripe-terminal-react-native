@@ -78,6 +78,11 @@ workflows:
           title: build for detox
       - yarn@0:
           inputs:
+            - command: curl -fsSL "https://get.maestro.mobile.dev" | bash
+            - cache_local_deps: 'yes'
+          title: install maestro
+      - yarn@0:
+          inputs:
             - command: e2e:test:android:release
             - cache_local_deps: 'yes'
           title: test detox
