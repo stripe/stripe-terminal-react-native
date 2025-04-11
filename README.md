@@ -34,12 +34,12 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 
 - Android API level 26 and above
   * Note that attempting to override minSdkVersion to decrease the minimum supported API level will not work due to internal runtime API level validation.
-- compileSdkVersion = 33
-- targetSdkVersion = 31
+- compileSdkVersion = 35
+- targetSdkVersion = 35
 
 ### iOS
 
-- Compatible with apps targeting iOS 13 or above.
+- Compatible with apps targeting iOS 15.1 or above.
 
 ## Try the example app
 
