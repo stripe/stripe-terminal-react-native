@@ -82,7 +82,7 @@ workflows:
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
                 ~/.maestro/bin/maestro -h
               
-                ~/.maestro/bin/maestro test ~/project/.maesto/app.yml
+                ~/.maestro/bin/maestro test /bitrise/src/.maesto/app.yml
           title: install maestro
       - script@1:
           inputs:
