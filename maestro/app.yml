@@ -48,18 +48,41 @@ tags:
     env:
       discoveryMethod: "Internet"
 
-# TODO
-# Required update impossible due to low battery 
+# TODO ios only
+# Required update impossible due to low battery
 
-# # Collect card payment
-# - launchApp:
-#     permissions:
-#       all: allow
+# Collect card payment
+- launchApp:
+    permissions:
+      all: allow
 
-# - runFlow:
-#     file: e2e/connectReader.yaml
-#     env:
-#       discoveryMethod: "Bluetooth Scan"
-# - runFlow:
-#     file: e2e/collectPayment.yaml
-    
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow:
+    file: e2e/collectPayment.yaml
+
+# Store card via SetupIntent
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow:
+    file: e2e/setupIntent.yaml
+
+# In-Person Refund failed due to unsupported country
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow:
+    file: e2e/inpersonRefund.yaml

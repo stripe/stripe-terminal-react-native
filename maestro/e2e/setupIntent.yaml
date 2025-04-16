@@ -1,14 +1,16 @@
 appId: com.dev.app.stripeterminalreactnative
 ---
-- tapOn: "Collect card payment"
-- tapOn: "Collect payment"
+- scrollUntilVisible:
+    element:
+      text: "Store card via Setup Intents"
+- tapOn: "Store card via Setup Intents"
+
+- tapOn:
+    id: "collect-setup-intent-button"
 
 - scrollUntilVisible:
     element:
       text: "Create"
-- scrollUntilVisible:
-    element:
-      text: "Created"
 - scrollUntilVisible:
     element:
       text: "Collect"
@@ -20,16 +22,10 @@ appId: com.dev.app.stripeterminalreactnative
       text: "removeCard"
 - scrollUntilVisible:
     element:
-      text: "Collected"
+      text: "Created"
 - scrollUntilVisible:
     element:
       text: "Process"
 - scrollUntilVisible:
     element:
-      text: "Confirmed"
-- scrollUntilVisible:
-    element:
-      text: "Capture"
-- scrollUntilVisible:
-    element:
-      text: "Captured"
+      text: "Finished"

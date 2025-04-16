@@ -1,0 +1,27 @@
+appId: com.dev.app.stripeterminalreactnative
+---
+- scrollUntilVisible:
+    element:
+      text: "In-Person Refund"
+- tapOn: "In-Person Refund"
+
+- tapOn:
+    id: "charge-id-text-field"
+- inputText: "ch_3JxsjUBDuqlYGNW21EL8UyOm"
+
+- tapOn:
+    id: "amount-text-field"
+- inputText: "20000"
+
+- scrollUntilVisible:
+    element:
+      id: "collect-refund-button"
+- tapOn:
+    id: "collect-refund-button"
+
+- scrollUntilVisible:
+    element:
+      text: "Collect"
+- scrollUntilVisible:
+    element:
+      text: "Failed"
