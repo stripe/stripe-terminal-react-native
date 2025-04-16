@@ -75,12 +75,18 @@ workflows:
           inputs:
             - command: e2e:build:android:release
             - cache_local_deps: 'yes'
-          title: build for detox
-      - yarn@0:
+          title: build for maestro test
+      - script@1:
           inputs:
-            - command: e2e:test:android:release
-            - cache_local_deps: 'yes'
-          title: test detox
+            - content: |-
+                adb install dev-app/android/app/build/outputs/apk/release/app-release.apk
+          title: install app
+      - script@1:
+          inputs:
+            - content: |-
+                curl -fsSL "https://get.maestro.mobile.dev" | bash
+                ~/.maestro/bin/maestro test maestro/app.yml
+          title: install maestro & run tests
     before_run:
       - prep_all
     after_run:

@@ -1,0 +1,24 @@
+appId: com.dev.app.stripeterminalreactnative
+---
+- tapOn:
+    id: "discovery-method-button"
+- tapOn: ${discoveryMethod}
+- tapOn: "Discover Readers"
+
+- runFlow:
+    when:
+        true: ${updateRequired == true}
+    commands:
+        - tapOn:
+            id: "update-plan-picker"
+        - tapOn: "Update required"
+
+- tapOn:
+    id: "reader-1"
+- runFlow:
+    when:
+        true: ${updateRequired == true}
+    commands:
+        - extendedWaitUntil:
+            visible: "Required update in progress"
+            timeout: 16000
