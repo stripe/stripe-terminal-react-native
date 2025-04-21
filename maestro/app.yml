@@ -1,0 +1,88 @@
+appId: com.dev.app.stripeterminalreactnative
+tags:
+  - passing
+---
+# Connect and disconnect
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow: 
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow: e2e/checkIfConnected.yaml
+
+
+# Install required update and connect
+- launchApp:
+    permissions:
+      all: allow
+      
+- runFlow: 
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+      updateRequired: true
+- runFlow: e2e/checkIfConnected.yaml
+
+# Change discovery method to bluetooth proximity
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Proximity"
+    when:
+        platform: ios
+
+# Change discovery method to Internet
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Internet"
+
+# TODO ios only
+# Required update impossible due to low battery
+
+# Collect card payment
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow:
+    file: e2e/collectPayment.yaml
+
+# Store card via SetupIntent
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow:
+    file: e2e/setupIntent.yaml
+
+# In-Person Refund failed due to unsupported country
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "Bluetooth Scan"
+- runFlow:
+    file: e2e/inpersonRefund.yaml

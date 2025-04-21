@@ -1,0 +1,31 @@
+appId: com.dev.app.stripeterminalreactnative
+---
+- scrollUntilVisible:
+    element:
+      text: "Store card via Setup Intents"
+- tapOn: "Store card via Setup Intents"
+
+- tapOn:
+    id: "collect-setup-intent-button"
+
+- scrollUntilVisible:
+    element:
+      text: "Create"
+- scrollUntilVisible:
+    element:
+      text: "Collect"
+- scrollUntilVisible:
+    element:
+      text: "insertCard / swipeCard / tapCard"
+- scrollUntilVisible:
+    element:
+      text: "removeCard"
+- scrollUntilVisible:
+    element:
+      text: "Created"
+- scrollUntilVisible:
+    element:
+      text: "Process"
+- scrollUntilVisible:
+    element:
+      text: "Finished"

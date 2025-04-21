@@ -362,6 +362,7 @@ export default function SetupIntentScreen() {
       </List>
       <ListItem
         color={colors.blue}
+        testID="collect-setup-intent-button"
         title="Collect setupIntent"
         onPress={_createSetupIntent}
       />
