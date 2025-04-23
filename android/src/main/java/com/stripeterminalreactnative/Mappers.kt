@@ -268,6 +268,10 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
                         "requestIncrementalAuthorizationSupport",
                         it.cardPresent?.requestIncrementalAuthorizationSupport ?: false
                     )
+                    putString(
+                        "requestPartialAuthorization",
+                        it.cardPresent?.requestPartialAuthorization?.typeName.orEmpty()
+                    )
                     putMap("surcharge",
                         nativeMapOf {
                             putString("status", it.cardPresent?.surcharge?.status)

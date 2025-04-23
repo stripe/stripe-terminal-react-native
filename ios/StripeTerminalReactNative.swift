@@ -415,6 +415,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let extendedAuth = paymentMethodOptions["requestExtendedAuthorization"] as? Bool ?? false
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
         let requestedPriority = paymentMethodOptions["requestedPriority"] as? String
+        let requestPartialAuthorization = paymentMethodOptions["requestPartialAuthorization"] as? String
         let captureMethod = params["captureMethod"] as? String
 
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
@@ -443,6 +444,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             cardPresentParamsBuilder.setRequestedPriority(CardPresentRouting.domestic)
         case "international":
             cardPresentParamsBuilder.setRequestedPriority(CardPresentRouting.international)
+        default:
+            break
+        }
+        switch requestPartialAuthorization {
+        case "if_available":
+            cardPresentParamsBuilder.setRequestPartialAuthorization(CardPresentRequestPartialAuthorization.ifAvailable)
+        case "never":
+            cardPresentParamsBuilder.setRequestPartialAuthorization(CardPresentRequestPartialAuthorization.never)
         default:
             break
         }

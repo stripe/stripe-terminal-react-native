@@ -66,6 +66,12 @@ const OFFLINE_BEHAVIOR = [
   { value: 'force_offline', label: 'force_offline' },
 ];
 
+const PARTIAL_AUTH = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'if_available', label: 'if_available' },
+  { value: 'never', label: 'never' },
+];
+
 const ALLOW_REDISPLAY = [
   { value: 'unspecified', label: 'unspecified' },
   { value: 'limited', label: 'limited' },
@@ -88,6 +94,7 @@ export default function CollectCardPaymentScreen() {
     applicationFeeAmount?: string;
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
+    requestPartialAuthorization?: string;
     captureMethod: 'automatic' | 'manual';
     requestedPriority: 'domestic' | 'international' | '';
     offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
@@ -288,6 +295,7 @@ export default function CollectCardPaymentScreen() {
           requestIncrementalAuthorizationSupport:
             inputValues.requestIncrementalAuthorizationSupport,
           requestedPriority: inputValues.requestedPriority,
+          requestPartialAuthorization: inputValues.requestPartialAuthorization
         },
         captureMethod: inputValues?.captureMethod,
         offlineBehavior: inputValues?.offlineBehavior,
@@ -878,6 +886,27 @@ export default function CollectCardPaymentScreen() {
               />
             }
           />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="REQUEST PARTIAL AUTH">
+          <Picker
+            selectedValue={inputValues?.requestPartialAuthorization}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-partial-auth-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({ ...state, requestPartialAuthorization: value }))
+            }
+          >
+            {PARTIAL_AUTH.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
         </List>
 
         <List bolded={false} topSpacing={false} title="SURCHARGE NOTICE">

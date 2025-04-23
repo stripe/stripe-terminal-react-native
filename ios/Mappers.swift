@@ -214,8 +214,9 @@ class Mappers {
         var cardPresentMap: NSDictionary?
         if let cardPresentMapDetails = options?.cardPresentParameters {
             cardPresentMap = [
-                "requestExtendedAuthorization": options?.cardPresentParameters.requestExtendedAuthorization ?? false,
-                "requestIncrementalAuthorizationSupport": options?.cardPresentParameters.requestIncrementalAuthorizationSupport ?? false,
+                "requestExtendedAuthorization": cardPresentMapDetails.requestExtendedAuthorization,
+                "requestIncrementalAuthorizationSupport": cardPresentMapDetails.requestIncrementalAuthorizationSupport,
+                "requestPartialAuthorization": cardPresentMapDetails.requestPartialAuthorization ?? -1,
                 "surcharge": surchargeMap ?? NSNull(),
             ]
         }

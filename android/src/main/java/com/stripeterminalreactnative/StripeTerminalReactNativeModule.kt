@@ -21,6 +21,7 @@ import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
+import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
 import com.stripe.stripeterminal.external.models.Cart
 import com.stripe.stripeterminal.external.models.CollectConfiguration
@@ -471,6 +472,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val incrementalAuth =
             getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
+        val requestPartialAuthorization = paymentMethodOptions?.getString("requestPartialAuthorization")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
@@ -537,10 +539,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             else -> CardPresentRoutingOptionParameters(null)
         }
 
+        val partialAuthorization = when (requestPartialAuthorization) {
+            "if_available" -> CardPresentRequestPartialAuthorization.IF_AVAILABLE
+            "never" -> CardPresentRequestPartialAuthorization.NEVER
+            else -> null
+        }
+
         val cardPresentParams = CardPresentParameters.Builder()
             .setRequestExtendedAuthorization(extendedAuth)
             .setRequestIncrementalAuthorizationSupport(incrementalAuth)
             .setRouting(routingPriority)
+        if (partialAuthorization != null) {
+            cardPresentParams.setRequestPartialAuthorization(partialAuthorization)
+        }
 
         intentParams.setPaymentMethodOptionsParameters(
             PaymentMethodOptionsParameters.Builder()
