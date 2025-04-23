@@ -732,13 +732,17 @@ class Mappers {
         if let affirm = paymentMethodDetails.affirm{
             affirmMapped = mapFromAffirm(affirm)
         }
-
+        var cardDetailsMapped: NSDictionary?
+        if let cardDetails = paymentMethodDetails.card {
+            cardDetailsMapped = mapFromCardDetails(cardDetails)
+        }
         let result: NSDictionary = [
             "type": mapFromPaymentMethodDetailsType(paymentMethodDetails.type),
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "affirmDetails": affirmMapped ?? NSNull(),
+            "cardDetails": cardDetailsMapped ?? NSNull(),
         ]
         return result
     }
