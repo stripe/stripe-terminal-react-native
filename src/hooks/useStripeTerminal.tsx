@@ -23,7 +23,11 @@ import type {
   CancelPaymentMethodParams,
   CollectDataParams,
   TapToPayUxConfiguration,
-  ConnectReaderParams,
+  ConnectBluetoothReaderParams,
+  ConnectUsbReaderParams,
+  ConnectTapToPayParams,
+  ConnectHandoffParams,
+  ConnectInternetReaderParams,
 } from '../types';
 import {
   discoverReaders,
@@ -406,7 +410,7 @@ export function useStripeTerminal(props?: Props) {
 
   const _connectReader = useCallback(
     async (
-      params: ConnectReaderParams,
+      params: ConnectBluetoothReaderParams | ConnectUsbReaderParams | ConnectTapToPayParams | ConnectHandoffParams | ConnectInternetReaderParams,
       discoveryMethod: Reader.DiscoveryMethod
     ) => {
       if (!_isInitialized()) {
