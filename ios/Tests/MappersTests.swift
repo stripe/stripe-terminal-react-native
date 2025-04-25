@@ -18,6 +18,14 @@ final class MappersTests: XCTestCase {
         // and to constants
         XCTAssertEqual(Mappers.mapFromLocationStatus(.notSet), "notSet")
     }
+    
+    func testMapFromRequestPartialAuthorization() {
+        XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.ifAvailable.rawValue), "if_available")
+        XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.never.rawValue), "never")
+        XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(100), "")
+        XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(0), "if_available")
+        XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(1), "never")
+    }
 
     func testMapToSetupIntent() {
         let params: NSDictionary = [
