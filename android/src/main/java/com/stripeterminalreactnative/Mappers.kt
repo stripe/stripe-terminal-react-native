@@ -15,6 +15,7 @@ import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
+import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.CartLineItem
 import com.stripe.stripeterminal.external.models.Charge
 import com.stripe.stripeterminal.external.models.CollectDataType
@@ -270,7 +271,7 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
                     )
                     putString(
                         "requestPartialAuthorization",
-                        it.cardPresent?.requestPartialAuthorization?.typeName.orEmpty()
+                        mapFromRequestPartialAuthorization(it.cardPresent?.requestPartialAuthorization)
                     )
                     putMap("surcharge",
                         nativeMapOf {
@@ -286,6 +287,10 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
             )
         }
     }
+
+internal fun mapFromRequestPartialAuthorization(partialAuth: CardPresentRequestPartialAuthorization?): String {
+    return partialAuth?.typeName.orEmpty()
+}
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
     putString("created", convertToUnixTimestamp(setupIntent.created))
