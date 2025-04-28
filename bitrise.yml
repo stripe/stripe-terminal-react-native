@@ -163,10 +163,6 @@ workflows:
       - prep_all
     after_run:
       - complete_all
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: standard
   prep_all:
     steps:
       - set-java-version@1:
@@ -179,8 +175,8 @@ workflows:
       - script@1:
           inputs:
             - content: |-
-                asdf install nodejs 20.9.0
-                asdf global nodejs 20.9.0
+                asdf install nodejs 20.17.0
+                asdf global nodejs 20.17.0
                 npm install -g yarn
                 echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
                 source $BASH_ENV
