@@ -637,6 +637,9 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "affirmDetails",
             mapFromAffirmDetails(paymentMethodDetails?.affirmDetails)
         )
+        if (paymentMethodDetails?.cardDetails != null) {
+            putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
+        }
         putString("type", mapFromPaymentMethodDetailsType(paymentMethodDetails?.type))
     }
 
