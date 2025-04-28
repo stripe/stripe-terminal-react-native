@@ -221,7 +221,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
-    
+
     @ReactMethod
     @Suppress("unused")
     fun setSimulatedOfflineMode(simulatedOffline: Boolean, promise: Promise) {
@@ -234,10 +234,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setSimulatedCollectInputsResult(promise: Promise) {
+    fun setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior: String, promise: Promise) {
         terminal.simulatorConfiguration = SimulatorConfiguration(
             simulatedCollectInputsResult = SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded(
-                simulatedCollectInputsSkipBehavior = SimulatedCollectInputsSkipBehavior.NONE,
+                simulatedCollectInputsSkipBehavior = mapFromSimulatedCollectInputsSkipBehavior(
+                    simulatedCollectInputsSkipBehavior
+                ),
             )
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())

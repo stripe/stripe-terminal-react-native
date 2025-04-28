@@ -62,6 +62,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SignatureResult
 import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TextResult
 import com.stripe.stripeterminal.external.models.ToggleResult
@@ -504,6 +505,14 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
         "lowBattery" -> SimulateReaderUpdate.LOW_BATTERY
         "lowBatterySucceedConnect" -> SimulateReaderUpdate.LOW_BATTERY_SUCCEED_CONNECT
         else -> SimulateReaderUpdate.NONE
+    }
+}
+
+internal fun mapFromSimulatedCollectInputsSkipBehavior(behavior: String?): SimulatedCollectInputsSkipBehavior {
+    return when (behavior) {
+        "all" -> SimulatedCollectInputsSkipBehavior.ALL
+        "none" -> SimulatedCollectInputsSkipBehavior.NONE
+        else -> SimulatedCollectInputsSkipBehavior.NONE
     }
 }
 

@@ -741,14 +741,14 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const _setSimulatedCollectInputsResult = useCallback(
-    async () => {
+    async (simulatedCollectInputsSkipBehavior: string) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await setSimulatedCollectInputsResult();
+      const response = await setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior);
       setLoading(false);
 
       return response;
