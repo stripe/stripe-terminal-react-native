@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Test
@@ -75,6 +76,13 @@ class MapperTest {
                 )
             )
         )
+    }
+
+    @Test
+    fun `test mapFromSimulatedCollectInputsSkipBehavior transform`() {
+        assertEquals(mapFromSimulatedCollectInputsSkipBehavior("none"), SimulatedCollectInputsSkipBehavior.NONE)
+        assertEquals(mapFromSimulatedCollectInputsSkipBehavior("all"), SimulatedCollectInputsSkipBehavior.ALL)
+        assertEquals(mapFromSimulatedCollectInputsSkipBehavior(""), SimulatedCollectInputsSkipBehavior.NONE)
     }
 }
 

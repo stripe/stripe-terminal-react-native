@@ -54,6 +54,8 @@ import com.stripe.stripeterminal.external.models.SetupIntentCancellationParamete
 import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
@@ -220,13 +222,26 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
-    
+
     @ReactMethod
     @Suppress("unused")
     fun setSimulatedOfflineMode(simulatedOffline: Boolean, promise: Promise) {
         terminal.simulatorConfiguration = SimulatorConfiguration(
             update = terminal.simulatorConfiguration.update,
             offlineEnabled = simulatedOffline
+        )
+        promise.resolve(NativeTypeFactory.writableNativeMap())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior: String, promise: Promise) {
+        terminal.simulatorConfiguration = SimulatorConfiguration(
+            simulatedCollectInputsResult = SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded(
+                simulatedCollectInputsSkipBehavior = mapFromSimulatedCollectInputsSkipBehavior(
+                    simulatedCollectInputsSkipBehavior
+                ),
+            )
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
@@ -769,7 +784,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
             val moto = getBoolean(params, "moto")
-            val collectionReason = mapToSetupIntentCollectionReason(params.getString("collectionReason"))
+            val collectionReason =
+                mapToSetupIntentCollectionReason(params.getString("collectionReason"))
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,

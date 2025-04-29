@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { ScrollView, StyleSheet, Platform } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import {
@@ -11,13 +11,23 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 import type { RouteParamList } from '../App';
+import { Picker } from '@react-native-picker/picker';
+
+const SKIP_BEHAVIOR = [
+  { value: 'all', label: 'all' },
+  { value: 'none', label: 'none' },
+];
 
 export default function CollectInputsScreen() {
-  const { collectInputs, cancelCollectInputs } = useStripeTerminal();
+  const { params } = useRoute<RouteProp<RouteParamList, 'CollectInputsScreen'>>();
+  const { simulated } = params;
+
+  const { collectInputs, cancelCollectInputs, setSimulatedCollectInputsResult } = useStripeTerminal();
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const [simulatedCollectInputsSkipBehavior, setSimulatedCollectInputsSkipBehavior] = useState<string>("none");
 
   const _collectInputs = async (params: ICollectInputsParameters) => {
     clearLogs();
@@ -38,6 +48,35 @@ export default function CollectInputsScreen() {
       ],
     });
 
+    if (simulated && Platform.OS === 'android') { // only android support it now
+      const simulateResultResponse = await setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior);
+      if (simulateResultResponse.error) {
+        addLogs({
+          name: 'Simulate Collect Inputs Result',
+          events: [
+            {
+              name: 'Failed',
+              description: 'terminal.simulateCollectInputs',
+              metadata: {
+                errorCode: simulateResultResponse.error?.code,
+                errorMessage: simulateResultResponse.error?.message,
+              },
+            },
+          ],
+        });
+        return;
+      } else {
+        addLogs({
+          name: 'Simulate Collect Inputs Result',
+          events: [
+            {
+              name: 'Succeeded',
+              description: 'terminal.simulateCollectInputs',
+            },
+          ],
+        });
+      }
+    }
     const response = await collectInputs(params);
 
     if (response.error) {
@@ -161,6 +200,29 @@ export default function CollectInputsScreen() {
           }}
         />
       </List>
+      {/* only android support it now */}
+      {(simulated && Platform.OS === 'android') ? 
+        <List bolded={false} topSpacing={false} title="SIMULATED COLLECT INPUTS SKIP BEHAVIOR">
+          <Picker
+            selectedValue={simulatedCollectInputsSkipBehavior}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-skip-behavior"
+            onValueChange={(value) =>
+              setSimulatedCollectInputsSkipBehavior(value)
+            }
+          >
+            {SKIP_BEHAVIOR.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List> : <></>
+      }
     </ScrollView>
   );
 }
@@ -170,5 +232,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light_gray,
     flex: 1,
     paddingVertical: 22,
+  },
+  picker: {
+    width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+        fontSize: 13,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.white,
+      },
+    }),
+  },
+  pickerItem: {
+    fontSize: 16,
+    color: colors.slate,
+  },
+  pickerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: colors.white,
+    left: 0,
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        height: 200,
+      },
+    }),
   },
 });
