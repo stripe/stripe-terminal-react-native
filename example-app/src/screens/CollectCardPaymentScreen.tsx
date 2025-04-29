@@ -43,6 +43,12 @@ const CAPTURE_METHODS = [
   { value: 'manual', label: 'manual' },
 ];
 
+const CARD_PRESENT_CAPTURE_METHODS = [
+  { value: undefined, label: 'default'},
+  { value: 'manual', label: 'manual' },
+  { value: 'manual_preferred', label: 'manual_preferred' },
+];
+
 const ROUTING_PRIORITY = [
   { value: '', label: 'default' },
   { value: 'domestic', label: 'domestic' },
@@ -70,6 +76,7 @@ export default function CollectCardPaymentScreen() {
     offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
     offlineModeTransactionLimit: string;
     offlineModeStoredTransactionLimit: string;
+    cardPresentCaptureMethod?: 'manual' | 'manual_preferred';
   }>({
     amount: '20000',
     currency: 'usd',
@@ -161,6 +168,7 @@ export default function CollectCardPaymentScreen() {
         request_incremental_authorization_support:
           inputValues.requestIncrementalAuthorizationSupport,
         routing: routingPriority,
+        capture_method: inputValues?.cardPresentCaptureMethod,
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
@@ -234,6 +242,7 @@ export default function CollectCardPaymentScreen() {
           requestIncrementalAuthorizationSupport:
             inputValues.requestIncrementalAuthorizationSupport,
           requestedPriority: inputValues.requestedPriority,
+          captureMethod: inputValues?.cardPresentCaptureMethod,
         },
         captureMethod: inputValues?.captureMethod,
         offlineBehavior: inputValues?.offlineBehavior,
@@ -504,6 +513,27 @@ export default function CollectCardPaymentScreen() {
           }
         >
           {CAPTURE_METHODS.map((a) => (
+            <Picker.Item
+              key={a.value}
+              label={a.label}
+              testID={a.value}
+              value={a.value}
+            />
+          ))}
+        </Picker>
+      </List>
+
+      <List bolded={false} topSpacing={false} title="CARD PRESENT CAPTURE METHOD">
+        <Picker
+          selectedValue={inputValues?.cardPresentCaptureMethod}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
+          testID="select-card-present-capture-method-picker"
+          onValueChange={(value) =>
+            setInputValues((state) => ({ ...state, cardPresentCaptureMethod: value }))
+          }
+        >
+          {CARD_PRESENT_CAPTURE_METHODS.map((a) => (
             <Picker.Item
               key={a.value}
               label={a.label}
