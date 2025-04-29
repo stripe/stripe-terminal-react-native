@@ -214,8 +214,9 @@ class Mappers {
         var cardPresentMap: NSDictionary?
         if let cardPresentMapDetails = options?.cardPresentParameters {
             cardPresentMap = [
-                "requestExtendedAuthorization": options?.cardPresentParameters.requestExtendedAuthorization ?? false,
-                "requestIncrementalAuthorizationSupport": options?.cardPresentParameters.requestIncrementalAuthorizationSupport ?? false,
+                "requestExtendedAuthorization": cardPresentMapDetails.requestExtendedAuthorization,
+                "requestIncrementalAuthorizationSupport": cardPresentMapDetails.requestIncrementalAuthorizationSupport,
+                "requestPartialAuthorization": mapFromRequestPartialAuthorization(cardPresentMapDetails.requestPartialAuthorization?.uintValue),
                 "surcharge": surchargeMap ?? NSNull(),
             ]
         }
@@ -223,6 +224,20 @@ class Mappers {
             "cardPresent": cardPresentMap ?? NSNull(),
         ]
         return result
+    }
+    
+    class func mapFromRequestPartialAuthorization(_ requestPartialAuthorization: UInt?) -> String {
+        guard let requestPartialAuthorization = requestPartialAuthorization else {
+            return ""
+        }
+        switch (requestPartialAuthorization) {
+        case CardPresentRequestPartialAuthorization.ifAvailable.rawValue:
+            return "if_available"
+        case CardPresentRequestPartialAuthorization.never.rawValue:
+            return "never"
+        default:
+            return ""
+        }
     }
 
     class func mapToSetupIntent(_ params: NSDictionary) -> SetupIntentParametersBuilder {

@@ -2,6 +2,7 @@ package com.stripeterminalreactnative
 
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import io.mockk.every
 import io.mockk.mockk
@@ -29,6 +30,19 @@ class MapperTest {
                 )
             )
         )
+    }
+
+    @Test
+    fun `test mapToSetupIntentPaymentMethodDetailsType transform`() {
+        assertEquals(
+            mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.IF_AVAILABLE),
+            "if_available"
+        )
+        assertEquals(
+            mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.NEVER),
+            "never"
+        )
+        assertEquals(mapFromRequestPartialAuthorization(null), "")
     }
 
     @Test

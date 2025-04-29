@@ -191,6 +191,7 @@ export type PaymentMethodOptions = {
   requestExtendedAuthorization?: boolean;
   requestIncrementalAuthorizationSupport?: boolean;
   requestedPriority: string;
+  requestPartialAuthorization?: string;
 };
 
 export type CollectPaymentMethodParams = {
