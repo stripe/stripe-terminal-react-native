@@ -214,7 +214,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.simulatorConfiguration.simulatedCard = SimulatedCard(testCardNumber: cardNumber)
         resolve([:])
     }
-  
+
     @objc(setSimulatedOfflineMode:resolver:rejecter:)
     func setSimulatedOfflineMode(simulatedOffline: Bool, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         Terminal.shared.simulatorConfiguration.offlineEnabled = simulatedOffline;
@@ -416,6 +416,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let incrementalAuth = paymentMethodOptions["requestIncrementalAuthorizationSupport"] as? Bool ?? false
         let requestedPriority = paymentMethodOptions["requestedPriority"] as? String
         let requestPartialAuthorization = paymentMethodOptions["requestPartialAuthorization"] as? String
+        let cardPresentCaptureMethod = paymentMethodOptions["captureMethod"] as? String
         let captureMethod = params["captureMethod"] as? String
 
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
@@ -454,6 +455,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             cardPresentParamsBuilder.setRequestPartialAuthorization(CardPresentRequestPartialAuthorization.never)
         default:
             break
+        }
+
+        switch cardPresentCaptureMethod {
+          case "manual":
+              cardPresentParamsBuilder.setCaptureMethod(CardPresentCaptureMethod.manual)
+          case "manual_preferred":
+              cardPresentParamsBuilder.setCaptureMethod(CardPresentCaptureMethod.manualPreferred)
+          default:
+              break
         }
 
         let cardPresentParams: CardPresentParameters

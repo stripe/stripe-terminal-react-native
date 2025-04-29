@@ -20,6 +20,7 @@ import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
+import com.stripe.stripeterminal.external.models.CardPresentCaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
@@ -488,6 +489,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
         val requestPartialAuthorization = paymentMethodOptions?.getString("requestPartialAuthorization")
+        val cardPresentCaptureMethod = paymentMethodOptions?.getString("captureMethod")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
@@ -566,6 +568,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             .setRouting(routingPriority)
         if (partialAuthorization != null) {
             cardPresentParams.setRequestPartialAuthorization(partialAuthorization)
+        }
+
+        cardPresentCaptureMethod?.let {
+            when (it) {
+                "manual" -> cardPresentParams.setCaptureMethod(CardPresentCaptureMethod.Manual)
+                "manual_preferred" -> cardPresentParams.setCaptureMethod(CardPresentCaptureMethod.ManualPreferred)
+                else -> { }
+            }
         }
 
         intentParams.setPaymentMethodOptionsParameters(
