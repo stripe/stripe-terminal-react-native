@@ -1684,10 +1684,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - stripe-terminal-react-native (0.0.1-beta.24):
+  - stripe-terminal-react-native (0.0.1-beta.25):
     - React-Core
     - StripeTerminal (~> 4.3.0)
-  - stripe-terminal-react-native/Tests (0.0.1-beta.24):
+  - stripe-terminal-react-native/Tests (0.0.1-beta.25):
     - React-Core
     - StripeTerminal (~> 4.3.0)
   - StripeTerminal (4.3.0)
@@ -1982,7 +1982,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 41e106f2004f7b0d5fd1bb92179797890bcbb0ec
   RNScreens: e7fb913da559b9b2fe6c2f49828bedb061914abd
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: da7a09db95d1dc86b3a769c1e7605b9d4093c012
+  stripe-terminal-react-native: 8918892108749dde11af463da26ac314caebd0a3
   StripeTerminal: 056d0d3b5e2f2edbc5f8b6314ec5f2b037898c72
   Yoga: be6f55a028e86c83ae066f018e9b5d24ffc45436
 
