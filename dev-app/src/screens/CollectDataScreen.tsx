@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/core';
-import React, { useContext } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { StyleSheet, Switch } from 'react-native';
 import {
   useStripeTerminal,
   CollectDataType,
@@ -17,6 +17,8 @@ import type { RouteParamList } from '../App';
 export default function CollectDataScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const [enableCustomerCancellation, setEnableCustomerCancellation] =
+    useState(false);
 
   const { collectData } = useStripeTerminal();
 
@@ -38,7 +40,7 @@ export default function CollectDataScreen() {
 
     const { collectedData, error } = await collectData({
       collectDataType: collectDataType,
-      enableCustomerCancellation: false,
+      enableCustomerCancellation: enableCustomerCancellation,
     });
 
     if (error) {
@@ -64,6 +66,61 @@ export default function CollectDataScreen() {
             description: 'terminal.collectData',
             metadata: {
               stripeId: collectedData.stripeId,
+              nfcUid: collectedData.nfcUid,
+              created: collectedData.created,
+              livemode: String(collectedData.livemode),
+            },
+          },
+        ],
+      });
+    }
+  };
+
+  const _collectNfcUid = async () => {
+    clearLogs();
+    navigation.navigate('LogListScreen', {});
+
+    addLogs({
+      name: 'Collect Data',
+      events: [
+        {
+          name: 'Collect Data',
+          description: 'terminal.collectData',
+        },
+      ],
+    });
+
+    let collectDataType = CollectDataType.NFC_UID;
+
+    const { collectedData, error } = await collectData({
+      collectDataType: collectDataType,
+      enableCustomerCancellation: enableCustomerCancellation,
+    });
+
+    if (error) {
+      addLogs({
+        name: 'Collect Data',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.collectData',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+            },
+          },
+        ],
+      });
+    } else if (collectedData) {
+      addLogs({
+        name: 'Collect Data',
+        events: [
+          {
+            name: 'Created',
+            description: 'terminal.collectData',
+            metadata: {
+              stripeId: collectedData.stripeId,
+              nfcUid: collectedData.nfcUid,
               created: collectedData.created,
               livemode: String(collectedData.livemode),
             },
@@ -81,9 +138,26 @@ export default function CollectDataScreen() {
     >
       <List bolded={false} topSpacing={false} title=" ">
         <ListItem
+          title="Customer cancellation"
+          rightElement={
+            <Switch
+              testID="enable-cancellation"
+              value={enableCustomerCancellation}
+              onValueChange={(value) =>
+                setEnableCustomerCancellation(value)
+              }
+            />
+          }
+        />
+        <ListItem
           color={colors.blue}
           title="Collect magstripe data"
           onPress={_collectMagstripeData}
+        />
+         <ListItem
+          color={colors.blue}
+          title="Collect NFC UID"
+          onPress={_collectNfcUid}
         />
       </List>
     </KeyboardAwareScrollView>

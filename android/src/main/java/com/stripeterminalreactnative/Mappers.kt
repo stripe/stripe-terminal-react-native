@@ -1055,7 +1055,7 @@ fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
 fun mapFromCollectDataType(type: String): CollectDataType? {
     return when (type) {
         "magstripe" -> CollectDataType.MAGSTRIPE
-        "nfc_uid" -> CollectDataType.NFC_UID
+        "nfcUid" -> CollectDataType.NFC_UID
         else -> null
     }
 }
