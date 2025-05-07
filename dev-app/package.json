@@ -40,7 +40,7 @@
     "@react-native/js-polyfills": "^0.74.0",
     "@react-native/metro-babel-transformer": "^0.76.0",
     "@react-native/metro-config": "^0.76.0",
-    "@rnx-kit/align-deps": "^3.0.2",
+    "@rnx-kit/align-deps": "^3.0.5",
     "@types/express": "^4.17.13",
     "babel-plugin-inline-dotenv": "^1.7.0",
     "babel-plugin-module-resolver": "^4.0.0",
