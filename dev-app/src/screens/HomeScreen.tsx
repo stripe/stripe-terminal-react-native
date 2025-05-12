@@ -187,6 +187,7 @@ export default function HomeScreen() {
 
       <List title="COMMON WORKFLOWS">
         <ListItem
+          testID="collect-card-payment-button"
           title="Collect card payment"
           onPress={() => {
             navigation.navigate('CollectCardPaymentScreen', {
@@ -229,6 +230,7 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
+          testID="in-person-refund-button"
           title="In-Person Refund"
           onPress={() => {
             navigation.navigate('RefundPaymentScreen', {
@@ -345,6 +347,7 @@ export default function HomeScreen() {
               }}
             />
             <ListItem
+              testID="discover-readers-button"
               title="Discover Readers"
               color={colors.blue}
               disabled={!account}
