@@ -974,6 +974,7 @@ export default function CollectCardPaymentScreen() {
 
         <List bolded={false} topSpacing={false} title="UPDATE PAYMENTINTENT">
           <ListItem
+            key="enable-update-paymentIntent"
             title="Enable Update PaymentIntent"
             rightElement={
               <Switch
@@ -989,6 +990,7 @@ export default function CollectCardPaymentScreen() {
             }
           />
           <ListItem
+            key="decline-card-brand"
             visible={enableUpdatePaymentIntent}
             testID="decline_card_brand"
             onPress={() => {
@@ -1002,6 +1004,7 @@ export default function CollectCardPaymentScreen() {
             title={declineCardBrand}
           />
           <ListItem
+            key="recollect-after-card-brand-decline"
             visible={enableUpdatePaymentIntent}
             title="Recollect After Card Brand Decline"
             rightElement={
@@ -1019,6 +1022,7 @@ export default function CollectCardPaymentScreen() {
         {discoveryMethod === 'internet' && (
           <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
             <ListItem
+              key="enable-cancellation-item"
               title="Customer cancellation"
               rightElement={
                 <Switch
@@ -1031,6 +1035,7 @@ export default function CollectCardPaymentScreen() {
               }
             />
             <ListItem
+              key="request-dcc"
               title="Request DCC (requires Update PaymentIntent)"
               rightElement={
                 <Switch
@@ -1148,16 +1153,18 @@ export default function CollectCardPaymentScreen() {
           }`}
         >
           <ListItem
+            key="collect-payment-button"
             color={colors.blue}
+            testID="collect-payment-button"
             title="Collect payment"
             onPress={_createPaymentIntent}
           />
           {simulated ? (
-            <Text style={styles.info}>
+            <Text key="desc1" style={styles.info}>
               Collect a card payment using a simulated reader
             </Text>
           ) : (
-            <Text style={styles.info}>
+            <Text key="desc2" style={styles.info}>
               Collect a card payment using a physical Stripe test card and
               reader
             </Text>

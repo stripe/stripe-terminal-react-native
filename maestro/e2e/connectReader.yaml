@@ -3,7 +3,8 @@ appId: com.dev.app.stripeterminalreactnative
 - tapOn:
     id: "discovery-method-button"
 - tapOn: ${discoveryMethod}
-- tapOn: "Discover Readers"
+- tapOn:
+    id: "discover-readers-button"
 
 - runFlow:
     when:
@@ -14,7 +15,7 @@ appId: com.dev.app.stripeterminalreactnative
         - tapOn: "Update required"
 
 - tapOn:
-    id: "reader-1"
+    id: "reader-0"
 - runFlow:
     when:
         true: ${updateRequired == true}
