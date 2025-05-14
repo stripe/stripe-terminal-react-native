@@ -11,6 +11,7 @@ const {
 
 jest.retryTimes(3);
 
+await device.disableSynchronization();
 // TODO(nazli): Investigate flakiness (TERMINAL-41034)
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('In-Person Refund', () => {

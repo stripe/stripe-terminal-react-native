@@ -13,6 +13,7 @@ const { cleanPaymentMethods } = require('./clean');
 
 jest.retryTimes(5);
 
+await device.disableSynchronization();
 describe('Basic funtionalities', () => {
   beforeAll(async () => {
     await cleanPaymentMethods();
