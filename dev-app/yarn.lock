@@ -2532,7 +2532,7 @@ detect-newline@^3.0.0:
   resolved "https://registry.npmjs.org/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-detox@^20.32.0:
+detox@^20.37.0:
   version "20.37.0"
   resolved "https://registry.npmjs.org/detox/-/detox-20.37.0.tgz#34fb32782caf1db5147c833ccb4c168e31820c45"
   integrity sha512-OUI2p3z31Yku1USBia0jrlwoQoa6rANvVWuUSJyjBlRRKDSeOf/DG/ivk+R5FO+lYZZtA3pIbl6LSql/Bf6DpQ==
