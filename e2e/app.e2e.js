@@ -13,7 +13,7 @@ const { cleanPaymentMethods } = require('./clean');
 
 jest.retryTimes(5);
 
-await device.disableSynchronization();
+
 describe('Basic funtionalities', () => {
   beforeAll(async () => {
     await cleanPaymentMethods();
@@ -151,6 +151,7 @@ describe('Basic funtionalities', () => {
   });
 
   it('In-Person Refund failed due to unsupported country', async () => {
+    await device.disableSynchronization();
     await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
     await connectReader('chipper2X');
@@ -182,5 +183,6 @@ describe('Basic funtionalities', () => {
 
     await checkIfLogExist('Collect');
     await checkIfLogExist('Failed');
+    await device.enableSynchronization();
   });
 });
