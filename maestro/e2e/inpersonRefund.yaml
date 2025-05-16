@@ -21,7 +21,7 @@ appId: com.dev.app.stripeterminalreactnative
 
 - scrollUntilVisible:
     element:
-      text: "Collect"
+      id: "Collect"
 - scrollUntilVisible:
     element:
-      text: "Failed"
+      id: "Failed"
