@@ -581,6 +581,7 @@ export type Amount = {
 
 export type CollectedData = {
   stripeId?: string;
+  nfcUid?: string;
   created: string;
   livemode: boolean;
 };
@@ -592,6 +593,7 @@ export interface CollectDataParams {
 
 export enum CollectDataType {
   MAGSTRIPE = 'magstripe',
+  NFC_UID = 'nfcUid',
   UNKNOWN = 'unknown',
 }
 
