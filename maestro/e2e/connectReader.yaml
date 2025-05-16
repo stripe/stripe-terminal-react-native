@@ -14,7 +14,7 @@ appId: com.dev.app.stripeterminalreactnative
         - tapOn: "Update required"
 
 - tapOn:
-    id: "reader-1"
+    id: "reader-0"
 - runFlow:
     when:
         true: ${updateRequired == true}
