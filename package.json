@@ -18,6 +18,8 @@
     "pods": "cd dev-app && pod-install --quiet",
     "clean": "rm -rf node_modules && rm -rf dev-app/node_modules && rm -rf dev-app/ios/Pods",
     "bootstrap": "yarn dev-app && yarn && yarn pods",
+    "deep-clean": "rm -rf node_modules dev-app/node_modules dev-app/ios/Pods dev-app/android/.gradle dev-app/android/.cxx dev-app/android/app/build dev-app/ios/build ~/Library/Developer/Xcode/DerivedData",
+    "reset": "yarn deep-clean && yarn bootstrap",
     "dev-app:build:android:release": "cd dev-app/android && ./gradlew assembleRelease ; cd -",
     "e2e:build:example:ios": "detox build --configuration ios.example",
     "e2e:build:example:android": "detox build --configuration android.example",
