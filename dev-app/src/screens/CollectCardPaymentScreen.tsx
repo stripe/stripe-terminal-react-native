@@ -688,7 +688,7 @@ export default function CollectCardPaymentScreen() {
           >
             {CARD_PRESENT_CAPTURE_METHODS.map((a) => (
               <Picker.Item
-                key={a.value}
+                key={a.label}
                 label={a.label}
                 testID={a.value}
                 value={a.value}
