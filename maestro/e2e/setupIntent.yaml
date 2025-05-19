@@ -2,8 +2,9 @@ appId: ${APP_ID}
 ---
 - scrollUntilVisible:
     element:
-      text: "Store card via Setup Intents"
-- tapOn: "Store card via Setup Intents"
+      id: "setup-intent-button"
+- tapOn:
+    id: "setup-intent-button"
 
 - tapOn:
     id: "collect-setup-intent-button"

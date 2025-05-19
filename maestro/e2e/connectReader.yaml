@@ -2,17 +2,18 @@ appId: ${APP_ID}
 ---
 - tapOn:
     id: "discovery-method-button"
-- tapOn: ${discoveryMethod}
-- tapOn: "Discover Readers"
-
+- tapOn:
+    id: ${discoveryMethod}
+- tapOn:
+    id: "discover-readers-button"
 - runFlow:
     when:
         true: ${updateRequired == true}
     commands:
         - tapOn:
             id: "update-plan-picker"
-        - tapOn: "Update required"
-
+        - tapOn:
+            id: "update-plan-picker"
 - tapOn:
     id: "reader-0"
 - runFlow:
@@ -20,5 +21,6 @@ appId: ${APP_ID}
         true: ${updateRequired == true}
     commands:
         - extendedWaitUntil:
-            visible: "Required update in progress"
+            visible:
+                id: "required-update-in-progress"
             timeout: 16000

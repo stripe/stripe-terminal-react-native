@@ -2,8 +2,9 @@ appId: ${APP_ID}
 ---
 - scrollUntilVisible:
     element:
-      text: "In-Person Refund"
-- tapOn: "In-Person Refund"
+      id: "in-person-refund-button"
+- tapOn:
+      id: "in-person-refund-button"
 
 - tapOn:
     id: "charge-id-text-field"
