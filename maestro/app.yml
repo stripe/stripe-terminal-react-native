@@ -1,4 +1,4 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 tags:
   - passing
 ---
@@ -10,7 +10,7 @@ tags:
 - runFlow: 
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Bluetooth Scan"
+      discoveryMethod: "bt-scn-btn"
 - runFlow: e2e/checkIfConnected.yaml
 
 
@@ -22,7 +22,7 @@ tags:
 - runFlow: 
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Bluetooth Scan"
+      discoveryMethod: "bt-scn-btn"
       updateRequired: true
 - runFlow: e2e/checkIfConnected.yaml
 
@@ -34,7 +34,7 @@ tags:
 - runFlow:
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Bluetooth Proximity"
+      discoveryMethod: "bt-prox-btn"
     when:
         platform: ios
 
@@ -46,7 +46,7 @@ tags:
 - runFlow:
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Internet"
+      discoveryMethod: "internet-btn"
 
 # TODO ios only
 # Required update impossible due to low battery
@@ -59,7 +59,7 @@ tags:
 - runFlow:
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Bluetooth Scan"
+      discoveryMethod: "bt-scn-btn"
 - runFlow:
     file: e2e/collectPayment.yaml
 
@@ -71,7 +71,7 @@ tags:
 - runFlow:
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Bluetooth Scan"
+      discoveryMethod: "bt-scn-btn"
 - runFlow:
     file: e2e/setupIntent.yaml
 
@@ -83,6 +83,6 @@ tags:
 - runFlow:
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "Bluetooth Scan"
+      discoveryMethod: "bt-scn-btn"
 - runFlow:
     file: e2e/inpersonRefund.yaml
