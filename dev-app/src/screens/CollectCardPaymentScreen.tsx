@@ -1148,6 +1148,7 @@ export default function CollectCardPaymentScreen() {
           }`}
         >
           <ListItem
+            testID='collect-payment-button'
             color={colors.blue}
             title="Collect payment"
             onPress={_createPaymentIntent}
