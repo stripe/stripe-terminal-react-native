@@ -1,4 +1,4 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 ---
 - extendedWaitUntil:
     visible:

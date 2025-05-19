@@ -85,7 +85,7 @@ workflows:
           inputs:
             - content: |-
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                ~/.maestro/bin/maestro test maestro/app.yml
+                ~/.maestro/bin/maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml
           title: install maestro & run tests
     before_run:
       - prep_all
@@ -111,7 +111,7 @@ workflows:
             - content: |-
                 xcrun simctl install Booted dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                ~/.maestro/bin/maestro test maestro/app.yml
+                ~/.maestro/bin/maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml
           title: install maestro & run tests
     before_run:
       - prep_all
