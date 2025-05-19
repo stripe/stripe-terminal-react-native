@@ -1,7 +1,9 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 ---
-- tapOn: "Collect card payment"
-- tapOn: "Collect payment"
+- tapOn:
+    id: "collect-payment-method-button"
+- tapOn:
+    id: "collect-payment-button"
 
 - scrollUntilVisible:
     element:

@@ -85,7 +85,7 @@ workflows:
           inputs:
             - content: |-
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                ~/.maestro/bin/maestro test maestro/app.yml
+                ~/.maestro/bin/maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml
           title: install maestro & run tests
     before_run:
       - prep_all
