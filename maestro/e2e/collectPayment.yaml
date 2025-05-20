@@ -2,8 +2,10 @@ appId: ${APP_ID}
 ---
 - tapOn:
     id: "collect-payment-method-button"
+    delay: 2000
 - tapOn:
     id: "collect-payment-button"
+    delay: 2000
 
 - scrollUntilVisible:
     element:

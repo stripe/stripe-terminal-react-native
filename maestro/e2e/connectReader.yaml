@@ -1,11 +1,15 @@
 appId: ${APP_ID}
 ---
+
 - tapOn:
     id: "discovery-method-button"
+    delay: 2000
 - tapOn:
     id: ${discoveryMethod}
+    delay: 2000
 - tapOn:
     id: "discover-readers-button"
+    delay: 2000
 
 - runFlow:
     when:
@@ -13,9 +17,11 @@ appId: ${APP_ID}
     commands:
         - tapOn:
             id: "update-plan-picker"
+            delay: 2000
 
 - tapOn:
     id: "reader-0"
+    delay: 2000
 - runFlow:
     when:
         true: ${updateRequired == true}
