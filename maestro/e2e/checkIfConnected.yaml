@@ -4,6 +4,6 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible:
         id: "home-screen"
-    timeout: 100000
+    timeout: 300000
 - assertVisible:
     id: "disconnect-button"

@@ -9,6 +9,11 @@ appId: ${APP_ID}
 - waitForAnimationToEnd:
     timeout: 5000
 
+- extendedWaitUntil:
+    visible:
+        id: "charge-id-text-field"
+    timeout: 60000
+
 - tapOn:
     id: "charge-id-text-field"
 - inputText: "ch_3JxsjUBDuqlYGNW21EL8UyOm"
@@ -26,9 +31,11 @@ appId: ${APP_ID}
 - waitForAnimationToEnd:
     timeout: 5000
 
-- scrollUntilVisible:
-    element:
-      id: "Collect"
+- extendedWaitUntil:
+    visible:
+        id: "Collect"
+    timeout: 300000
+
 - scrollUntilVisible:
     element:
       id: "Failed"

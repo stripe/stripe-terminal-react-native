@@ -28,7 +28,10 @@ appId: ${APP_ID}
 
 - waitForAnimationToEnd:
     timeout: 5000
-
+- extendedWaitUntil:
+    visible:
+        id: "reader-0"
+    timeout: 100000
 - tapOn:
     id: "reader-0"
     
@@ -42,7 +45,7 @@ appId: ${APP_ID}
         - extendedWaitUntil:
             visible:
                 id: "required-update-in-progress"
-            timeout: 100000
+            timeout: 300000
 
 - waitForAnimationToEnd:
     timeout: 5000

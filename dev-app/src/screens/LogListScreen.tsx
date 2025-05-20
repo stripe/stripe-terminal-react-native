@@ -38,7 +38,7 @@ const LogListScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
-      <Text style={styles.title}>EVENT LOG</Text>
+      <Text testID='log-list-tag' style={styles.title}>EVENT LOG</Text>
       {cancel && (
         <ListItem
           color={colors.blue}
