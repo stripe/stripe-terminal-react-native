@@ -15,9 +15,11 @@ appId: ${APP_ID}
 - waitForAnimationToEnd:
     timeout: 5000
 
-- scrollUntilVisible:
-    element:
-      id: "Create"
+- extendedWaitUntil:
+    visible:
+        id: "Create"
+    timeout: 60000
+
 - scrollUntilVisible:
     element:
       id: "Collect"

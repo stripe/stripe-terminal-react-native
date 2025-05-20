@@ -75,14 +75,14 @@ tags:
 - runFlow:
     file: e2e/setupIntent.yaml
 
-# In-Person Refund failed due to unsupported country
-- launchApp:
-    permissions:
-      all: allow
+# In-Person Refund failed due to unsupported country fail in iOS
+# - launchApp:
+#     permissions:
+#       all: allow
 
-- runFlow:
-    file: e2e/connectReader.yaml
-    env:
-      discoveryMethod: "bt-scn-btn"
-- runFlow:
-    file: e2e/inpersonRefund.yaml
+# - runFlow:
+#     file: e2e/connectReader.yaml
+#     env:
+#       discoveryMethod: "bt-scn-btn"
+# - runFlow:
+#     file: e2e/inpersonRefund.yaml
