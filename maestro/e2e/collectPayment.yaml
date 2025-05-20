@@ -1,12 +1,16 @@
 appId: ${APP_ID}
 ---
+- waitForAnimationToEnd:
+    timeout: 5000
 - tapOn:
     id: "collect-payment-method-button"
-    delay: 2000
+- waitForAnimationToEnd:
+    timeout: 5000
 - tapOn:
     id: "collect-payment-button"
-    delay: 2000
 
+- waitForAnimationToEnd:
+    timeout: 5000
 - scrollUntilVisible:
     element:
       id: "Create"

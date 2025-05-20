@@ -3,13 +3,21 @@ appId: ${APP_ID}
 
 - tapOn:
     id: "discovery-method-button"
-    delay: 2000
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
 - tapOn:
     id: ${discoveryMethod}
-    delay: 2000
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
 - tapOn:
     id: "discover-readers-button"
-    delay: 2000
+
+- waitForAnimationToEnd:
+    timeout: 5000
 
 - runFlow:
     when:
@@ -17,11 +25,16 @@ appId: ${APP_ID}
     commands:
         - tapOn:
             id: "update-plan-picker"
-            delay: 2000
+
+- waitForAnimationToEnd:
+    timeout: 5000
 
 - tapOn:
     id: "reader-0"
-    delay: 2000
+    
+- waitForAnimationToEnd:
+    timeout: 5000
+
 - runFlow:
     when:
         true: ${updateRequired == true}
@@ -29,4 +42,7 @@ appId: ${APP_ID}
         - extendedWaitUntil:
             visible:
                 id: "required-update-in-progress"
-            timeout: 16000
+            timeout: 100000
+
+- waitForAnimationToEnd:
+    timeout: 5000

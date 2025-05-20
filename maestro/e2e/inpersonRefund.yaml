@@ -6,6 +6,9 @@ appId: ${APP_ID}
 - tapOn:
     id: "in-person-refund-button"
 
+- waitForAnimationToEnd:
+    timeout: 5000
+
 - tapOn:
     id: "charge-id-text-field"
 - inputText: "ch_3JxsjUBDuqlYGNW21EL8UyOm"
@@ -19,6 +22,9 @@ appId: ${APP_ID}
       id: "collect-refund-button"
 - tapOn:
     id: "collect-refund-button"
+
+- waitForAnimationToEnd:
+    timeout: 5000
 
 - scrollUntilVisible:
     element:
