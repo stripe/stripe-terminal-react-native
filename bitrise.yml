@@ -103,6 +103,7 @@ workflows:
             - cache_local_deps: 'yes'
           title: build for detox
       - yarn@0:
+          is_skippable: true
           inputs:
             - command: e2e:test:ios:release
             - cache_local_deps: 'yes'
