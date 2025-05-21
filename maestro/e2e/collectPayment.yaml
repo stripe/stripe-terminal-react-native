@@ -1,35 +1,44 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 ---
-- tapOn: "Collect card payment"
-- tapOn: "Collect payment"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    id: "collect-payment-method-button"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    id: "collect-payment-button"
 
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+        id: "Create"
+    timeout: 60000
 - scrollUntilVisible:
     element:
-      text: "Create"
+      id: "Created"
 - scrollUntilVisible:
     element:
-      text: "Created"
+      id: "Collect"
 - scrollUntilVisible:
     element:
-      text: "Collect"
+      id: "insertCard / swipeCard / tapCard"
 - scrollUntilVisible:
     element:
-      text: "insertCard / swipeCard / tapCard"
+      id: "removeCard"
 - scrollUntilVisible:
     element:
-      text: "removeCard"
+      id: "Collected"
 - scrollUntilVisible:
     element:
-      text: "Collected"
+      id: "Process"
 - scrollUntilVisible:
     element:
-      text: "Process"
+      id: "Confirmed"
 - scrollUntilVisible:
     element:
-      text: "Confirmed"
+      id: "Capture"
 - scrollUntilVisible:
     element:
-      text: "Capture"
-- scrollUntilVisible:
-    element:
-      text: "Captured"
+      id: "Captured"

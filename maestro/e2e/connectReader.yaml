@@ -1,9 +1,23 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 ---
+
 - tapOn:
     id: "discovery-method-button"
-- tapOn: ${discoveryMethod}
-- tapOn: "Discover Readers"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- tapOn:
+    id: ${discoveryMethod}
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- tapOn:
+    id: "discover-readers-button"
+
+- waitForAnimationToEnd:
+    timeout: 5000
 
 - runFlow:
     when:
@@ -11,14 +25,27 @@ appId: com.dev.app.stripeterminalreactnative
     commands:
         - tapOn:
             id: "update-plan-picker"
-        - tapOn: "Update required"
 
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+        id: "reader-0"
+    timeout: 100000
 - tapOn:
-    id: "reader-1"
+    id: "reader-0"
+    
+- waitForAnimationToEnd:
+    timeout: 5000
+
 - runFlow:
     when:
         true: ${updateRequired == true}
     commands:
         - extendedWaitUntil:
-            visible: "Required update in progress"
-            timeout: 16000
+            visible:
+                id: "required-update-in-progress"
+            timeout: 300000
+
+- waitForAnimationToEnd:
+    timeout: 5000

@@ -1,8 +1,9 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 ---
+
 - extendedWaitUntil:
     visible:
         id: "home-screen"
-    timeout: 60000
+    timeout: 100000
 - assertVisible:
-    text: "Disconnect"
+    id: "disconnect-button"

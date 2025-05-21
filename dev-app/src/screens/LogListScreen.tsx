@@ -38,7 +38,7 @@ const LogListScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">
-      <Text style={styles.title}>EVENT LOG</Text>
+      <Text testID='log-list-tag' style={styles.title}>EVENT LOG</Text>
       {cancel && (
         <ListItem
           color={colors.blue}
@@ -51,6 +51,7 @@ const LogListScreen = () => {
         <List key={`${log.name}-${lidx}`} title={log.name}>
           {log.events.map((event, idx) => (
             <ListItem
+              testID={`${event.name}`}
               key={`${event.name}-${idx}`}
               title={event.name}
               description={event.description}
