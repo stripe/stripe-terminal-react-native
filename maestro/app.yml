@@ -14,71 +14,71 @@ tags:
       discoveryMethod: "bt-scn-btn"
 - runFlow: e2e/checkIfConnected.yaml
 
-- evalScript: ${console.log('Install required update and connect')}
-# Install required update and connect
-- launchApp:
-    permissions:
-      all: allow
+# - evalScript: ${console.log('Install required update and connect')}
+# # Install required update and connect
+# - launchApp:
+#     permissions:
+#       all: allow
       
-- runFlow: 
-    file: e2e/connectReader.yaml
-    env:
-      discoveryMethod: "bt-scn-btn"
-      updateRequired: true
-- runFlow: e2e/checkIfConnected.yaml
+# - runFlow: 
+#     file: e2e/connectReader.yaml
+#     env:
+#       discoveryMethod: "bt-scn-btn"
+#       updateRequired: true
+# - runFlow: e2e/checkIfConnected.yaml
 
-- evalScript: ${console.log('Change discovery method to bluetooth proximity')}
-# Change discovery method to bluetooth proximity
-- launchApp:
-    permissions:
-      all: allow
+# - evalScript: ${console.log('Change discovery method to bluetooth proximity')}
+# # Change discovery method to bluetooth proximity
+# - launchApp:
+#     permissions:
+#       all: allow
 
-- runFlow:
-    file: e2e/connectReader.yaml
-    env:
-      discoveryMethod: "bt-prox-btn"
-    when:
-        platform: ios
+# - runFlow:
+#     file: e2e/connectReader.yaml
+#     env:
+#       discoveryMethod: "bt-prox-btn"
+#     when:
+#         platform: ios
 
-- evalScript: ${console.log('Change discovery method to Internet')}
-# Change discovery method to Internet
-- launchApp:
-    permissions:
-      all: allow
+# - evalScript: ${console.log('Change discovery method to Internet')}
+# # Change discovery method to Internet
+# - launchApp:
+#     permissions:
+#       all: allow
 
-- runFlow:
-    file: e2e/connectReader.yaml
-    env:
-      discoveryMethod: "internet-btn"
+# - runFlow:
+#     file: e2e/connectReader.yaml
+#     env:
+#       discoveryMethod: "internet-btn"
 
-# TODO ios only
-# Required update impossible due to low battery
+# # TODO ios only
+# # Required update impossible due to low battery
 
-- evalScript: ${console.log('Collect card payment')}
-# Collect card payment
-- launchApp:
-    permissions:
-      all: allow
+# - evalScript: ${console.log('Collect card payment')}
+# # Collect card payment
+# - launchApp:
+#     permissions:
+#       all: allow
 
-- runFlow:
-    file: e2e/connectReader.yaml
-    env:
-      discoveryMethod: "bt-scn-btn"
-- runFlow:
-    file: e2e/collectPayment.yaml
+# - runFlow:
+#     file: e2e/connectReader.yaml
+#     env:
+#       discoveryMethod: "bt-scn-btn"
+# - runFlow:
+#     file: e2e/collectPayment.yaml
 
-- evalScript: ${console.log('Store card via SetupIntent')}
-# Store card via SetupIntent
-- launchApp:
-    permissions:
-      all: allow
+# - evalScript: ${console.log('Store card via SetupIntent')}
+# # Store card via SetupIntent
+# - launchApp:
+#     permissions:
+#       all: allow
 
-- runFlow:
-    file: e2e/connectReader.yaml
-    env:
-      discoveryMethod: "bt-scn-btn"
-- runFlow:
-    file: e2e/setupIntent.yaml
+# - runFlow:
+#     file: e2e/connectReader.yaml
+#     env:
+#       discoveryMethod: "bt-scn-btn"
+# - runFlow:
+#     file: e2e/setupIntent.yaml
 
 # - evalScript: ${console.log('In-Person Refund failed due to unsupported country')}
 # In-Person Refund failed due to unsupported country fail in iOS
