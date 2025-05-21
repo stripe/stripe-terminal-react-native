@@ -2,6 +2,7 @@ appId: ${APP_ID}
 tags:
   - passing
 ---
+- evalScript: ${console.log('Connect and disconnect')}
 # Connect and disconnect
 - launchApp:
     permissions:
@@ -13,7 +14,7 @@ tags:
       discoveryMethod: "bt-scn-btn"
 - runFlow: e2e/checkIfConnected.yaml
 
-
+- evalScript: ${console.log('Install required update and connect')}
 # Install required update and connect
 - launchApp:
     permissions:
@@ -26,6 +27,7 @@ tags:
       updateRequired: true
 - runFlow: e2e/checkIfConnected.yaml
 
+- evalScript: ${console.log('Change discovery method to bluetooth proximity')}
 # Change discovery method to bluetooth proximity
 - launchApp:
     permissions:
@@ -38,6 +40,7 @@ tags:
     when:
         platform: ios
 
+- evalScript: ${console.log('Change discovery method to Internet')}
 # Change discovery method to Internet
 - launchApp:
     permissions:
@@ -51,6 +54,7 @@ tags:
 # TODO ios only
 # Required update impossible due to low battery
 
+- evalScript: ${console.log('Collect card payment')}
 # Collect card payment
 - launchApp:
     permissions:
@@ -63,6 +67,7 @@ tags:
 - runFlow:
     file: e2e/collectPayment.yaml
 
+- evalScript: ${console.log('Store card via SetupIntent')}
 # Store card via SetupIntent
 - launchApp:
     permissions:
@@ -75,6 +80,7 @@ tags:
 - runFlow:
     file: e2e/setupIntent.yaml
 
+# - evalScript: ${console.log('In-Person Refund failed due to unsupported country')}
 # In-Person Refund failed due to unsupported country fail in iOS
 # - launchApp:
 #     permissions:
