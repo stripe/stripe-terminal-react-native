@@ -51,6 +51,7 @@ const LogListScreen = () => {
         <List key={`${log.name}-${lidx}`} title={log.name}>
           {log.events.map((event, idx) => (
             <ListItem
+              testID={`${event.name}`}
               key={`${event.name}-${idx}`}
               title={event.name}
               description={event.description}
