@@ -106,7 +106,7 @@ workflows:
           is_skippable: true
           inputs:
             - command: e2e:test:ios:release
-            - cache_local_deps: 'yes'
+            # - cache_local_deps: 'yes'
           title: test detox
     before_run:
       - prep_all
@@ -270,7 +270,7 @@ workflows:
             - scheme: UnitTests
             - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
             - command: yarn unit-test:ios
-            - cache_local_deps: 'yes'
+            # - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
     before_run:
       - prep_all
