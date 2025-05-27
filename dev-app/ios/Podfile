@@ -55,5 +55,16 @@ target 'StripeTerminalReactNativeDevApp' do
     framework_paths.each do |framework_relative_path|
       strip_bitcode_from_framework(bitcode_strip_path, framework_relative_path)
     end
+
+    # https://github.com/facebook/react-native/issues/46208#issuecomment-2461309898
+    # Path to the Yoga headers in Private
+    private_yoga_headers = "#{installer.sandbox.root}/Headers/Private/Yoga"
+    # Path to the Yoga headers in Public
+    public_yoga_headers = "#{installer.sandbox.root}/Headers/Public/Yoga"
+
+    # Copy the Yoga headers from Private to Public
+    FileUtils.mkdir_p(public_yoga_headers) unless Dir.exist?(public_yoga_headers)
+    system("rsync -a #{private_yoga_headers}/ #{public_yoga_headers}")
+
   end
 end
