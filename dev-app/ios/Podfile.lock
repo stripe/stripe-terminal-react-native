@@ -2179,10 +2179,10 @@ SPEC CHECKSUMS:
   RNGestureHandler: 5d8431415d4b8518e86e289e9ad5bb9be78f6dba
   RNScreens: c5c07a86e4088ce92f0d3854082250dfa9c61f75
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: 8918892108749dde11af463da26ac314caebd0a3
+  stripe-terminal-react-native: 0b8494028e55677fd35248860668644c409be41c
   StripeTerminal: 056d0d3b5e2f2edbc5f8b6314ec5f2b037898c72
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
-PODFILE CHECKSUM: 7bb7fbbd263bda35e47b3f64ad5fbd6c589aa428
+PODFILE CHECKSUM: 65f42737ec047700f8a7d0a99fb9dc6e895b3a61
 
 COCOAPODS: 1.16.2

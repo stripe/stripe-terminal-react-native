@@ -22,4 +22,6 @@ Pod::Spec.new do |s|
 
   s.dependency 'React-Core'
   s.dependency 'StripeTerminal', '~> 4.3.0'
+  s.dependency 'Yoga'
+  s.pod_target_xcconfig  = { "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/Headers/Private/Yoga\"" }
 end
