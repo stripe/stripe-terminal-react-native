@@ -5,6 +5,17 @@ enum CommonErrorType: String {
     case AlreadyDiscovering
 }
 
+enum BridgeCommonError: String {
+  case failed = "Failed"
+  case canceled = "Canceled"
+  case unknown = "Unknown"
+}
+
+struct StripeError {
+    let code: BridgeCommonError
+    let message: String
+}
+
 class Errors {
     class func validateRequiredParameters(params: NSDictionary, requiredParams: [String]) -> String? {
         var invalid: [String] = []
@@ -29,6 +40,12 @@ class Errors {
     class func createError(nsError: NSError) -> [String: Any] {
         return createError(code: ErrorCode.Code.init(rawValue: nsError.code) ?? ErrorCode.unexpectedSdkError, message: nsError.localizedDescription)
     }
+  
+    class func reject(_ reject: RCTPromiseRejectBlock, code: CommonErrorType, message: String) {
+        let errorDict = createError(errorCode: code.rawValue, message: message)
+        let error = errorDict["error"] as? [String: String]
+        reject(error?["code"] ?? "Unknown", error?["message"], nil)
+    }
 
     private class func createError(errorCode: String, message: String) -> [String: Any] {
         let error = [
@@ -47,4 +64,8 @@ extension ErrorCode.Code {
     var stringValue: String {
         return Terminal.stringFromError(self)
     }
+}
+
+func rejectStripeError(_ error: StripeError, using reject: @escaping RCTPromiseRejectBlock) {
+    reject(error.code.rawValue, error.message, nil)
 }

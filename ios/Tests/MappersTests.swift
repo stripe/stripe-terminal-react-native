@@ -215,6 +215,29 @@ final class MappersTests: XCTestCase {
             }
         }
     }
+  
+    func testMapToSimulatedCollectInputsResultBehaviors() {
+          let testCases: [(input: String, expectedSucceeded: SimulatedCollectInputsSkipBehavior?)] = [
+                  ("all", .all),
+                  ("none", SimulatedCollectInputsSkipBehavior.none),
+                  ("timeout", nil),
+                  ("invalid", SimulatedCollectInputsSkipBehavior.none)
+          ]
+
+          for (input, expectedBehavior) in testCases {
+              let result = Mappers.mapToSimulatedCollectInputsResult(input)
+
+              if let expected = expectedBehavior {
+                  guard let succeeded = result as? SimulatedCollectInputsResultSucceeded else {
+                      XCTFail("Expected SimulatedCollectInputsResultSucceeded for input '\(input)'")
+                      continue
+                  }
+                  XCTAssertEqual(succeeded.simulatedCollectInputsSkipBehavior, expected, "Wrong skipBehavior for input '\(input)'")
+              } else {
+                  XCTAssertTrue(result is SimulatedCollectInputsResultTimeout, "Expected SimulatedCollectInputsResultTimeout for input '\(input)'")
+              }
+          }
+    }
 }
 
 struct TestableTextResult : stripe_terminal_react_native.TextResult {

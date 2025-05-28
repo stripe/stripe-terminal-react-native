@@ -557,6 +557,24 @@ class Mappers {
         default: return SimulateReaderUpdate.none
         }
     }
+  
+    class func mapToSimulatedCollectInputsResult(_ behavior: String) -> SimulatedCollectInputsResult {
+        let skipBehavior: SimulatedCollectInputsSkipBehavior?
+        switch behavior.lowercased() {
+        case "all": skipBehavior = SimulatedCollectInputsSkipBehavior.all
+        case "none": skipBehavior = SimulatedCollectInputsSkipBehavior.none
+        case "timeout": skipBehavior = nil
+        default: skipBehavior = SimulatedCollectInputsSkipBehavior.none
+        }
+
+        if let successBehavior = skipBehavior {
+          return SimulatedCollectInputsResultSucceeded(
+            simulatedCollectInputsSkipBehavior: successBehavior
+          )
+        } else {
+          return SimulatedCollectInputsResultTimeout()
+        }
+    }
 
     class func mapFromCardPresent(_ cardPresent: CardPresentDetails) -> NSDictionary {
         var receiptDetailsMap: NSDictionary?
