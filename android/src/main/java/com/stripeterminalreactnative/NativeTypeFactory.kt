@@ -12,7 +12,16 @@ import com.facebook.react.bridge.WritableNativeMap
  * [android.os.SystemClock.uptimeMillis] which can be challenging to mock.
  */
 object NativeTypeFactory {
+
+    /**
+     * Returns an empty WritableMap, which will be sent to JS as an empty object `{}`.
+     * This is the standard way to return an empty object from native to JavaScript.
+     */
     fun writableNativeMap(): WritableMap = WritableNativeMap()
 
+    /**
+     * Returns an empty WritableArray, which will be sent to JS as an empty array `[]`.
+     * This is the standard way to return an empty array from native to JavaScript.
+     */
     fun writableNativeArray(): WritableArray = WritableNativeArray()
 }

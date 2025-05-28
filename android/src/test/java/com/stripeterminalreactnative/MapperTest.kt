@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import io.mockk.every
 import io.mockk.mockk
@@ -79,10 +80,29 @@ class MapperTest {
     }
 
     @Test
-    fun `test mapFromSimulatedCollectInputsSkipBehavior transform`() {
-        assertEquals(mapFromSimulatedCollectInputsSkipBehavior("none"), SimulatedCollectInputsSkipBehavior.NONE)
-        assertEquals(mapFromSimulatedCollectInputsSkipBehavior("all"), SimulatedCollectInputsSkipBehavior.ALL)
-        assertEquals(mapFromSimulatedCollectInputsSkipBehavior(""), SimulatedCollectInputsSkipBehavior.NONE)
+    fun `test mapFromSimulatedCollectInputsBehavior transform`() {
+        val notSkipInputBehavior = mapFromSimulatedCollectInputsBehavior("none")
+        assertTrue {
+            notSkipInputBehavior is SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded &&
+                notSkipInputBehavior.simulatedCollectInputsSkipBehavior == SimulatedCollectInputsSkipBehavior.NONE
+        }
+
+        val skipAllInputBehavior = mapFromSimulatedCollectInputsBehavior("all")
+        assertTrue {
+            skipAllInputBehavior is SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded &&
+                skipAllInputBehavior.simulatedCollectInputsSkipBehavior == SimulatedCollectInputsSkipBehavior.ALL
+        }
+
+        val timeoutBehavior = mapFromSimulatedCollectInputsBehavior("timeout")
+        assertTrue {
+            timeoutBehavior is SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
+        }
+
+        val unexpectedBehavior = mapFromSimulatedCollectInputsBehavior("unexpected")
+        assertTrue {
+            unexpectedBehavior is SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded &&
+                unexpectedBehavior.simulatedCollectInputsSkipBehavior == SimulatedCollectInputsSkipBehavior.NONE
+        }
     }
 }
 

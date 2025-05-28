@@ -63,6 +63,9 @@ import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SignatureResult
 import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TextResult
@@ -517,12 +520,17 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
     }
 }
 
-internal fun mapFromSimulatedCollectInputsSkipBehavior(behavior: String?): SimulatedCollectInputsSkipBehavior {
-    return when (behavior) {
+internal fun mapFromSimulatedCollectInputsBehavior(behavior: String?): SimulatedCollectInputsResult {
+    val skipBehavior = when (behavior) {
         "all" -> SimulatedCollectInputsSkipBehavior.ALL
         "none" -> SimulatedCollectInputsSkipBehavior.NONE
+        "timeout" -> null
         else -> SimulatedCollectInputsSkipBehavior.NONE
     }
+
+    return skipBehavior?.let {
+        SimulatedCollectInputsResultSucceeded(it)
+    } ?: SimulatedCollectInputsResultTimeout()
 }
 
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
