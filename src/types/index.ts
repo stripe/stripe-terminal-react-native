@@ -611,6 +611,11 @@ export type TapToPayUxConfiguration = {
   colors?: Colors;
 };
 
+export type PromptTapToPayEducationResult = {
+  status: string;
+  message: string;
+};
+
 export type TapZone = {
   tapZoneIndicator?: TapZoneIndicator;
   tapZonePosition?: TapZonePosition;
