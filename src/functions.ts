@@ -593,18 +593,18 @@ export async function setSimulatedOfflineMode(
 }
 
 export async function setSimulatedCollectInputsResult(
-  simulatedCollectInputsSkipBehavior: string
+  simulatedCollectInputsBehavior: string
 ): Promise<{ error?: StripeError }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior);
+      await StripeTerminalSdk.setSimulatedCollectInputsResult(simulatedCollectInputsBehavior);
       return {};
     } catch (error) {
       return {
         error: error as any,
       };
     }
-  }, 'setSimulatedCollectInputsResult')(simulatedCollectInputsSkipBehavior);
+  }, 'setSimulatedCollectInputsResult')(simulatedCollectInputsBehavior);
 }
 
 export async function collectRefundPaymentMethod(

@@ -55,8 +55,6 @@ import com.stripe.stripeterminal.external.models.SetupIntentCancellationParamete
 import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
-import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
-import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
@@ -65,6 +63,7 @@ import com.stripe.stripeterminal.external.models.TextInput
 import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripe.stripeterminal.external.models.Toggle
 import com.stripe.stripeterminal.external.models.ToggleValue
+import com.stripeterminalreactnative.ReactExtensions.reject
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNCollectedDataCallback
@@ -236,12 +235,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior: String, promise: Promise) {
+    fun setSimulatedCollectInputsResult(simulatedCollectInputsBehavior: String, promise: Promise) {
+        val validBehavior = setOf("all", "none", "timeout")
+        if (simulatedCollectInputsBehavior !in validBehavior) {
+            promise.reject(
+                StripeError(
+                    code = CommonError.Failed,
+                    message = "The simulatedCollectInputsBehavior must be \"all\", \"none\", or \"timeout\"."
+                )
+            )
+        }
+
         terminal.simulatorConfiguration = SimulatorConfiguration(
-            simulatedCollectInputsResult = SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded(
-                simulatedCollectInputsSkipBehavior = mapFromSimulatedCollectInputsSkipBehavior(
-                    simulatedCollectInputsSkipBehavior
-                ),
+            simulatedCollectInputsResult = mapFromSimulatedCollectInputsBehavior(
+                simulatedCollectInputsBehavior
             )
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
