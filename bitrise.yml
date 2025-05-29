@@ -102,12 +102,18 @@ workflows:
             - command: e2e:build:ios:release
             - cache_local_deps: 'yes'
           title: build for detox
-      - yarn@0:
+      - xcode-start-simulator:
+          inputs:
+            - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
+            - wait_for_boot_timeout: 90
+      - script@1:
           is_skippable: true
           inputs:
-            - command: e2e:test:ios:release
-            - cache_local_deps: 'yes'
-          title: test detox
+            - content: |-
+                xcrun simctl install Booted dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app
+                curl -fsSL "https://get.maestro.mobile.dev" | bash
+                ~/.maestro/bin/maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml
+          title: install maestro & run tests
     before_run:
       - prep_all
       - setup_cocoapods
