@@ -85,7 +85,7 @@ workflows:
           inputs:
             - content: |-
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                ~/.maestro/bin/maestro test maestro/app.yml
+                ~/.maestro/bin/maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml
           title: install maestro & run tests
     before_run:
       - prep_all
@@ -102,11 +102,18 @@ workflows:
             - command: e2e:build:ios:release
             - cache_local_deps: 'yes'
           title: build for detox
-      - yarn@0:
+      - xcode-start-simulator:
           inputs:
-            - command: e2e:test:ios:release
-            - cache_local_deps: 'yes'
-          title: test detox
+            - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
+            - wait_for_boot_timeout: 90
+      - script@1:
+          is_skippable: true
+          inputs:
+            - content: |-
+                xcrun simctl install Booted dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app
+                curl -fsSL "https://get.maestro.mobile.dev" | bash
+                ~/.maestro/bin/maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml
+          title: install maestro & run tests
     before_run:
       - prep_all
       - setup_cocoapods
@@ -267,7 +274,7 @@ workflows:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 15,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
             - command: yarn unit-test:ios
             - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
@@ -278,7 +285,7 @@ workflows:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-15.4.x
+    stack: osx-xcode-16.2.x
     machine_type_id: g2.mac.large
 app:
   envs:

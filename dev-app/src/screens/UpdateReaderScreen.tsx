@@ -70,7 +70,11 @@ export default function UpdateReaderScreen() {
       </List>
 
       <List>
-        <ListItem visible={startToUpdate} title="Required update in progress" />
+        <ListItem
+          testID='required-update-in-progress'
+          visible={startToUpdate}
+          title="Required update in progress"
+        />
         <ListItem
           visible={!startToUpdate}
           title="Install update"

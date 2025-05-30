@@ -355,7 +355,17 @@ export type PaymentMethodDetails = {
   interacPresentDetails?: CardPresentDetails;
   wechatPayDetails?: WechatPayDetails;
   affirmDetails?: AffirmDetails;
+  cardDetails?: CardDetails;
 };
+
+export type CardDetails = {
+  brand?: string;
+  country?: string;
+  expMonth?: number;
+  expYear?: number;
+  funding?: string;
+  last4?: string;
+}
 
 export type ConfirmRefundResultType = {
   refund?: Refund.Props;

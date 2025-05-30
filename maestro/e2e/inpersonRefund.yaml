@@ -1,9 +1,10 @@
-appId: com.dev.app.stripeterminalreactnative
+appId: ${APP_ID}
 ---
 - scrollUntilVisible:
     element:
-      text: "In-Person Refund"
-- tapOn: "In-Person Refund"
+      id: "in-person-refund-button"
+- tapOn:
+    id: "in-person-refund-button"
 
 - tapOn:
     id: "charge-id-text-field"
@@ -21,7 +22,7 @@ appId: com.dev.app.stripeterminalreactnative
 
 - scrollUntilVisible:
     element:
-      text: "Collect"
+      id: "Collect"
 - scrollUntilVisible:
     element:
-      text: "Failed"
+      id: "Failed"
