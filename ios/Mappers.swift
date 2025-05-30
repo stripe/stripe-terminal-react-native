@@ -225,7 +225,7 @@ class Mappers {
         ]
         return result
     }
-    
+
     class func mapFromRequestPartialAuthorization(_ requestPartialAuthorization: UInt?) -> String {
         guard let requestPartialAuthorization = requestPartialAuthorization else {
             return ""
@@ -272,7 +272,7 @@ class Mappers {
             mapToPaymentMethodType($0 as? String ?? "")
         })
     }
-    
+
     class func mapToSetupIntentCollectionReason(_ reason: String?) -> SetupIntentCollectionReason? {
         switch reason {
         case "saveCard":
@@ -1024,6 +1024,7 @@ class Mappers {
         switch type {
             case "unknown": return CollectDataType.unknown
             case "magstripe": return CollectDataType.magstripe
+            case "nfcUid": return CollectDataType.nfcUid
             default: return nil
         }
     }
@@ -1031,6 +1032,7 @@ class Mappers {
     class func mapFromCollectedData(_ collectData: CollectedData) -> NSDictionary {
         let result: NSDictionary = [
             "stripeId": collectData.stripeId ?? NSNull(),
+            "nfcUid": collectData.nfcUid ?? NSNull(),
             "created": convertDateToUnixTimestamp(date: collectData.created),
             "livemode": collectData.livemode,
         ]
