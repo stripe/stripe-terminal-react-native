@@ -559,20 +559,21 @@ class Mappers {
     }
   
     class func mapToSimulatedCollectInputsResult(_ behavior: String) -> SimulatedCollectInputsResult {
-        let skipBehavior: SimulatedCollectInputsSkipBehavior?
         switch behavior.lowercased() {
-        case "all": skipBehavior = SimulatedCollectInputsSkipBehavior.all
-        case "none": skipBehavior = SimulatedCollectInputsSkipBehavior.none
-        case "timeout": skipBehavior = nil
-        default: skipBehavior = SimulatedCollectInputsSkipBehavior.none
-        }
-
-        if let successBehavior = skipBehavior {
-          return SimulatedCollectInputsResultSucceeded(
-            simulatedCollectInputsSkipBehavior: successBehavior
-          )
-        } else {
-          return SimulatedCollectInputsResultTimeout()
+        case "all":
+            return SimulatedCollectInputsResultSucceeded(
+                simulatedCollectInputsSkipBehavior: SimulatedCollectInputsSkipBehavior.all
+              )
+        case "none":
+            return SimulatedCollectInputsResultSucceeded(
+                simulatedCollectInputsSkipBehavior: SimulatedCollectInputsSkipBehavior.none
+              )
+        case "timeout":
+            return SimulatedCollectInputsResultTimeout()
+        default:
+            return SimulatedCollectInputsResultSucceeded(
+                simulatedCollectInputsSkipBehavior: SimulatedCollectInputsSkipBehavior.none
+              )
         }
     }
 

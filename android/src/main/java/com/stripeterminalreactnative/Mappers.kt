@@ -521,16 +521,20 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
 }
 
 internal fun mapFromSimulatedCollectInputsBehavior(behavior: String?): SimulatedCollectInputsResult {
-    val skipBehavior = when (behavior) {
-        "all" -> SimulatedCollectInputsSkipBehavior.ALL
-        "none" -> SimulatedCollectInputsSkipBehavior.NONE
-        "timeout" -> null
-        else -> SimulatedCollectInputsSkipBehavior.NONE
+    return when (behavior) {
+        "all" -> {
+            SimulatedCollectInputsResultSucceeded(SimulatedCollectInputsSkipBehavior.ALL)
+        }
+        "none" -> {
+            SimulatedCollectInputsResultSucceeded(SimulatedCollectInputsSkipBehavior.NONE)
+        }
+        "timeout" -> {
+            SimulatedCollectInputsResultTimeout()
+        }
+        else -> {
+            SimulatedCollectInputsResultSucceeded(SimulatedCollectInputsSkipBehavior.NONE)
+        }
     }
-
-    return skipBehavior?.let {
-        SimulatedCollectInputsResultSucceeded(it)
-    } ?: SimulatedCollectInputsResultTimeout()
 }
 
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
