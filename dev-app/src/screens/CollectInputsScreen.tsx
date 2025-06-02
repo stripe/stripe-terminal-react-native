@@ -16,9 +16,9 @@ import type { RouteParamList } from '../App';
 import { Picker } from '@react-native-picker/picker';
 
 const COLLECT_PAYMENT_INPUT_BEHAVIOR = [
-  { value: 'all', label: 'all' },
-  { value: 'none', label: 'none' },
-  { value: 'timeout', label: 'timeout' },
+  { value: 'all', label: 'Success with skipping' },
+  { value: 'none', label: 'Success without skipping' },
+  { value: 'timeout', label: 'Timeout' },
 ];
 
 export default function CollectInputsScreen() {
