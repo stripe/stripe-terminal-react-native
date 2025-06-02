@@ -7,17 +7,6 @@ import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 import kotlinx.coroutines.CancellationException
 
-enum class CommonError(val code: String) {
-    Failed("Failed"),
-    Canceled("Canceled"),
-    Unknown("Unknown")
-}
-
-data class StripeError(
-    val code: CommonError,
-    val message: String,
-)
-
 internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
 
 internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {

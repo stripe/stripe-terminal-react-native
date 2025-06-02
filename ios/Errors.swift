@@ -5,17 +5,6 @@ enum CommonErrorType: String {
     case AlreadyDiscovering
 }
 
-enum BridgeCommonError: String {
-  case failed = "Failed"
-  case canceled = "Canceled"
-  case unknown = "Unknown"
-}
-
-struct StripeError {
-    let code: BridgeCommonError
-    let message: String
-}
-
 class Errors {
     class func validateRequiredParameters(params: NSDictionary, requiredParams: [String]) -> String? {
         var invalid: [String] = []
@@ -64,8 +53,4 @@ extension ErrorCode.Code {
     var stringValue: String {
         return Terminal.stringFromError(self)
     }
-}
-
-func rejectStripeError(_ error: StripeError, using reject: @escaping RCTPromiseRejectBlock) {
-    reject(error.code.rawValue, error.message, nil)
 }

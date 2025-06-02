@@ -21,8 +21,4 @@ internal object ReactExtensions {
                 }
             )
     }
-
-    fun Promise.reject(stripeError: StripeError) {
-        this.reject(stripeError.code.code, stripeError.message)
-    }
 }

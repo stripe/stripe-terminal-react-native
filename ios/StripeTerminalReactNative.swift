@@ -230,7 +230,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     ) {
         let allowedValues = ["all", "none", "timeout"]
         if !allowedValues.contains(behavior.lowercased()) {
-          rejectStripeError(StripeError(code: BridgeCommonError.failed, message: "You must provide \(allowedValues) parameters."), using: reject)
+            reject("Failed", "You must provide \(allowedValues) parameters.", nil)
             return
         }
       
