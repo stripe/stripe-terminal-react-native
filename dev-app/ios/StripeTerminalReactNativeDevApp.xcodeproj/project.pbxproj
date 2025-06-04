@@ -18,6 +18,7 @@
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* StripeTerminalReactNativeDevApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StripeTerminalReactNativeDevApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = StripeTerminalReactNativeDevApp/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = StripeTerminalReactNativeDevApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = StripeTerminalReactNativeDevApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		24C7E185271805C30025FC13 /* StripeTerminalReactNativeDevApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StripeTerminalReactNativeDevApp-Bridging-Header.h"; sourceTree = "<group>"; };
 		24C7E186271805C30025FC13 /* Empty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Empty.swift; sourceTree = "<group>"; };
@@ -49,6 +50,7 @@
 				4E3334412DF04FA300534394 /* AppDelegate.swift */,
 				24C7E186271805C30025FC13 /* Empty.swift */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
+				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				24C7E185271805C30025FC13 /* StripeTerminalReactNativeDevApp-Bridging-Header.h */,
