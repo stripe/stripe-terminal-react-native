@@ -63,6 +63,9 @@ import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SignatureResult
 import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded
+import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TextResult
@@ -528,11 +531,20 @@ internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
     }
 }
 
-internal fun mapFromSimulatedCollectInputsSkipBehavior(behavior: String?): SimulatedCollectInputsSkipBehavior {
+internal fun mapFromSimulatedCollectInputsBehavior(behavior: String?): SimulatedCollectInputsResult {
     return when (behavior) {
-        "all" -> SimulatedCollectInputsSkipBehavior.ALL
-        "none" -> SimulatedCollectInputsSkipBehavior.NONE
-        else -> SimulatedCollectInputsSkipBehavior.NONE
+        "all" -> {
+            SimulatedCollectInputsResultSucceeded(SimulatedCollectInputsSkipBehavior.ALL)
+        }
+        "none" -> {
+            SimulatedCollectInputsResultSucceeded(SimulatedCollectInputsSkipBehavior.NONE)
+        }
+        "timeout" -> {
+            SimulatedCollectInputsResultTimeout()
+        }
+        else -> {
+            SimulatedCollectInputsResultSucceeded(SimulatedCollectInputsSkipBehavior.NONE)
+        }
     }
 }
 

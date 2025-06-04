@@ -15,9 +15,10 @@ import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@r
 import type { RouteParamList } from '../App';
 import { Picker } from '@react-native-picker/picker';
 
-const SKIP_BEHAVIOR = [
-  { value: 'all', label: 'all' },
-  { value: 'none', label: 'none' },
+const COLLECT_PAYMENT_INPUT_BEHAVIOR = [
+  { value: 'all', label: 'Success with skipping' },
+  { value: 'none', label: 'Success without skipping' },
+  { value: 'timeout', label: 'Timeout' },
 ];
 
 export default function CollectInputsScreen() {
@@ -27,7 +28,7 @@ export default function CollectInputsScreen() {
   const { collectInputs, cancelCollectInputs, setSimulatedCollectInputsResult } = useStripeTerminal();
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
-  const [simulatedCollectInputsSkipBehavior, setSimulatedCollectInputsSkipBehavior] = useState<string>("none");
+  const [simulatedCollectInputsBehavior, setSimulatedCollectInputsBehavior] = useState<string>(COLLECT_PAYMENT_INPUT_BEHAVIOR[0].value);
 
   const _collectInputs = async (params: ICollectInputsParameters) => {
     clearLogs();
@@ -48,8 +49,8 @@ export default function CollectInputsScreen() {
       ],
     });
 
-    if (simulated && Platform.OS === 'android') { // only android support it now
-      const simulateResultResponse = await setSimulatedCollectInputsResult(simulatedCollectInputsSkipBehavior);
+    if (simulated) {
+      const simulateResultResponse = await setSimulatedCollectInputsResult(simulatedCollectInputsBehavior);
       if (simulateResultResponse.error) {
         addLogs({
           name: 'Simulate Collect Inputs Result',
@@ -200,19 +201,19 @@ export default function CollectInputsScreen() {
           }}
         />
       </List>
-      {/* only android support it now */}
-      {(simulated && Platform.OS === 'android') ? 
-        <List bolded={false} topSpacing={false} title="SIMULATED COLLECT INPUTS SKIP BEHAVIOR">
+
+      {simulated ?
+        <List bolded={false} topSpacing={false} title="SIMULATED COLLECT INPUTS BEHAVIOR">
           <Picker
-            selectedValue={simulatedCollectInputsSkipBehavior}
+            selectedValue={simulatedCollectInputsBehavior}
             style={styles.picker}
             itemStyle={styles.pickerItem}
-            testID="select-skip-behavior"
+            testID="select-behavior"
             onValueChange={(value) =>
-              setSimulatedCollectInputsSkipBehavior(value)
+              setSimulatedCollectInputsBehavior(value)
             }
           >
-            {SKIP_BEHAVIOR.map((a) => (
+            {COLLECT_PAYMENT_INPUT_BEHAVIOR.map((a) => (
               <Picker.Item
                 key={a.value}
                 label={a.label}

@@ -220,6 +220,24 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.simulatorConfiguration.offlineEnabled = simulatedOffline;
         resolve([:])
     }
+  
+  
+    @objc(setSimulatedCollectInputsResult:resolver:rejecter:)
+    func setSimulatedCollectInputsResult(
+      _ behavior: String,
+      resolver resolve: @escaping RCTPromiseResolveBlock,
+      rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let allowedValues = ["all", "none", "timeout"]
+        if !allowedValues.contains(behavior.lowercased()) {
+            reject("Failed", "You must provide \(allowedValues) parameters.", nil)
+            return
+        }
+      
+        let result: SimulatedCollectInputsResult = Mappers.mapToSimulatedCollectInputsResult(behavior)
+        Terminal.shared.simulatorConfiguration.simulatedCollectInputsResult = result
+        resolve([:])
+    }
 
     @objc(setConnectionToken:resolver:rejecter:)
     func setConnectionToken(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
@@ -243,7 +261,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false,  locationId: locationId ?? nil, timeout: timeout)
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
-            return
+          return
         }
 
         guard discoverCancelable == nil else {

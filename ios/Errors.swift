@@ -29,6 +29,12 @@ class Errors {
     class func createError(nsError: NSError) -> [String: Any] {
         return createError(code: ErrorCode.Code.init(rawValue: nsError.code) ?? ErrorCode.unexpectedSdkError, message: nsError.localizedDescription)
     }
+  
+    class func reject(_ reject: RCTPromiseRejectBlock, code: CommonErrorType, message: String) {
+        let errorDict = createError(errorCode: code.rawValue, message: message)
+        let error = errorDict["error"] as? [String: String]
+        reject(error?["code"] ?? "Unknown", error?["message"], nil)
+    }
 
     private class func createError(errorCode: String, message: String) -> [String: Any] {
         let error = [
