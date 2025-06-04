@@ -23,3 +23,33 @@ enum class ReactNativeConstants(val listenerName: String) {
     REPORT_LOW_BATTERY_WARNING("didReportLowBatteryWarning"),
     REPORT_READER_EVENT("didReportReaderEvent"),
 }
+
+enum class DeviceSerialName(val serialName: String) {
+    CHIPPER_1X("chipper1X"),
+    CHIPPER_2X("chipper2X"),
+    ETNA("etna"),
+    STRIPE_M2("stripeM2"),
+    STRIPE_S700("stripeS700"),
+    STRIPE_S700_DEVKIT("stripeS700Devkit"),
+    STRIPE_S710("stripeS710"),
+    STRIPE_S710_DEVKIT("stripeS710Devkit"),
+    UNKNOWN("unknown"),
+    VERIFONE_P400("verifoneP400"),
+    WISECUBE("wiseCube"),
+    WISEPAD_3("wisePad3"),
+    WISEPAD_3S("wisePad3s"),
+    WISEPOS_E("wisePosE"),
+    WISEPOS_E_DEVKIT("wisePosEDevkit"),
+    TAP_TO_PAY_DEVICE("tapToPay"),
+    VERIFONE_V660P("verifoneV660P"),
+    VERIFONE_M425("verifoneM425"),
+    VERIFONE_M450("verifoneM450"),
+    VERIFONE_P630("verifoneP630"),
+    VERIFONE_UX700("verifoneUX700");
+
+    companion object {
+        private val serialNames = DeviceSerialName.entries.associateBy(DeviceSerialName::serialName)
+
+        fun fromSerialName(serialName: String): DeviceSerialName? = serialNames[serialName]
+    }
+}
