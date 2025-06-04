@@ -149,42 +149,53 @@ internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String {
 
 internal fun mapFromDeviceType(type: DeviceType): String {
     return when (type) {
-        DeviceType.CHIPPER_1X -> "chipper1X"
-        DeviceType.CHIPPER_2X -> "chipper2X"
-        DeviceType.ETNA -> "etna"
-        DeviceType.STRIPE_M2 -> "stripeM2"
-        DeviceType.STRIPE_S700 -> "stripeS700"
-        DeviceType.STRIPE_S700_DEVKIT -> "stripeS700Devkit"
-        DeviceType.STRIPE_S710 -> "stripeS710"
-        DeviceType.STRIPE_S710_DEVKIT -> "stripeS710Devkit"
-        DeviceType.UNKNOWN -> "unknown"
-        DeviceType.VERIFONE_P400 -> "verifoneP400"
-        DeviceType.WISECUBE -> "wiseCube"
-        DeviceType.WISEPAD_3 -> "wisePad3"
-        DeviceType.WISEPAD_3S -> "wisePad3s"
-        DeviceType.WISEPOS_E -> "wisePosE"
-        DeviceType.WISEPOS_E_DEVKIT -> "wisePosEDevkit"
-        DeviceType.TAP_TO_PAY_DEVICE -> "tapToPay"
+        DeviceType.CHIPPER_1X -> DeviceSerialName.CHIPPER_1X.serialName
+        DeviceType.CHIPPER_2X -> DeviceSerialName.CHIPPER_2X.serialName
+        DeviceType.ETNA -> DeviceSerialName.ETNA.serialName
+        DeviceType.STRIPE_M2 -> DeviceSerialName.STRIPE_M2.serialName
+        DeviceType.STRIPE_S700 -> DeviceSerialName.STRIPE_S700.serialName
+        DeviceType.STRIPE_S700_DEVKIT -> DeviceSerialName.STRIPE_S700_DEVKIT.serialName
+        DeviceType.STRIPE_S710 -> DeviceSerialName.STRIPE_S710.serialName
+        DeviceType.STRIPE_S710_DEVKIT -> DeviceSerialName.STRIPE_S710_DEVKIT.serialName
+        DeviceType.UNKNOWN -> DeviceSerialName.UNKNOWN.serialName
+        DeviceType.VERIFONE_P400 -> DeviceSerialName.VERIFONE_P400.serialName
+        DeviceType.WISECUBE -> DeviceSerialName.WISECUBE.serialName
+        DeviceType.WISEPAD_3 -> DeviceSerialName.WISEPAD_3.serialName
+        DeviceType.WISEPAD_3S -> DeviceSerialName.WISEPAD_3S.serialName
+        DeviceType.WISEPOS_E -> DeviceSerialName.WISEPOS_E.serialName
+        DeviceType.WISEPOS_E_DEVKIT -> DeviceSerialName.WISEPOS_E_DEVKIT.serialName
+        DeviceType.TAP_TO_PAY_DEVICE -> DeviceSerialName.TAP_TO_PAY_DEVICE.serialName
+        DeviceType.VERIFONE_V660P -> DeviceSerialName.VERIFONE_V660P.serialName
+        DeviceType.VERIFONE_M425 -> DeviceSerialName.VERIFONE_M425.serialName
+        DeviceType.VERIFONE_M450 -> DeviceSerialName.VERIFONE_M450.serialName
+        DeviceType.VERIFONE_P630 -> DeviceSerialName.VERIFONE_P630.serialName
+        DeviceType.VERIFONE_UX700 -> DeviceSerialName.VERIFONE_UX700.serialName
     }
 }
 
 internal fun mapToDeviceType(type: String): DeviceType? {
-    return when (type) {
-        "chipper1X" -> DeviceType.CHIPPER_1X
-        "chipper2X" -> DeviceType.CHIPPER_2X
-        "etna" -> DeviceType.ETNA
-        "stripeM2" -> DeviceType.STRIPE_M2
-        "stripeS700" -> DeviceType.STRIPE_S700
-        "stripeS700Devkit" -> DeviceType.STRIPE_S700_DEVKIT
-        "stripeS710" -> DeviceType.STRIPE_S710
-        "stripeS710Devkit" -> DeviceType.STRIPE_S710_DEVKIT
-        "verifoneP400" -> DeviceType.VERIFONE_P400
-        "wiseCube" -> DeviceType.WISECUBE
-        "wisePad3" -> DeviceType.WISEPAD_3
-        "wisePad3s" -> DeviceType.WISEPAD_3S
-        "wisePosE" -> DeviceType.WISEPOS_E
-        "wisePosEDevkit" -> DeviceType.WISEPOS_E_DEVKIT
-        "tapToPay" -> DeviceType.TAP_TO_PAY_DEVICE
+    val deviceSerialName = DeviceSerialName.fromSerialName(type)
+    return when (deviceSerialName) {
+        DeviceSerialName.CHIPPER_1X -> DeviceType.CHIPPER_1X
+        DeviceSerialName.CHIPPER_2X -> DeviceType.CHIPPER_2X
+        DeviceSerialName.ETNA -> DeviceType.ETNA
+        DeviceSerialName.STRIPE_M2 -> DeviceType.STRIPE_M2
+        DeviceSerialName.STRIPE_S700 -> DeviceType.STRIPE_S700
+        DeviceSerialName.STRIPE_S700_DEVKIT -> DeviceType.STRIPE_S700_DEVKIT
+        DeviceSerialName.STRIPE_S710 -> DeviceType.STRIPE_S710
+        DeviceSerialName.STRIPE_S710_DEVKIT -> DeviceType.STRIPE_S710_DEVKIT
+        DeviceSerialName.VERIFONE_P400 -> DeviceType.VERIFONE_P400
+        DeviceSerialName.WISECUBE -> DeviceType.WISECUBE
+        DeviceSerialName.WISEPAD_3 -> DeviceType.WISEPAD_3
+        DeviceSerialName.WISEPAD_3S -> DeviceType.WISEPAD_3S
+        DeviceSerialName.WISEPOS_E -> DeviceType.WISEPOS_E
+        DeviceSerialName.WISEPOS_E_DEVKIT -> DeviceType.WISEPOS_E_DEVKIT
+        DeviceSerialName.TAP_TO_PAY_DEVICE -> DeviceType.TAP_TO_PAY_DEVICE
+        DeviceSerialName.VERIFONE_V660P -> DeviceType.VERIFONE_V660P
+        DeviceSerialName.VERIFONE_M425 -> DeviceType.VERIFONE_M425
+        DeviceSerialName.VERIFONE_M450 -> DeviceType.VERIFONE_M450
+        DeviceSerialName.VERIFONE_P630 -> DeviceType.VERIFONE_P630
+        DeviceSerialName.VERIFONE_UX700 -> DeviceType.VERIFONE_UX700
         else -> null
     }
 }
