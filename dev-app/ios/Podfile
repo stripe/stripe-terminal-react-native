@@ -28,6 +28,15 @@ target 'StripeTerminalReactNativeDevApp' do
       testspecs: ['Tests']
 
   post_install do |installer|
+    # Path to the Yoga headers in Private
+    private_yoga_headers = "#{installer.sandbox.root}/Headers/Private/Yoga"
+    # Path to the Yoga headers in Public
+    public_yoga_headers = "#{installer.sandbox.root}/Headers/Public/Yoga"
+
+    # Copy the Yoga headers from Private to Public
+    FileUtils.mkdir_p(public_yoga_headers) unless Dir.exist?(public_yoga_headers)
+    system("rsync -a #{private_yoga_headers}/ #{public_yoga_headers}")
+    
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
