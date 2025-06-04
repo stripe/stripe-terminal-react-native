@@ -1069,6 +1069,7 @@ fun mapFromBatteryStatus(status: BatteryStatus): String {
 fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
     return nativeMapOf {
         putString("stripeId", collectData.id)
+        putString("nfcUid", collectData.nfcUid)
         putString("created", convertToUnixTimestamp(collectData.created))
         putBoolean("livemode", collectData.livemode)
     }
@@ -1077,6 +1078,7 @@ fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
 fun mapFromCollectDataType(type: String): CollectDataType? {
     return when (type) {
         "magstripe" -> CollectDataType.MAGSTRIPE
+        "nfcUid" -> CollectDataType.NFC_UID
         else -> null
     }
 }

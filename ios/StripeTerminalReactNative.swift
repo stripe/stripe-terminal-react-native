@@ -1070,9 +1070,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
+        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let collectDataConfig: CollectDataConfiguration
         do {
             collectDataConfig = try CollectDataConfigurationBuilder().setCollectDataType(collectDataType)
+                .setEnableCustomerCancellation(enableCustomerCancellation)
                 .build()
         } catch {
             resolve(Errors.createError(nsError: error as NSError))
