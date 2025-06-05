@@ -892,6 +892,8 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
         DisconnectReason.CRITICALLY_LOW_BATTERY -> "criticallyLowBattery"
         DisconnectReason.POWERED_OFF -> "poweredOff"
         DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
+        DisconnectReason.USB_DISCONNECTED -> "usbDisconnected"
+        DisconnectReason.IDLE_POWER_DOWN -> "idlePowerDown"
         else -> {
             "unknown"
         }
