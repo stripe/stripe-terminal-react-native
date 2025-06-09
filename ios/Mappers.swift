@@ -945,6 +945,9 @@ class Mappers {
         case DisconnectReason.criticallyLowBattery: return "criticallyLowBattery"
         case DisconnectReason.poweredOff: return "poweredOff"
         case DisconnectReason.bluetoothDisabled: return "bluetoothDisabled"
+        case DisconnectReason.bluetoothSignalLost: return "bluetoothSignalLost"
+        case DisconnectReason.usbDisconnected: return "usbDisconnected"
+        case DisconnectReason.idlePowerDown: return "idlePowerDown"
         default: return "unknown"
         }
     }
