@@ -130,6 +130,9 @@ export namespace Reader {
     | 'criticallyLowBattery'
     | 'poweredOff'
     | 'bluetoothDisabled'
+    | 'bluetoothSignalLost'
+    | 'usbDisconnected'
+    | 'idlePowerDown'
     | 'unknown';
 
   export type ReaderSettings =
