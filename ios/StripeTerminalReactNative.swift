@@ -635,6 +635,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 }
                 resolve(result)
             } else if let paymentIntent = pi {
+                // Always store the latest instance of the PaymentIntent so we pass the latest instance back in
+                // to the confirm call.
+                self.paymentIntents[uuid] = paymentIntent
                 let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": paymentIntent])
             }
