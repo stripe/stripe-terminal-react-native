@@ -1,7 +1,6 @@
 package com.dev.app.stripeterminalreactnative
 
 import android.app.Application
-import android.util.Log
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -40,7 +39,7 @@ class MainApplication : Application(), ReactApplication {
     override fun onCreate() {
         super.onCreate()
         // Skip initialization if running in the TTPA process.
-        if (TapToPay.isInTapToPayProcess().also { Log.d("FATT", "isInTapToPayProcess: $it") }) { return }
+        if (TapToPay.isInTapToPayProcess()) { return }
 
         TerminalApplicationDelegate.onCreate(this)
         SoLoader.init(this, OpenSourceMergedSoMapping)
