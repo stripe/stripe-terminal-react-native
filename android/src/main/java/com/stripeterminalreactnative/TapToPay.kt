@@ -23,6 +23,7 @@ class TapToPay internal constructor() {
          *
          * @return `true` if the current process is the the dedicated Tap to Pay process, and `false` otherwise.
          */
+        @JvmStatic
         fun isInTapToPayProcess(): Boolean {
             return StripeTerminalTapToPay.isInTapToPayProcess()
         }
