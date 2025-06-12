@@ -195,10 +195,12 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         DeviceSerialName.WISEPOS_E_DEVKIT -> DeviceType.WISEPOS_E_DEVKIT
         DeviceSerialName.TAP_TO_PAY_DEVICE -> DeviceType.TAP_TO_PAY_DEVICE
         DeviceSerialName.VERIFONE_V660P -> DeviceType.VERIFONE_V660P
+        DeviceSerialName.VERIFONE_V660P_DEVKIT -> DeviceType.VERIFONE_V660P_DEVKIT
         DeviceSerialName.VERIFONE_M425 -> DeviceType.VERIFONE_M425
         DeviceSerialName.VERIFONE_M450 -> DeviceType.VERIFONE_M450
         DeviceSerialName.VERIFONE_P630 -> DeviceType.VERIFONE_P630
         DeviceSerialName.VERIFONE_UX700 -> DeviceType.VERIFONE_UX700
+        DeviceSerialName.VERIFONE_UX700_DEVKIT -> DeviceType.VERIFONE_UX700_DEVKIT
         else -> null
     }
 }
