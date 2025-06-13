@@ -245,6 +245,7 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
         putInt("amount", paymentIntent.amount.toInt())
         putString("captureMethod", paymentIntent.captureMethod)
         putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+        putString("clientSecret", paymentIntent.clientSecret)
         putString("created", convertToUnixTimestamp(paymentIntent.created))
         putString("currency", paymentIntent.currency)
         putMap(
