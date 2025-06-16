@@ -59,7 +59,6 @@ export default function HomeScreen() {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         setAppIsActive(true);
-
       } else if (nextAppState !== 'active') {
         setAppIsActive(false);
       }
@@ -320,19 +319,6 @@ export default function HomeScreen() {
           },
         ]}
       />
-
-      <AlertDialog
-        visible={appIsActive && showDisconnectAlert.visible}
-        title="Reader disconnected!"
-        message= {`${showDisconnectAlert.reason}`}
-        onDismiss={() => setShowDisconnectAlert({ visible: false })}
-        buttons={[
-          {
-            text: 'Dismiss',
-            onPress: () => setShowDisconnectAlert({ visible: false }),
-          },
-        ]}
-      />
     </>
   );
   return (
@@ -513,6 +499,19 @@ export default function HomeScreen() {
               }
             />
           </List>
+
+          <AlertDialog
+            visible={appIsActive && showDisconnectAlert.visible}
+            title="Reader disconnected!"
+            message= {`${showDisconnectAlert.reason}`}
+            onDismiss={() => setShowDisconnectAlert({ visible: false })}
+            buttons={[
+              {
+                text: 'Dismiss',
+                onPress: () => setShowDisconnectAlert({ visible: false }),
+              },
+            ]}
+          />
         </>
       )}
     </KeyboardAwareScrollView>
