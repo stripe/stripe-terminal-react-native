@@ -2000,14 +2000,14 @@
     serve-static "^1.16.2"
     ws "^6.2.3"
 
-"@react-native/eslint-config@0.76.6":
-  version "0.76.6"
-  resolved "https://registry.npmjs.org/@react-native/eslint-config/-/eslint-config-0.76.6.tgz#96b8fb555ef95ecc1dfe0d020de3d91df0736349"
-  integrity sha512-s7dsWapoB2oTgwhS8cjJmls9qsAOEbodWnFVeDkGytcjlOWDEYdDSqOhJXuwAqNmkZP1noXmcqRATo+gCnY20A==
+"@react-native/eslint-config@0.78.0":
+  version "0.78.0"
+  resolved "https://registry.npmjs.org/@react-native/eslint-config/-/eslint-config-0.78.0.tgz#11611c29a4014e72224e362e5233496107caa1db"
+  integrity sha512-zftIzAo51C6WTPlXBMJjwqxYEWxX2+shLfrjwFWoXufbM5r3DrabNcg004h2csp0YdSvhSsPd07e4620x8cygw==
   dependencies:
     "@babel/core" "^7.25.2"
     "@babel/eslint-parser" "^7.25.1"
-    "@react-native/eslint-plugin" "0.76.6"
+    "@react-native/eslint-plugin" "0.78.0"
     "@typescript-eslint/eslint-plugin" "^7.1.1"
     "@typescript-eslint/parser" "^7.1.1"
     eslint-config-prettier "^8.5.0"
@@ -2018,10 +2018,10 @@
     eslint-plugin-react-hooks "^4.6.0"
     eslint-plugin-react-native "^4.0.0"
 
-"@react-native/eslint-plugin@0.76.6":
-  version "0.76.6"
-  resolved "https://registry.npmjs.org/@react-native/eslint-plugin/-/eslint-plugin-0.76.6.tgz#a3b781abc5289d4fcfb7e87bbc938b2165c864b4"
-  integrity sha512-pAqN77lBXyfRcKN2D17AqWJLKkHNV/ZevPKKIGZ2LbLeM8POWsYcNnGtaO+glny8LbE+ZSBEXknMSIN+PrDk/A==
+"@react-native/eslint-plugin@0.78.0":
+  version "0.78.0"
+  resolved "https://registry.npmjs.org/@react-native/eslint-plugin/-/eslint-plugin-0.78.0.tgz#e80c82f3919bb79c73dd349e90e914381a1d3a8e"
+  integrity sha512-1S7L/aKSFnXvp/xhNmo9nohEKULtuvkoIrwuMiC6wqzoMdMLf/MhStY3bRj+VSAuwnUCd6VebMQOLPViLNg/sA==
 
 "@react-native/gradle-plugin@0.78.2":
   version "0.78.2"
@@ -2063,10 +2063,10 @@
   resolved "https://registry.npmjs.org/@react-native/normalize-colors/-/normalize-colors-0.78.2.tgz#0fc6b1eb5ebe8ba8ce2493b2f67fa28cfdb82717"
   integrity sha512-CA/3ynRO6/g1LDbqU8ewrv0js/1lU4+j04L7qz6btXbLTDk1UkF+AfpGRJGbIVY9UmFBJ7l1AOmzwutrWb3Txw==
 
-"@react-native/typescript-config@0.76.6":
-  version "0.76.6"
-  resolved "https://registry.npmjs.org/@react-native/typescript-config/-/typescript-config-0.76.6.tgz#f4cb7452ed2611ecc88088e140d12d24567026ca"
-  integrity sha512-i1gh+wLaAwG6ZVe2Mkoa10RJznsfOC1crRh0JAobCHaTaA/ZmuFScBTRzRE60pO5Oz6HWM1qbQST+JM+5LiMuA==
+"@react-native/typescript-config@0.78.0":
+  version "0.78.0"
+  resolved "https://registry.npmjs.org/@react-native/typescript-config/-/typescript-config-0.78.0.tgz#207a7f5f9e8b59858f048222b4a50d6d058621d3"
+  integrity sha512-G5+MbXvFN+R2GELDYK/kaOxEVMj+/DQRn1PxPps33V/wU/gG6zrlvDWxBaonrlGWpfmqGo87BMal1jQJ8ToSIA==
 
 "@react-native/virtualized-lists@0.78.2":
   version "0.78.2"
