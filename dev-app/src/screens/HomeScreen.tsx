@@ -36,8 +36,8 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  const [showReconnectAlert, setShowReconnectAlert] = useState<boolean>(false);
-  const [showDisconnectAlert, setShowDisconnectAlert] =
+  const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] = useState<boolean>(false);
+  const [showReconnectingAlert, setShowReconnectingAlert] =
     useState<boolean>(false);
   const [pendingUpdate, setPendingUpdate] =
     useState<Reader.SoftwareUpdate | null>(null);
@@ -112,17 +112,17 @@ export default function HomeScreen() {
     onDidStartReaderReconnect(reason) {
       console.log('onDidStartReaderReconnect ' + reason);
 
-      setShowDisconnectAlert(true);
-      setShowReconnectAlert(false);
+      setShowReconnectingAlert(true);
+      setShowReconnectSuccessAlert(false);
     },
     onDidSucceedReaderReconnect() {
-      setShowReconnectAlert(true);
-      setShowDisconnectAlert(false);
+      setShowReconnectSuccessAlert(true);
+      setShowReconnectingAlert(false);
     },
     onDidFailReaderReconnect() {
       Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
-      setShowDisconnectAlert(false);
-      setShowReconnectAlert(false);
+      setShowReconnectingAlert(false);
+      setShowReconnectSuccessAlert(false);
     },
   });
   useEffect(() => {
@@ -266,14 +266,14 @@ export default function HomeScreen() {
       </List>
 
       <AlertDialog
-        visible={showDisconnectAlert}
+        visible={showReconnectingAlert}
         title="Reconnecting..."
         message="Reader has disconnected."
         buttons={[
           {
             text: 'Cancel',
             onPress: async () => {
-              setShowDisconnectAlert(false);
+              setShowReconnectingAlert(false);
               await cancelReaderReconnection();
             },
           },
@@ -281,14 +281,14 @@ export default function HomeScreen() {
       />
 
       <AlertDialog
-        visible={showReconnectAlert}
+        visible={showReconnectSuccessAlert}
         title="Reconnected!"
         message="We were able to reconnect to the reader."
         buttons={[
           {
             text: 'OK',
             onPress: async () => {
-              setShowReconnectAlert(false);
+              setShowReconnectSuccessAlert(false);
             },
           },
         ]}
