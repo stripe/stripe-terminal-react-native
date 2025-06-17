@@ -322,199 +322,201 @@ export default function HomeScreen() {
     </>
   );
   return (
-    <KeyboardAwareScrollView
-      testID="home-screen"
-      style={styles.container}
-      contentInsetAdjustmentBehavior="automatic"
-    >
-      <View style={styles.accountContainer}>
-        <Text style={styles.readerName}>
-          {account?.settings?.dashboard?.display_name} ({account?.id})
-        </Text>
-        {account && (
-          <View
-            testID="online-indicator"
-            style={[
-              styles.indicator,
-              { backgroundColor: online ? colors.green : colors.red },
-            ]}
-          />
-        )}
-      </View>
-      {connectedReader ? (
-        <View style={styles.connectedReaderContainer}>
+    <React.Fragment>
+      <KeyboardAwareScrollView
+        testID="home-screen"
+        style={styles.container}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <View style={styles.accountContainer}>
+          <Text style={styles.readerName}>
+            {account?.settings?.dashboard?.display_name} ({account?.id})
+          </Text>
+          {account && (
+            <View
+              testID="online-indicator"
+              style={[
+                styles.indicator,
+                { backgroundColor: online ? colors.green : colors.red },
+              ]}
+            />
+          )}
+        </View>
+        {connectedReader ? (
+          <View style={styles.connectedReaderContainer}>
+            <View style={styles.imageContainer}>
+              <Image source={icon} style={styles.image} />
+            </View>
+
+            <Text style={styles.readerName}>{deviceType}</Text>
+            <Text style={styles.connectionStatus}>
+              {connectionStatus} {simulated && <Text>, simulated</Text>}
+            </Text>
+            <Text style={styles.connectionStatus}>
+              {batteryStatus} {chargingStatus}
+            </Text>
+          </View>
+        ) : (
           <View style={styles.imageContainer}>
             <Image source={icon} style={styles.image} />
           </View>
+        )}
 
-          <Text style={styles.readerName}>{deviceType}</Text>
-          <Text style={styles.connectionStatus}>
-            {connectionStatus} {simulated && <Text>, simulated</Text>}
-          </Text>
-          <Text style={styles.connectionStatus}>
-            {batteryStatus} {chargingStatus}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.imageContainer}>
-          <Image source={icon} style={styles.image} />
-        </View>
-      )}
+        {connectedReader ? (
+          renderConnectedContent
+        ) : (
+          <>
+            <List topSpacing={false} title="MERCHANT SELECTION">
+              <ListItem
+                title="Set Merchant"
+                color={colors.blue}
+                onPress={() => {
+                  navigation.navigate('MerchantSelectScreen', {});
+                }}
+              />
+              <ListItem
+                testID='discover-readers-button'
+                title="Discover Readers"
+                color={colors.blue}
+                disabled={!account}
+                onPress={() => {
+                  const timeout = validTimeoutMethod() ? discoveryTimeout : 0;
+                  navigation.navigate('DiscoverReadersScreen', {
+                    simulated,
+                    discoveryMethod,
+                    discoveryTimeout: timeout,
+                    setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => {
+                      setPendingUpdate(update);
+                    },
+                  });
+                }}
+              />
 
-      {connectedReader ? (
-        renderConnectedContent
-      ) : (
-        <>
-          <List topSpacing={false} title="MERCHANT SELECTION">
-            <ListItem
-              title="Set Merchant"
-              color={colors.blue}
-              onPress={() => {
-                navigation.navigate('MerchantSelectScreen', {});
-              }}
-            />
-            <ListItem
-              testID='discover-readers-button'
-              title="Discover Readers"
-              color={colors.blue}
-              disabled={!account}
-              onPress={() => {
-                const timeout = validTimeoutMethod() ? discoveryTimeout : 0;
-                navigation.navigate('DiscoverReadersScreen', {
-                  simulated,
-                  discoveryMethod,
-                  discoveryTimeout: timeout,
-                  setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => {
-                    setPendingUpdate(update);
-                  },
-                });
-              }}
-            />
+              <ListItem
+                title="Register Internet Reader"
+                disabled={!account}
+                color={colors.blue}
+                onPress={() => {
+                  navigation.navigate('RegisterInternetReaderScreen', {});
+                }}
+              />
+            </List>
 
-            <ListItem
-              title="Register Internet Reader"
-              disabled={!account}
-              color={colors.blue}
-              onPress={() => {
-                navigation.navigate('RegisterInternetReaderScreen', {});
-              }}
-            />
-          </List>
+            <List topSpacing={false} title="DATABASE">
+              <ListItem
+                title="Database"
+                testID="database"
+                color={colors.blue}
+                onPress={async () => {
+                  navigation.navigate('DatabaseScreen', {});
+                }}
+              />
+            </List>
 
-          <List topSpacing={false} title="DATABASE">
-            <ListItem
-              title="Database"
-              testID="database"
-              color={colors.blue}
-              onPress={async () => {
-                navigation.navigate('DatabaseScreen', {});
-              }}
-            />
-          </List>
+            <List topSpacing={false} title="DISCOVERY METHOD">
+              <ListItem
+                title={mapFromDiscoveryMethod(discoveryMethod)}
+                testID="discovery-method-button"
+                onPress={() =>
+                  navigation.navigate('DiscoveryMethodScreen', {
+                    onChange: async (value: Reader.DiscoveryMethod) => {
+                      await setStoredDiscoveryMethod({
+                        method: value,
+                        isSimulated: simulated,
+                      });
+                      setDiscoveryMethod(value);
+                    },
+                  })
+                }
+              />
+            </List>
 
-          <List topSpacing={false} title="DISCOVERY METHOD">
-            <ListItem
-              title={mapFromDiscoveryMethod(discoveryMethod)}
-              testID="discovery-method-button"
-              onPress={() =>
-                navigation.navigate('DiscoveryMethodScreen', {
-                  onChange: async (value: Reader.DiscoveryMethod) => {
-                    await setStoredDiscoveryMethod({
-                      method: value,
-                      isSimulated: simulated,
-                    });
-                    setDiscoveryMethod(value);
-                  },
-                })
-              }
-            />
-          </List>
+            <List
+              topSpacing={false}
+              title="TIMEOUT"
+              visible={validTimeoutMethod()}
+            >
+              <TextInput
+                keyboardType="numeric"
+                style={styles.input}
+                value={discoveryTimeout !== 0 ? discoveryTimeout.toString() : ''}
+                placeholderTextColor={colors.gray}
+                placeholder="0 => no timeout"
+                onChangeText={(value) => {
+                  const data = parseInt(value, 10) || 0;
+                  setDiscoveryTimeout(data);
+                }}
+              />
+            </List>
 
-          <List
-            topSpacing={false}
-            title="TIMEOUT"
-            visible={validTimeoutMethod()}
-          >
-            <TextInput
-              keyboardType="numeric"
-              style={styles.input}
-              value={discoveryTimeout !== 0 ? discoveryTimeout.toString() : ''}
-              placeholderTextColor={colors.gray}
-              placeholder="0 => no timeout"
-              onChangeText={(value) => {
-                const data = parseInt(value, 10) || 0;
-                setDiscoveryTimeout(data);
-              }}
-            />
-          </List>
+            <List>
+              <ListItem
+                title="Simulated"
+                rightElement={
+                  <Switch
+                    value={simulated}
+                    onValueChange={async (value) => {
+                      await setStoredDiscoveryMethod({
+                        method: discoveryMethod,
+                        isSimulated: value,
+                      });
+                      setSimulated(value);
+                    }}
+                  />
+                }
+              />
 
-          <List>
-            <ListItem
-              title="Simulated"
-              rightElement={
-                <Switch
-                  value={simulated}
-                  onValueChange={async (value) => {
-                    await setStoredDiscoveryMethod({
-                      method: discoveryMethod,
-                      isSimulated: value,
-                    });
-                    setSimulated(value);
-                  }}
-                />
-              }
-            />
+              {simulated ? (<ListItem
+                          title="Simulate Offline Mode"
+                          rightElement={
+                            <Switch
+                            value={simulatedOffline}
+                            onValueChange={async (value) => {
+                              setSimulatedOffline(value);
+                              await setSimulatedOfflineMode(value);
+                            }}
+                            />
+                          }
+                          />) : <></>}
 
-            {simulated ? (<ListItem
-                        title="Simulate Offline Mode"
-                        rightElement={
-                          <Switch
-                          value={simulatedOffline}
-                          onValueChange={async (value) => {
-                            setSimulatedOffline(value);
-                            await setSimulatedOfflineMode(value);
-                          }}
-                          />
-                        }
-                        />) : <></>}
+              <Text style={styles.infoText}>
+                The SDK comes with the ability to simulate behavior without using
+                physical hardware. This makes it easy to quickly test your
+                integration end-to-end, from connecting a reader to taking
+                payments.
+              </Text>
+            </List>
+            <List title="Version">
+              <ListItem
+                title="SDK Version"
+                rightElement={
+                  <Text style={styles.versionText}>{getSdkVersion()}</Text>
+                }
+              />
+              <ListItem
+                title="Native SDK Version"
+                rightElement={
+                  <Text style={styles.versionText}>{innerSdkVersion}</Text>
+                }
+              />
+            </List>
+          </>
+        )}
+      </KeyboardAwareScrollView>
 
-            <Text style={styles.infoText}>
-              The SDK comes with the ability to simulate behavior without using
-              physical hardware. This makes it easy to quickly test your
-              integration end-to-end, from connecting a reader to taking
-              payments.
-            </Text>
-          </List>
-          <List title="Version">
-            <ListItem
-              title="SDK Version"
-              rightElement={
-                <Text style={styles.versionText}>{getSdkVersion()}</Text>
-              }
-            />
-            <ListItem
-              title="Native SDK Version"
-              rightElement={
-                <Text style={styles.versionText}>{innerSdkVersion}</Text>
-              }
-            />
-          </List>
-
-          <AlertDialog
-            visible={appIsActive && showDisconnectAlert.visible}
-            title="Reader disconnected!"
-            message= {`${showDisconnectAlert.reason}`}
-            onDismiss={() => setShowDisconnectAlert({ visible: false })}
-            buttons={[
-              {
-                text: 'Dismiss',
-                onPress: () => setShowDisconnectAlert({ visible: false }),
-              },
-            ]}
-          />
-        </>
-      )}
-    </KeyboardAwareScrollView>
+      <AlertDialog
+        visible={appIsActive && showDisconnectAlert.visible}
+        title="Reader disconnected!"
+        message= {`${showDisconnectAlert.reason}`}
+        onDismiss={() => setShowDisconnectAlert({ visible: false })}
+        buttons={[
+          {
+            text: 'Dismiss',
+            onPress: () => setShowDisconnectAlert({ visible: false }),
+          },
+        ]}
+      />
+    </React.Fragment>
   );
 }
 
