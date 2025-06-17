@@ -28,7 +28,9 @@ def getExtOrIntegerDefault(name) {
     return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['StripeTerminalReactNative_' + name]).toInteger()
 }
 
-def terminalAndroidSdkVersion = '4.4.0'
+def terminalAndroidSdkVersion = getExtOrDefault('terminalSdkVersion')
+def taptopayEnabled = getExtOrDefault('taptopay.enabled') == "true"
+
 def reactNativeSdkVersion = getVersionFromNpm()
 
 android {
@@ -142,7 +144,9 @@ dependencies {
     api 'com.facebook.react:react-android:0.76.6'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.stripe:stripeterminal-core:$terminalAndroidSdkVersion"
-    implementation "com.stripe:stripeterminal-taptopay:$terminalAndroidSdkVersion"
+    if (taptopayEnabled) {
+      implementation("com.stripe:stripeterminal-taptopay:$terminalAndroidSdkVersion")
+    }
     implementation "com.stripe:stripeterminal-handoffclient:$terminalAndroidSdkVersion"
     implementation 'com.google.code.gson:gson:2.3.1'
     implementation 'com.squareup.okhttp3:okhttp:4.9.1'
