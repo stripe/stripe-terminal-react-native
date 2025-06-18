@@ -1,5 +1,6 @@
 export * from './types';
 export * from './StripeTerminalSdk';
+export { default } from './StripeTerminalSdk';
 import * as PackageJson from '../package.json';
 
 export const getSdkVersion = () => {
