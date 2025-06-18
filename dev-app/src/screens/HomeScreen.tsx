@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Toast from 'react-native-root-toast';
 import {
@@ -10,9 +10,7 @@ import {
   TextInput,
   Switch,
   Alert,
-  AppState,
 } from 'react-native';
-import type { AppStateStatus } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import icon from '../assets/icon.png';
@@ -38,8 +36,6 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  const appState = useRef<AppStateStatus>(AppState.currentState);
-  const [appIsActive, setAppIsActive] = useState(true);
   const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] = useState<boolean>(false);
   const [showReconnectingAlert, setShowReconnectingAlert] =
     useState<boolean>(false);
@@ -54,24 +50,6 @@ export default function HomeScreen() {
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const [discoveryTimeout, setDiscoveryTimeout] = useState<number>(0);
   const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
-
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        setAppIsActive(true);
-      } else if (nextAppState !== 'active') {
-        setAppIsActive(false);
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
 
   const {
     disconnectReader,
@@ -131,6 +109,9 @@ export default function HomeScreen() {
     },
     onDidDisconnect(reason) {
       setPendingUpdate(null);
+      if (reason === 'disconnectRequested' || reason === 'rebootRequested') {
+        return;
+      }
       setShowDisconnectAlert({
         visible: true,
         reason: 'Reader disconnected with reason ' + reason,
@@ -505,7 +486,7 @@ export default function HomeScreen() {
       </KeyboardAwareScrollView>
 
       <AlertDialog
-        visible={appIsActive && showDisconnectAlert.visible}
+        visible={showDisconnectAlert.visible}
         title="Reader disconnected!"
         message= {`${showDisconnectAlert.reason}`}
         onDismiss={() => setShowDisconnectAlert({ visible: false })}
