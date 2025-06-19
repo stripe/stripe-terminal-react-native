@@ -36,6 +36,7 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PromptTapToPayEducationResult,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -174,6 +175,7 @@ export interface StripeTerminalSdkType {
     error?: StripeError;
   }>;
   getNativeSdkVersion(): Promise<string>;
+  promptTapToPayEducationView(): Promise<PromptTapToPayEducationResult>;
 }
 
 export default StripeTerminalReactNative as StripeTerminalSdkType;
