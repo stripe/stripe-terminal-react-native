@@ -1,0 +1,72 @@
+//
+//  BBUSBDriverHost.iig
+//
+//  Created by Alex Wong on 2023-07-28.
+//  Copyright © 2023 BBPOS International Limited. All rights reserved. All software, both binary and source code published by BBPOS International Limited (hereafter BBPOS) is copyrighted by BBPOS and ownership of all right, title and interest in and to the software remains with BBPOS.
+//  RESTRICTED DOCUMENT
+//
+
+#ifndef BBUSBDriverHost_h
+#define BBUSBDriverHost_h
+
+#include "BBUSBDriverDataStruct.h"
+#include <USBDriverKit/IOUSBHostInterface.iig>
+
+class BBUSBDriverHost: public IOUSBHostInterface {
+public:
+    virtual bool init(void) override;
+    virtual kern_return_t Start(IOService *provider) override;
+    virtual kern_return_t Stop(IOService *provider) override;
+    virtual void free(void) override;
+    
+    virtual kern_return_t DKUSBHost_MemoryMap_Setup() LOCALONLY;
+    virtual void          DKUSBHost_MemoryMap_FillWriteBuffer_1Byte(unsigned char byte, u_int8_t index) LOCALONLY;
+    
+    virtual kern_return_t DKUSBHost_OpenInterface();
+    virtual kern_return_t DKUSBHost_CloseInterface();
+    
+    // [CheckDeviceDescriptor]
+    virtual kern_return_t DKUSBHost_CheckDeviceDescriptor() LOCALONLY;
+    
+    // [CheckEpSupportiveness]
+    virtual kern_return_t DKUSBHost_CheckEpSupportiveness_DeviceRequest() LOCALONLY;
+    virtual uint8_t       DKUSBHost_CheckEpSupportiveness_GetResultInfo_1() LOCALONLY;
+    virtual uint8_t       DKUSBHost_CheckEpSupportiveness_GetResultInfo_2() LOCALONLY;
+        
+    virtual kern_return_t DKUSBHost_ControlEp_Write() LOCALONLY;
+    virtual kern_return_t DKUSBHost_ControlEp_Read() LOCALONLY;
+    
+    virtual kern_return_t DKUSBHost_InterruptEp_SetupMemoryMap_Write(uint8_t packetSize) LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_SetupMemoryMap_Read(uint8_t packetSize) LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_SetupAsyncIOComplete(uint8_t packetSize) LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_GetEpAddressAndCopyPipe() LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_Write() LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_Read() LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_ClearBuffer_Write() LOCALONLY;
+    virtual kern_return_t DKUSBHost_InterruptEp_ClearBuffer_Read() LOCALONLY; // [InterruptEp_ClearBuffer_Read]
+    
+    virtual void AsyncIOCompleteWrite(OSAction* action,
+                                      IOReturn status,
+                                      uint32_t actualByteCount,
+                                      uint64_t completionTimestamp) TYPE(IOUSBHostPipe::CompleteAsyncIO);
+    virtual void AsyncIOCompleteRead(OSAction* action,
+                                     IOReturn status,
+                                     uint32_t actualByteCount,
+                                     uint64_t completionTimestamp) TYPE(IOUSBHostPipe::CompleteAsyncIO);
+    
+    virtual kern_return_t DKUSBHost_AutoSwitchEp_Write() LOCALONLY;
+    virtual kern_return_t DKUSBHost_AutoSwitchEp_Read() LOCALONLY;
+    virtual uint8_t*      DKUSBHost_AutoSwitchEp_GetDataInMemoryMap() LOCALONLY;
+    
+    void DKUSBHost_Util_byteArrayToHexString(const unsigned char* byteArray, size_t length, char* hexString) LOCALONLY;
+    
+    virtual kern_return_t NewUserClient(uint32_t type, IOUserClient** userClient) override;
+    
+    // Debug
+    virtual kern_return_t DKUSBHost_InternalTesting() LOCALONLY;
+    virtual void DKUSBHost_PrintDeviceInfo() LOCALONLY;
+    virtual void DKUSBHost_ControlEp_PrintReadData() LOCALONLY;
+    virtual void DKUSBHost_InterruptEp_PrintReadData() LOCALONLY;
+};
+
+#endif /* BBUSBDriverHost_h */
