@@ -134,6 +134,7 @@ class Mappers {
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
             case "internet": return DiscoveryMethod.internet
             case "tapToPay": return DiscoveryMethod.tapToPay
+            case "usb": return DiscoveryMethod.usb
             default: return DiscoveryMethod.internet
             }
         }
@@ -150,6 +151,8 @@ class Mappers {
             return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
         case "tapToPay":
             return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "usb":
+            return try UsbDiscoveryConfigurationBuilder().build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
