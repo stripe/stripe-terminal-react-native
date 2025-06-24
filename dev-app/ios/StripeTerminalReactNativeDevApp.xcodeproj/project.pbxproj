@@ -15,7 +15,6 @@
 		4EF8ED5C2E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4EF8ED632E0A7282005B85E3 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED622E0A7282005B85E3 /* USBDriverKit.framework */; };
 		4EF8ED712E0A79BD005B85E3 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED6F2E0A79B2005B85E3 /* IOKit.framework */; };
-		4EF8ED722E0A79BD005B85E3 /* IOKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED6F2E0A79B2005B85E3 /* IOKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		98322B137C1E5681429B19C4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
@@ -40,17 +39,6 @@
 				4EF8ED5C2E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext in Embed System Extensions */,
 			);
 			name = "Embed System Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		4EF8ED732E0A79BD005B85E3 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				4EF8ED722E0A79BD005B85E3 /* IOKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -205,7 +193,6 @@
 				C1D60D28B925C94BD88E79D7 /* [CP] Copy Pods Resources */,
 				60C10D55B8CD86D58DF7949C /* [CP] Embed Pods Frameworks */,
 				4EF8ED5D2E0A710C005B85E3 /* Embed System Extensions */,
-				4EF8ED732E0A79BD005B85E3 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -249,7 +236,6 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = Y28TH9SHX7;
 						LastSwiftMigration = 1250;
 					};
 					4EF8ED502E0A710C005B85E3 = {
@@ -482,11 +468,12 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = Driver/Driver.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = Y28TH9SHX7;
-				DRIVERKIT_DEPLOYMENT_TARGET = 20.0;
+				DRIVERKIT_DEPLOYMENT_TARGET = 20.4;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -499,6 +486,8 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Driver/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Stripe Terminal USB Driver";
+				INFOPLIST_KEY_OSBundleUsageDescription = "USB Connection";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Driver",
@@ -509,6 +498,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app.Driver;
 				PRODUCT_NAME = "$(inherited)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = driverkit;
 				SKIP_INSTALL = YES;
@@ -528,6 +518,7 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = Driver/Driver.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
@@ -542,6 +533,8 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Driver/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Stripe Terminal USB Driver";
+				INFOPLIST_KEY_OSBundleUsageDescription = "USB Connection";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Driver",
@@ -551,6 +544,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app.Driver;
 				PRODUCT_NAME = "$(inherited)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = driverkit;
 				SKIP_INSTALL = YES;
