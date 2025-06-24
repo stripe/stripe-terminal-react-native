@@ -1,0 +1,78 @@
+//
+//  BBUSBDriverDataCommUserClient.iig
+//
+//  Created by Alex Wong on 2023-07-28.
+//  Copyright © 2023 BBPOS International Limited. All rights reserved. All software, both binary and source code published by BBPOS International Limited (hereafter BBPOS) is copyrighted by BBPOS and ownership of all right, title and interest in and to the software remains with BBPOS.
+//  RESTRICTED DOCUMENT
+//
+
+#include "BBUSBDriverDataStruct.h"
+#include <DriverKit/IOUserClient.iig>
+#include <DriverKit/IOTimerDispatchSource.iig>
+
+class BBUSBDriverDataCommUserClient: public IOUserClient {
+protected:
+    
+    // --------------------------------------------------------------------------------------------------------------------------------------
+    
+    void onReturnDriverDebugLog_General(const char* message) LOCALONLY;
+    void onReturnDriverDebugLog_ErrorMsgOnly(const char* message) LOCALONLY;
+    void onReturnDriverDebugLog_ErrorWithRet(const char* message, kern_return_t ret) LOCALONLY;
+
+    void onReturnDriverDebugLog_ReleaseCallbackAction_General(const char* message) LOCALONLY;
+    void onReturnDriverDebugLog_USBOpen(const char* message) LOCALONLY;
+    void onReturnDriverDebugLog_Write(const char* message) LOCALONLY;
+    void onReturnDriverDebugLog_Read(const char* message) LOCALONLY;
+    
+    // --------------------------------------------------------------------------------------------------------------------------------------
+
+    static kern_return_t StaticRegisterAsyncCallback_OpenUSBInterface(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_OpenUSBInterface(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    static kern_return_t StaticRegisterAsyncCallback_CloseUSBInterface(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_CloseUSBInterface(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    static kern_return_t StaticRegisterAsyncCallback_ReleaseCallbackAction_General(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_ReleaseCallbackAction_General(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    static kern_return_t StaticRegisterAsyncCallback_USBDataComm_ReleaseReadCallbackAction(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_USBDataComm_ReleaseReadCallbackAction(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    static kern_return_t StaticRegisterAsyncCallback_ReturnDriverDebugLog(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_ReturnDriverDebugLog(const char* message) LOCALONLY;
+    
+    // [GetDriverVersion]
+    static kern_return_t StaticRegisterAsyncCallback_GetDriverVersion(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_GetDriverVersion(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    // [CheckEpSupportiveness]
+    static kern_return_t StaticRegisterAsyncCallback_CheckEpSupportiveness(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_CheckEpSupportiveness(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    static kern_return_t StaticRegisterAsyncCallback_USBDataComm_FillWriteBuffer(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_USBDataComm_FillWriteBuffer(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+
+    static kern_return_t StaticRegisterAsyncCallback_USBDataComm_Write(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_USBDataComm_Write(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    
+    static kern_return_t StaticRegisterAsyncCallback_USBDataComm_Read(OSObject* target, void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+    kern_return_t              RegisterAsyncCallback_USBDataComm_Read(void* reference, IOUserClientMethodArguments* arguments) LOCALONLY;
+
+    const char* getIOReturnString(kern_return_t ret) LOCALONLY;
+    
+public:
+    virtual bool init(void) override;
+    virtual kern_return_t Start(IOService *provider) override;
+    virtual kern_return_t Stop(IOService *provider) override;
+    virtual void free(void) override;
+
+    virtual kern_return_t ExternalMethod(uint64_t selector,
+                                         IOUserClientMethodArguments* arguments,
+                                         const IOUserClientMethodDispatch* dispatch,
+                                         OSObject* target,
+                                         void* reference) override;
+    
+    // --------------------------------------------------------------------------------------------------------------------------------------
+    
+};
+

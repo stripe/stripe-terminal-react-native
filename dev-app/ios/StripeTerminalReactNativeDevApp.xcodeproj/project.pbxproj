@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,9 +11,49 @@
 		24C7E187271805C30025FC13 /* Empty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E186271805C30025FC13 /* Empty.swift */; };
 		4C39C56BAD484C67AA576FFA /* libPods-StripeTerminalReactNativeDevApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */; };
 		4E3334442DF12A0000534394 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3334432DF129FA00534394 /* AppDelegate.swift */; };
+		4EF8ED532E0A710C005B85E3 /* DriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED522E0A710C005B85E3 /* DriverKit.framework */; };
+		4EF8ED5C2E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4EF8ED632E0A7282005B85E3 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED622E0A7282005B85E3 /* USBDriverKit.framework */; };
+		4EF8ED712E0A79BD005B85E3 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED6F2E0A79B2005B85E3 /* IOKit.framework */; };
+		4EF8ED722E0A79BD005B85E3 /* IOKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED6F2E0A79B2005B85E3 /* IOKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		98322B137C1E5681429B19C4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4EF8ED5A2E0A710C005B85E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4EF8ED502E0A710C005B85E3;
+			remoteInfo = Driver;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4EF8ED5D2E0A710C005B85E3 /* Embed System Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				4EF8ED5C2E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext in Embed System Extensions */,
+			);
+			name = "Embed System Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EF8ED732E0A79BD005B85E3 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				4EF8ED722E0A79BD005B85E3 /* IOKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* StripeTerminalReactNativeDevApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StripeTerminalReactNativeDevApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -24,6 +64,10 @@
 		24C7E186271805C30025FC13 /* Empty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Empty.swift; sourceTree = "<group>"; };
 		47F7ED3B7971BE374F7B8635 /* Pods-StripeTerminalReactNativeDevApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StripeTerminalReactNativeDevApp.debug.xcconfig"; path = "Target Support Files/Pods-StripeTerminalReactNativeDevApp/Pods-StripeTerminalReactNativeDevApp.debug.xcconfig"; sourceTree = "<group>"; };
 		4E3334432DF129FA00534394 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext */ = {isa = PBXFileReference; explicitFileType = "wrapper.driver-extension"; includeInIndex = 0; path = com.stripe.terminal.reactnative.dev.app.Driver.dext; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EF8ED522E0A710C005B85E3 /* DriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DriverKit.framework; path = Library/Frameworks/DriverKit.framework; sourceTree = DEVELOPER_DIR; };
+		4EF8ED622E0A7282005B85E3 /* USBDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBDriverKit.framework; path = Platforms/DriverKit.platform/Developer/SDKs/DriverKit24.1.sdk/System/DriverKit/System/Library/Frameworks/USBDriverKit.framework; sourceTree = DEVELOPER_DIR; };
+		4EF8ED6F2E0A79B2005B85E3 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StripeTerminalReactNativeDevApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C251B19429BC224000E3E4A2 /* stripe_terminal_react_native_dev_app.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = stripe_terminal_react_native_dev_app.entitlements; sourceTree = "<group>"; };
 		CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StripeTerminalReactNativeDevApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -32,12 +76,36 @@
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4EF8ED602E0A710C005B85E3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4EF8ED502E0A710C005B85E3 /* Driver */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4EF8ED542E0A710C005B85E3 /* Driver */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4EF8ED602E0A710C005B85E3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Driver; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				4C39C56BAD484C67AA576FFA /* libPods-StripeTerminalReactNativeDevApp.a in Frameworks */,
+				4EF8ED712E0A79BD005B85E3 /* IOKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EF8ED4E2E0A710C005B85E3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4EF8ED632E0A7282005B85E3 /* USBDriverKit.framework in Frameworks */,
+				4EF8ED532E0A710C005B85E3 /* DriverKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,9 +129,12 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4EF8ED6F2E0A79B2005B85E3 /* IOKit.framework */,
+				4EF8ED622E0A7282005B85E3 /* USBDriverKit.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */,
+				4EF8ED522E0A710C005B85E3 /* DriverKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -90,6 +161,7 @@
 				C251B19429BC224000E3E4A2 /* stripe_terminal_react_native_dev_app.entitlements */,
 				13B07FAE1A68108700A75B9A /* StripeTerminalReactNativeDevApp */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				4EF8ED542E0A710C005B85E3 /* Driver */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				6B9684456A2045ADE5A6E47E /* Pods */,
@@ -103,11 +175,22 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* StripeTerminalReactNativeDevApp.app */,
+				4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		4EF8ED4C2E0A710C005B85E3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		13B07F861A680F5B00A75B9A /* StripeTerminalReactNativeDevApp */ = {
@@ -121,15 +204,41 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				C1D60D28B925C94BD88E79D7 /* [CP] Copy Pods Resources */,
 				60C10D55B8CD86D58DF7949C /* [CP] Embed Pods Frameworks */,
+				4EF8ED5D2E0A710C005B85E3 /* Embed System Extensions */,
+				4EF8ED732E0A79BD005B85E3 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4EF8ED5B2E0A710C005B85E3 /* PBXTargetDependency */,
 			);
 			name = StripeTerminalReactNativeDevApp;
 			productName = StripeTerminalReactNativeDevApp;
 			productReference = 13B07F961A680F5B00A75B9A /* StripeTerminalReactNativeDevApp.app */;
 			productType = "com.apple.product-type.application";
+		};
+		4EF8ED502E0A710C005B85E3 /* Driver */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EF8ED612E0A710C005B85E3 /* Build configuration list for PBXNativeTarget "Driver" */;
+			buildPhases = (
+				4EF8ED4C2E0A710C005B85E3 /* Headers */,
+				4EF8ED4D2E0A710C005B85E3 /* Sources */,
+				4EF8ED4E2E0A710C005B85E3 /* Frameworks */,
+				4EF8ED4F2E0A710C005B85E3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4EF8ED542E0A710C005B85E3 /* Driver */,
+			);
+			name = Driver;
+			packageProductDependencies = (
+			);
+			productName = Driver;
+			productReference = 4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext */;
+			productType = "com.apple.product-type.driver-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -142,6 +251,9 @@
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = Y28TH9SHX7;
 						LastSwiftMigration = 1250;
+					};
+					4EF8ED502E0A710C005B85E3 = {
+						CreatedOnToolsVersion = 16.1;
 					};
 				};
 			};
@@ -159,6 +271,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* StripeTerminalReactNativeDevApp */,
+				4EF8ED502E0A710C005B85E3 /* Driver */,
 			);
 		};
 /* End PBXProject section */
@@ -171,6 +284,13 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				98322B137C1E5681429B19C4 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EF8ED4F2E0A710C005B85E3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,7 +393,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4EF8ED4D2E0A710C005B85E3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4EF8ED5B2E0A710C005B85E3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4EF8ED502E0A710C005B85E3 /* Driver */;
+			targetProxy = 4EF8ED5A2E0A710C005B85E3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -289,7 +424,10 @@
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				INFOPLIST_FILE = StripeTerminalReactNativeDevApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -315,7 +453,10 @@
 				DEVELOPMENT_TEAM = Y28TH9SHX7;
 				INFOPLIST_FILE = StripeTerminalReactNativeDevApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -326,6 +467,94 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "StripeTerminalReactNativeDevApp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		4EF8ED5E2E0A710C005B85E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = Driver/Driver.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = Y28TH9SHX7;
+				DRIVERKIT_DEPLOYMENT_TARGET = 20.0;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/System/DriverKit/System/Library/Frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Driver/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Driver",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app.Driver;
+				PRODUCT_NAME = "$(inherited)";
+				RUN_CLANG_STATIC_ANALYZER = YES;
+				SDKROOT = driverkit;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		4EF8ED5F2E0A710C005B85E3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = Driver/Driver.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = Y28TH9SHX7;
+				DRIVERKIT_DEPLOYMENT_TARGET = 20.0;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/System/DriverKit/System/Library/Frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Driver/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Driver",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stripe.terminal.reactnative.dev.app.Driver;
+				PRODUCT_NAME = "$(inherited)";
+				RUN_CLANG_STATIC_ANALYZER = YES;
+				SDKROOT = driverkit;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};
@@ -379,7 +608,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -446,7 +678,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
-				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = "$(inherited)";
@@ -474,6 +709,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4EF8ED612E0A710C005B85E3 /* Build configuration list for PBXNativeTarget "Driver" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EF8ED5E2E0A710C005B85E3 /* Debug */,
+				4EF8ED5F2E0A710C005B85E3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
