@@ -1993,7 +1993,7 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@stripe/stripe-terminal-react-native@^0.0.1-beta.23":
+"@stripe/stripe-terminal-react-native@^0.0.1-beta.25":
   version "0.0.1-beta.25"
   resolved "https://registry.npmjs.org/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.25.tgz#aa65af8d4519e865f5f5f666f77e360d5c43cda0"
   integrity sha512-DESCtk+AEx1WziVzSnjSjqCPUSBgzz/b01MXPzEYbKjBeQlC2JaSKyZN+e8M4lVFZobKFlwEo0Mj4mnDQ7dJWQ==
