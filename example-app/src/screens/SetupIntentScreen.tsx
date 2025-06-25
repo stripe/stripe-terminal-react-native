@@ -135,7 +135,7 @@ export default function SetupIntentScreen() {
       });
       const { setupIntent, error } = await collectSetupIntentPaymentMethod({
         setupIntent: si,
-        customerConsentCollected: true,
+        allowRedisplay: 'always',
         enableCustomerCancellation: enableCustomerCancellation,
       });
       if (error) {
