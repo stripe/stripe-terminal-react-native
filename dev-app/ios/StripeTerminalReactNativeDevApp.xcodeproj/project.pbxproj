@@ -65,7 +65,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4EF8ED602E0A710C005B85E3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		4EF8ED602E0A710C005B85E3 /* Exceptions for "Driver" folder in "Driver" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -75,7 +75,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4EF8ED542E0A710C005B85E3 /* Driver */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4EF8ED602E0A710C005B85E3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Driver; sourceTree = "<group>"; };
+		4EF8ED542E0A710C005B85E3 /* Driver */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4EF8ED602E0A710C005B85E3 /* Exceptions for "Driver" folder in "Driver" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = Driver;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -221,8 +232,6 @@
 				4EF8ED542E0A710C005B85E3 /* Driver */,
 			);
 			name = Driver;
-			packageProductDependencies = (
-			);
 			productName = Driver;
 			productReference = 4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.Driver.dext */;
 			productType = "com.apple.product-type.driver-extension";
@@ -489,6 +498,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Stripe Terminal USB Driver";
 				INFOPLIST_KEY_OSBundleUsageDescription = "USB Connection";
 				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
 					"$(inherited)",
 					"$(PROJECT_DIR)/Driver",
 				);
@@ -536,6 +546,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Stripe Terminal USB Driver";
 				INFOPLIST_KEY_OSBundleUsageDescription = "USB Connection";
 				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
 					"$(inherited)",
 					"$(PROJECT_DIR)/Driver",
 				);
