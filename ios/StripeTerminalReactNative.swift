@@ -713,14 +713,25 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
-
-        let amountSurcharge = params["amountSurcharge"] as? NSNumber
-        let returnUrl = params["returnUrl"] as? String
-
+        
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
+        if let surchargeDict = params["surcharge"] as? [String: Any] {
+            do {
+              if let amount = try Mappers.mapToSurchargeAmountOnly(from: surchargeDict) {
+                confirmConfigBuilder.setAmountSurcharge(UInt(amount))
+              }
+            } catch let error as NSError {
+              resolve(Errors.createError(nsError: error))
+              return
+            }
+        }
+      
+        let amountSurcharge = params["amountSurcharge"] as? NSNumber
         if let amountSurchargeValue = amountSurcharge {
             confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
         }
+
+        let returnUrl = params["returnUrl"] as? String
         if let returnUrlValue = returnUrl {
             confirmConfigBuilder.setReturnUrl(returnUrlValue)
         }
