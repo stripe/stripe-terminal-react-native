@@ -988,8 +988,8 @@ export default function CollectCardPaymentScreen() {
                   setSurcharge(prev => ({
                     ...prev,
                     consent: enabled
-                      ? { notice: '', collection: 'disabled' } // 預設值
-                      : null, // 移除 consent
+                      ? { notice: '', collection: 'disabled' }
+                      : null,
                   }))
                 }
               />
