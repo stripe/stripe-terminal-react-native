@@ -15,9 +15,9 @@ import com.stripe.stripeterminal.BuildConfig
 import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.external.CollectData
-import com.stripe.stripeterminal.external.CollectInputs
 import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.OfflineMode
+import com.stripe.stripeterminal.external.Surcharging
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentCaptureMethod
@@ -689,6 +689,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         )
     }
 
+    @OptIn(Surcharging::class)
     @ReactMethod
     @Suppress("unused")
     fun confirmPaymentIntent(params: ReadableMap, promise: Promise) = withExceptionResolver(
@@ -703,23 +704,24 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = requireParam(paymentIntents[uuid]) {
             "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
+
         val configBuilder = ConfirmConfiguration.Builder()
-        if (params.hasKey("amountSurcharge")) {
-            val amountSurcharge = getInt(params, "amountSurcharge")?.toLong()
-            configBuilder.amountSurcharge(amountSurcharge)
+        val surchargeConfiguration = params.getMap("surcharge")?.let {
+            mapToSurchargeConfiguration(it)
         }
+        configBuilder.setSurcharge(surchargeConfiguration)
+
         if (params.hasKey("returnUrl")) {
             val returnUrl = params.getString("returnUrl")
             configBuilder.setReturnUrl(returnUrl)
         }
-        val config = configBuilder.build()
 
         confirmPaymentIntentCancelable = terminal.confirmPaymentIntent(
             paymentIntent,
             RNPaymentIntentCallback(promise, uuid) {
                 paymentIntents.clear()
             },
-            config
+            configBuilder.build()
         )
     }
 
@@ -1032,7 +1034,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
     }
 
-    @OptIn(CollectInputs::class)
     private fun getTogglesFromParam(toggleList: ReadableArray): ArrayList<Toggle> {
         val toggles = ArrayList<Toggle>()
         toggleList.let { array ->
@@ -1054,7 +1055,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         return toggles
     }
 
-    @OptIn(CollectInputs::class)
     @ReactMethod
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
