@@ -726,11 +726,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             }
         }
       
-        let amountSurcharge = params["amountSurcharge"] as? NSNumber
-        if let amountSurchargeValue = amountSurcharge {
-            confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
-        }
-
         let returnUrl = params["returnUrl"] as? String
         if let returnUrlValue = returnUrl {
             confirmConfigBuilder.setReturnUrl(returnUrlValue)
