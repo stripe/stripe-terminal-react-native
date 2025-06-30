@@ -733,7 +733,8 @@ class Mappers {
             "authorizationResponseCode": receiptDetails.authorizationResponseCode,
             "dedicatedFileName": receiptDetails.dedicatedFileName,
             "terminalVerificationResults": receiptDetails.terminalVerificationResults,
-            "transactionStatusInformation": receiptDetails.transactionStatusInformation
+            "transactionStatusInformation": receiptDetails.transactionStatusInformation,
+            "cardholderVerificationMethod": receiptDetails.cardholderVerificationMethod
         ]
         return result
     }
