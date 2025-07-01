@@ -380,7 +380,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                 .build()
         case .usb:
-            return try UsbConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "").build()
+            return try UsbConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
+                .build()
         @unknown default:
             return nil
         }
