@@ -152,7 +152,7 @@ class Mappers {
         case "tapToPay":
             return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "usb":
-            return try UsbDiscoveryConfigurationBuilder().build()
+            return try UsbDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
