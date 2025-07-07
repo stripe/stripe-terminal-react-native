@@ -209,21 +209,9 @@ export type CollectPaymentMethodParams = {
 
 export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
-  surcharge?: Surcharge;
+  amountSurcharge?: number;
   returnUrl?: string;
 };
-
-export type Surcharge = {
-  amount: number;
-  consent?: SurchargeConsent | null;
-};
-
-export type SurchargeConsent = {
-  notice: string;
-  collection: SurchargeConsentCollection;
-};
-
-export type SurchargeConsentCollection = 'disabled' | 'enabled';
 
 export type CancelPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
