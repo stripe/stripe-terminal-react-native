@@ -56,6 +56,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
+import com.stripe.stripeterminal.external.models.SurchargeConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
@@ -706,10 +707,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         val configBuilder = ConfirmConfiguration.Builder()
-        val surchargeConfiguration = params.getMap("surcharge")?.let {
-            mapToSurchargeConfiguration(it)
+
+        if (params.hasKey("amountSurcharge")) {
+            val amountSurcharge = params.getLongSafely("amountSurcharge") ?: 0L
+            val surchargeConfiguration = SurchargeConfiguration.Builder(amountSurcharge).build()
+            configBuilder.setSurcharge(surchargeConfiguration)
         }
-        configBuilder.setSurcharge(surchargeConfiguration)
 
         if (params.hasKey("returnUrl")) {
             val returnUrl = params.getString("returnUrl")

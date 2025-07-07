@@ -1071,28 +1071,3 @@ fun hexToArgb(color: String): Int {
         throw IllegalArgumentException("Invalid ARGB hex format", e)
     }
 }
-
-@OptIn(Surcharging::class)
-fun mapToSurchargeConfiguration(surchargeMap: ReadableMap): SurchargeConfiguration? {
-    if (surchargeMap.hasKey("amount").not()) return null
-
-    val consent = surchargeMap.getMap("consent")?.let {
-        val surchargeConsentCollection =
-            it.getString("collection")?.let { SurchargeConsentCollection.fromCollection(it) }
-        val collection = when (surchargeConsentCollection) {
-            SurchargeConsentCollection.DISABLED -> NativeSurchargeConsentCollection.DISABLED
-            SurchargeConsentCollection.ENABLED -> NativeSurchargeConsentCollection.ENABLED
-            null -> NativeSurchargeConsentCollection.DISABLED
-        }
-        val consentBuilder = SurchargeConsent.Builder(collection)
-
-        val notice = it.getString("notice") ?: ""
-        consentBuilder.setNotice(notice)
-            .build()
-    } ?: SurchargeConsent.Builder().build()
-
-    val amount = surchargeMap.getLongSafely("amount") ?: 0L
-    return SurchargeConfiguration.Builder(amount)
-        .setConsent(consent)
-        .build()
-}
