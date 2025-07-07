@@ -1071,27 +1071,6 @@ class Mappers {
         default: return .unknown
         }
     }
-
-    class func mapToSurchargeAmountOnly(from dict: [String: Any]?) throws -> Int? {
-        guard let dict = dict else { return nil }
-        
-        // iOS only supports 'amount' in the surcharge object on v4.5.0. If 'consent' is present, throw error.
-        if let consent = dict["consent"], !(consent is NSNull) {
-          throw NSError(
-            domain: "StripeTerminalReactNative",
-            code: ErrorCode.Code.invalidRequiredParameter.rawValue,
-            userInfo: [
-              NSLocalizedDescriptionKey: "iOS does not support 'consent' in surcharge"
-            ]
-          )
-        }
-
-        guard let amount = dict["amount"] as? Int else {
-            return nil
-        }
-
-        return amount
-    }
 }
 
 extension UInt {
