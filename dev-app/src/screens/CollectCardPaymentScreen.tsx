@@ -129,16 +129,7 @@ export default function CollectCardPaymentScreen() {
   const [requestDcc, setRequestDcc] = useState(false);
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
-  const [surcharge, setSurcharge] = useState<{
-    amount: string;
-    consent: {
-      notice: string;
-      collection: 'disabled' | 'enabled';
-    } | null;
-  }>({
-    amount: '',
-    consent: null,
-  });
+  const [amountSurcharge, setAmountSurcharge] = useState('');
   const [returnUrl, setReturnUrl] = useState('');
   const paymentMethodTypes = PAYMENT_METHOD_TYPES;
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
@@ -494,16 +485,7 @@ export default function CollectCardPaymentScreen() {
 
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
-      surcharge: surcharge.amount ? {
-        amount: Number(surcharge.amount),
-        consent:
-        surcharge?.consent?.notice || surcharge?.consent?.collection != null
-          ? {
-              notice: surcharge.consent.notice || '',
-              collection: surcharge.consent.collection ?? 'disabled',
-            }
-          : null,
-      } : undefined,
+      amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
       returnUrl: returnUrl.trim() ? returnUrl : undefined,
     });
 
@@ -967,72 +949,15 @@ export default function CollectCardPaymentScreen() {
           />
         </List>
 
-        <List bolded={false} topSpacing={false} title="SURCHARGE CONFIGURATION">
+        <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
           <TextInput
-            testID="Surcharge Amount"
+            testID="Amount Surcharge"
             keyboardType="numeric"
             style={styles.input}
-            value={surcharge.amount}
-            onChangeText={(value: string) =>
-              setSurcharge(prev => ({ ...prev, amount: value }))
-            }
-            placeholder="Surcharge Amount"
+            value={amountSurcharge}
+            onChangeText={(value: string) => setAmountSurcharge(value)}
+            placeholder="Amount Surcharge"
           />
-          <ListItem
-            title="Enable Surcharge Consent"
-            rightElement={
-              <Switch
-                testID="toggle-surcharge-consent"
-                value={surcharge.consent !== null}
-                onValueChange={(enabled) =>
-                  setSurcharge(prev => ({
-                    ...prev,
-                    consent: enabled
-                      ? { notice: '', collection: 'disabled' }
-                      : null,
-                  }))
-                }
-              />
-            }
-          />
-          { surcharge.consent !== null ? (
-            <View>
-              <TextInput
-                testID="Surcharge Consent Notice"
-                style={styles.input}
-                value={surcharge.consent.notice}
-                onChangeText={(value) =>
-                  setSurcharge(prev => ({
-                    ...prev,
-                    consent: {
-                      ...prev.consent!,
-                      notice: value || '',
-                    },
-                  }))
-                }
-                placeholder="Surcharge Consent Notice"
-              />
-
-              <ListItem
-                title="Enable Surcharge Consent Collection"
-                rightElement={
-                  <Switch
-                    testID="enable-surcharge-consent-collection"
-                    value={surcharge.consent.collection === 'enabled'}
-                    onValueChange={(value) =>
-                      setSurcharge(prev => ({
-                        ...prev,
-                        consent: {
-                          ...prev.consent!,
-                          collection: value ? 'enabled' : 'disabled',
-                        },
-                      }))
-                    }
-                  />
-                }
-              />
-            </View>
-          ) :  <View /> }
         </List>
 
         <List bolded={false} topSpacing={false} title="RETURN URL">

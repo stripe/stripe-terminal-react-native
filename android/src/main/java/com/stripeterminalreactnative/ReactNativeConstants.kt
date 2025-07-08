@@ -55,14 +55,3 @@ enum class DeviceSerialName(val serialName: String) {
         fun fromSerialName(serialName: String): DeviceSerialName? = serialNames[serialName]
     }
 }
-
-enum class SurchargeConsentCollection(val collection: String) {
-    DISABLED("disabled"),
-    ENABLED("enabled");
-
-    companion object {
-        private val collections = SurchargeConsentCollection.entries.associateBy(SurchargeConsentCollection::collection)
-
-        fun fromCollection(collection: String): SurchargeConsentCollection? = collections[collection]
-    }
-}
