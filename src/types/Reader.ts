@@ -26,6 +26,12 @@ export namespace Reader {
       isCharging?: number;
     };
 
+    /**
+     * Supported DiscoveryMethod for discovering devices.
+     *
+     * @remarks
+     * usb is an experimental feature currently.
+     */
     export type DiscoveryMethod =
       | 'bluetoothProximity'
       | 'bluetoothScan'
