@@ -1937,6 +1937,11 @@
     color "^3.1.3"
     react-native-iphone-x-helper "^1.3.0"
 
+"@rnx-kit/align-deps@^3.0.8":
+  version "3.0.8"
+  resolved "https://registry.npmjs.org/@rnx-kit/align-deps/-/align-deps-3.0.8.tgz#54bcf707b58c5bbc126c719e2dce5d04b04ff976"
+  integrity sha512-eB2UHzqeWyqEZzTDDnmI3Xwrq06V9awSoj1Wd48VlZdo4cqkweOjwGAyevUw14Xg0QGRDYOHVjQjLZfkP8Npeg==
+
 "@rnx-kit/chromium-edge-launcher@^1.0.0":
   version "1.0.0"
   resolved "https://registry.npmjs.org/@rnx-kit/chromium-edge-launcher/-/chromium-edge-launcher-1.0.0.tgz#c0df8ea00a902c7a417cd9655aab06de398b939c"
