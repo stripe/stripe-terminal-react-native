@@ -478,7 +478,7 @@ export default function CollectCardPaymentScreen() {
           name: 'Process',
           onBack: cancelConfirmPaymentIntent,
           description: 'terminal.confirmPaymentIntent',
-          metadata: { paymentIntentId: collectedPaymentIntent.id },
+          metadata: { paymentIntentId: collectedPaymentIntent.id, amountSurcharge: JSON.stringify(amountSurcharge, undefined, 2) },
         },
       ],
     });

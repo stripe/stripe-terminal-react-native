@@ -1071,7 +1071,6 @@ class Mappers {
         default: return .unknown
         }
     }
-
 }
 
 extension UInt {
