@@ -1298,10 +1298,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.0)
-  - stripe-terminal-react-native (0.0.1-beta.22):
+  - stripe-terminal-react-native (0.0.1-beta.25):
     - React-Core
-    - StripeTerminal (~> 3.8.3)
-  - StripeTerminal (3.8.3)
+    - StripeTerminal (~> 4.3.0)
+  - StripeTerminal (4.3.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1600,10 +1600,10 @@ SPEC CHECKSUMS:
   RNReanimated: d51431fd3597a8f8320319dce8e42cee82a5445f
   RNScreens: 30249f9331c3b00ae7cb7922e11f58b3ed369c07
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
-  stripe-terminal-react-native: f354ea9dba528c466d842ffca16dd66e704af68f
-  StripeTerminal: 1982b8395d3a45d887a6db0ff75aa3df8be58dcb
-  Yoga: 1ab23c1835475da69cf14e211a560e73aab24cb0
+  stripe-terminal-react-native: 8918892108749dde11af463da26ac314caebd0a3
+  StripeTerminal: 056d0d3b5e2f2edbc5f8b6314ec5f2b037898c72
+  Yoga: 33622183a85805e12703cd618b2c16bfd18bfffb
 
-PODFILE CHECKSUM: 5ceb0b8e4cc5ef0016298256da279bf7986df02f
+PODFILE CHECKSUM: b3e021022e46570524f27a7687264c35afcd6e52
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
