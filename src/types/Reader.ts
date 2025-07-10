@@ -30,7 +30,7 @@ export namespace Reader {
      * Supported DiscoveryMethod for discovering devices.
      *
      * @remarks
-     * usb is an experimental feature currently.
+     * USB is in private preview for iPads with M-series chips. Contact Stripe support to join the preview if interested.
      */
     export type DiscoveryMethod =
       | 'bluetoothProximity'
