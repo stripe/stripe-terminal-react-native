@@ -734,7 +734,7 @@ class Mappers {
             "dedicatedFileName": receiptDetails.dedicatedFileName,
             "terminalVerificationResults": receiptDetails.terminalVerificationResults,
             "transactionStatusInformation": receiptDetails.transactionStatusInformation,
-            "cardholderVerificationMethod": receiptDetails.cardholderVerificationMethod
+            "cvm": receiptDetails.cardholderVerificationMethod
         ]
         return result
     }
