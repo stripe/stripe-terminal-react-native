@@ -2,9 +2,9 @@ import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
-  HeaderBackButton,
   TransitionPresets,
 } from '@react-navigation/stack';
+import { HeaderBackButton } from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
@@ -82,6 +82,7 @@ LogBox.ignoreLogs([
 const Stack = createStackNavigator();
 
 const screenOptions = {
+  presentation: 'modal',
   headerTintColor: colors.white,
   headerStyle: {
     shadowOpacity: 0,
@@ -193,7 +194,7 @@ export default function App() {
         />
 
         <NavigationContainer>
-          <Stack.Navigator screenOptions={screenOptions} mode="modal">
+          <Stack.Navigator screenOptions={screenOptions}>
             <Stack.Screen name="Terminal" component={HomeScreen} />
             <Stack.Screen
               name="DatabaseScreen"
