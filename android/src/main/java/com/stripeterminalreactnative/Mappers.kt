@@ -1,6 +1,9 @@
 package com.stripeterminalreactnative
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import java.util.Base64
 import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.Surcharging
@@ -41,6 +44,31 @@ internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
 
 internal fun getBoolean(map: ReadableMap?, key: String, defaultValue: Boolean): Boolean =
     if (map?.hasKey(key) == true) map.getBoolean(key) else defaultValue
+
+/**
+ * Converts a data URI or base64 string to a Bitmap
+ * @param imageData The image data (can be data:image/... URI or base64 string)
+ * @return Bitmap object or null if conversion fails
+ */
+internal fun mapToBitmap(imageData: String): Bitmap? =
+    when {
+        imageData.startsWith("data:image/") -> {
+            // Handle data URI
+            val dataUriParts = imageData.split(",", limit = 2)
+            if (dataUriParts.size == 2) {
+                val base64String = dataUriParts[1]
+                val imageBytes = Base64.getDecoder().decode(base64String)
+                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            } else {
+                null
+            }
+        }
+        else -> {
+            // Try to decode as base64 string directly
+            val imageBytes = Base64.getDecoder().decode(imageData)
+            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        }
+    }
 
 internal fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
