@@ -19,12 +19,12 @@
     "ios.debug": {
       "type": "ios.app",
       "binaryPath": "dev-app/ios/build/Build/Products/Debug-iphonesimulator/StripeTerminalReactNativeDevApp.app",
-      "build": "xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -configuration Debug -scheme StripeTerminalReactNativeDevApp -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath dev-app/ios/build"
+      "build": "xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -configuration Debug -scheme StripeTerminalReactNativeDevApp -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath dev-app/ios/build CODE_SIGN_IDENTITY='' CODE_SIGNING_REQUIRED=NO"
     },
     "ios.release": {
       "type": "ios.app",
       "binaryPath": "dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app",
-      "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -configuration Release -scheme StripeTerminalReactNativeDevApp -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath dev-app/ios/build"
+      "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -configuration Release -scheme StripeTerminalReactNativeDevApp -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath dev-app/ios/build CODE_SIGN_IDENTITY='' CODE_SIGNING_REQUIRED=NO"
     },
     "android.debug": {
       "type": "android.apk",
