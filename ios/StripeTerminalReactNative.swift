@@ -1121,6 +1121,28 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
     }
 
+    @objc(print:resolver:rejecter:)
+    func print(contentUri: NSString, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let image = Mappers.mapToUIImage(contentUri as String) else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "contentUri must be a valid image data URI or base64 string"))
+            return
+        }
+        let printContent: PrintContent
+        do {
+            printContent = try PrintContentBuilder(image: image).build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        Terminal.shared.print(printContent) { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else {
+                resolve([:])
+            }
+        }
+    }
+
     @objc(clearCachedCredentials:rejecter:)
     func clearCachedCredentials(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         Terminal.shared.clearCachedCredentials()

@@ -1,4 +1,5 @@
 import StripeTerminal
+import UIKit
 
 class Mappers {
     class func mapFromReaders(_ readers: [Reader]) -> [NSDictionary] {
