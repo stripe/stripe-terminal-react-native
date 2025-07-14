@@ -308,7 +308,7 @@ export type CardPresentDetails = {
   funding: string;
   brand: string;
   generatedCard?: string;
-  receipt?: string;
+  receipt?: ReceiptDetails;
   emvAuthData?: string;
   country?: string;
   preferredLocales: string[];
