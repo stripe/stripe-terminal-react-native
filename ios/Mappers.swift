@@ -1,4 +1,5 @@
 import StripeTerminal
+import UIKit
 
 class Mappers {
     class func mapFromReaders(_ readers: [Reader]) -> [NSDictionary] {
@@ -560,7 +561,7 @@ class Mappers {
         default: return SimulateReaderUpdate.none
         }
     }
-  
+
     class func mapToSimulatedCollectInputsResult(_ behavior: String) -> SimulatedCollectInputsResult {
         switch behavior.lowercased() {
         case "all":
@@ -1073,6 +1074,31 @@ class Mappers {
         case "wechat_pay": return .wechatPay
         case "affirm": return .affirm
         default: return .unknown
+        }
+    }
+
+    /**
+     * Converts a data URI or base64 string to a UIImage
+     * @param imageData The image data (can be data:image/... URI or base64 string)
+     * @return UIImage object or nil if conversion fails
+     */
+    class func mapToUIImage(_ imageData: String) -> UIImage? {
+        if imageData.hasPrefix("data:image/") {
+            // Handle data URI
+            let components = imageData.components(separatedBy: ",")
+            if components.count == 2 {
+                let base64Data = components[1]
+                if let data = Data(base64Encoded: base64Data) {
+                    return UIImage(data: data)
+                }
+            }
+            return nil
+        } else {
+            // Try to decode as base64 string directly
+            if let data = Data(base64Encoded: imageData) {
+                return UIImage(data: data)
+            }
+            return nil
         }
     }
 }
