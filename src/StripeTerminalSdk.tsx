@@ -169,6 +169,9 @@ export interface StripeTerminalSdkType {
   cancelCollectData(): Promise<{
     error?: StripeError;
   }>;
+  print(contentUri: string): Promise<{
+    error?: StripeError;
+  }>;
   cancelReaderReconnection(): Promise<{
     error?: StripeError;
   }>;

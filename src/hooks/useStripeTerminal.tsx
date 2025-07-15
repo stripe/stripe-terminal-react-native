@@ -70,6 +70,7 @@ import {
   cancelCollectInputs,
   collectData,
   cancelCollectData,
+  print,
   cancelReaderReconnection,
   supportsReadersOfType,
   getPaymentStatus,
@@ -724,7 +725,7 @@ export function useStripeTerminal(props?: Props) {
     },
     [_isInitialized, setLoading]
   );
-  
+
   const _setSimulatedOfflineMode = useCallback(
     async (simulatedOffline: boolean) => {
       if (!_isInitialized()) {
@@ -1022,6 +1023,23 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
+  const _print = useCallback(
+    async (contentUri: string) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await print(contentUri);
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading]
+  );
+
   const _cancelReaderReconnection = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -1119,6 +1137,7 @@ export function useStripeTerminal(props?: Props) {
     cancelCollectInputs: _cancelCollectInputs,
     collectData: _collectData,
     cancelCollectData: _cancelCollectData,
+    print: _print,
     cancelReaderReconnection: _cancelReaderReconnection,
     supportsReadersOfType: _supportsReadersOfType,
     setTapToPayUxConfiguration: _setTapToPayUxConfiguration,
