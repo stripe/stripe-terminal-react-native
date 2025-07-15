@@ -703,7 +703,7 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             putString("generatedCard", it.generatedCard)
             putString("last4", it.last4)
             putString("readMethod", it.readMethod)
-            putMap("receiptDetails", mapFromReceiptDetails(it.receiptDetails))
+            putMap("receipt", mapFromReceiptDetails(it.receiptDetails))
             putString("issuer", it.issuer)
             putString("iin", it.iin)
             putString("network", it.network)
