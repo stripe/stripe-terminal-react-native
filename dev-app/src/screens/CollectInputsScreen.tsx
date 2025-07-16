@@ -118,7 +118,7 @@ export default function CollectInputsScreen() {
     >
       <List topSpacing={false}>
         <ListItem
-          title="Signature and selection forms"
+          title="Signature and selection forms with toggles"
           testID="collect-input-button-1"
           color={colors.blue}
           onPress={async () => {
