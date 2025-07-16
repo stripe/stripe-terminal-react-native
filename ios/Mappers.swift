@@ -1030,7 +1030,7 @@ class Mappers {
                 collectInputResults.append(signatureResult)
             } else if result is SelectionResult {
                 let result = result as! SelectionResult
-                let selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "selectionId": result.selectionId ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(selectionResult)
             }
         }
