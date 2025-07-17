@@ -561,7 +561,7 @@ class Mappers {
         default: return SimulateReaderUpdate.none
         }
     }
-  
+
     class func mapToSimulatedCollectInputsResult(_ behavior: String) -> SimulatedCollectInputsResult {
         switch behavior.lowercased() {
         case "all":
@@ -1076,17 +1076,16 @@ class Mappers {
         default: return .unknown
         }
     }
-  
 
     class func mapToSurchargeConfiguration(from dict: [String: Any]?) throws -> SurchargeConfiguration? {
         guard let dict = dict else { return nil }
         guard let amount = dict["amount"] as? UInt else {
             return nil
         }
-        
+
         let surchargeConfigBuilder = SurchargeConfigurationBuilder()
         surchargeConfigBuilder.setAmount(amount)
-        
+
         let consentBuilder = SurchargeConsentBuilder()
         if let consentDict = dict["consent"] as? [String: Any] {
             if let collectionString = consentDict["collection"] as? String {
@@ -1103,14 +1102,33 @@ class Mappers {
             } else {
                 consentBuilder.setCollection(.disabled)
             }
-            
+
             if let notice = consentDict["notice"] as? String {
                 consentBuilder.setNotice(notice)
             }
         }
         surchargeConfigBuilder.setSurchargeConsent(try consentBuilder.build())
-        
+
       return try surchargeConfigBuilder.build()
+    }
+
+    /**
+     * Converts a data URI or base64 string to a UIImage
+     * @param imageData The image data (can be data:image/... URI or base64 string)
+     * @return UIImage object or nil if conversion fails
+     */
+    class func mapToUIImage(_ imageData: String) -> UIImage? {
+        let imageBase64: String
+        if imageData.hasPrefix("data:image/") {
+            // Handle data URI
+            let components = imageData.components(separatedBy: ",")
+            imageBase64 = components.count == 2 ? components[1] : ""
+        } else {
+            // Try to decode as base64 string directly
+            imageBase64 = imageData
+        }
+
+        return Data(base64Encoded: imageBase64).flatMap { UIImage(data: $0) }
     }
 }
 
