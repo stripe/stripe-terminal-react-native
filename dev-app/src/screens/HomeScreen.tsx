@@ -36,7 +36,7 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] = useState<boolean>(false);
+  const [showReconnectStatusAlert, setShowReconnectStatusAlert] = useState<string>('');
   const [showReconnectingAlert, setShowReconnectingAlert] =
     useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] = useState<{
@@ -120,16 +120,17 @@ export default function HomeScreen() {
     onDidStartReaderReconnect(reason) {
       console.log('onDidStartReaderReconnect ' + reason);
       setShowReconnectingAlert(true);
-      setShowReconnectSuccessAlert(false);
+      setShowReconnectStatusAlert('');
     },
     onDidSucceedReaderReconnect() {
-      setShowReconnectSuccessAlert(true);
+      console.log('onDidSucceedReaderReconnect');
+      setShowReconnectStatusAlert('success');
       setShowReconnectingAlert(false);
     },
     onDidFailReaderReconnect() {
-      Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
+      console.log('onDidFailReaderReconnect');
+      setShowReconnectStatusAlert('fail');
       setShowReconnectingAlert(false);
-      setShowReconnectSuccessAlert(false);
     },
   });
   useEffect(() => {
@@ -288,14 +289,14 @@ export default function HomeScreen() {
       />
 
       <AlertDialog
-        visible={showReconnectSuccessAlert}
-        title="Reconnected!"
-        message="We were able to reconnect to the reader."
+        visible={showReconnectStatusAlert !== ''}
+        title={showReconnectStatusAlert == 'success' ? "Reconnected!" : "Reader Disconnected"}
+        message={showReconnectStatusAlert == 'success' ? "We were able to reconnect to the reader." : "Reader reconnection failed!"}
         buttons={[
           {
             text: 'OK',
             onPress: async () => {
-              setShowReconnectSuccessAlert(false);
+              setShowReconnectStatusAlert('');
             },
           },
         ]}
