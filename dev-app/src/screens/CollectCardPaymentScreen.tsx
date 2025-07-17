@@ -175,6 +175,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: message,
             description: 'terminal.didRequestReaderDisplayMessage',
+            onBack: cancelCollectPaymentMethod,
           },
         ],
       });
