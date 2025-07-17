@@ -1083,23 +1083,17 @@ class Mappers {
      * @return UIImage object or nil if conversion fails
      */
     class func mapToUIImage(_ imageData: String) -> UIImage? {
+        let imageBase64: String
         if imageData.hasPrefix("data:image/") {
             // Handle data URI
             let components = imageData.components(separatedBy: ",")
-            if components.count == 2 {
-                let base64Data = components[1]
-                if let data = Data(base64Encoded: base64Data) {
-                    return UIImage(data: data)
-                }
-            }
-            return nil
+            imageBase64 = components.count == 2 ? components[1] : ""
         } else {
             // Try to decode as base64 string directly
-            if let data = Data(base64Encoded: imageData) {
-                return UIImage(data: data)
-            }
-            return nil
+            imageBase64 = imageData
         }
+        
+        return Data(base64Encoded: imageBase64).flatMap { UIImage(data: $0) }
     }
 }
 
