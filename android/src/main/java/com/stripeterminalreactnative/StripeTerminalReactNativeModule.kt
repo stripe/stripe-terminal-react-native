@@ -1075,7 +1075,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun print(contentUri: String, promise: Promise) = withExceptionResolver(promise) {
         val bitmap = requireParam(mapToBitmap(contentUri)) {
-            "You must provide a valid base64 string or a 'data:' uri scheme for an image."
+            "You must provide a valid base64 string or a 'data:' URI scheme"
         }
         val printContent = PrintContent.Bitmap.create(bitmap)
         terminal.print(printContent, NoOpCallback(promise))

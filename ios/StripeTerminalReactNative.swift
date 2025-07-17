@@ -221,8 +221,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.simulatorConfiguration.offlineEnabled = simulatedOffline;
         resolve([:])
     }
-  
-  
+
+
     @objc(setSimulatedCollectInputsResult:resolver:rejecter:)
     func setSimulatedCollectInputsResult(
       _ behavior: String,
@@ -234,7 +234,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             reject("Failed", "You must provide \(allowedValues) parameters.", nil)
             return
         }
-      
+
         let result: SimulatedCollectInputsResult = Mappers.mapToSimulatedCollectInputsResult(behavior)
         Terminal.shared.simulatorConfiguration.simulatedCollectInputsResult = result
         resolve([:])
@@ -718,7 +718,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
-        
+
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
         let confirmConfig: ConfirmConfiguration
         do {
@@ -1020,7 +1020,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let reverseTransfer = params["reverseTransfer"] as? NSNumber
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
         let metadata = params["metadata"] as? [String : String]
-      
+
         let refundParams: RefundParameters
         do {
             if (!paymentIntentId!.isEmpty) {
@@ -1103,7 +1103,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             }
         }
     }
-  
+
     @objc(cancelCollectData:rejecter:)
     func cancelCollectData(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cancelable = collectDataCancellable else {
@@ -1124,7 +1124,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(print:resolver:rejecter:)
     func print(contentUri: NSString, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let image = Mappers.mapToUIImage(contentUri as String) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "contentUri must be a valid image data URI or base64 string"))
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a valid base64 string or a 'data:' URI scheme"))
             return
         }
         let printContent: PrintContent
