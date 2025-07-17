@@ -950,6 +950,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("selection", it.selection)
+                        putString("selectionId", it.selectionId)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",

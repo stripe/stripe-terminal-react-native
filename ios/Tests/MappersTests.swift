@@ -80,7 +80,7 @@ final class MappersTests: XCTestCase {
             ToggleResult.enabled.rawValue as NSNumber,
             ToggleResult.skipped.rawValue as NSNumber,
         ])
-        let selectionResult = TestableSelectionResult(skipped: false, selection: "Yes", toggles: [
+        let selectionResult = TestableSelectionResult(skipped: false, selection: "Yes", selectionId: "yes_id", toggles: [
             ToggleResult.enabled.rawValue as NSNumber,
             ToggleResult.skipped.rawValue as NSNumber,
         ])
@@ -128,6 +128,7 @@ final class MappersTests: XCTestCase {
         let testPhone = "phone"
         let testEmail = "email"
         let testSelection = "selection"
+        let testSelectionId = "selectionId"
         let testSignatureSvg = "signatureSvg"
         XCTAssertEqual(results.count, 5)
         XCTAssertTrue(results[0][testNumericString] != nil)
@@ -189,7 +190,8 @@ final class MappersTests: XCTestCase {
                 guard
                     let skipped = result["skipped"] as? Bool,
                     let toggles = result["toggles"] as? [String],
-                    let selection = result[testSelection] as? String else {
+                    let selection = result[testSelection] as? String,
+                    let selectionId = result[testSelectionId] as? String else {
                     XCTFail("CollectInput SelectionResult should have had selection, skipped and toggles")
                     return
                 }
@@ -198,6 +200,7 @@ final class MappersTests: XCTestCase {
                 XCTAssertEqual(toggles[0], "enabled")
                 XCTAssertEqual(toggles[1], "skipped")
                 XCTAssertEqual(selection, "Yes")
+                XCTAssertEqual(selectionId, "yes_id")
             }
             if ((result.object(forKey: testSignatureSvg)) != nil) {
                 guard
@@ -267,6 +270,7 @@ struct TestableEmailResult : stripe_terminal_react_native.EmailResult {
 struct TestableSelectionResult : stripe_terminal_react_native.SelectionResult {
     var skipped: Bool
     var selection: String?
+    var selectionId: String?
     var toggles: [NSNumber]
 }
 

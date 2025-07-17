@@ -40,6 +40,7 @@ protocol SignatureResult : CollectInputsResult {
 
 protocol SelectionResult : CollectInputsResult {
     var selection: String? { get }
+    var selectionId: String? { get }
     var toggles: [NSNumber] { get }
 }
 
