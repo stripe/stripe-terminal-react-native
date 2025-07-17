@@ -1,15 +1,16 @@
 package com.stripeterminalreactnative
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import java.util.Base64
 import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.OfflineMode
-import com.stripe.stripeterminal.external.Surcharging
 import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
 import com.stripe.stripeterminal.log.LogLevel
-import com.stripe.stripeterminal.external.models.SurchargeConsentCollection as NativeSurchargeConsentCollection
 
 internal fun getInt(map: ReadableMap, key: String): Int? =
     if (map.hasKey(key)) map.getInt(key) else null
@@ -41,6 +42,32 @@ internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
 
 internal fun getBoolean(map: ReadableMap?, key: String, defaultValue: Boolean): Boolean =
     if (map?.hasKey(key) == true) map.getBoolean(key) else defaultValue
+
+/**
+ * Converts a data URI or base64 string to a Bitmap
+ * @param imageData The image data (can be data:image/... URI or base64 string)
+ * @return Bitmap object or null if conversion fails
+ */
+internal fun mapToBitmap(imageData: String): Bitmap? {
+    val imageBase64 = when {
+        // Handle data URI
+        imageData.startsWith("data:image/") -> {
+            val components = imageData.split(",", limit = 2)
+            if (components.size == 2) components[1] else null
+        }
+        // Try to decode as base64 string directly
+        else -> imageData
+    } ?: return null
+
+    if (imageBase64.isEmpty()) return null
+
+    return try {
+        val imageBytes = Base64.getDecoder().decode(imageBase64)
+        BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+}
 
 internal fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {

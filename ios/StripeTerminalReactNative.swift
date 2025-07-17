@@ -220,8 +220,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.simulatorConfiguration.offlineEnabled = simulatedOffline;
         resolve([:])
     }
-  
-  
+
+
     @objc(setSimulatedCollectInputsResult:resolver:rejecter:)
     func setSimulatedCollectInputsResult(
       _ behavior: String,
@@ -233,7 +233,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             reject("Failed", "You must provide \(allowedValues) parameters.", nil)
             return
         }
-      
+
         let result: SimulatedCollectInputsResult = Mappers.mapToSimulatedCollectInputsResult(behavior)
         Terminal.shared.simulatorConfiguration.simulatedCollectInputsResult = result
         resolve([:])
@@ -717,10 +717,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
-        
+
         let amountSurcharge = params["amountSurcharge"] as? NSNumber
         let returnUrl = params["returnUrl"] as? String
-      
+
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
         if let amountSurchargeValue = amountSurcharge {
           confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
@@ -1098,6 +1098,28 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 } else {
                     resolve([:])
                 }
+        }
+    }
+
+    @objc(print:resolver:rejecter:)
+    func print(contentUri: NSString, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let image = Mappers.mapToUIImage(contentUri as String) else {
+            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a valid base64 string or a 'data:' URI scheme"))
+            return
+        }
+        let printContent: PrintContent
+        do {
+            printContent = try PrintContentBuilder(image: image).build()
+        } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+        }
+        Terminal.shared.print(printContent) { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else {
+                resolve([:])
+            }
         }
     }
 
