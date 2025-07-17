@@ -494,6 +494,7 @@ export interface ICollectInputsResult {
 export interface SelectionResult extends ICollectInputsResult {
   // selected button. Null if the form was skipped.
   selection?: string | null;
+  selectionId?: string | null;
 }
 
 // Contains data collected from a signature form
