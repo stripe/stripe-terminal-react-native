@@ -18,7 +18,7 @@ final class MappersTests: XCTestCase {
         // and to constants
         XCTAssertEqual(Mappers.mapFromLocationStatus(.notSet), "notSet")
     }
-    
+
     func testMapFromRequestPartialAuthorization() {
         XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.ifAvailable.rawValue), "if_available")
         XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.never.rawValue), "never")
@@ -115,15 +115,15 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(toggles[1], "skipped")
         XCTAssertEqual(formType, "text")
         XCTAssertEqual(text, "Written text from the reader")
-        
+
         output = Mappers.mapFromCollectInputsResults([
             numericResult, phoneResult, emailResult, selectionResult, signatureResult
         ])
         XCTAssertNotNil(output.object(forKey: "collectInputResults"))
         XCTAssertTrue(output["collectInputResults"] is [NSDictionary])
-        
+
         results = output["collectInputResults"] as! [NSDictionary]
-        
+
         let testNumericString = "numericString"
         let testPhone = "phone"
         let testEmail = "email"
@@ -136,13 +136,13 @@ final class MappersTests: XCTestCase {
         XCTAssertTrue(results[2][testEmail] != nil)
         XCTAssertTrue(results[3][testSelection] != nil)
         XCTAssertTrue(results[4][testSignatureSvg] != nil)
-        
+
         XCTAssertTrue(results[0]["formType"] as! String == "numeric")
         XCTAssertTrue(results[1]["formType"] as! String == "phone")
         XCTAssertTrue(results[2]["formType"] as! String == "email")
         XCTAssertTrue(results[3]["formType"] as! String == "selection")
         XCTAssertTrue(results[4]["formType"] as! String == "signature")
-            
+
         for result in results {
             if ((result.object(forKey: testNumericString)) != nil) {
                 guard
@@ -240,6 +240,41 @@ final class MappersTests: XCTestCase {
                   XCTAssertTrue(result is SimulatedCollectInputsResultTimeout, "Expected SimulatedCollectInputsResultTimeout for input '\(input)'")
               }
           }
+    }
+
+    func testMapToUIImage() {
+        // Simple 1x1 PNG image
+        let base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+
+        // Test valid data URI with PNG
+        let validDataURI = "data:image/png;base64," + base64Image
+        let pngImage = Mappers.mapToUIImage(validDataURI)
+        XCTAssertNotNil(pngImage, "Should create UIImage from valid PNG data URI")
+        XCTAssertEqual(pngImage?.size.width, 1)
+        XCTAssertEqual(pngImage?.size.height, 1)
+
+        // Test valid plain base64 string
+        XCTAssertNotNil(Mappers.mapToUIImage(base64Image), "Should create UIImage from valid base64 string")
+
+        // Test invalid data URI - missing comma
+        let invalidDataURINoComma = "data:image/png;base64" + base64Image
+        XCTAssertNil(Mappers.mapToUIImage(invalidDataURINoComma), "Should return nil for data URI without comma")
+
+        // Test invalid data URI - too many components
+        let invalidDataURITooMany = "data:image/png;base64,abc,def"
+        XCTAssertNil(Mappers.mapToUIImage(invalidDataURITooMany), "Should return nil for data URI with too many components")
+
+        // Test invalid data URI - empty base64
+        let invalidDataURIEmpty = "data:image/png;base64,"
+        XCTAssertNil(Mappers.mapToUIImage(invalidDataURIEmpty), "Should return nil for data URI with empty base64")
+
+        // Test invalid base64 string
+        let invalidBase64 = "not-valid-base64-data"
+        XCTAssertNil(Mappers.mapToUIImage(invalidBase64), "Should return nil for invalid base64 string")
+
+        // Test empty string
+        let emptyString = ""
+        XCTAssertNil(Mappers.mapToUIImage(emptyString), "Should return nil for empty string")
     }
 }
 
