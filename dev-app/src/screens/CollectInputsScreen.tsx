@@ -118,7 +118,7 @@ export default function CollectInputsScreen() {
     >
       <List topSpacing={false}>
         <ListItem
-          title="Signature and selection forms"
+          title="Signature and selection forms with toggles"
           testID="collect-input-button-1"
           color={colors.blue}
           onPress={async () => {
@@ -135,18 +135,25 @@ export default function CollectInputsScreen() {
                     {
                       title: 'Opt-in for marketing emails',
                       description: '',
-                      defaultValue: ToggleValue.DISABLED,
+                      defaultValue: ToggleValue.ENABLED,
                     },
                   ],
                 },
                 {
                   formType: FormType.SELECTION,
                   title: 'Choose an option',
-                  required: false,
+                  required: true,
                   description: 'Were you happy with customer service?',
                   selectionButtons: [
-                    { style: SelectionButtonStyle.PRIMARY, text: 'Yes', id: "1" },
-                    { style: SelectionButtonStyle.SECONDARY, text: 'No', id: "2" },
+                    { style: SelectionButtonStyle.PRIMARY, text: 'Yes', id: "yes_id" },
+                    { style: SelectionButtonStyle.SECONDARY, text: 'No', id: "no_id" },
+                  ],
+                  toggles: [
+                    {
+                      title: 'Include fee',
+                      description: '',
+                      defaultValue: ToggleValue.DISABLED,
+                    },
                   ],
                 },
               ],

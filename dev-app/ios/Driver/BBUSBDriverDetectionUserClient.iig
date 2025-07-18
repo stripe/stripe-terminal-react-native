@@ -1,0 +1,18 @@
+//
+//  BBUSBDriverDetectionUserClient.iig
+//
+//  Created by Alex Wong on 2023-07-28.
+//  Copyright © 2023 BBPOS International Limited. All rights reserved. All software, both binary and source code published by BBPOS International Limited (hereafter BBPOS) is copyrighted by BBPOS and ownership of all right, title and interest in and to the software remains with BBPOS.
+//  RESTRICTED DOCUMENT
+//
+
+#include "BBUSBDriverDataStruct.h"
+#include <DriverKit/IOUserClient.iig>
+
+class BBUSBDriverDetectionUserClient: public IOUserClient {
+public:
+    virtual bool init(void) override;
+    virtual kern_return_t Start(IOService *provider) override;
+    virtual kern_return_t Stop(IOService *provider) override;
+    virtual void free(void) override;
+};

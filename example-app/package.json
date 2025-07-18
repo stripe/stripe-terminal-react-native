@@ -24,7 +24,7 @@
     "@react-native-picker/picker": "2.7.5",
     "@react-navigation/native": "^5.x",
     "@react-navigation/stack": "^5.x",
-    "@stripe/stripe-terminal-react-native": "^0.0.1-beta.21",
+    "@stripe/stripe-terminal-react-native": "^0.0.1-beta.25",
     "@types/jest": "^29.2.1",
     "expo": "~51.0.31",
     "expo-splash-screen": "~0.27.5",
@@ -48,10 +48,34 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@rnx-kit/align-deps": "^3.0.8",
     "@types/react": "~18.2.79",
     "babel-plugin-inline-dotenv": "^1.7.0",
     "stripe": "^8.181.0",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "rnx-kit": {
+    "kitType": "app",
+    "alignDeps": {
+      "requirements": [
+        "react-native@0.74"
+      ],
+      "capabilities": [
+        "animation",
+        "core",
+        "core-android",
+        "core-ios",
+        "gestures",
+        "jest",
+        "navigation/native",
+        "navigation/stack",
+        "react",
+        "react-dom",
+        "safe-area",
+        "screens",
+        "storage"
+      ]
+    }
+  }
 }

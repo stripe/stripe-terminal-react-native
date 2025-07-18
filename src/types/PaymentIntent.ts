@@ -8,6 +8,7 @@ export namespace PaymentIntent {
     amountTip: number;
     captureMethod: string;
     charges: Charge[];
+    clientSecret: string;
     created: string;
     currency: string;
     statementDescriptor: string;

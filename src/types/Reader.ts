@@ -26,11 +26,18 @@ export namespace Reader {
       isCharging?: number;
     };
 
+    /**
+     * Supported DiscoveryMethod for discovering devices.
+     *
+     * @remarks
+     * USB is in private preview for iPads with M-series chips. Contact Stripe support to join the preview if interested.
+     */
     export type DiscoveryMethod =
       | 'bluetoothProximity'
       | 'bluetoothScan'
       | 'internet'
-      | 'tapToPay';
+      | 'tapToPay'
+      | 'usb';
   }
 
   export namespace Android {
@@ -130,6 +137,9 @@ export namespace Reader {
     | 'criticallyLowBattery'
     | 'poweredOff'
     | 'bluetoothDisabled'
+    | 'bluetoothSignalLost'
+    | 'usbDisconnected'
+    | 'idlePowerDown'
     | 'unknown';
 
   export type ReaderSettings =

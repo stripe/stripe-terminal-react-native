@@ -15,11 +15,11 @@ Pod::Spec.new do |s|
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
   s.exclude_files = 'ios/Tests/'
-
+  s.xcconfig = { 'GCC_PREPROCESSOR_DEFINITIONS' => 'SCP_USB_ENABLED=1' }
   s.test_spec 'Tests' do |test_spec|
     test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
   end
 
   s.dependency 'React-Core'
-  s.dependency 'StripeTerminal', '~> 4.4.0'
+  s.dependency 'StripeTerminal', '~> 4.5.0'
 end

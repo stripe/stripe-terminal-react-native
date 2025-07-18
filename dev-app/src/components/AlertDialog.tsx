@@ -18,11 +18,13 @@ export default function AlertDialog({
   title,
   message,
   buttons,
+  onDismiss = () => {},
 }: {
   visible: boolean;
   title: string;
   message?: string;
   buttons?: AlertButton[];
+  onDismiss?: () => void;
 }) {
   const androidDefaults = {
     container: {
@@ -101,7 +103,7 @@ export default function AlertDialog({
             if (index === 0) defaultButtonText = 'ASK ME LATER';
             else if (index === 1) defaultButtonText = 'CANCEL';
           } else if (buttons.length === 2 && index === 0)
-            defaultButtonText = 'CANCEL';
+            {defaultButtonText = 'CANCEL';}
           return (
             <View
               key={index}
@@ -234,14 +236,14 @@ export default function AlertDialog({
       animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={() => {}}
+      onRequestClose={onDismiss}
     >
       <Pressable
         style={[
           Platform.OS === 'ios' ? styles.iOSBackdrop : styles.androidBackdrop,
           styles.backdrop,
         ]}
-        onPress={() => {}}
+        onPress={onDismiss}
       />
       <View style={styles.alertBox}>
         {Platform.OS === 'ios' ? (

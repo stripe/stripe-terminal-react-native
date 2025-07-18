@@ -175,6 +175,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: message,
             description: 'terminal.didRequestReaderDisplayMessage',
+            onBack: cancelCollectPaymentMethod,
           },
         ],
       });
@@ -356,7 +357,7 @@ export default function CollectCardPaymentScreen() {
           name: 'Created',
           description: 'terminal.createPaymentIntent',
           onBack: cancelCollectPaymentMethod,
-          metadata: { paymentIntentId: paymentIntent.id },
+          metadata: { paymentIntentId: paymentIntent.id, paymentIntent: JSON.stringify(paymentIntent, null, 2) },
         },
       ],
     });
@@ -478,7 +479,7 @@ export default function CollectCardPaymentScreen() {
           name: 'Process',
           onBack: cancelConfirmPaymentIntent,
           description: 'terminal.confirmPaymentIntent',
-          metadata: { paymentIntentId: collectedPaymentIntent.id },
+          metadata: { paymentIntentId: collectedPaymentIntent.id, amountSurcharge: JSON.stringify(amountSurcharge, undefined, 2) },
         },
       ],
     });

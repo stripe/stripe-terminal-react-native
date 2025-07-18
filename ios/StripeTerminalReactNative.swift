@@ -379,6 +379,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 .setTosAcceptancePermitted(tosAcceptancePermitted)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                 .build()
+        case .usb:
+            return try UsbConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
+                .build()
         @unknown default:
             return nil
         }
@@ -713,14 +717,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
-
+        
         let amountSurcharge = params["amountSurcharge"] as? NSNumber
         let returnUrl = params["returnUrl"] as? String
-
+      
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
         if let amountSurchargeValue = amountSurcharge {
-            confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
+          confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
         }
+
         if let returnUrlValue = returnUrl {
             confirmConfigBuilder.setReturnUrl(returnUrlValue)
         }

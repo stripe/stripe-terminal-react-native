@@ -134,6 +134,7 @@ class Mappers {
             case "bluetoothScan": return DiscoveryMethod.bluetoothScan
             case "internet": return DiscoveryMethod.internet
             case "tapToPay": return DiscoveryMethod.tapToPay
+            case "usb": return DiscoveryMethod.usb
             default: return DiscoveryMethod.internet
             }
         }
@@ -150,6 +151,8 @@ class Mappers {
             return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
         case "tapToPay":
             return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
+        case "usb":
+            return try UsbDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         @unknown default:
             print("⚠️ Unknown discovery method! Defaulting to Bluetooth Scan.")
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
@@ -733,7 +736,8 @@ class Mappers {
             "authorizationResponseCode": receiptDetails.authorizationResponseCode,
             "dedicatedFileName": receiptDetails.dedicatedFileName,
             "terminalVerificationResults": receiptDetails.terminalVerificationResults,
-            "transactionStatusInformation": receiptDetails.transactionStatusInformation
+            "transactionStatusInformation": receiptDetails.transactionStatusInformation,
+            "cvm": receiptDetails.cardholderVerificationMethod
         ]
         return result
     }
@@ -945,6 +949,9 @@ class Mappers {
         case DisconnectReason.criticallyLowBattery: return "criticallyLowBattery"
         case DisconnectReason.poweredOff: return "poweredOff"
         case DisconnectReason.bluetoothDisabled: return "bluetoothDisabled"
+        case DisconnectReason.bluetoothSignalLost: return "bluetoothSignalLost"
+        case DisconnectReason.usbDisconnected: return "usbDisconnected"
+        case DisconnectReason.idlePowerDown: return "idlePowerDown"
         default: return "unknown"
         }
     }
@@ -1023,7 +1030,7 @@ class Mappers {
                 collectInputResults.append(signatureResult)
             } else if result is SelectionResult {
                 let result = result as! SelectionResult
-                let selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
+                let selectionResult: NSDictionary = ["skipped": result.skipped, "selection": result.selection ?? "", "selectionId": result.selectionId ?? "", "formType": mapFormType(result: result), "toggles": mapFromToggleResultList(result.toggles)]
                 collectInputResults.append(selectionResult)
             }
         }
@@ -1068,7 +1075,6 @@ class Mappers {
         default: return .unknown
         }
     }
-
 }
 
 extension UInt {

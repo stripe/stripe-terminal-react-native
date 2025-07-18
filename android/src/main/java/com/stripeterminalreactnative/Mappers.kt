@@ -1,81 +1,40 @@
 package com.stripeterminalreactnative
 
 import android.graphics.Color
-import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableArray
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeArray
-import com.stripe.stripeterminal.external.CollectInputs
+import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.OfflineMode
-import com.stripe.stripeterminal.external.models.Address
-import com.stripe.stripeterminal.external.models.AffirmDetails
-import com.stripe.stripeterminal.external.models.AllowRedisplay
-import com.stripe.stripeterminal.external.models.AmountDetails
-import com.stripe.stripeterminal.external.models.BatteryStatus
-import com.stripe.stripeterminal.external.models.CardDetails
-import com.stripe.stripeterminal.external.models.CardPresentDetails
-import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
-import com.stripe.stripeterminal.external.models.CartLineItem
-import com.stripe.stripeterminal.external.models.Charge
-import com.stripe.stripeterminal.external.models.CollectDataType
-import com.stripe.stripeterminal.external.models.CollectInputsResult
-import com.stripe.stripeterminal.external.models.CollectedData
-import com.stripe.stripeterminal.external.models.ConnectionStatus
-import com.stripe.stripeterminal.external.models.DeviceType
-import com.stripe.stripeterminal.external.models.DisconnectReason
-import com.stripe.stripeterminal.external.models.EmailResult
-import com.stripe.stripeterminal.external.models.Location
-import com.stripe.stripeterminal.external.models.LocationStatus
-import com.stripe.stripeterminal.external.models.NetworkStatus
-import com.stripe.stripeterminal.external.models.NumericResult
-import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
-import com.stripe.stripeterminal.external.models.OfflineDetails
-import com.stripe.stripeterminal.external.models.OfflineStatus
-import com.stripe.stripeterminal.external.models.PaymentIntent
-import com.stripe.stripeterminal.external.models.PaymentIntentStatus
-import com.stripe.stripeterminal.external.models.PaymentMethod
-import com.stripe.stripeterminal.external.models.PaymentMethodDetails
-import com.stripe.stripeterminal.external.models.PaymentMethodOptions
-import com.stripe.stripeterminal.external.models.PaymentMethodType
-import com.stripe.stripeterminal.external.models.PaymentStatus
-import com.stripe.stripeterminal.external.models.PhoneResult
-import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.ReaderAccessibility
-import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
-import com.stripe.stripeterminal.external.models.ReaderEvent
-import com.stripe.stripeterminal.external.models.ReaderInputOptions
+import com.stripe.stripeterminal.external.Surcharging
+import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
-import com.stripe.stripeterminal.external.models.ReaderSettings
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
-import com.stripe.stripeterminal.external.models.ReaderSupportResult
-import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
-import com.stripe.stripeterminal.external.models.ReceiptDetails
-import com.stripe.stripeterminal.external.models.Refund
-import com.stripe.stripeterminal.external.models.SelectionResult
-import com.stripe.stripeterminal.external.models.SetupAttempt
-import com.stripe.stripeterminal.external.models.SetupAttemptStatus
-import com.stripe.stripeterminal.external.models.SetupIntent
-import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
-import com.stripe.stripeterminal.external.models.SetupIntentParameters
-import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
-import com.stripe.stripeterminal.external.models.SetupIntentStatus
-import com.stripe.stripeterminal.external.models.SetupIntentUsage
-import com.stripe.stripeterminal.external.models.SignatureResult
-import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
-import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
-import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
-import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
-import com.stripe.stripeterminal.external.models.TextResult
-import com.stripe.stripeterminal.external.models.ToggleResult
-import com.stripe.stripeterminal.external.models.Wallet
-import com.stripe.stripeterminal.external.models.WechatPayDetails
 import com.stripe.stripeterminal.log.LogLevel
+import com.stripe.stripeterminal.external.models.SurchargeConsentCollection as NativeSurchargeConsentCollection
 
 internal fun getInt(map: ReadableMap, key: String): Int? =
     if (map.hasKey(key)) map.getInt(key) else null
+
+internal fun ReadableMap.getIntSafely(key: String): Int? {
+    if (!hasKey(key)) return null
+
+    val type = this.getType(key)
+    return when (type) {
+        ReadableType.Number -> getDouble(key).toInt()
+        ReadableType.String -> getString(key)?.toIntOrNull()
+        else -> null
+    }
+}
+
+internal fun ReadableMap.getLongSafely(key: String): Long? {
+    if (!hasKey(key)) return null
+
+    val type = getType(key)
+    return when (type) {
+        ReadableType.Number -> getDouble(key).toLong()
+        ReadableType.String -> getString(key)?.toLongOrNull()
+        else -> null
+    }
+}
 
 internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
     if (map?.hasKey(key) == true) map.getBoolean(key) else false
@@ -173,6 +132,8 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.VERIFONE_M450 -> DeviceSerialName.VERIFONE_M450.serialName
         DeviceType.VERIFONE_P630 -> DeviceSerialName.VERIFONE_P630.serialName
         DeviceType.VERIFONE_UX700 -> DeviceSerialName.VERIFONE_UX700.serialName
+        DeviceType.VERIFONE_V660P_DEVKIT -> DeviceSerialName.VERIFONE_V660P_DEVKIT.serialName
+        DeviceType.VERIFONE_UX700_DEVKIT -> DeviceSerialName.VERIFONE_UX700_DEVKIT.serialName
     }
 }
 
@@ -247,6 +208,7 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
         putInt("amount", paymentIntent.amount.toInt())
         putString("captureMethod", paymentIntent.captureMethod)
         putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+        putString("clientSecret", paymentIntent.clientSecret)
         putString("created", convertToUnixTimestamp(paymentIntent.created))
         putString("currency", paymentIntent.currency)
         putMap(
@@ -743,7 +705,7 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             putString("generatedCard", it.generatedCard)
             putString("last4", it.last4)
             putString("readMethod", it.readMethod)
-            putMap("receiptDetails", mapFromReceiptDetails(it.receiptDetails))
+            putMap("receipt", mapFromReceiptDetails(it.receiptDetails))
             putString("issuer", it.issuer)
             putString("iin", it.iin)
             putString("network", it.network)
@@ -894,6 +856,8 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
         DisconnectReason.CRITICALLY_LOW_BATTERY -> "criticallyLowBattery"
         DisconnectReason.POWERED_OFF -> "poweredOff"
         DisconnectReason.BLUETOOTH_DISABLED -> "bluetoothDisabled"
+        DisconnectReason.USB_DISCONNECTED -> "usbDisconnected"
+        DisconnectReason.IDLE_POWER_DOWN -> "idlePowerDown"
         else -> {
             "unknown"
         }
@@ -921,7 +885,6 @@ internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
     }
 }
 
-@OptIn(CollectInputs::class)
 private fun CollectInputsResult.getFormType(): String {
     return when (this) {
         is EmailResult -> "email"
@@ -933,7 +896,6 @@ private fun CollectInputsResult.getFormType(): String {
     }
 }
 
-@OptIn(CollectInputs::class)
 fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArray {
     return nativeArrayOf {
         results.forEach {
@@ -990,6 +952,7 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
                     nativeMapOf {
                         putBoolean("skipped", it.skipped)
                         putString("selection", it.selection)
+                        putString("selectionId", it.selectionId)
                         putString("formType", it.getFormType())
                         putArray(
                             "toggles",
@@ -1038,7 +1001,6 @@ fun mapFromCollectInputsResults(results: List<CollectInputsResult>): ReadableArr
     }
 }
 
-@OptIn(CollectInputs::class)
 fun mapFromToggleResult(toggleResult: ToggleResult): String {
     return when (toggleResult) {
         ToggleResult.ENABLED -> "enabled"

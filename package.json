@@ -19,7 +19,8 @@
     "clean": "rm -rf node_modules && rm -rf dev-app/node_modules && rm -rf dev-app/ios/Pods",
     "bootstrap": "yarn dev-app && yarn && yarn pods",
     "deep-clean": "rm -rf node_modules dev-app/node_modules dev-app/ios/Pods dev-app/android/.gradle dev-app/android/.cxx dev-app/android/app/build dev-app/ios/build ~/Library/Developer/Xcode/DerivedData",
-    "reset": "yarn deep-clean && yarn bootstrap",
+    "reset-watch": "watchman watch-del ./ && watchman watch-project ./ && rm -rf /tmp/metro-* /tmp/haste-map-*",
+    "reset": "yarn reset-watch && yarn deep-clean && yarn bootstrap",
     "dev-app:build:android:release": "cd dev-app/android && ./gradlew assembleRelease ; cd -",
     "e2e:build:example:ios": "detox build --configuration ios.example",
     "e2e:build:example:android": "detox build --configuration android.example",
@@ -60,10 +61,10 @@
     "@react-native-community/cli": "^15.0.1",
     "@react-native-community/cli-platform-android": "^15.0.1",
     "@react-native-community/cli-platform-ios": "^15.0.1",
-    "@react-native/babel-preset": "^0.77.0",
-    "@react-native/eslint-config": "0.76.6",
-    "@react-native/metro-config": "^0.77.0",
-    "@react-native/typescript-config": "0.76.6",
+    "@react-native/babel-preset": "^0.78.0",
+    "@react-native/eslint-config": "0.78.0",
+    "@react-native/metro-config": "^0.78.0",
+    "@react-native/typescript-config": "0.78.0",
     "@rnx-kit/align-deps": "^3.0.5",
     "@types/base-64": "^1.0.0",
     "@types/jest": "^29.5.11",
@@ -84,9 +85,9 @@
     "jest-runner-eslint": "^1.0.0",
     "pod-install": "^0.1.0",
     "prettier": "2.8.8",
-    "react": "18.3.1",
-    "react-native": "^0.77.0",
-    "react-test-renderer": "18.3.1",
+    "react": "19.0.0",
+    "react-native": "^0.78.0",
+    "react-test-renderer": "19.0.0",
     "stripe": "^7.14.0",
     "typedoc": "^0.28.1",
     "typescript": "5.0.4"
@@ -192,7 +193,7 @@
     "alignDeps": {
       "requirements": {
         "development": [
-          "react-native@0.77"
+          "react-native@0.78"
         ],
         "production": [
           "react-native@*"
