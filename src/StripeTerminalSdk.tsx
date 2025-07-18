@@ -170,7 +170,12 @@ export interface StripeTerminalSdkType {
   cancelCollectData(): Promise<{
     error?: StripeError;
   }>;
-  print(contentUri: string): Promise<{
+  /**
+   * Prints the specified content to the connected reader's printer, if available.
+   * @param content The content to print. Must be an image (JPEG/PNG) encoded as a base64 string or 'data:' URI scheme.
+   * @returns A promise that resolves to an empty object if the print succeeds, or an object containing a `StripeError` if the print fails.
+   */
+  print(content: PrintContent): Promise<{
     error?: StripeError;
   }>;
   cancelReaderReconnection(): Promise<{
