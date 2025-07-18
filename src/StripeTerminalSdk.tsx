@@ -36,6 +36,7 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PrintContent,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;

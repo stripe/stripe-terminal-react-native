@@ -37,6 +37,7 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PrintContent,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';

@@ -656,3 +656,5 @@ export enum DarkMode {
   LIGHT = 'light',
   SYSTEM = 'system',
 }
+
+export type PrintContent = string;

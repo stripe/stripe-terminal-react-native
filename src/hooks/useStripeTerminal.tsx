@@ -28,6 +28,7 @@ import type {
   ConnectTapToPayParams,
   ConnectHandoffParams,
   ConnectInternetReaderParams,
+  PrintContent,
 } from '../types';
 import {
   discoverReaders,
@@ -1024,14 +1025,14 @@ export function useStripeTerminal(props?: Props) {
   }, [_isInitialized, setLoading]);
 
   const _print = useCallback(
-    async (contentUri: string) => {
+    async (content: PrintContent) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await print(contentUri);
+      const response = await print(content);
 
       setLoading(false);
 
