@@ -38,6 +38,7 @@ import ReaderSettingsScreen from './screens/ReaderSettingsScreen';
 import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import PaymentMethodSelectScreen from './screens/PaymentMethodSelectScreen';
+import PrintContentScreen from './screens/PrintContentScreen';
 import {
   type Reader,
   type Location,
@@ -107,6 +108,7 @@ export type RouteParamList = {
   CollectDataScreen: {};
   ReaderSettingsScreen: {};
   ReaderDisplayScreen: {};
+  PrintContentScreen: {};
   HomeScreen: {};
 };
 
@@ -333,6 +335,13 @@ export default function App() {
                 headerTitle: 'Collect Data',
               }}
               component={CollectDataScreen}
+            />
+            <Stack.Screen
+              name="PrintContentScreen"
+              options={{
+                headerTitle: 'Print Content',
+              }}
+              component={PrintContentScreen}
             />
             <Stack.Screen
               name="LogListScreen"

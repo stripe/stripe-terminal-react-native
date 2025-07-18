@@ -263,6 +263,12 @@ export default function HomeScreen() {
           navigation.navigate('CollectDataScreen', {});
         }}
       />
+      <ListItem
+        title="Print Content"
+        onPress={() => {
+          navigation.navigate('PrintContentScreen', {});
+        }}
+      />
       <List title="DATABASE">
         <ListItem
           title="Database"

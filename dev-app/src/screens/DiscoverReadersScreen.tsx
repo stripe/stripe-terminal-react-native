@@ -59,7 +59,7 @@ export default function DiscoverReadersScreen() {
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
-  const pickerRef = useRef<Picker<string>>();
+  const pickerRef = useRef<Picker<string>>(null);
   const {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,

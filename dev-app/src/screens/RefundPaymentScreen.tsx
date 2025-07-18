@@ -200,7 +200,7 @@ export default function RefundPaymentScreen() {
   };
 
   const [showPicker, setShowPicker] = useState(false);
-  const pickerRef = useRef<Picker<string>>();
+  const pickerRef = useRef<Picker<string>>(null);
   const REFUND_ID_TYPE = ['chargeId', 'paymentIntentId'];
   const [selectedRefundIdType, setSelectedRefundIdType] =
     useState<string>('chargeId');
