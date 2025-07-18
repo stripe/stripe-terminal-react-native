@@ -1718,11 +1718,11 @@ PODS:
   - SocketRocket (0.7.1)
   - stripe-terminal-react-native (0.0.1-beta.25):
     - React-Core
-    - StripeTerminal
+    - StripeTerminal (~> 4.5.0)
   - stripe-terminal-react-native/Tests (0.0.1-beta.25):
     - React-Core
-    - StripeTerminal
-  - StripeTerminal (4.7.0-pzhang-1752260968)
+    - StripeTerminal (~> 4.5.0)
+  - StripeTerminal (4.5.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1802,12 +1802,12 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - stripe-terminal-react-native (from `../..`)
   - stripe-terminal-react-native/Tests (from `../..`)
-  - StripeTerminal (from `../../../stripe-terminal-ios/build`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - SocketRocket
+    - StripeTerminal
 
 EXTERNAL SOURCES:
   boost:
@@ -1957,8 +1957,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   stripe-terminal-react-native:
     :path: "../.."
-  StripeTerminal:
-    :path: "../../../stripe-terminal-ios/build"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2036,10 +2034,10 @@ SPEC CHECKSUMS:
   RNGestureHandler: 66e593addd8952725107cfaa4f5e3378e946b541
   RNScreens: 0f01bbed9bd8045a8d58e4b46993c28c7f498f3c
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: 462c2b0acb74c346df72839b9024f05bb9f19752
-  StripeTerminal: 075c6cbe4d060cdc697ebaf387bf5ccc8a755d27
+  stripe-terminal-react-native: 1bd111e41444cc5c99fd8ae745cb49737bc20228
+  StripeTerminal: 29fc3756591e0ae42f7cd43619b4293cdcfa9374
   Yoga: 31a098f74c16780569aebd614a0f37a907de0189
 
-PODFILE CHECKSUM: a6c15f79dece5007aff9fe2951fca6ccdf0c4284
+PODFILE CHECKSUM: 7bb7fbbd263bda35e47b3f64ad5fbd6c589aa428
 
 COCOAPODS: 1.16.2

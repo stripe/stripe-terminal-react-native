@@ -108,6 +108,7 @@ export type RouteParamList = {
   CollectDataScreen: {};
   ReaderSettingsScreen: {};
   ReaderDisplayScreen: {};
+  PrintContentScreen: {};
   HomeScreen: {};
 };
 

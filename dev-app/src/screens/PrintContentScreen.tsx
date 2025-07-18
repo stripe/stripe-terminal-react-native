@@ -27,16 +27,18 @@ export default function PrintContentScreen() {
   const _printImageFromLibrary = async () => {
     const result = await launchImageLibrary({
       includeBase64: true,
-      mediaType: 'image',
+      mediaType: 'photo',
     });
-    if (result.assets) {
+    if (result.assets && result.assets[0].base64) {
       _print(result.assets[0].base64);
     }
   };
 
   const _printGeneratedTestImage = async () => {
-    const testImageUri = await canvasRef.current?.toDataURL();
-    _print(testImageUri.replace(/^"|"$/g, ''));
+    if (canvasRef.current) {
+      const testImageUri = await canvasRef.current.toDataURL();
+      _print(testImageUri.replace(/^"|"$/g, ''));
+    }
   };
 
   const _print = async (contentUri: string) => {
