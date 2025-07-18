@@ -36,6 +36,7 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PrintContent,
 } from './types';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -164,7 +165,7 @@ export interface StripeTerminalSdkType {
     error?: StripeError;
   }>;
   collectData(params: CollectDataParams): Promise<CollectDataResultType>;
-  print(contentUri: string): Promise<{
+  print(content: PrintContent): Promise<{
     error?: StripeError;
   }>;
   cancelReaderReconnection(): Promise<{

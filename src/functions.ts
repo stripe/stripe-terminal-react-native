@@ -37,6 +37,7 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PrintContent,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
@@ -880,12 +881,12 @@ export async function collectData(
   }, 'collectData')();
 }
 
-export async function print(contentUri: string): Promise<{
+export async function print(content: PrintContent): Promise<{
   error?: StripeError;
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const { error } = await StripeTerminalSdk.print(contentUri);
+      const { error } = await StripeTerminalSdk.print(content);
       if (error) {
         return {
           error,
