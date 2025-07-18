@@ -1802,12 +1802,12 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - stripe-terminal-react-native (from `../..`)
   - stripe-terminal-react-native/Tests (from `../..`)
-  - StripeTerminal (from `../../../stripe-terminal-ios/build`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - SocketRocket
+    - StripeTerminal
 
 EXTERNAL SOURCES:
   boost:
@@ -1957,8 +1957,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   stripe-terminal-react-native:
     :path: "../.."
-  StripeTerminal:
-    :path: "../../../stripe-terminal-ios/build"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2040,6 +2038,6 @@ SPEC CHECKSUMS:
   StripeTerminal: 542aee71cf148da0d30cf1a67bf19e8bf4e06567
   Yoga: 31a098f74c16780569aebd614a0f37a907de0189
 
-PODFILE CHECKSUM: a6c15f79dece5007aff9fe2951fca6ccdf0c4284
+PODFILE CHECKSUM: 7bb7fbbd263bda35e47b3f64ad5fbd6c589aa428
 
 COCOAPODS: 1.16.2

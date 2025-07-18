@@ -618,7 +618,7 @@ export default function CollectCardPaymentScreen() {
   };
 
   const [showPicker, setShowPicker] = useState(false);
-  const pickerRef = useRef<Picker<string>>();
+  const pickerRef = useRef<Picker<string>>(null);
   const DECLINE_CARD_BRAND = [
     'None',
     'visa',
