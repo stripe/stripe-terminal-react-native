@@ -47,7 +47,6 @@ enum class DeviceSerialName(val serialName: String) {
     VERIFONE_M450("verifoneM450"),
     VERIFONE_P630("verifoneP630"),
     VERIFONE_UX700("verifoneUX700"),
-    VERIFONE_V660P_DEVKIT("verifoneV660PDevkit"),
     VERIFONE_UX700_DEVKIT("verifoneUX700Devkit");
 
     companion object {
