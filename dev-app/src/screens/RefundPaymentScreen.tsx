@@ -180,7 +180,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Succeeded',
             description: 'terminal.confirmRefund',
-            metadata: _refundMetadata,
+            metadata: {..._refundMetadata, raw: JSON.stringify(refund)},
           },
         ],
       });
@@ -191,7 +191,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Pending or unsuccessful',
             description: 'terminal.confirmRefund',
-            metadata: _refundMetadata,
+            metadata: {..._refundMetadata, raw: JSON.stringify(refund)},
           },
         ],
       });
