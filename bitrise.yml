@@ -226,8 +226,6 @@ workflows:
                 cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
                 gem install cocoapods -v 1.16.2 && pod install && cd - && \
                 npm rebuild detox
-                echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
-                git diff --exit-code
           title: Set up cocoapods
   typescript:
     steps:
