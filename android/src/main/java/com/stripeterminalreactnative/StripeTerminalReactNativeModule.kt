@@ -933,7 +933,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             val refundApplicationFee = params.getBoolean("refundApplicationFee")
             val reverseTransfer = params.getBoolean("reverseTransfer")
-
+            val metadata = params.getMap("metadata")?.toHashMap()?.toMap() as? Map<String, String>
             val intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
                 RefundParameters.Builder(
                     RefundParameters.Id.PaymentIntent(paymentIntentId),
@@ -946,6 +946,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
             intentParamsBuild.setRefundApplicationFee(refundApplicationFee)
                 .setReverseTransfer(reverseTransfer)
+            if (metadata != null) {
+                intentParamsBuild.setMetadata(metadata)
+            }
             val intentParams = intentParamsBuild.build()
 
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")

@@ -35,6 +35,7 @@ export default function RefundPaymentScreen() {
     refundApplicationFee?: boolean;
     reverseTransfer?: boolean;
     enableCustomerCancellation?: boolean;
+    addMetadata: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
     paymentIntentId: lastSuccessfulPaymentIntentId || '',
@@ -43,6 +44,7 @@ export default function RefundPaymentScreen() {
     refundApplicationFee: false,
     reverseTransfer: false,
     enableCustomerCancellation: false,
+    addMetadata: false,
   });
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'RefundPaymentScreen'>>();
@@ -109,6 +111,10 @@ export default function RefundPaymentScreen() {
       chargeId: selectedRefundIdType === 'chargeId' ? inputValues.chargeId : '',
       paymentIntentId:
         selectedRefundIdType === 'chargeId' ? '' : inputValues.paymentIntentId,
+      metadata: inputValues.addMetadata ? {
+        "meta_key1" : "meta_value1",
+        "meta_key2" : "meta_value2",
+      } : undefined,
     });
 
     if (error) {
@@ -174,7 +180,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Succeeded',
             description: 'terminal.confirmRefund',
-            metadata: _refundMetadata,
+            metadata: {..._refundMetadata, raw: JSON.stringify(refund)},
           },
         ],
       });
@@ -185,7 +191,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Pending or unsuccessful',
             description: 'terminal.confirmRefund',
-            metadata: _refundMetadata,
+            metadata: {..._refundMetadata, raw: JSON.stringify(refund)},
           },
         ],
       });
@@ -352,6 +358,21 @@ export default function RefundPaymentScreen() {
         </List>
       )}
 
+      <List bolded={false} topSpacing={false} title="Metadata">
+        <ListItem
+          title="Add extra metadata"
+          rightElement={
+            <Switch
+              testID="add-metadata"
+              value={inputValues.addMetadata}
+              onValueChange={(value) => setInputValues((state) => ({
+                ...state,
+                addMetadata: value,
+              }))}
+            />
+          }
+        />
+      </List>
       <List
         bolded={false}
         topSpacing={false}

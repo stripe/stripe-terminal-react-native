@@ -298,6 +298,7 @@ export type RefundParams = {
   refundApplicationFee?: boolean;
   reverseTransfer?: boolean;
   enableCustomerCancellation?: boolean;
+  metadata?: Record<string, string>;
 };
 
 export type CardPresentDetails = {

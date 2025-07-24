@@ -1018,18 +1018,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
         let reverseTransfer = params["reverseTransfer"] as? NSNumber
         let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
-
+        let metadata = params["metadata"] as? [String : String]
+      
         let refundParams: RefundParameters
         do {
             if (!paymentIntentId!.isEmpty) {
                 refundParams = try RefundParametersBuilder(paymentIntentId: paymentIntentId!,amount: intAmount, currency: currency!)
                     .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
                     .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
+                    .setMetadata(metadata)
                     .build()
             } else {
                 refundParams = try RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
                     .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
                     .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
+                    .setMetadata(metadata)
                     .build()
             }
         } catch {
