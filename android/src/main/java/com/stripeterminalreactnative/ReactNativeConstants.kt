@@ -42,11 +42,11 @@ enum class DeviceSerialName(val serialName: String) {
     WISEPOS_E_DEVKIT("wisePosEDevkit"),
     TAP_TO_PAY_DEVICE("tapToPay"),
     VERIFONE_V660P("verifoneV660P"),
+    VERIFONE_V660P_DEVKIT("verifoneV660PDevkit"),
     VERIFONE_M425("verifoneM425"),
     VERIFONE_M450("verifoneM450"),
     VERIFONE_P630("verifoneP630"),
     VERIFONE_UX700("verifoneUX700"),
-    VERIFONE_V660P_DEVKIT("verifoneV660PDevkit"),
     VERIFONE_UX700_DEVKIT("verifoneUX700Devkit");
 
     companion object {
