@@ -36,7 +36,7 @@ RCT_EXTERN_METHOD(
                   rebootReader:(RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
-                  
+
 RCT_EXTERN_METHOD(
                   createPaymentIntent:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
@@ -177,6 +177,12 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   collectData:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  print:(NSString *)contentUri
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
