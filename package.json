@@ -71,6 +71,7 @@
     "@types/react": "^18.2.6",
     "@types/react-native": "0.63.18",
     "@types/react-test-renderer": "^18.0.0",
+    "@testing-library/react-native": "^12.4.0",
     "commitlint": "^11.0.0",
     "detox": "^20.32.0",
     "eslint": "^8.56.0",
@@ -184,9 +185,7 @@
     ]
   },
   "dependencies": {
-    "@testing-library/react-native": "^12.4.0",
-    "base-64": "^1.0.0",
-    "react-native-gradle-plugin": "^0.71.19"
+    "base-64": "^1.0.0"
   },
   "rnx-kit": {
     "kitType": "library",
