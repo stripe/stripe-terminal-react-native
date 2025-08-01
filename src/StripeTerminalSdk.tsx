@@ -145,8 +145,10 @@ export interface StripeTerminalSdkType {
   }>;
   setSimulatedOfflineMode(simulatedOffline: boolean): Promise<{
     error?: StripeError;
-    }>;
-  setSimulatedCollectInputsResult(simulatedCollectInputsBehavior: string): Promise<{
+  }>;
+  setSimulatedCollectInputsResult(
+    simulatedCollectInputsBehavior: string
+  ): Promise<{
     error?: StripeError;
   }>;
   getOfflineStatus(): Promise<OfflineStatus>;
@@ -164,6 +166,9 @@ export interface StripeTerminalSdkType {
     error?: StripeError;
   }>;
   collectData(params: CollectDataParams): Promise<CollectDataResultType>;
+  cancelCollectData(): Promise<{
+    error?: StripeError;
+  }>;
   cancelReaderReconnection(): Promise<{
     error?: StripeError;
   }>;
