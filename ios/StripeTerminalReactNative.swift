@@ -56,6 +56,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
     var cancelReaderConnectionCancellable: Cancelable? = nil
+    var collectDataCancellable: Cancelable? = nil
     var collectInputsCancellable: Cancelable? = nil
     var confirmPaymentIntentCancelable: Cancelable? = nil
     var confirmSetupIntentCancelable: Cancelable? = nil
@@ -1092,15 +1093,31 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        Terminal.shared.collectData(collectDataConfig) {
-            collectedData, error in
-                if let error = error as NSError? {
-                    resolve(Errors.createError(nsError: error))
-                } else if let collectedData {
-                    resolve(["collectedData": Mappers.mapFromCollectedData(collectedData)])
-                } else {
-                    resolve([:])
-                }
+        self.collectDataCancellable = Terminal.shared.collectData(collectDataConfig) { collectedData, error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            } else if let collectedData {
+                resolve(["collectedData": Mappers.mapFromCollectedData(collectedData)])
+            } else {
+                resolve([:])
+            }
+        }
+    }
+  
+    @objc(cancelCollectData:rejecter:)
+    func cancelCollectData(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = collectDataCancellable else {
+            resolve(Errors.createError(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectDataCancellable could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createError(nsError: error))
+            }
+            else {
+                resolve([:])
+            }
+            self.collectDataCancellable = nil
         }
     }
 
