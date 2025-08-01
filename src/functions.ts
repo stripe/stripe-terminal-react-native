@@ -880,6 +880,21 @@ export async function collectData(
   }, 'collectData')();
 }
 
+export async function cancelCollectData(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelCollectData();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelCollectData')();
+}
+
 export async function cancelReaderReconnection(): Promise<{
   error?: StripeError;
 }> {

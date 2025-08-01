@@ -985,6 +985,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
+    fun cancelCollectData(promise: Promise) {
+        cancelOperation(promise, collectDataCancelable, "Collect Data") {
+            collectDataCancelable = null
+        }
+    }
+
+    @ReactMethod
+    @Suppress("unused")
     fun clearCachedCredentials(promise: Promise) {
         terminal.clearCachedCredentials()
         paymentIntents.clear()

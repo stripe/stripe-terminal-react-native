@@ -3,6 +3,7 @@
 exports[`useStripeTerminal.test.tsx Public API snapshot ensure there are no unexpected changes to the hook exports 1`] = `
 {
   "current": {
+    "cancelCollectData": [Function],
     "cancelCollectInputs": [Function],
     "cancelCollectPaymentMethod": [Function],
     "cancelCollectRefundPaymentMethod": [Function],
