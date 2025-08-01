@@ -15,15 +15,20 @@ import type { NavigationProp } from '@react-navigation/native';
 import type { RouteParamList } from '../App';
 
 export default function CollectDataScreen() {
-  const { addLogs, clearLogs } = useContext(LogContext);
+  const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
 
-  const { collectData } = useStripeTerminal();
+  const { collectData, cancelCollectData } = useStripeTerminal();
 
   const _collectMagstripeData = async () => {
     clearLogs();
+    setCancel({
+      label: 'Cancel CollectData',
+      isDisabled: false,
+      action: cancelCollectData,
+    });
     navigation.navigate('LogListScreen', {});
 
     addLogs({
@@ -32,6 +37,7 @@ export default function CollectDataScreen() {
         {
           name: 'Collect Data',
           description: 'terminal.collectData',
+          onBack: cancelCollectData,
         },
       ],
     });
@@ -78,6 +84,11 @@ export default function CollectDataScreen() {
 
   const _collectNfcUid = async () => {
     clearLogs();
+    setCancel({
+      label: 'Cancel CollectData',
+      isDisabled: false,
+      action: cancelCollectData,
+    });
     navigation.navigate('LogListScreen', {});
 
     addLogs({
@@ -86,6 +97,7 @@ export default function CollectDataScreen() {
         {
           name: 'Collect Data',
           description: 'terminal.collectData',
+          onBack: cancelCollectData,
         },
       ],
     });
