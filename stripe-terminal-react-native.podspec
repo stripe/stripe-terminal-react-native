@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
   end
 
   s.dependency 'React-Core'
-  s.dependency 'StripeTerminal', '~> 4.5.0'
+  s.dependency 'StripeTerminal', '~> 4.6.0'
 end
