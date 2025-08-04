@@ -239,8 +239,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val validBehavior = setOf("all", "none", "timeout")
         if (simulatedCollectInputsBehavior !in validBehavior) {
             promise.reject(
-                code = "Failed",
-                message = "The simulatedCollectInputsBehavior must be \"all\", \"none\", or \"timeout\"."
+                "Failed",
+                "The simulatedCollectInputsBehavior must be \"all\", \"none\", or \"timeout\"."
             )
         }
 
