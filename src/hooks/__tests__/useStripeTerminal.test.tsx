@@ -146,6 +146,10 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .spyOn(functions, 'setSimulatedCard')
     .mockImplementation(setSimulatedCard);
 
+  //
+  const print = jest.fn(() => returnWith);
+  jest.spyOn(functions, 'print').mockImplementation(print);
+
   return {
     discoverReaders,
     cancelDiscovering,
@@ -174,6 +178,7 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent,
     setSimulatedCard,
+    print,
   };
 }
 
@@ -300,6 +305,7 @@ describe('useStripeTerminal.test.tsx', () => {
           result.current.setSimulatedCard('');
           result.current.installAvailableUpdate();
           result.current.setReaderDisplay({} as any);
+          result.current.print({} as any);
           result.current.confirmRefund();
           result.current.cancelCollectSetupIntent();
         } catch (error) {
@@ -348,6 +354,7 @@ describe('useStripeTerminal.test.tsx', () => {
         await result.current.setSimulatedCard('');
         await result.current.installAvailableUpdate();
         await result.current.setReaderDisplay({} as any);
+        await result.current.print({} as any);
         await result.current.confirmRefund();
         await result.current.cancelCollectSetupIntent();
       } catch (error) {
@@ -449,6 +456,7 @@ describe('useStripeTerminal.test.tsx', () => {
       await expect(result.current.setReaderDisplay({} as any)).resolves.toEqual(
         '_value'
       );
+      await expect(result.current.print({} as any)).resolves.toEqual('_value');
       await expect(result.current.confirmRefund()).resolves.toEqual('_value');
       await expect(result.current.cancelCollectSetupIntent()).resolves.toEqual(
         '_value'
