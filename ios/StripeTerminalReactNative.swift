@@ -723,7 +723,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
       
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
         if let amountSurchargeValue = amountSurcharge {
-          confirmConfigBuilder.setAmountSurcharge(UInt(truncating: amountSurchargeValue))
+          do {
+            let surchargeConfig = try SurchargeConfigurationBuilder().setAmount(UInt(truncating: amountSurchargeValue)).build()
+            confirmConfigBuilder.setSurchargeConfiguration(surchargeConfig)
+          } catch {
+            resolve(Errors.createError(nsError: error as NSError))
+            return
+          }
         }
 
         if let returnUrlValue = returnUrl {
