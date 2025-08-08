@@ -1075,6 +1075,42 @@ class Mappers {
         default: return .unknown
         }
     }
+  
+
+    class func mapToSurchargeConfiguration(from dict: [String: Any]?) throws -> SurchargeConfiguration? {
+        guard let dict = dict else { return nil }
+        guard let amount = dict["amount"] as? Int else {
+            return nil
+        }
+        
+        let surchargeConfigBuilder = SurchargeConfigurationBuilder()
+        surchargeConfigBuilder.setAmount(UInt(amount))
+        
+        let consentBuilder = SurchargeConsentBuilder()
+        if let consentDict = dict["consent"] as? [String: Any] {
+            if let collectionString = consentDict["collection"] as? String {
+                let collection: SurchargeConsentCollection
+                switch collectionString {
+                    case "enabled":
+                        collection = .enabled
+                    case "disabled":
+                        collection = .disabled
+                    default:
+                        collection = .disabled
+                }
+                consentBuilder.setCollection(collection)
+            } else {
+                consentBuilder.setCollection(.disabled)
+            }
+            
+            if let notice = consentDict["notice"] as? String {
+                consentBuilder.setNotice(notice)
+            }
+        }
+        surchargeConfigBuilder.setSurchargeConsent(try consentBuilder.build())
+        
+      return try surchargeConfigBuilder.build()
+    }
 }
 
 extension UInt {

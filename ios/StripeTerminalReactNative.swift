@@ -719,20 +719,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
         
-        let amountSurcharge = params["amountSurcharge"] as? NSNumber
-        let returnUrl = params["returnUrl"] as? String
-      
         let confirmConfigBuilder = ConfirmConfigurationBuilder()
-        if let amountSurchargeValue = amountSurcharge {
-          do {
-            let surchargeConfig = try SurchargeConfigurationBuilder().setAmount(UInt(truncating: amountSurchargeValue)).build()
-            confirmConfigBuilder.setSurchargeConfiguration(surchargeConfig)
-          } catch {
-            resolve(Errors.createError(nsError: error as NSError))
-            return
-          }
+        if let surchargeDict = params["surcharge"] as? [String: Any] {
+            do {
+              if let surchargeConfiguration = try Mappers.mapToSurchargeConfiguration(from: surchargeDict) {
+                confirmConfigBuilder.setSurchargeConfiguration(surchargeConfiguration)
+              }
+            } catch let error as NSError {
+              resolve(Errors.createError(nsError: error))
+              return
+            }
         }
 
+        let returnUrl = params["returnUrl"] as? String
         if let returnUrlValue = returnUrl {
             confirmConfigBuilder.setReturnUrl(returnUrlValue)
         }
