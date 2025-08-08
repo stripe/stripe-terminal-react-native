@@ -708,11 +708,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
         val configBuilder = ConfirmConfiguration.Builder()
 
-        if (params.hasKey("amountSurcharge")) {
-            val amountSurcharge = params.getLongSafely("amountSurcharge") ?: 0L
-            val surchargeConfiguration = SurchargeConfiguration.Builder(amountSurcharge).build()
-            configBuilder.setSurcharge(surchargeConfiguration)
+        val surchargeConfiguration = params.getMap("surcharge")?.let {
+            mapToSurchargeConfiguration(it)
         }
+        configBuilder.setSurcharge(surchargeConfiguration)
 
         if (params.hasKey("returnUrl")) {
             val returnUrl = params.getString("returnUrl")
