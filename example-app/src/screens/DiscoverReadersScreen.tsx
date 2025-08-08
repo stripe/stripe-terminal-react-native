@@ -17,7 +17,7 @@ import {
 import type { NavigationAction } from '@react-navigation/routers';
 import type { StripeError } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import { useNavigation, useRoute, RouteProp, type NavigationProp } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
@@ -33,8 +33,8 @@ const SIMULATED_UPDATE_PLANS = [
 ];
 
 export default function DiscoverReadersScreen() {
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReaders'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);

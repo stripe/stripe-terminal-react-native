@@ -2,9 +2,10 @@ import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
-  HeaderBackButton,
   TransitionPresets,
+  type StackNavigationOptions
 } from '@react-navigation/stack';
+import {HeaderBackButton} from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
@@ -31,41 +32,54 @@ import { Alert, LogBox } from 'react-native';
 import DatabaseScreen from './screens/DatabaseScreen';
 
 export type RouteParamList = {
-  UpdateReader: {
-    update: Reader.SoftwareUpdate;
-    reader: Reader.Type;
+  UpdateReaderScreen: {
+    update: Reader.SoftwareUpdate | null;
+    reader: Reader.Type | null | undefined;
     onDidUpdate: () => void;
   };
-  LocationList: {
+  LocationListScreen: {
     onSelect: (location: Location) => void;
   };
-  DiscoveryMethod: {
+  DiscoveryMethodScreen: {
     onChange: (method: Reader.DiscoveryMethod) => void;
   };
-  SetupIntent: {
+  SetupIntentScreen: {
     discoveryMethod: Reader.DiscoveryMethod;
   };
-  DiscoverReaders: {
+  DiscoverReadersScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
   };
-  CollectCardPayment: {
+  CollectCardPaymentScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
   };
-  RefundPayment: {
+  RefundPaymentScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
   };
-  Log: {
+  LogScreen: {
     event: Event;
     log: Log;
   };
+  
   PaymentMethodSelect: {
     paymentMethodTypes: string[];
     enabledPaymentMethodTypes: string[];
     onChange: (paymentMethodTypes: string[]) => void;
   };
+  PaymentMethodSelectScreen: {
+    paymentMethodTypes: string[];
+    enabledPaymentMethodTypes: string[];
+    onChange: (paymentMethodTypes: string[]) => void;
+  };
+  LogListScreen: {};
+  DatabaseScreen: {};
+  RegisterInternetReaderScreen: {};
+  CollectDataScreen: {};
+  ReaderSettingsScreen: {};
+  ReaderDisplayScreen: {};
+  HomeScreen: {};
 };
 
 LogBox.ignoreLogs([
@@ -81,7 +95,8 @@ LogBox.ignoreLogs([
 
 const Stack = createStackNavigator();
 
-const screenOptions = {
+const screenOptions: StackNavigationOptions = {
+  presentation: 'modal',
   headerTintColor: colors.white,
   headerStyle: {
     shadowOpacity: 0,
@@ -96,7 +111,6 @@ const screenOptions = {
     color: colors.white,
   },
   cardOverlayEnabled: true,
-  gesturesEnabled: true,
   ...Platform.select({
     ios: {
       ...TransitionPresets.ModalPresentationIOS,
@@ -193,7 +207,7 @@ export default function App() {
         />
 
         <NavigationContainer>
-          <Stack.Navigator screenOptions={screenOptions} mode="modal">
+          <Stack.Navigator screenOptions={screenOptions}>
             <Stack.Screen name="Terminal" component={HomeScreen} />
             <Stack.Screen
               name="DatabaseScreen"

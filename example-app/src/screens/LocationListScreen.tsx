@@ -18,7 +18,7 @@ import type { RouteParamList } from '../App';
 
 export default function LocationListScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'LocationList'>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'LocationListScreen'>>();
 
   const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>([]);
