@@ -51,6 +51,9 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
   },
   "SetupIntent": undefined,
   "StripeTerminalProvider": [Function],
+  "StripeTerminalSdk": {
+    "getConstants": [Function],
+  },
   "TapZoneIndicator": {
     "ABOVE": "above",
     "BEHIND": "behind",
