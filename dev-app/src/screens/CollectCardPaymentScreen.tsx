@@ -999,7 +999,7 @@ export default function CollectCardPaymentScreen() {
             placeholder="Surcharge Amount"
           />
           <ListItem
-            title="Enable Surcharge Consent Configuration   "
+            title="Enable Surcharge Consent Configuration"
             rightElement={
               <Switch
                 testID="toggle-surcharge-consent"
@@ -1017,6 +1017,25 @@ export default function CollectCardPaymentScreen() {
           />
           {surcharge.consent !== null ? (
             <View>
+              <ListItem
+                title="Enable Collecting User Consent"
+                rightElement={
+                  <Switch
+                    testID="enable-collecting-user-consent"
+                    value={surcharge.consent.collection === 'enabled'}
+                    onValueChange={(value) =>
+                      setSurcharge((prev) => ({
+                        ...prev,
+                        consent: {
+                          ...prev.consent!,
+                          collection: value ? 'enabled' : 'disabled',
+                        },
+                      }))
+                    }
+                  />
+                }
+              />
+
               <TextInput
                 testID="Surcharge Consent Notice"
                 style={styles.input}
@@ -1031,25 +1050,6 @@ export default function CollectCardPaymentScreen() {
                   }))
                 }
                 placeholder="Surcharge Consent Notice"
-              />
-
-              <ListItem
-                title="Enable Surcharge Consent Collection"
-                rightElement={
-                  <Switch
-                    testID="enable-surcharge-consent-collection"
-                    value={surcharge.consent.collection === 'enabled'}
-                    onValueChange={(value) =>
-                      setSurcharge((prev) => ({
-                        ...prev,
-                        consent: {
-                          ...prev.consent!,
-                          collection: value ? 'enabled' : 'disabled',
-                        },
-                      }))
-                    }
-                  />
-                }
               />
             </View>
           ) : (
