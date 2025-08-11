@@ -1,4 +1,9 @@
-import { useNavigation, useRoute, type RouteProp, type NavigationProp } from '@react-navigation/core';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+  type NavigationProp,
+} from '@react-navigation/core';
 import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -55,7 +60,7 @@ const CAPTURE_METHODS = [
 ];
 
 const CARD_PRESENT_CAPTURE_METHODS = [
-  { value: undefined, label: 'default'},
+  { value: undefined, label: 'default' },
   { value: 'manual', label: 'manual' },
   { value: 'manual_preferred', label: 'manual_preferred' },
 ];
@@ -357,7 +362,10 @@ export default function CollectCardPaymentScreen() {
           name: 'Created',
           description: 'terminal.createPaymentIntent',
           onBack: cancelCollectPaymentMethod,
-          metadata: { paymentIntentId: paymentIntent.id, paymentIntent: JSON.stringify(paymentIntent, null, 2) },
+          metadata: {
+            paymentIntentId: paymentIntent.id,
+            paymentIntent: JSON.stringify(paymentIntent, null, 2),
+          },
         },
       ],
     });
@@ -428,6 +436,9 @@ export default function CollectCardPaymentScreen() {
             ],
           });
           if (recollectAfterCardBrandDecline) {
+            if (Platform.OS === 'android') {
+              await cancelCollectPaymentMethod();
+            }
             await _collectPaymentMethod(pi);
             return;
           } else {
@@ -479,7 +490,10 @@ export default function CollectCardPaymentScreen() {
           name: 'Process',
           onBack: cancelConfirmPaymentIntent,
           description: 'terminal.confirmPaymentIntent',
-          metadata: { paymentIntentId: collectedPaymentIntent.id, amountSurcharge: JSON.stringify(amountSurcharge, undefined, 2) },
+          metadata: {
+            paymentIntentId: collectedPaymentIntent.id,
+            amountSurcharge: JSON.stringify(amountSurcharge, undefined, 2),
+          },
         },
       ],
     });
@@ -677,14 +691,21 @@ export default function CollectCardPaymentScreen() {
           </Picker>
         </List>
 
-        <List bolded={false} topSpacing={false} title="CARD PRESENT CAPTURE METHOD">
+        <List
+          bolded={false}
+          topSpacing={false}
+          title="CARD PRESENT CAPTURE METHOD"
+        >
           <Picker
             selectedValue={inputValues?.cardPresentCaptureMethod}
             style={styles.picker}
             itemStyle={styles.pickerItem}
             testID="select-card-present-capture-method-picker"
             onValueChange={(value) =>
-              setInputValues((state) => ({ ...state, cardPresentCaptureMethod: value }))
+              setInputValues((state) => ({
+                ...state,
+                cardPresentCaptureMethod: value,
+              }))
             }
           >
             {CARD_PRESENT_CAPTURE_METHODS.map((a) => (
@@ -737,15 +758,15 @@ export default function CollectCardPaymentScreen() {
             testID="payment-method-button"
             onPress={() =>
               navigation.navigate('PaymentMethodSelectScreen', {
-                              paymentMethodTypes: paymentMethodTypes,
-                              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
-                              onChange: (newPaymentMethodTypes: string[]) => {
-                                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
-                                setEnableInterac(
-                                  newPaymentMethodTypes.includes('interac_present')
-                                );
-                              },
-                            })
+                paymentMethodTypes: paymentMethodTypes,
+                enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+                onChange: (newPaymentMethodTypes: string[]) => {
+                  setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                  setEnableInterac(
+                    newPaymentMethodTypes.includes('interac_present')
+                  );
+                },
+              })
             }
           />
         </List>
@@ -926,7 +947,10 @@ export default function CollectCardPaymentScreen() {
             itemStyle={styles.pickerItem}
             testID="select-partial-auth-picker"
             onValueChange={(value) =>
-              setInputValues((state) => ({ ...state, requestPartialAuthorization: value }))
+              setInputValues((state) => ({
+                ...state,
+                requestPartialAuthorization: value,
+              }))
             }
           >
             {PARTIAL_AUTH.map((a) => (
@@ -1149,7 +1173,7 @@ export default function CollectCardPaymentScreen() {
           }`}
         >
           <ListItem
-            testID='collect-payment-button'
+            testID="collect-payment-button"
             color={colors.blue}
             title="Collect payment"
             onPress={_createPaymentIntent}
