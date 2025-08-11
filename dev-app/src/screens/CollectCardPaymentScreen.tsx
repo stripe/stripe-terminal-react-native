@@ -1,4 +1,9 @@
-import { useNavigation, useRoute, type RouteProp, type NavigationProp } from '@react-navigation/core';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+  type NavigationProp,
+} from '@react-navigation/core';
 import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -55,7 +60,7 @@ const CAPTURE_METHODS = [
 ];
 
 const CARD_PRESENT_CAPTURE_METHODS = [
-  { value: undefined, label: 'default'},
+  { value: undefined, label: 'default' },
   { value: 'manual', label: 'manual' },
   { value: 'manual_preferred', label: 'manual_preferred' },
 ];
