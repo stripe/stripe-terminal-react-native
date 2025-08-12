@@ -1090,7 +1090,7 @@ class Mappers {
         if let consentDict = dict["consent"] as? [String: Any] {
             if let collectionString = consentDict["collection"] as? String {
                 let collection: SurchargeConsentCollection
-              switch collectionString.lowercased() {
+                switch collectionString.lowercased() {
                     case "enabled":
                         collection = .enabled
                     case "disabled":
