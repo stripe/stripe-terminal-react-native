@@ -1084,7 +1084,7 @@ class Mappers {
         }
         
         let surchargeConfigBuilder = SurchargeConfigurationBuilder()
-        surchargeConfigBuilder.setAmount(UInt(amount))
+        surchargeConfigBuilder.setAmount(amount)
         
         let consentBuilder = SurchargeConsentBuilder()
         if let consentDict = dict["consent"] as? [String: Any] {
