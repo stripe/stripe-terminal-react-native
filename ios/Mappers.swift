@@ -1079,7 +1079,7 @@ class Mappers {
 
     class func mapToSurchargeConfiguration(from dict: [String: Any]?) throws -> SurchargeConfiguration? {
         guard let dict = dict else { return nil }
-        guard let amount = dict["amount"] as? Int else {
+        guard let amount = dict["amount"] as? UInt else {
             return nil
         }
         
@@ -1090,7 +1090,7 @@ class Mappers {
         if let consentDict = dict["consent"] as? [String: Any] {
             if let collectionString = consentDict["collection"] as? String {
                 let collection: SurchargeConsentCollection
-                switch collectionString {
+              switch collectionString.lowercased() {
                     case "enabled":
                         collection = .enabled
                     case "disabled":
