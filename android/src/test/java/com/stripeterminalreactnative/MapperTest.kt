@@ -149,7 +149,6 @@ class MapperTest {
     }
 }
 
-
 private fun <T> matchesMap(map: Map<String, T>, reference: Map<String, T>?): Boolean {
     return map.all { (k, v) -> reference?.get(k) == v } && map.size == reference?.size
 }
