@@ -436,9 +436,7 @@ export default function CollectCardPaymentScreen() {
             ],
           });
           if (recollectAfterCardBrandDecline) {
-            if (Platform.OS === 'android') {
-              await cancelCollectPaymentMethod();
-            }
+            await cancelCollectPaymentMethod();
             await _collectPaymentMethod(pi);
             return;
           } else {
