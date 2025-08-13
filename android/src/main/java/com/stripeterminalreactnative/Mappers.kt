@@ -6,11 +6,13 @@ import android.graphics.Color
 import java.util.Base64
 import com.facebook.react.bridge.*
 import com.stripe.stripeterminal.external.OfflineMode
+import com.stripe.stripeterminal.external.Surcharging
 import com.stripe.stripeterminal.external.models.*
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
 import com.stripe.stripeterminal.log.LogLevel
+import com.stripe.stripeterminal.external.models.SurchargeConsentCollection as NativeSurchargeConsentCollection
 
 internal fun getInt(map: ReadableMap, key: String): Int? =
     if (map.hasKey(key)) map.getInt(key) else null
