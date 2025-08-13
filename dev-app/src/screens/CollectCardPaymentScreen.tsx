@@ -134,7 +134,16 @@ export default function CollectCardPaymentScreen() {
   const [requestDcc, setRequestDcc] = useState(false);
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
-  const [amountSurcharge, setAmountSurcharge] = useState('');
+  const [surcharge, setSurcharge] = useState<{
+    amount: string;
+    consent: {
+      notice: string;
+      collection: 'disabled' | 'enabled';
+    } | null;
+  }>({
+    amount: '',
+    consent: null,
+  });
   const [returnUrl, setReturnUrl] = useState('');
   const paymentMethodTypes = PAYMENT_METHOD_TYPES;
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
@@ -490,7 +499,7 @@ export default function CollectCardPaymentScreen() {
           description: 'terminal.confirmPaymentIntent',
           metadata: {
             paymentIntentId: collectedPaymentIntent.id,
-            amountSurcharge: JSON.stringify(amountSurcharge, undefined, 2),
+            surcharge: JSON.stringify(surcharge, undefined, 2),
           },
         },
       ],
@@ -498,7 +507,19 @@ export default function CollectCardPaymentScreen() {
 
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
-      amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
+      surcharge: surcharge.amount
+        ? {
+            amount: Number(surcharge.amount),
+            consent:
+              surcharge?.consent?.notice ||
+              surcharge?.consent?.collection != null
+                ? {
+                    notice: surcharge.consent.notice || '',
+                    collection: surcharge.consent.collection ?? 'disabled',
+                  }
+                : null,
+          }
+        : undefined,
       returnUrl: returnUrl.trim() ? returnUrl : undefined,
     });
 
@@ -972,15 +993,74 @@ export default function CollectCardPaymentScreen() {
           />
         </List>
 
-        <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
+        <List bolded={false} topSpacing={false} title="SURCHARGE CONFIGURATION">
           <TextInput
-            testID="Amount Surcharge"
+            testID="Surcharge Amount"
             keyboardType="numeric"
             style={styles.input}
-            value={amountSurcharge}
-            onChangeText={(value: string) => setAmountSurcharge(value)}
-            placeholder="Amount Surcharge"
+            value={surcharge.amount}
+            onChangeText={(value: string) =>
+              setSurcharge((prev) => ({ ...prev, amount: value }))
+            }
+            placeholder="Surcharge Amount"
           />
+          <ListItem
+            title="Enable Surcharge Consent Configuration"
+            rightElement={
+              <Switch
+                testID="toggle-surcharge-consent"
+                value={surcharge.consent !== null}
+                onValueChange={(enabled) =>
+                  setSurcharge((prev) => ({
+                    ...prev,
+                    consent: enabled
+                      ? { notice: '', collection: 'disabled' }
+                      : null,
+                  }))
+                }
+              />
+            }
+          />
+          {surcharge.consent !== null ? (
+            <View>
+              <ListItem
+                title="Enable Collecting User Consent"
+                rightElement={
+                  <Switch
+                    testID="enable-collecting-user-consent"
+                    value={surcharge.consent.collection === 'enabled'}
+                    onValueChange={(value) =>
+                      setSurcharge((prev) => ({
+                        ...prev,
+                        consent: {
+                          ...prev.consent!,
+                          collection: value ? 'enabled' : 'disabled',
+                        },
+                      }))
+                    }
+                  />
+                }
+              />
+
+              <TextInput
+                testID="Surcharge Consent Notice"
+                style={styles.input}
+                value={surcharge.consent.notice}
+                onChangeText={(value) =>
+                  setSurcharge((prev) => ({
+                    ...prev,
+                    consent: {
+                      ...prev.consent!,
+                      notice: value || '',
+                    },
+                  }))
+                }
+                placeholder="Surcharge Consent Notice"
+              />
+            </View>
+          ) : (
+            <View />
+          )}
         </List>
 
         <List bolded={false} topSpacing={false} title="RETURN URL">
