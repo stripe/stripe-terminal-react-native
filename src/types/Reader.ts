@@ -100,6 +100,7 @@ export namespace Reader {
     | 'wiseCube'
     | 'wisePad3'
     | 'wisePosE'
+    | 'wisePosEDevkit'
     | 'wisePad3s'
     | 'wisePadEDevkit'
     | 'stripeS700Devkit'
