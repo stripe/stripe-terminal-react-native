@@ -1,4 +1,9 @@
-import { useNavigation, useRoute, type RouteProp, type NavigationProp } from '@react-navigation/core';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+  type NavigationProp,
+} from '@react-navigation/core';
 import React, { useState, useContext, useRef } from 'react';
 import { Picker } from '@react-native-picker/picker';
 import {
@@ -55,7 +60,7 @@ const CAPTURE_METHODS = [
 ];
 
 const CARD_PRESENT_CAPTURE_METHODS = [
-  { value: undefined, label: 'default'},
+  { value: undefined, label: 'default' },
   { value: 'manual', label: 'manual' },
   { value: 'manual_preferred', label: 'manual_preferred' },
 ];
@@ -129,7 +134,16 @@ export default function CollectCardPaymentScreen() {
   const [requestDcc, setRequestDcc] = useState(false);
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
-  const [amountSurcharge, setAmountSurcharge] = useState('');
+  const [surcharge, setSurcharge] = useState<{
+    amount: string;
+    consent: {
+      notice: string;
+      collection: 'disabled' | 'enabled';
+    } | null;
+  }>({
+    amount: '',
+    consent: null,
+  });
   const [returnUrl, setReturnUrl] = useState('');
   const paymentMethodTypes = PAYMENT_METHOD_TYPES;
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
@@ -357,7 +371,10 @@ export default function CollectCardPaymentScreen() {
           name: 'Created',
           description: 'terminal.createPaymentIntent',
           onBack: cancelCollectPaymentMethod,
-          metadata: { paymentIntentId: paymentIntent.id, paymentIntent: JSON.stringify(paymentIntent, null, 2) },
+          metadata: {
+            paymentIntentId: paymentIntent.id,
+            paymentIntent: JSON.stringify(paymentIntent, null, 2),
+          },
         },
       ],
     });
@@ -479,14 +496,29 @@ export default function CollectCardPaymentScreen() {
           name: 'Process',
           onBack: cancelConfirmPaymentIntent,
           description: 'terminal.confirmPaymentIntent',
-          metadata: { paymentIntentId: collectedPaymentIntent.id, amountSurcharge: JSON.stringify(amountSurcharge, undefined, 2) },
+          metadata: {
+            paymentIntentId: collectedPaymentIntent.id,
+            surcharge: JSON.stringify(surcharge, undefined, 2),
+          },
         },
       ],
     });
 
     const { paymentIntent, error } = await confirmPaymentIntent({
       paymentIntent: collectedPaymentIntent,
-      amountSurcharge: amountSurcharge ? Number(amountSurcharge) : undefined,
+      surcharge: surcharge.amount
+        ? {
+            amount: Number(surcharge.amount),
+            consent:
+              surcharge?.consent?.notice ||
+              surcharge?.consent?.collection != null
+                ? {
+                    notice: surcharge.consent.notice || '',
+                    collection: surcharge.consent.collection ?? 'disabled',
+                  }
+                : null,
+          }
+        : undefined,
       returnUrl: returnUrl.trim() ? returnUrl : undefined,
     });
 
@@ -677,14 +709,21 @@ export default function CollectCardPaymentScreen() {
           </Picker>
         </List>
 
-        <List bolded={false} topSpacing={false} title="CARD PRESENT CAPTURE METHOD">
+        <List
+          bolded={false}
+          topSpacing={false}
+          title="CARD PRESENT CAPTURE METHOD"
+        >
           <Picker
             selectedValue={inputValues?.cardPresentCaptureMethod}
             style={styles.picker}
             itemStyle={styles.pickerItem}
             testID="select-card-present-capture-method-picker"
             onValueChange={(value) =>
-              setInputValues((state) => ({ ...state, cardPresentCaptureMethod: value }))
+              setInputValues((state) => ({
+                ...state,
+                cardPresentCaptureMethod: value,
+              }))
             }
           >
             {CARD_PRESENT_CAPTURE_METHODS.map((a) => (
@@ -737,15 +776,15 @@ export default function CollectCardPaymentScreen() {
             testID="payment-method-button"
             onPress={() =>
               navigation.navigate('PaymentMethodSelectScreen', {
-                              paymentMethodTypes: paymentMethodTypes,
-                              enabledPaymentMethodTypes: enabledPaymentMethodTypes,
-                              onChange: (newPaymentMethodTypes: string[]) => {
-                                setEnabledPaymentMethodTypes(newPaymentMethodTypes);
-                                setEnableInterac(
-                                  newPaymentMethodTypes.includes('interac_present')
-                                );
-                              },
-                            })
+                paymentMethodTypes: paymentMethodTypes,
+                enabledPaymentMethodTypes: enabledPaymentMethodTypes,
+                onChange: (newPaymentMethodTypes: string[]) => {
+                  setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                  setEnableInterac(
+                    newPaymentMethodTypes.includes('interac_present')
+                  );
+                },
+              })
             }
           />
         </List>
@@ -926,7 +965,10 @@ export default function CollectCardPaymentScreen() {
             itemStyle={styles.pickerItem}
             testID="select-partial-auth-picker"
             onValueChange={(value) =>
-              setInputValues((state) => ({ ...state, requestPartialAuthorization: value }))
+              setInputValues((state) => ({
+                ...state,
+                requestPartialAuthorization: value,
+              }))
             }
           >
             {PARTIAL_AUTH.map((a) => (
@@ -950,15 +992,74 @@ export default function CollectCardPaymentScreen() {
           />
         </List>
 
-        <List bolded={false} topSpacing={false} title="AMOUNT SURCHARGE">
+        <List bolded={false} topSpacing={false} title="SURCHARGE CONFIGURATION">
           <TextInput
-            testID="Amount Surcharge"
+            testID="Surcharge Amount"
             keyboardType="numeric"
             style={styles.input}
-            value={amountSurcharge}
-            onChangeText={(value: string) => setAmountSurcharge(value)}
-            placeholder="Amount Surcharge"
+            value={surcharge.amount}
+            onChangeText={(value: string) =>
+              setSurcharge((prev) => ({ ...prev, amount: value }))
+            }
+            placeholder="Surcharge Amount"
           />
+          <ListItem
+            title="Enable Surcharge Consent Configuration"
+            rightElement={
+              <Switch
+                testID="toggle-surcharge-consent"
+                value={surcharge.consent !== null}
+                onValueChange={(enabled) =>
+                  setSurcharge((prev) => ({
+                    ...prev,
+                    consent: enabled
+                      ? { notice: '', collection: 'disabled' }
+                      : null,
+                  }))
+                }
+              />
+            }
+          />
+          {surcharge.consent !== null ? (
+            <View>
+              <ListItem
+                title="Enable Collecting User Consent"
+                rightElement={
+                  <Switch
+                    testID="enable-collecting-user-consent"
+                    value={surcharge.consent.collection === 'enabled'}
+                    onValueChange={(value) =>
+                      setSurcharge((prev) => ({
+                        ...prev,
+                        consent: {
+                          ...prev.consent!,
+                          collection: value ? 'enabled' : 'disabled',
+                        },
+                      }))
+                    }
+                  />
+                }
+              />
+
+              <TextInput
+                testID="Surcharge Consent Notice"
+                style={styles.input}
+                value={surcharge.consent.notice}
+                onChangeText={(value) =>
+                  setSurcharge((prev) => ({
+                    ...prev,
+                    consent: {
+                      ...prev.consent!,
+                      notice: value || '',
+                    },
+                  }))
+                }
+                placeholder="Surcharge Consent Notice"
+              />
+            </View>
+          ) : (
+            <View />
+          )}
         </List>
 
         <List bolded={false} topSpacing={false} title="RETURN URL">
@@ -1149,7 +1250,7 @@ export default function CollectCardPaymentScreen() {
           }`}
         >
           <ListItem
-            testID='collect-payment-button'
+            testID="collect-payment-button"
             color={colors.blue}
             title="Collect payment"
             onPress={_createPaymentIntent}
