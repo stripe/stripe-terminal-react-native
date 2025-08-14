@@ -445,6 +445,7 @@ export default function CollectCardPaymentScreen() {
             ],
           });
           if (recollectAfterCardBrandDecline) {
+            await cancelCollectPaymentMethod();
             await _collectPaymentMethod(pi);
             return;
           } else {
