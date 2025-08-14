@@ -19,7 +19,10 @@ import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import type { NavigationAction, NavigationProp } from '@react-navigation/native';
+import type {
+  NavigationAction,
+  NavigationProp,
+} from '@react-navigation/native';
 import type { RouteParamList } from '../App';
 
 type InputValuesType = {

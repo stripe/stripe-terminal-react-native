@@ -36,7 +36,8 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] = useState<boolean>(false);
+  const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] =
+    useState<boolean>(false);
   const [showReconnectingAlert, setShowReconnectingAlert] =
     useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] = useState<{
@@ -194,7 +195,7 @@ export default function HomeScreen() {
 
       <List title="COMMON WORKFLOWS">
         <ListItem
-          testID='collect-payment-method-button'
+          testID="collect-payment-method-button"
           title="Collect card payment"
           onPress={() => {
             navigation.navigate('CollectCardPaymentScreen', {
@@ -231,14 +232,17 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
-          testID='setup-intent-button'
+          testID="setup-intent-button"
           title="Store card via Setup Intents"
           onPress={() => {
-            navigation.navigate('SetupIntentScreen', { discoveryMethod, deviceType: deviceType, });
+            navigation.navigate('SetupIntentScreen', {
+              discoveryMethod,
+              deviceType: deviceType,
+            });
           }}
         />
         <ListItem
-          testID='in-person-refund-button'
+          testID="in-person-refund-button"
           title="In-Person Refund"
           onPress={() => {
             navigation.navigate('RefundPaymentScreen', {
@@ -356,7 +360,7 @@ export default function HomeScreen() {
                 }}
               />
               <ListItem
-                testID='discover-readers-button'
+                testID="discover-readers-button"
                 title="Discover Readers"
                 color={colors.blue}
                 disabled={!account}
@@ -366,7 +370,9 @@ export default function HomeScreen() {
                     simulated,
                     discoveryMethod,
                     discoveryTimeout: timeout,
-                    setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => {
+                    setPendingUpdateInfo: (
+                      update: Reader.SoftwareUpdate | null
+                    ) => {
                       setPendingUpdate(update);
                     },
                   });
@@ -420,7 +426,9 @@ export default function HomeScreen() {
               <TextInput
                 keyboardType="numeric"
                 style={styles.input}
-                value={discoveryTimeout !== 0 ? discoveryTimeout.toString() : ''}
+                value={
+                  discoveryTimeout !== 0 ? discoveryTimeout.toString() : ''
+                }
                 placeholderTextColor={colors.gray}
                 placeholder="0 => no timeout"
                 onChangeText={(value) => {
@@ -447,22 +455,26 @@ export default function HomeScreen() {
                 }
               />
 
-              {simulated ? (<ListItem
-                          title="Simulate Offline Mode"
-                          rightElement={
-                            <Switch
-                            value={simulatedOffline}
-                            onValueChange={async (value) => {
-                              setSimulatedOffline(value);
-                              await setSimulatedOfflineMode(value);
-                            }}
-                            />
-                          }
-                          />) : <></>}
+              {simulated ? (
+                <ListItem
+                  title="Simulate Offline Mode"
+                  rightElement={
+                    <Switch
+                      value={simulatedOffline}
+                      onValueChange={async (value) => {
+                        setSimulatedOffline(value);
+                        await setSimulatedOfflineMode(value);
+                      }}
+                    />
+                  }
+                />
+              ) : (
+                <></>
+              )}
 
               <Text style={styles.infoText}>
-                The SDK comes with the ability to simulate behavior without using
-                physical hardware. This makes it easy to quickly test your
+                The SDK comes with the ability to simulate behavior without
+                using physical hardware. This makes it easy to quickly test your
                 integration end-to-end, from connecting a reader to taking
                 payments.
               </Text>
@@ -488,7 +500,7 @@ export default function HomeScreen() {
       <AlertDialog
         visible={showDisconnectAlert.visible}
         title="Reader disconnected!"
-        message= {`${showDisconnectAlert.reason}`}
+        message={`${showDisconnectAlert.reason}`}
         onDismiss={() => setShowDisconnectAlert({ visible: false })}
         buttons={[
           {
