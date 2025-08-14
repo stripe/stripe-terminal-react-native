@@ -9,9 +9,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
   TransitionPresets,
-  type StackNavigationOptions
+  type StackNavigationOptions,
 } from '@react-navigation/stack';
-import {HeaderBackButton} from '@react-navigation/elements';
+import { HeaderBackButton } from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
@@ -19,7 +19,7 @@ import {
   LogContext,
   type Log,
   type Event,
-  type CancelType
+  type CancelType,
 } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';

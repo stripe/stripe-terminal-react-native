@@ -35,7 +35,7 @@ module.exports = {
                     t.variableDeclarator(
                       t.identifier(importedName),
                       t.valueToNode(JSON.parse(readPackageJson()))
-                    )
+                    ),
                   ])
                 );
               }
@@ -50,13 +50,14 @@ module.exports = {
               path.node.callee.name === 'require' &&
               path.node.arguments.length === 1 &&
               path.node.arguments[0].type === 'StringLiteral' &&
-              path.node.arguments[0].value === '@stripe/stripe-terminal-react-native/package.json'
+              path.node.arguments[0].value ===
+                '@stripe/stripe-terminal-react-native/package.json'
             ) {
               // Replace the `require()` call with an object literal of the package.json content:
               // `({ /* raw string content of ./package.json, parsed by JS engine */ });`
               path.replaceWithSourceString(`(${readPackageJson()})`);
             }
-          }
+          },
         },
       };
     },

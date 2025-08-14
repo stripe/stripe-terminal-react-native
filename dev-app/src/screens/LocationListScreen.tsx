@@ -1,7 +1,7 @@
 import {
   type RouteProp,
   useNavigation,
-  useRoute
+  useRoute,
 } from '@react-navigation/core';
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
@@ -20,7 +20,8 @@ export default function LocationListScreen() {
   const { cachedLocations, setCachedLocations } = useContext(AppContext);
 
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'LocationListScreen'>>();
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'LocationListScreen'>>();
 
   const { getLocations, loading } = useStripeTerminal();
   const [list, setList] = useState<Location[]>(cachedLocations);

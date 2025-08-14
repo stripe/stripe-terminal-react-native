@@ -175,10 +175,13 @@ export default function DiscoverReadersScreen() {
   const handleConnectHandoffReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
-    const { reader: connectedReader, error } = await connectReader({
-      reader,
-      locationId: selectedLocation?.id,
-    }, 'handoff');
+    const { reader: connectedReader, error } = await connectReader(
+      {
+        reader,
+        locationId: selectedLocation?.id,
+      },
+      'handoff'
+    );
 
     if (error) {
       console.log('connectHandoffReader error:', error);
@@ -191,10 +194,13 @@ export default function DiscoverReadersScreen() {
   const handleConnectLocalMobileReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
-    const { reader: connectedReader, error } = await connectReader({
-      reader,
-      locationId: selectedLocation?.id,
-    }, 'tapToPay');
+    const { reader: connectedReader, error } = await connectReader(
+      {
+        reader,
+        locationId: selectedLocation?.id,
+      },
+      'tapToPay'
+    );
 
     if (error) {
       console.log('connectLocalMobileReader error:', error);
@@ -207,11 +213,14 @@ export default function DiscoverReadersScreen() {
   const handleConnectBluetoothReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
-    const { reader: connectedReader, error } = await connectReader({
-      reader,
-      locationId: selectedLocation?.id || reader?.location?.id,
-      autoReconnectOnUnexpectedDisconnect: false,
-    }, 'bluetoothScan');
+    const { reader: connectedReader, error } = await connectReader(
+      {
+        reader,
+        locationId: selectedLocation?.id || reader?.location?.id,
+        autoReconnectOnUnexpectedDisconnect: false,
+      },
+      'bluetoothScan'
+    );
 
     if (error) {
       console.log('connectBluetoothReader error:', error);
@@ -224,9 +233,12 @@ export default function DiscoverReadersScreen() {
   const handleConnectInternetReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
-    const { reader: connectedReader, error } = await connectReader({
-      reader,
-    }, 'internet');
+    const { reader: connectedReader, error } = await connectReader(
+      {
+        reader,
+      },
+      'internet'
+    );
 
     if (error) {
       console.log('connectInternetReader error:', error);
@@ -239,11 +251,14 @@ export default function DiscoverReadersScreen() {
   const handleConnectUsbReader = async (reader: Reader.Type) => {
     setConnectingReader(reader);
 
-    const { reader: connectedReader, error } = await connectReader({
-      reader,
-      locationId: selectedLocation?.id || reader?.location?.id,
-      autoReconnectOnUnexpectedDisconnect: false,
-    }, 'usb');
+    const { reader: connectedReader, error } = await connectReader(
+      {
+        reader,
+        locationId: selectedLocation?.id || reader?.location?.id,
+        autoReconnectOnUnexpectedDisconnect: false,
+      },
+      'usb'
+    );
 
     if (error) {
       console.log('connectUsbReader error:', error);

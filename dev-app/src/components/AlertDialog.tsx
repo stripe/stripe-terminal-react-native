@@ -102,8 +102,9 @@ export default function AlertDialog({
           if (buttons.length > 2) {
             if (index === 0) defaultButtonText = 'ASK ME LATER';
             else if (index === 1) defaultButtonText = 'CANCEL';
-          } else if (buttons.length === 2 && index === 0)
-            {defaultButtonText = 'CANCEL';}
+          } else if (buttons.length === 2 && index === 0) {
+            defaultButtonText = 'CANCEL';
+          }
           return (
             <View
               key={index}

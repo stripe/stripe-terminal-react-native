@@ -155,9 +155,7 @@ export default function CollectDataScreen() {
             <Switch
               testID="enable-cancellation"
               value={enableCustomerCancellation}
-              onValueChange={(value) =>
-                setEnableCustomerCancellation(value)
-              }
+              onValueChange={(value) => setEnableCustomerCancellation(value)}
             />
           }
         />
@@ -166,7 +164,7 @@ export default function CollectDataScreen() {
           title="Collect magstripe data"
           onPress={_collectMagstripeData}
         />
-         <ListItem
+        <ListItem
           color={colors.blue}
           title="Collect NFC UID"
           onPress={_collectNfcUid}

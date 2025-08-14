@@ -35,7 +35,7 @@ import { colors } from '../colors';
 import {
   useNavigation,
   useRoute,
-  type RouteProp
+  type RouteProp,
 } from '@react-navigation/core';
 import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
@@ -55,7 +55,8 @@ const SIMULATED_UPDATE_PLANS = [
 
 export default function DiscoverReadersScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
-  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);

@@ -1,4 +1,8 @@
-import { type RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/core';
 import React, { useCallback, useContext, useState } from 'react';
 import { StyleSheet, Switch, Platform } from 'react-native';
 import {
@@ -41,7 +45,8 @@ export default function SetupIntentScreen() {
   const { deviceType, discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
-  const [collectReason, setCollectReason] = useState<CollectionReason>('unspecified');
+  const [collectReason, setCollectReason] =
+    useState<CollectionReason>('unspecified');
   const [moto, setMoto] = useState(false);
 
   const [allowRedisplay, setAllowRedisplay] =
@@ -262,11 +267,11 @@ export default function SetupIntentScreen() {
         parameter = {
           customer: resp.id,
           paymentMethodTypes: ['card'],
-        }
+        };
       } else {
         parameter = {
           customer: resp.id,
-        }
+        };
       }
       const response = await createSetupIntent(parameter);
       setupIntent = response.setupIntent;
