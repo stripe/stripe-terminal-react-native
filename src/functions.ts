@@ -37,6 +37,7 @@ import type {
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  PrintContent,
 } from './types';
 import { CommonError } from './types';
 import { Platform } from 'react-native';
@@ -893,6 +894,26 @@ export async function cancelCollectData(): Promise<{
       };
     }
   }, 'cancelCollectData')();
+}
+
+export async function print(content: PrintContent): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error } = await StripeTerminalSdk.print(content);
+      if (error) {
+        return {
+          error,
+        };
+      }
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'print')();
 }
 
 export async function cancelReaderReconnection(): Promise<{

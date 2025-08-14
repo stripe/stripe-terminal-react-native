@@ -656,3 +656,11 @@ export enum DarkMode {
   LIGHT = 'light',
   SYSTEM = 'system',
 }
+
+/**
+ * Content for a print operation.
+ *
+ * Supported content:
+ * - Image (JPEG/PNG) encoded as a base64 string or 'data:' URI scheme.
+ */
+export type PrintContent = string;

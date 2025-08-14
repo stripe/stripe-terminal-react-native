@@ -17,6 +17,7 @@ import com.stripe.stripeterminal.TerminalApplicationDelegate.onCreate
 import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.OfflineMode
+import com.stripe.stripeterminal.external.PrintApi
 import com.stripe.stripeterminal.external.Surcharging
 import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.models.CaptureMethod
@@ -42,6 +43,7 @@ import com.stripe.stripeterminal.external.models.PaymentIntentParameters
 import com.stripe.stripeterminal.external.models.PaymentMethodOptionsParameters
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PhoneInput
+import com.stripe.stripeterminal.external.models.PrintContent
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
 import com.stripe.stripeterminal.external.models.RefundConfiguration
@@ -1066,6 +1068,17 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
         }
         return toggles
+    }
+
+    @OptIn(PrintApi::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun print(contentUri: String, promise: Promise) = withExceptionResolver(promise) {
+        val bitmap = requireParam(mapToBitmap(contentUri)) {
+            "You must provide a valid base64 string or a 'data:' URI scheme"
+        }
+        val printContent = PrintContent.Bitmap.create(bitmap)
+        terminal.print(printContent, NoOpCallback(promise))
     }
 
     @ReactMethod

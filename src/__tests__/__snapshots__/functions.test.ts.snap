@@ -39,6 +39,7 @@ exports[`functions.test.ts Functions snapshot ensure there are no unexpected cha
   "getReaderSettings": [Function],
   "initialize": [Function],
   "installAvailableUpdate": [Function],
+  "print": [Function],
   "rebootReader": [Function],
   "retrievePaymentIntent": [Function],
   "retrieveSetupIntent": [Function],

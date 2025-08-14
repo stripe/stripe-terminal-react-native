@@ -115,6 +115,7 @@ describe('functions.test.ts', () => {
           .mockImplementation(() => ({})),
         cancelCollectSetupIntent: jest.fn().mockImplementation(() => ({})),
         setSimulatedCard: jest.fn(),
+        print: jest.fn().mockImplementation(() => ({})),
       }));
     });
 
@@ -321,6 +322,11 @@ describe('functions.test.ts', () => {
       const functions = require('../functions');
       await expect(functions.setSimulatedCard('_number')).resolves.toEqual({});
     });
+
+    it('print returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.print({} as any)).resolves.toEqual({});
+    });
   });
 
   describe('Functions error results', () => {
@@ -390,6 +396,9 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         cancelReadReusableCard: jest
+          .fn()
+          .mockImplementation(() => ({ error: '_error' })),
+        print: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
 
@@ -590,6 +599,13 @@ describe('functions.test.ts', () => {
     it('installAvailableUpdate returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.installAvailableUpdate()).resolves.toEqual({
+        error: '_error',
+      });
+    });
+
+    it('print returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.print({} as any)).resolves.toEqual({
         error: '_error',
       });
     });
