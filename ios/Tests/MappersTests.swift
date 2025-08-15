@@ -76,7 +76,7 @@ final class MappersTests: XCTestCase {
             ToggleResult.enabled.rawValue as NSNumber,
             ToggleResult.skipped.rawValue as NSNumber,
         ])
-        let emailResult = TestableEmailResult(skipped: false, email: "unit.test@abc.com", toggles: [
+        let emailResult = TestableEmailResult(skipped: false, email: "unit.test@test.com", toggles: [
             ToggleResult.enabled.rawValue as NSNumber,
             ToggleResult.skipped.rawValue as NSNumber,
         ])
@@ -184,7 +184,7 @@ final class MappersTests: XCTestCase {
                 XCTAssertEqual(toggles.count, 2)
                 XCTAssertEqual(toggles[0], "enabled")
                 XCTAssertEqual(toggles[1], "skipped")
-                XCTAssertEqual(email, "unit.test@abc.com")
+                XCTAssertEqual(email, "unit.test@test.com")
             }
             if ((result.object(forKey: testSelection)) != nil) {
                 guard
