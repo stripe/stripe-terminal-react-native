@@ -9,9 +9,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import {
   createStackNavigator,
   TransitionPresets,
-  type StackNavigationOptions
+  type StackNavigationOptions,
 } from '@react-navigation/stack';
-import {HeaderBackButton} from '@react-navigation/elements';
+import { HeaderBackButton } from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
@@ -19,7 +19,7 @@ import {
   LogContext,
   type Log,
   type Event,
-  type CancelType
+  type CancelType,
 } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
@@ -152,13 +152,13 @@ export default function App() {
   const [cancel, setCancel] = useState<CancelType | null>(null);
   const [hasPerms, setHasPerms] = useState<boolean>(false);
   const clearLogs = useCallback(() => setlogs([]), []);
-  const { initialize: initStripe, clearCachedCredentials } =
+  const { initialize: initStripeTerminal, clearCachedCredentials } =
     useStripeTerminal();
   const { account } = useContext(AppContext);
   const { refreshToken } = useContext(AppContext);
   useEffect(() => {
     const initAndClear = async () => {
-      const { error, reader } = await initStripe();
+      const { error, reader } = await initStripeTerminal();
 
       if (error) {
         Alert.alert('StripeTerminal init failed', error.message);
@@ -180,7 +180,13 @@ export default function App() {
     if (account?.secretKey && hasPerms) {
       initAndClear();
     }
-  }, [account, initStripe, clearCachedCredentials, hasPerms, refreshToken]);
+  }, [
+    account,
+    initStripeTerminal,
+    clearCachedCredentials,
+    hasPerms,
+    refreshToken,
+  ]);
 
   const handlePermissionsSuccess = useCallback(async () => {
     setHasPerms(true);

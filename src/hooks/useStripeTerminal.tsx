@@ -140,6 +140,7 @@ export function useStripeTerminal(props?: Props) {
   const {
     setLoading,
     isInitialized,
+    getIsInitialized,
     initialize,
     setConnectedReader,
     setDiscoveredReaders,
@@ -150,7 +151,7 @@ export function useStripeTerminal(props?: Props) {
     log,
   } = useContext(StripeTerminalContext);
 
-  const _isInitialized = useCallback(() => isInitialized, [isInitialized]);
+  const _isInitialized = useCallback(() => getIsInitialized(), [getIsInitialized]);
 
   const {
     onUpdateDiscoveredReaders,
@@ -414,7 +415,12 @@ export function useStripeTerminal(props?: Props) {
 
   const _connectReader = useCallback(
     async (
-      params: ConnectBluetoothReaderParams | ConnectUsbReaderParams | ConnectTapToPayParams | ConnectHandoffParams | ConnectInternetReaderParams,
+      params:
+        | ConnectBluetoothReaderParams
+        | ConnectUsbReaderParams
+        | ConnectTapToPayParams
+        | ConnectHandoffParams
+        | ConnectInternetReaderParams,
       discoveryMethod: Reader.DiscoveryMethod
     ) => {
       if (!_isInitialized()) {
@@ -751,7 +757,9 @@ export function useStripeTerminal(props?: Props) {
       }
       setLoading(true);
 
-      const response = await setSimulatedCollectInputsResult(simulatedCollectInputsBehavior);
+      const response = await setSimulatedCollectInputsResult(
+        simulatedCollectInputsBehavior
+      );
       setLoading(false);
 
       return response;
@@ -1147,6 +1155,7 @@ export function useStripeTerminal(props?: Props) {
     discoveredReaders,
     connectedReader,
     isInitialized,
+    getIsInitialized,
     loading,
   };
 }
