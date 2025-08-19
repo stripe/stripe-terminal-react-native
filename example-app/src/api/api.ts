@@ -100,6 +100,7 @@ export class Api {
     currency = 'usd',
     description = 'Example PaymentIntent',
     payment_method_types,
+    capture_method,
   }: Stripe.PaymentIntentCreateParams): Promise<
     Partial<Stripe.PaymentIntent> | { error: Stripe.StripeError }
   > {
@@ -117,6 +118,10 @@ export class Api {
     }
 
     formData.append('payment_method_types[]', 'card_present');
+
+    if (capture_method) {
+      formData.append('capture_method', capture_method);
+    }
 
     return fetch(`${this.api_url}/create_payment_intent`, {
       headers: this.headers,
