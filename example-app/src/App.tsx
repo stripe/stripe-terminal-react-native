@@ -208,7 +208,7 @@ export default function App() {
 
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions}>
-            <Stack.Screen name="Terminal" component={HomeScreen} />
+            <Stack.Screen name="HomeScreen" component={HomeScreen} />
             <Stack.Screen
               name="DatabaseScreen"
               options={{ headerTitle: 'DatabaseScreen' }}
@@ -283,7 +283,7 @@ export default function App() {
                 headerBackAccessibilityLabel: 'logs-back',
                 headerLeft: () => (
                   <HeaderBackButton
-                    onPress={() => navigation.navigate('Terminal')}
+                    onPress={() => navigation.navigate('HomeScreen')}
                   />
                 ),
               })}
