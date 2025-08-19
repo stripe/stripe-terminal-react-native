@@ -1709,7 +1709,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNGestureHandler (2.20.2):
+  - RNGestureHandler (2.25.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2201,7 +2201,7 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: ac02697867ba18d2cfd761ebb144417fe65b210e
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
   RNCPicker: 921a904266a9bd75a3ca8cdc85371889e43192d8
-  RNGestureHandler: 3e17c0c9ceb401041b0e64c8e4c8a057da978a9d
+  RNGestureHandler: 70b13f8ce59310fcd4e2b4170d7c5ad85f991867
   RNReanimated: 5ed2b66c32cb3d398e4c12591b3053594fe2fcb9
   RNScreens: 2856a2abe759a5a56946874f76372c9f033af19a
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
