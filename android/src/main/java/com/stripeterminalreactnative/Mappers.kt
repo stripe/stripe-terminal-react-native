@@ -777,7 +777,7 @@ private fun mapFromAffirmDetails(affirmDetails: AffirmDetails?): ReadableMap? =
     }
 
 private fun mapFromPaynowDetails(paynowDetails: PaynowDetails?): ReadableMap? =
-    affirmDetails?.let {
+    paynowDetails?.let {
         nativeMapOf {
             putString("location", it.location)
             putString("reader", it.reader)
