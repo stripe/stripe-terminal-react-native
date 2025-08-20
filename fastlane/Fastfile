@@ -36,7 +36,7 @@ end
 
 lane :publish_ios_to_testflight do |options|
 
-  match(app_identifier: "com.stripe.terminal.reactnative.dev.app")
+  match(app_identifier: ["com.stripe.terminal.reactnative.dev.app", "com.stripe.terminal.reactnative.dev.app.usb-driver"])
 
   target_build_number = latest_testflight_build_number(
     app_identifier: "com.stripe.terminal.reactnative.dev.app"
