@@ -1,4 +1,8 @@
-import { type RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/core';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
@@ -11,7 +15,8 @@ import type { RouteParamList } from '../App';
 
 export default function UpdateReaderScreen() {
   const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'UpdateReaderScreen'>>();
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'UpdateReaderScreen'>>();
   const updateInfo = params?.update;
   const reader = params?.reader;
   const started = params?.started;
@@ -66,12 +71,18 @@ export default function UpdateReaderScreen() {
       </List>
 
       <List title="TARGET VERSION">
-        <ListItem title={updateInfo?.deviceSoftwareVersion ? updateInfo.deviceSoftwareVersion : ''} />
+        <ListItem
+          title={
+            updateInfo?.deviceSoftwareVersion
+              ? updateInfo.deviceSoftwareVersion
+              : ''
+          }
+        />
       </List>
 
       <List>
         <ListItem
-          testID='required-update-in-progress'
+          testID="required-update-in-progress"
           visible={startToUpdate}
           title="Required update in progress"
         />

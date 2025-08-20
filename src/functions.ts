@@ -598,7 +598,9 @@ export async function setSimulatedCollectInputsResult(
 ): Promise<{ error?: StripeError }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.setSimulatedCollectInputsResult(simulatedCollectInputsBehavior);
+      await StripeTerminalSdk.setSimulatedCollectInputsResult(
+        simulatedCollectInputsBehavior
+      );
       return {};
     } catch (error) {
       return {

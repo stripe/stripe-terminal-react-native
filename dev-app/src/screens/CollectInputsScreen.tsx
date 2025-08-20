@@ -11,7 +11,12 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { RouteParamList } from '../App';
 import { Picker } from '@react-native-picker/picker';
 
@@ -22,13 +27,19 @@ const COLLECT_PAYMENT_INPUT_BEHAVIOR = [
 ];
 
 export default function CollectInputsScreen() {
-  const { params } = useRoute<RouteProp<RouteParamList, 'CollectInputsScreen'>>();
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'CollectInputsScreen'>>();
   const { simulated } = params;
 
-  const { collectInputs, cancelCollectInputs, setSimulatedCollectInputsResult } = useStripeTerminal();
+  const {
+    collectInputs,
+    cancelCollectInputs,
+    setSimulatedCollectInputsResult,
+  } = useStripeTerminal();
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
-  const [simulatedCollectInputsBehavior, setSimulatedCollectInputsBehavior] = useState<string>(COLLECT_PAYMENT_INPUT_BEHAVIOR[0].value);
+  const [simulatedCollectInputsBehavior, setSimulatedCollectInputsBehavior] =
+    useState<string>(COLLECT_PAYMENT_INPUT_BEHAVIOR[0].value);
 
   const _collectInputs = async (params: ICollectInputsParameters) => {
     clearLogs();
@@ -50,7 +61,9 @@ export default function CollectInputsScreen() {
     });
 
     if (simulated) {
-      const simulateResultResponse = await setSimulatedCollectInputsResult(simulatedCollectInputsBehavior);
+      const simulateResultResponse = await setSimulatedCollectInputsResult(
+        simulatedCollectInputsBehavior
+      );
       if (simulateResultResponse.error) {
         addLogs({
           name: 'Simulate Collect Inputs Result',
@@ -145,8 +158,16 @@ export default function CollectInputsScreen() {
                   required: true,
                   description: 'Were you happy with customer service?',
                   selectionButtons: [
-                    { style: SelectionButtonStyle.PRIMARY, text: 'Yes', id: "yes_id" },
-                    { style: SelectionButtonStyle.SECONDARY, text: 'No', id: "no_id" },
+                    {
+                      style: SelectionButtonStyle.PRIMARY,
+                      text: 'Yes',
+                      id: 'yes_id',
+                    },
+                    {
+                      style: SelectionButtonStyle.SECONDARY,
+                      text: 'No',
+                      id: 'no_id',
+                    },
                   ],
                   toggles: [
                     {
@@ -209,16 +230,18 @@ export default function CollectInputsScreen() {
         />
       </List>
 
-      {simulated ?
-        <List bolded={false} topSpacing={false} title="SIMULATED COLLECT INPUTS BEHAVIOR">
+      {simulated ? (
+        <List
+          bolded={false}
+          topSpacing={false}
+          title="SIMULATED COLLECT INPUTS BEHAVIOR"
+        >
           <Picker
             selectedValue={simulatedCollectInputsBehavior}
             style={styles.picker}
             itemStyle={styles.pickerItem}
             testID="select-behavior"
-            onValueChange={(value) =>
-              setSimulatedCollectInputsBehavior(value)
-            }
+            onValueChange={(value) => setSimulatedCollectInputsBehavior(value)}
           >
             {COLLECT_PAYMENT_INPUT_BEHAVIOR.map((a) => (
               <Picker.Item
@@ -229,8 +252,10 @@ export default function CollectInputsScreen() {
               />
             ))}
           </Picker>
-        </List> : <></>
-      }
+        </List>
+      ) : (
+        <></>
+      )}
     </ScrollView>
   );
 }

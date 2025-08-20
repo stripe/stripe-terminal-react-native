@@ -1,4 +1,8 @@
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/core';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/core';
 import React, { useContext, useRef, useState } from 'react';
 import {
   Modal,
@@ -47,7 +51,8 @@ export default function RefundPaymentScreen() {
     addMetadata: false,
   });
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
-  const { params } = useRoute<RouteProp<RouteParamList, 'RefundPaymentScreen'>>();
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'RefundPaymentScreen'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
 
   const { simulated, discoveryMethod } = params;
@@ -111,10 +116,12 @@ export default function RefundPaymentScreen() {
       chargeId: selectedRefundIdType === 'chargeId' ? inputValues.chargeId : '',
       paymentIntentId:
         selectedRefundIdType === 'chargeId' ? '' : inputValues.paymentIntentId,
-      metadata: inputValues.addMetadata ? {
-        "meta_key1" : "meta_value1",
-        "meta_key2" : "meta_value2",
-      } : undefined,
+      metadata: inputValues.addMetadata
+        ? {
+            meta_key1: 'meta_value1',
+            meta_key2: 'meta_value2',
+          }
+        : undefined,
     });
 
     if (error) {
@@ -180,7 +187,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Succeeded',
             description: 'terminal.confirmRefund',
-            metadata: {..._refundMetadata, raw: JSON.stringify(refund)},
+            metadata: { ..._refundMetadata, raw: JSON.stringify(refund) },
           },
         ],
       });
@@ -191,7 +198,7 @@ export default function RefundPaymentScreen() {
           {
             name: 'Pending or unsuccessful',
             description: 'terminal.confirmRefund',
-            metadata: {..._refundMetadata, raw: JSON.stringify(refund)},
+            metadata: { ..._refundMetadata, raw: JSON.stringify(refund) },
           },
         ],
       });
@@ -365,10 +372,12 @@ export default function RefundPaymentScreen() {
             <Switch
               testID="add-metadata"
               value={inputValues.addMetadata}
-              onValueChange={(value) => setInputValues((state) => ({
-                ...state,
-                addMetadata: value,
-              }))}
+              onValueChange={(value) =>
+                setInputValues((state) => ({
+                  ...state,
+                  addMetadata: value,
+                }))
+              }
             />
           }
         />

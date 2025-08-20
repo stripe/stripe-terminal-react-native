@@ -414,7 +414,12 @@ export function useStripeTerminal(props?: Props) {
 
   const _connectReader = useCallback(
     async (
-      params: ConnectBluetoothReaderParams | ConnectUsbReaderParams | ConnectTapToPayParams | ConnectHandoffParams | ConnectInternetReaderParams,
+      params:
+        | ConnectBluetoothReaderParams
+        | ConnectUsbReaderParams
+        | ConnectTapToPayParams
+        | ConnectHandoffParams
+        | ConnectInternetReaderParams,
       discoveryMethod: Reader.DiscoveryMethod
     ) => {
       if (!_isInitialized()) {
@@ -751,7 +756,9 @@ export function useStripeTerminal(props?: Props) {
       }
       setLoading(true);
 
-      const response = await setSimulatedCollectInputsResult(simulatedCollectInputsBehavior);
+      const response = await setSimulatedCollectInputsResult(
+        simulatedCollectInputsBehavior
+      );
       setLoading(false);
 
       return response;

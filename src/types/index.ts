@@ -386,7 +386,7 @@ export type CardDetails = {
   expYear?: number;
   funding?: string;
   last4?: string;
-}
+};
 
 export type ConfirmRefundResultType = {
   refund?: Refund.Props;

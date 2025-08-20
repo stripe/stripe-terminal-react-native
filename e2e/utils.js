@@ -14,9 +14,7 @@ const connectReader = async (name = 'chipper2X') => {
   await button.tap();
 };
 
-const setSelectedMerchant = async (
-  acctId = 'CI US TEST ACCT (acct_1234)'
-) => {
+const setSelectedMerchant = async (acctId = 'CI US TEST ACCT (acct_1234)') => {
   const picker = element(by.id('select-merchant-picker'));
   await waitFor(picker).toBeVisible().withTimeout(16000);
 
@@ -235,5 +233,5 @@ module.exports = {
   changeDiscoveryMethod,
   goBack,
   createInteracPayment,
-  collectInteracRefund
+  collectInteracRefund,
 };
