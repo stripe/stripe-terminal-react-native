@@ -36,6 +36,7 @@ exports[`useStripeTerminal.test.tsx Public API snapshot ensure there are no unex
     "emitter": undefined,
     "getConnectedReader": [Function],
     "getConnectionStatus": [Function],
+    "getIsInitialized": [Function],
     "getLocations": [Function],
     "getNativeSdkVersion": [Function],
     "getOfflineStatus": [Function],
