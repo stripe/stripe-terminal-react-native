@@ -62,5 +62,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>This app can use images of receipts from your photo library to print
+</string>
 </dict>
 </plist>
