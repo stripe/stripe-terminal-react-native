@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+---
+# Ensure we are on Home and open Merchant selection
+- extendedWaitUntil:
+    visible:
+        id: "home-screen"
+    timeout: 20000
+
+- tapOn:
+    text: "Set Merchant"
+
+- extendedWaitUntil:
+    visible:
+        id: "merchant-select-screen"
+    timeout: 20000
+
+# Use the default prefilled key to add a merchant
+- tapOn:
+    text: "Add Merchant"
+
+# Relaunch app to ensure context picks up stored merchant
+- launchApp:
+    permissions:
+      all: allow
+

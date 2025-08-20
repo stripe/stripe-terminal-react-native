@@ -7,6 +7,9 @@ tags:
     permissions:
       all: allow
 
+- runFlow:
+    file: e2e/setMerchant.yaml
+
 - runFlow: 
     file: e2e/connectReader.yaml
     env:
