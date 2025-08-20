@@ -153,7 +153,8 @@ export type PaymentMethodType =
   | 'interacPresent'
   | 'card'
   | 'wechatPay'
-  | 'affirm';
+  | 'affirm'
+  | 'paynow';
 
 export interface Charge {
   id: string;
@@ -346,6 +347,12 @@ export type AffirmDetails = {
   transactionId?: string;
 };
 
+export type PaynowDetails = {
+  location?: string;
+  reader?: string;
+  reference?: string;
+};
+
 export type ReceiptDetails = {
   accountType: string;
   applicationCryptogram: string;
@@ -368,6 +375,7 @@ export type PaymentMethodDetails = {
   interacPresentDetails?: CardPresentDetails;
   wechatPayDetails?: WechatPayDetails;
   affirmDetails?: AffirmDetails;
+  paynowDetails?: PaynowDetails;
   cardDetails?: CardDetails;
 };
 
@@ -454,6 +462,7 @@ export namespace PaymentMethod {
     cardPresentDetails: CardPresentDetails;
     wechatPayDetails: WechatPayDetails;
     affirmDetails: AffirmDetails;
+    paynowDetails?: PaynowDetails;
     metadata?: Record<string, string>;
   };
 }

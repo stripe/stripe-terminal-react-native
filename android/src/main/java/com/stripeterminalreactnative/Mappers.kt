@@ -634,6 +634,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "affirmDetails",
                 mapFromAffirmDetails(it.affirmDetails)
             )
+            putMap(
+                "paynowDetails",
+                mapFromPaynowDetails(it.paynowDetails)
+            )
             putString("customer", it.customer)
             putString("id", it.id)
             putString("type", mapFromPaymentMethodDetailsType(it.type))
@@ -671,6 +675,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "affirmDetails",
             mapFromAffirmDetails(paymentMethodDetails?.affirmDetails)
         )
+        putMap(
+            "paynowDetails",
+            mapFromPaynowDetails(paymentMethodDetails?.paynowDetails)
+        )
         if (paymentMethodDetails?.cardDetails != null) {
             putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
         }
@@ -684,6 +692,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.INTERAC_PRESENT -> "interacPresent"
         PaymentMethodType.WECHAT_PAY -> "wechatPay"
         PaymentMethodType.AFFIRM -> "affirm"
+        PaymentMethodType.PAYNOW -> "paynow"
         else -> "unknown"
     }
 }
@@ -764,6 +773,15 @@ private fun mapFromAffirmDetails(affirmDetails: AffirmDetails?): ReadableMap? =
             putString("location", it.location)
             putString("reader", it.reader)
             putString("transactionId", it.transactionId)
+        }
+    }
+
+private fun mapFromPaynowDetails(paynowDetails: PaynowDetails?): ReadableMap? =
+    paynowDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
+            putString("reference", it.reference)
         }
     }
 
