@@ -7,12 +7,23 @@ appId: ${APP_ID}
 - tapOn:
     id: "discover-readers-button"
 
+# Wait until Discover Readers screen is visible before proceeding
+- extendedWaitUntil:
+    visible:
+        id: "discovery-readers-screen"
+    timeout: 20000
+
 - runFlow:
     when:
         true: ${updateRequired == true}
     commands:
         - tapOn:
             id: "update-plan-picker"
+
+- extendedWaitUntil:
+    visible:
+        id: "reader-0"
+    timeout: 30000
 
 - tapOn:
     id: "reader-0"
