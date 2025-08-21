@@ -86,6 +86,7 @@ export function StripeTerminalProvider({
   logLevel,
 }: Props) {
   const isInitializedRef = useRef(false);
+  const getIsInitialized = useCallback(() => isInitializedRef.current, []);
   const [loading, setLoading] = useState(true);
   const [connectedReader, setConnectedReader] = useState<Reader.Type | null>();
   const [discoveredReaders, setDiscoveredReaders] = useState<Reader.Type[]>([]);
@@ -353,7 +354,7 @@ export function StripeTerminalProvider({
     () => ({
       loading,
       isInitialized: isInitializedRef.current,
-      getIsInitialized: () => isInitializedRef.current,
+      getIsInitialized,
       connectedReader,
       discoveredReaders,
       setLoading,
@@ -366,7 +367,7 @@ export function StripeTerminalProvider({
     [
       _initialize,
       loading,
-      isInitializedRef,
+      getIsInitialized,
       connectedReader,
       discoveredReaders,
       setLoading,
