@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import {
   type Reader,
   type LogLevel,
@@ -85,7 +85,8 @@ export function StripeTerminalProvider({
   tokenProvider,
   logLevel,
 }: Props) {
-  const [isInitialized, setIsInitialized] = useState(false);
+  const isInitializedRef = useRef(false);
+  const getIsInitialized = useCallback(() => isInitializedRef.current, []);
   const [loading, setLoading] = useState(true);
   const [connectedReader, setConnectedReader] = useState<Reader.Type | null>();
   const [discoveredReaders, setDiscoveredReaders] = useState<Reader.Type[]>([]);
@@ -341,7 +342,7 @@ export function StripeTerminalProvider({
     }
 
     if (!response.error) {
-      setIsInitialized(true);
+      isInitializedRef.current = true;
     }
 
     setLoading(false);
@@ -352,10 +353,10 @@ export function StripeTerminalProvider({
   const value = useMemo(
     () => ({
       loading,
-      isInitialized,
+      isInitialized: isInitializedRef.current,
+      getIsInitialized,
       connectedReader,
       discoveredReaders,
-      setIsInitialized,
       setLoading,
       setConnectedReader,
       setDiscoveredReaders,
@@ -366,10 +367,9 @@ export function StripeTerminalProvider({
     [
       _initialize,
       loading,
-      isInitialized,
+      getIsInitialized,
       connectedReader,
       discoveredReaders,
-      setIsInitialized,
       setLoading,
       setConnectedReader,
       setDiscoveredReaders,
