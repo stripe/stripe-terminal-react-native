@@ -189,12 +189,12 @@ const createContextWrapper =
       <StripeTerminalContext.Provider
         value={{
           isInitialized: false,
+          getIsInitialized: () => false,
           loading: false,
           discoveredReaders: [],
           setConnectedReader: jest.fn(),
           log: jest.fn(),
           setDiscoveredReaders: jest.fn(),
-          setIsInitialized: jest.fn(),
           setLoading: jest.fn(),
           connectedReader: null,
           emitter: undefined,
@@ -221,6 +221,7 @@ describe('useStripeTerminal.test.tsx', () => {
     const { result } = renderHook(() => useStripeTerminal(), {
       wrapper: createContextWrapper({
         isInitialized: true,
+        getIsInitialized: () => true,
         loading: false,
         connectedReader: { id: 12 },
         discoveredReaders: [{ id: 12 }, { id: 15 }],
@@ -272,7 +273,7 @@ describe('useStripeTerminal.test.tsx', () => {
     it('public methods are called when it is initialized', () => {
       const fns = spyAllFunctions({ returnWith: '_value' });
 
-      const ContextWrapper = createContextWrapper({ isInitialized: true });
+      const ContextWrapper = createContextWrapper({ isInitialized: true, getIsInitialized: () => true });
       const { result } = renderHook(() => useStripeTerminal(), {
         wrapper: ContextWrapper,
       });
@@ -322,7 +323,7 @@ describe('useStripeTerminal.test.tsx', () => {
       const fns = spyAllFunctions();
       console.error = jest.fn();
 
-      const ContextWrapper = createContextWrapper({ isInitialized: false });
+      const ContextWrapper = createContextWrapper({ isInitialized: false, getIsInitialized: () => false });
       const { result } = renderHook(() => useStripeTerminal(), {
         wrapper: ContextWrapper,
       });
@@ -378,7 +379,7 @@ describe('useStripeTerminal.test.tsx', () => {
     it('public methods are returns with mocked value', async () => {
       spyAllFunctions({ returnWith: '_value' });
 
-      const ContextWrapper = createContextWrapper({ isInitialized: true });
+      const ContextWrapper = createContextWrapper({ isInitialized: true, getIsInitialized: () => true });
       const { result } = renderHook(() => useStripeTerminal(), {
         wrapper: ContextWrapper,
       });

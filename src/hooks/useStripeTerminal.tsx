@@ -140,6 +140,7 @@ export function useStripeTerminal(props?: Props) {
   const {
     setLoading,
     isInitialized,
+    getIsInitialized,
     initialize,
     setConnectedReader,
     setDiscoveredReaders,
@@ -150,7 +151,7 @@ export function useStripeTerminal(props?: Props) {
     log,
   } = useContext(StripeTerminalContext);
 
-  const _isInitialized = useCallback(() => isInitialized, [isInitialized]);
+  const _isInitialized = useCallback(() => getIsInitialized(), [getIsInitialized]);
 
   const {
     onUpdateDiscoveredReaders,
@@ -1154,6 +1155,7 @@ export function useStripeTerminal(props?: Props) {
     discoveredReaders,
     connectedReader,
     isInitialized,
+    getIsInitialized,
     loading,
   };
 }
