@@ -2,15 +2,17 @@ import React, { useEffect } from 'react';
 import { useContext } from 'react';
 import { BackHandler, ScrollView, Text, StyleSheet } from 'react-native';
 import { LogContext } from '../components/LogContext';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation, type NavigationProp } from '@react-navigation/core';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { HeaderBackButton } from '@react-navigation/stack';
+import {HeaderBackButton} from '@react-navigation/elements';
+import type { RouteParamList } from '../App';
 
 const LogListScreen = () => {
   const { logs } = useContext(LogContext);
-  const navigation = useNavigation();
+
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
   useEffect(() => {
     navigation.setOptions({
@@ -27,7 +29,7 @@ const LogListScreen = () => {
     if (latestEvent.onBack) {
       latestEvent.onBack();
     }
-    navigation.navigate('Terminal');
+    navigation.navigate('HomeScreen', {});
     return true;
   };
 

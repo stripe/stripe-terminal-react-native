@@ -1,4 +1,4 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/core';
+import { useNavigation, useRoute, RouteProp, type NavigationProp } from '@react-navigation/core';
 import React, { useContext, useState } from 'react';
 import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -29,8 +29,8 @@ export default function RefundPaymentScreen() {
     reverseTransfer: false,
     enableCustomerCancellation: false,
   });
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'RefundPayment'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'RefundPaymentScreen'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
 
   const { simulated, discoveryMethod } = params;
@@ -75,7 +75,7 @@ export default function RefundPaymentScreen() {
       await setSimulatedCard(testCardNumber);
     }
 
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
     addLogs({
       name: 'Collect Refund Payment Method',
       events: [

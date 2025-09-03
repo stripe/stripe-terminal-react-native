@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
@@ -22,9 +22,10 @@ import {
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
+import type { RouteParamList } from '../App';
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const [simulated, setSimulated] = useState<boolean>(true);
   const [online, setOnline] = useState<boolean>(false);
   const [discoveryMethod, setDiscoveryMethod] =
@@ -119,7 +120,7 @@ export default function HomeScreen() {
         <ListItem
           title="Set reader display"
           onPress={() => {
-            navigation.navigate('ReaderDisplayScreen');
+            navigation.navigate('ReaderDisplayScreen', {});
           }}
         />
         <ListItem
@@ -142,7 +143,7 @@ export default function HomeScreen() {
         <ListItem
           title="Database"
           onPress={async () => {
-            navigation.navigate('DatabaseScreen');
+            navigation.navigate('DatabaseScreen', {});
           }}
         />
       </List>
@@ -199,7 +200,7 @@ export default function HomeScreen() {
               title="Register Internet Reader"
               color={colors.blue}
               onPress={() => {
-                navigation.navigate('RegisterInternetReader');
+                navigation.navigate('RegisterInternetReaderScreen', {});
               }}
             />
           </List>
@@ -210,7 +211,7 @@ export default function HomeScreen() {
               testID="database"
               color={colors.blue}
               onPress={async () => {
-                navigation.navigate('DatabaseScreen');
+                navigation.navigate('DatabaseScreen', {});
               }}
             />
           </List>

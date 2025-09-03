@@ -1,4 +1,4 @@
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { RouteProp, useNavigation, useRoute, type NavigationProp } from '@react-navigation/core';
 import React, { useCallback, useContext, useState } from 'react';
 import { StyleSheet, Switch } from 'react-native';
 import {
@@ -19,8 +19,8 @@ import ListItem from '../components/ListItem';
 export default function SetupIntentScreen() {
   const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
-  const navigation = useNavigation();
-  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntent'>>();
+  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
   const { discoveryMethod } = params;
   const [enableCustomerCancellation, setEnableCustomerCancellation] =
     useState(false);
@@ -177,7 +177,7 @@ export default function SetupIntentScreen() {
 
   const _createSetupIntent = useCallback(async () => {
     clearLogs();
-    navigation.navigate('LogListScreen');
+    navigation.navigate('LogListScreen', {});
 
     addLogs({
       name: 'Create Setup Intent',
