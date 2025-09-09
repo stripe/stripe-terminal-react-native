@@ -44,6 +44,7 @@ export default function HomeScreen() {
     visible: boolean;
     reason?: string;
   }>({ visible: false });
+  const [reconnectReader, setReconectReader] = useState<Reader.Type | null>(null);
   const [pendingUpdate, setPendingUpdate] =
     useState<Reader.SoftwareUpdate | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
@@ -118,17 +119,22 @@ export default function HomeScreen() {
         reason: 'Reader disconnected with reason ' + reason,
       });
     },
-    onDidStartReaderReconnect(reason) {
-      console.log('onDidStartReaderReconnect ' + reason);
+    onDidStartReaderReconnect(reader, reason) {
+      console.log('onDidStartReaderReconnect ' + reason + ' for reader ' + reader.id);
+      setReconectReader(reader);
       setShowReconnectingAlert(true);
       setShowReconnectSuccessAlert(false);
     },
-    onDidSucceedReaderReconnect() {
+    onDidSucceedReaderReconnect(reader) {
+      console.log('onDidSucceedReaderReconnect ' + reader.id);
+      setReconectReader(reader);
       setShowReconnectSuccessAlert(true);
       setShowReconnectingAlert(false);
     },
-    onDidFailReaderReconnect() {
-      Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
+    onDidFailReaderReconnect(reader) {
+      console.log('onDidFailReaderReconnect ' + reader);
+      Alert.alert('Reader Disconnected', 'Reader reconnection failed! id = ' + reader.id);
+      setReconectReader(null);
       setShowReconnectingAlert(false);
       setShowReconnectSuccessAlert(false);
     },
@@ -285,12 +291,13 @@ export default function HomeScreen() {
       <AlertDialog
         visible={showReconnectingAlert}
         title="Reconnecting..."
-        message="Reader has disconnected."
+        message={"Reader has disconnected. id = " + reconnectReader?.id}
         buttons={[
           {
             text: 'Cancel',
             onPress: async () => {
               setShowReconnectingAlert(false);
+              setReconectReader(null);
               await cancelReaderReconnection();
             },
           },
@@ -300,12 +307,13 @@ export default function HomeScreen() {
       <AlertDialog
         visible={showReconnectSuccessAlert}
         title="Reconnected!"
-        message="We were able to reconnect to the reader."
+        message={"We were able to reconnect to the reader. id = " + reconnectReader?.id}
         buttons={[
           {
             text: 'OK',
             onPress: async () => {
               setShowReconnectSuccessAlert(false);
+              setReconectReader(null);
             },
           },
         ]}

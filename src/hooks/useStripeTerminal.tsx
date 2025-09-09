@@ -281,18 +281,18 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const didStartReaderReconnect = useCallback(
-    ({ reason }: { reason?: Reader.DisconnectReason }) => {
-      onDidStartReaderReconnect?.(reason);
+    ({ reader, reason }: { reader: Reader.Type, reason?: Reader.DisconnectReason }) => {
+      onDidStartReaderReconnect?.(reader, reason);
     },
     [onDidStartReaderReconnect]
   );
 
-  const didSucceedReaderReconnect = useCallback(() => {
-    onDidSucceedReaderReconnect?.();
+  const didSucceedReaderReconnect = useCallback(({ reader }: { reader: Reader.Type }) => {
+    onDidSucceedReaderReconnect?.(reader);
   }, [onDidSucceedReaderReconnect]);
 
-  const didFailReaderReconnect = useCallback(() => {
-    onDidFailReaderReconnect?.();
+  const didFailReaderReconnect = useCallback(({ reader }: { reader: Reader.Type }) => {
+    onDidFailReaderReconnect?.(reader);
     setConnectedReader(null);
   }, [onDidFailReaderReconnect, setConnectedReader]);
 
