@@ -19,6 +19,7 @@ import {
   DEFAULT_ENABLED_PAYMENT_METHOD_TYPES,
   PAYMENT_METHOD_TYPES,
 } from '../util/paymentMethodTypes';
+import { formatAmountForDisplay } from '../util/currencyUtils';
 
 const CURRENCIES = [
   { value: 'usd', label: 'USD' },
@@ -30,6 +31,7 @@ const CURRENCIES = [
   { value: 'eur', label: 'EUR' },
   { value: 'gbp', label: 'GBP' },
   { value: 'hkd', label: 'HKD' },
+  { value: 'jpy', label: 'JPY' },
   { value: 'myr', label: 'MYR' },
   { value: 'nok', label: 'NOK' },
   { value: 'nzd', label: 'NZD' },
@@ -770,8 +772,8 @@ export default function CollectCardPaymentScreen() {
       <List
         bolded={false}
         topSpacing={false}
-        title={`${(Number(inputValues.amount) / 100).toFixed(2)} ${
-          inputValues.currency
+        title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${
+          inputValues.currency.toUpperCase()
         }`}
       >
         <ListItem
