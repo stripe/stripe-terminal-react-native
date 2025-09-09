@@ -770,7 +770,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     func reader(_ reader: Reader, didStartReconnect cancelable: Cancelable, disconnectReason: DisconnectReason) {
         self.cancelReaderConnectionCancellable = cancelable
         let result = Mappers.mapFromReaderDisconnectReason(disconnectReason)
-        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reason": result])
+        let reader = Mappers.mapFromReader(reader)
+        sendEvent(withName: ReactNativeConstants.START_READER_RECONNECT.rawValue, body: ["reason": result, "reader": reader])
     }
 
     func readerDidSucceedReconnect(_ reader: Reader) {
@@ -779,8 +780,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     }
 
     func readerDidFailReconnect(_ reader: Reader) {
-        let error = Errors.createError(code: ErrorCode.unexpectedSdkError, message: "Reader reconnect fail")
-        sendEvent(withName: ReactNativeConstants.READER_RECONNECT_FAIL.rawValue, body: error)
+        let reader = Mappers.mapFromReader(reader)
+        sendEvent(withName: ReactNativeConstants.READER_RECONNECT_FAIL.rawValue, body: ["reader": reader])
     }
 
     @objc(cancelReaderReconnection:rejecter:)
