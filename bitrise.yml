@@ -175,8 +175,7 @@ workflows:
       - set-java-version@1:
           inputs:
             - set_java_version: '17'
-      - activate-ssh-key@4: {}
-      - git-clone@6: {}
+      - git-clone@8.4.0: {}
       - change-workdir@1:
           inputs:
             - path: $WORKING_DIR
