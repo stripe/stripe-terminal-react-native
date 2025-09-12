@@ -7,11 +7,10 @@ import com.stripe.stripeterminal.external.models.ConnectionTokenException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
 import java.util.Queue
-import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class TokenProvider(private val context: ReactApplicationContext) : ConnectionTokenProvider {
-    var queue: Queue<ConnectionTokenCallback> = ConcurrentLinkedQueue()
+    val queue: Queue<ConnectionTokenCallback> = ConcurrentLinkedQueue()
 
     fun setConnectionToken(token: String?, error: String?, callbackId: String?) {
         while (queue.isNotEmpty()) {
@@ -22,7 +21,7 @@ class TokenProvider(private val context: ReactApplicationContext) : ConnectionTo
                 } else {
                     connectionTokenCallback.onFailure(
                         ConnectionTokenException(
-                            error ?: "",
+                            error ?: "Token is invalid",
                             null
                         )
                     )
@@ -39,10 +38,9 @@ class TokenProvider(private val context: ReactApplicationContext) : ConnectionTo
     }
 
     override fun fetchConnectionToken(callback: ConnectionTokenCallback) {
-        val uuid = UUID.randomUUID().toString()
         queue.offer(callback)
         context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName) {
-            putString("callbackId", uuid)
+            putString("callbackId", "")
         }
     }
 }
