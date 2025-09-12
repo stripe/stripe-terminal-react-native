@@ -29,21 +29,22 @@ class TokenProviderTest {
 
     private val context = mockk<ReactApplicationContext>()
     private val callback = mockk<ConnectionTokenCallback>(relaxed = true)
+    private val callback2 = mockk<ConnectionTokenCallback>(relaxed = true)
 
     @Test
     fun `should set connection token`() {
         val tokenProvider = TokenProvider(context)
         tokenProvider.fetchConnectionToken(callback)
 
-        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+        assertTrue { tokenProvider.queue.count() == 1 }
 
         verify(exactly = 1) {
             context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any())
         }
         verify { callback wasNot Called }
 
-        tokenProvider.setConnectionToken(TOKEN, ERROR, tokenProvider.callbackMap.keys.first())
-        assertTrue { tokenProvider.callbackMap.keys.count() == 0 }
+        tokenProvider.setConnectionToken(TOKEN, ERROR, "")
+        assertTrue { tokenProvider.queue.isEmpty() }
 
         verify(exactly = 1) { callback.onSuccess(TOKEN) }
         verify(exactly = 0) { callback.onFailure(any()) }
@@ -54,30 +55,64 @@ class TokenProviderTest {
         val tokenProvider = TokenProvider(context)
         tokenProvider.fetchConnectionToken(callback)
 
-        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+        assertTrue { tokenProvider.queue.count() == 1 }
         verify(exactly = 1) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         verify { callback wasNot Called }
-        tokenProvider.setConnectionToken(null, ERROR, tokenProvider.callbackMap.keys.first())
+        tokenProvider.setConnectionToken(null, ERROR, "")
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 1) { callback.onFailure(any()) }
 
         tokenProvider.fetchConnectionToken(callback)
 
-        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+        assertTrue { tokenProvider.queue.count() == 1 }
         verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
-        tokenProvider.setConnectionToken(null, null, tokenProvider.callbackMap.keys.first())
+        tokenProvider.setConnectionToken(null, null, "")
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 2) { callback.onFailure(any()) }
 
         tokenProvider.fetchConnectionToken(callback)
 
-        assertTrue { tokenProvider.callbackMap.keys.count() == 1 }
+        assertTrue { tokenProvider.queue.count() == 1 }
         verify(exactly = 3) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
+    }
 
-        assertFailsWith<ConnectionTokenException> {
-            tokenProvider.setConnectionToken(null, null, null)
-        }
+    @Test
+    fun `should response to all callback and remove when first fail response come`() {
+        val tokenProvider = TokenProvider(context)
+        tokenProvider.fetchConnectionToken(callback)
+        tokenProvider.fetchConnectionToken(callback2)
+
+        assertTrue { tokenProvider.queue.count() == 2 }
+        verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
+        verify { callback wasNot Called }
+        verify { callback2 wasNot Called }
+        tokenProvider.setConnectionToken(null, ERROR, "")
+
+        verify(exactly = 0) { callback.onSuccess(any()) }
+        verify(exactly = 0) { callback2.onSuccess(any()) }
+        verify(exactly = 1) { callback.onFailure(any()) }
+        verify(exactly = 1) { callback2.onFailure(any()) }
+        assertTrue { tokenProvider.queue.isEmpty() }
+    }
+
+    @Test
+    fun `should response to all callback and remove when first token response come`() {
+        val tokenProvider = TokenProvider(context)
+        tokenProvider.fetchConnectionToken(callback)
+        tokenProvider.fetchConnectionToken(callback2)
+
+        assertTrue { tokenProvider.queue.count() == 2 }
+        verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
+        verify { callback wasNot Called }
+        verify { callback2 wasNot Called }
+        tokenProvider.setConnectionToken(TOKEN, null, "")
+
+        verify(exactly = 1) { callback.onSuccess(any()) }
+        verify(exactly = 1) { callback2.onSuccess(any()) }
+        verify(exactly = 0) { callback.onFailure(any()) }
+        verify(exactly = 0) { callback2.onFailure(any()) }
+        assertTrue { tokenProvider.queue.isEmpty() }
     }
 }
