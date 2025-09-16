@@ -43,7 +43,7 @@ class TokenProviderTest {
         }
         verify { callback wasNot Called }
 
-        tokenProvider.setConnectionToken(TOKEN, ERROR, "")
+        tokenProvider.setConnectionToken(TOKEN, ERROR)
         assertTrue { tokenProvider.queue.isEmpty() }
 
         verify(exactly = 1) { callback.onSuccess(TOKEN) }
@@ -58,7 +58,7 @@ class TokenProviderTest {
         assertTrue { tokenProvider.queue.count() == 1 }
         verify(exactly = 1) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         verify { callback wasNot Called }
-        tokenProvider.setConnectionToken(null, ERROR, "")
+        tokenProvider.setConnectionToken(null, ERROR)
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 1) { callback.onFailure(any()) }
@@ -67,7 +67,7 @@ class TokenProviderTest {
 
         assertTrue { tokenProvider.queue.count() == 1 }
         verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
-        tokenProvider.setConnectionToken(null, null, "")
+        tokenProvider.setConnectionToken(null, null)
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 2) { callback.onFailure(any()) }
@@ -88,7 +88,7 @@ class TokenProviderTest {
         verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         verify { callback wasNot Called }
         verify { callback2 wasNot Called }
-        tokenProvider.setConnectionToken(null, ERROR, "")
+        tokenProvider.setConnectionToken(null, ERROR)
 
         verify(exactly = 0) { callback.onSuccess(any()) }
         verify(exactly = 0) { callback2.onSuccess(any()) }
@@ -107,7 +107,7 @@ class TokenProviderTest {
         verify(exactly = 2) { context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName, any()) }
         verify { callback wasNot Called }
         verify { callback2 wasNot Called }
-        tokenProvider.setConnectionToken(TOKEN, null, "")
+        tokenProvider.setConnectionToken(TOKEN, null)
 
         verify(exactly = 1) { callback.onSuccess(any()) }
         verify(exactly = 1) { callback2.onSuccess(any()) }

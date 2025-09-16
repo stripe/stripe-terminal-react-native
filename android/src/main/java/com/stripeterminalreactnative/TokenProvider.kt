@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class TokenProvider(private val context: ReactApplicationContext) : ConnectionTokenProvider {
     val queue: Queue<ConnectionTokenCallback> = ConcurrentLinkedQueue()
 
-    fun setConnectionToken(token: String?, error: String?, callbackId: String?) {
+    fun setConnectionToken(token: String?, error: String?) {
         while (queue.isNotEmpty()) {
             val connectionTokenCallback = queue.poll() ?: break
             try {
@@ -39,8 +39,6 @@ class TokenProvider(private val context: ReactApplicationContext) : ConnectionTo
 
     override fun fetchConnectionToken(callback: ConnectionTokenCallback) {
         queue.offer(callback)
-        context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName) {
-            putString("callbackId", "")
-        }
+        context.sendEvent(FETCH_TOKEN_PROVIDER.listenerName)
     }
 }

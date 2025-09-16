@@ -260,7 +260,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         tokenProvider.setConnectionToken(
             token = params.getString("token"),
             error = params.getString("error"),
-            callbackId = params.getString("callbackId")
         )
         promise.resolve(null)
     }
