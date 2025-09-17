@@ -1,5 +1,9 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import {
+  useNavigation,
+  type NavigationProp,
+  useFocusEffect,
+} from '@react-navigation/native';
 import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
@@ -36,14 +40,12 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] =
-    useState<boolean>(false);
-  const [showReconnectingAlert, setShowReconnectingAlert] =
-    useState<boolean>(false);
+  // Disconnection alerts use AlertDialog, reconnection alerts use native Alert to avoid Modal conflicts
   const [showDisconnectAlert, setShowDisconnectAlert] = useState<{
     visible: boolean;
     reason?: string;
   }>({ visible: false });
+
   const [pendingUpdate, setPendingUpdate] =
     useState<Reader.SoftwareUpdate | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
@@ -62,7 +64,7 @@ export default function HomeScreen() {
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
-      if (status == 'notConnected') {
+      if (status === 'notConnected') {
         setPendingUpdate(null);
       }
     },
@@ -120,17 +122,37 @@ export default function HomeScreen() {
     },
     onDidStartReaderReconnect(reason) {
       console.log('onDidStartReaderReconnect ' + reason);
-      setShowReconnectingAlert(true);
-      setShowReconnectSuccessAlert(false);
+      Alert.alert(
+        'Reconnecting...',
+        'Reader has disconnected.',
+        [
+          {
+            text: 'Stop Reconnecting',
+            onPress: async () => {
+              await cancelReaderReconnection();
+            },
+          },
+          {
+            text: 'Continue in Background',
+          },
+        ],
+        { cancelable: false }
+      );
     },
     onDidSucceedReaderReconnect() {
-      setShowReconnectSuccessAlert(true);
-      setShowReconnectingAlert(false);
+      console.log('onDidSucceedReaderReconnect');
+      Alert.alert('Reconnected!', 'We were able to reconnect to the reader.', [
+        {
+          text: 'OK',
+        },
+      ]);
     },
     onDidFailReaderReconnect() {
-      Alert.alert('Reader Disconnected', 'Reader reconnection failed!');
-      setShowReconnectingAlert(false);
-      setShowReconnectSuccessAlert(false);
+      Alert.alert('Reader Disconnected', 'Reader reconnection failed!', [
+        {
+          text: 'OK',
+        },
+      ]);
     },
   });
   useEffect(() => {
@@ -147,6 +169,17 @@ export default function HomeScreen() {
     : '';
   const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
   const deviceType = connectedReader?.deviceType;
+
+  // Reset AlertDialog states when screen loses focus to prevent issues when returning from other screens
+  useFocusEffect(
+    useCallback(() => {
+      // This runs when the screen comes into focus
+      return () => {
+        // This cleanup runs when the screen loses focus
+        setShowDisconnectAlert({ visible: false });
+      };
+    }, [])
+  );
 
   useEffect(() => {
     const loadDiscSettings = async () => {
@@ -281,35 +314,6 @@ export default function HomeScreen() {
           }}
         />
       </List>
-
-      <AlertDialog
-        visible={showReconnectingAlert}
-        title="Reconnecting..."
-        message="Reader has disconnected."
-        buttons={[
-          {
-            text: 'Cancel',
-            onPress: async () => {
-              setShowReconnectingAlert(false);
-              await cancelReaderReconnection();
-            },
-          },
-        ]}
-      />
-
-      <AlertDialog
-        visible={showReconnectSuccessAlert}
-        title="Reconnected!"
-        message="We were able to reconnect to the reader."
-        buttons={[
-          {
-            text: 'OK',
-            onPress: async () => {
-              setShowReconnectSuccessAlert(false);
-            },
-          },
-        ]}
-      />
     </>
   );
   return (
