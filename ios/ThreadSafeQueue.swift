@@ -3,7 +3,7 @@ class ThreadSafeQueue<T> {
     private let queue = DispatchQueue(label: "com.stripe.threadSafeQueue")
 
     func enqueue(_ element: T) {
-        queue.async {
+        queue.sync {
             self.array.append(element)
         }
     }
