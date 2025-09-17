@@ -40,7 +40,6 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  // Disconnection alerts use AlertDialog, reconnection alerts use native Alert to avoid Modal conflicts
   const [showDisconnectAlert, setShowDisconnectAlert] = useState<{
     visible: boolean;
     reason?: string;
@@ -170,12 +169,9 @@ export default function HomeScreen() {
   const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
   const deviceType = connectedReader?.deviceType;
 
-  // Reset AlertDialog states when screen loses focus to prevent issues when returning from other screens
   useFocusEffect(
     useCallback(() => {
-      // This runs when the screen comes into focus
       return () => {
-        // This cleanup runs when the screen loses focus
         setShowDisconnectAlert({ visible: false });
       };
     }, [])
