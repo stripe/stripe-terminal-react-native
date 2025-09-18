@@ -1,9 +1,5 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
-import {
-  useNavigation,
-  type NavigationProp,
-  useFocusEffect,
-} from '@react-navigation/native';
+import React, { useEffect, useState, useContext } from 'react';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Toast from 'react-native-root-toast';
 import {
   StyleSheet,
@@ -168,14 +164,6 @@ export default function HomeScreen() {
     : '';
   const chargingStatus = connectedReader?.isCharging ? '🔌' : '';
   const deviceType = connectedReader?.deviceType;
-
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        setShowDisconnectAlert({ visible: false });
-      };
-    }, [])
-  );
 
   useEffect(() => {
     const loadDiscSettings = async () => {
