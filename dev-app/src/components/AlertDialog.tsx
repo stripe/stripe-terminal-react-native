@@ -18,7 +18,7 @@ export default function AlertDialog({
   title,
   message,
   buttons,
-  onDismiss = () => {},
+  onDismiss = () => { },
 }: {
   visible: boolean;
   title: string;
@@ -177,7 +177,7 @@ export default function AlertDialog({
             else if (index === 1) defaultButtonText = 'CANCEL';
           } else if (buttons.length === 2 && index === 0)
             defaultButtonText = 'CANCEL';
-          var singleButtonWrapperStyle = {
+          let singleButtonWrapperStyle = {
             minWidth: '50%',
             borderStyle: 'solid',
             borderRightWidth: 0.55,
