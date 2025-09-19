@@ -40,7 +40,7 @@ class RNReaderReconnectionListenerTest {
             context.sendEvent(READER_RECONNECT_FAIL.listenerName, any())
         }
 
-        assertTrue(typeReplacer.sendEventSlot.captured.hasValue("error"))
+        assertTrue(typeReplacer.sendEventSlot.captured.hasValue("reader"))
     }
 
     @Test
@@ -55,6 +55,7 @@ class RNReaderReconnectionListenerTest {
         verify(exactly = 1) { context.sendEvent(START_READER_RECONNECT.listenerName, any()) }
 
         assertTrue(typeReplacer.sendEventSlot.captured.hasValue("reason"))
+        assertTrue(typeReplacer.sendEventSlot.captured.hasValue("reader"))
     }
 
     @Test

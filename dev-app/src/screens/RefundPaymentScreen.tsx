@@ -22,6 +22,7 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 import type { RouteParamList } from '../App';
+import { formatAmountForDisplay } from '../util/currencyUtils';
 import { Picker } from '@react-native-picker/picker';
 import type { NavigationProp } from '@react-navigation/native';
 
@@ -385,8 +386,8 @@ export default function RefundPaymentScreen() {
       <List
         bolded={false}
         topSpacing={false}
-        title={`${(Number(inputValues.amount) / 100).toFixed(2)} ${
-          inputValues.currency
+        title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${
+          inputValues.currency.toUpperCase()
         }`}
       >
         <ListItem

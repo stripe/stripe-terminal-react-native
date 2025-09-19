@@ -33,6 +33,8 @@
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSAppTransportSecurity</key>
@@ -52,6 +54,7 @@
     <string>Location access is required in order to accept payments.</string>
     <key>UIBackgroundModes</key>
     <array>
+      <string>bluetooth-central</string>
       <string>bluetooth-central</string>
     </array>
     <key>UILaunchStoryboardName</key>

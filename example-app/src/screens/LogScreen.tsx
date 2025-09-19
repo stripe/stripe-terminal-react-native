@@ -7,7 +7,7 @@ import ListItem from '../components/ListItem';
 import type { RouteParamList } from '../App';
 
 const LogScreen = () => {
-  const { params } = useRoute<RouteProp<RouteParamList, 'Log'>>();
+  const { params } = useRoute<RouteProp<RouteParamList, 'LogScreen'>>();
   const { event, log } = params;
   const { metadata } = event;
 
