@@ -11,6 +11,11 @@
 		24C7E187271805C30025FC13 /* Empty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E186271805C30025FC13 /* Empty.swift */; };
 		4C39C56BAD484C67AA576FFA /* libPods-StripeTerminalReactNativeDevApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */; };
 		4E3334442DF12A0000534394 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3334432DF129FA00534394 /* AppDelegate.swift */; };
+		4EB145CC2E7D25CD00680D0D /* libBBUSBDriverCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EB145CA2E7D25CD00680D0D /* libBBUSBDriverCore.a */; };
+		4EB145CD2E7D25CD00680D0D /* BBUSBDriverDataCommUserClient.iig in Sources */ = {isa = PBXBuildFile; fileRef = 4EB145C42E7D25CD00680D0D /* BBUSBDriverDataCommUserClient.iig */; };
+		4EB145CE2E7D25CD00680D0D /* BBUSBDriverDetectionUserClient.iig in Sources */ = {isa = PBXBuildFile; fileRef = 4EB145C62E7D25CD00680D0D /* BBUSBDriverDetectionUserClient.iig */; };
+		4EB145CF2E7D25CD00680D0D /* BBUSBDriverHost.iig in Sources */ = {isa = PBXBuildFile; fileRef = 4EB145C72E7D25CD00680D0D /* BBUSBDriverHost.iig */; };
+		4EB145D12E7D25CD00680D0D /* BBUSBDriverDataStruct.h in Headers */ = {isa = PBXBuildFile; fileRef = 4EB145C52E7D25CD00680D0D /* BBUSBDriverDataStruct.h */; };
 		4EF8ED532E0A710C005B85E3 /* DriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED522E0A710C005B85E3 /* DriverKit.framework */; };
 		4EF8ED5C2E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.usb-driver.dext in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.usb-driver.dext */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4EF8ED632E0A7282005B85E3 /* USBDriverKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EF8ED622E0A7282005B85E3 /* USBDriverKit.framework */; };
@@ -52,6 +57,13 @@
 		24C7E186271805C30025FC13 /* Empty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Empty.swift; sourceTree = "<group>"; };
 		47F7ED3B7971BE374F7B8635 /* Pods-StripeTerminalReactNativeDevApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StripeTerminalReactNativeDevApp.debug.xcconfig"; path = "Target Support Files/Pods-StripeTerminalReactNativeDevApp/Pods-StripeTerminalReactNativeDevApp.debug.xcconfig"; sourceTree = "<group>"; };
 		4E3334432DF129FA00534394 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4EB145C42E7D25CD00680D0D /* BBUSBDriverDataCommUserClient.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = BBUSBDriverDataCommUserClient.iig; sourceTree = "<group>"; };
+		4EB145C52E7D25CD00680D0D /* BBUSBDriverDataStruct.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BBUSBDriverDataStruct.h; sourceTree = "<group>"; };
+		4EB145C62E7D25CD00680D0D /* BBUSBDriverDetectionUserClient.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = BBUSBDriverDetectionUserClient.iig; sourceTree = "<group>"; };
+		4EB145C72E7D25CD00680D0D /* BBUSBDriverHost.iig */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.iig; path = BBUSBDriverHost.iig; sourceTree = "<group>"; };
+		4EB145C82E7D25CD00680D0D /* Driver.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Driver.entitlements; sourceTree = "<group>"; };
+		4EB145C92E7D25CD00680D0D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4EB145CA2E7D25CD00680D0D /* libBBUSBDriverCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libBBUSBDriverCore.a; sourceTree = "<group>"; };
 		4EF8ED512E0A710C005B85E3 /* com.stripe.terminal.reactnative.dev.app.usb-driver.dext */ = {isa = PBXFileReference; explicitFileType = "wrapper.driver-extension"; includeInIndex = 0; path = "com.stripe.terminal.reactnative.dev.app.usb-driver.dext"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EF8ED522E0A710C005B85E3 /* DriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DriverKit.framework; path = Library/Frameworks/DriverKit.framework; sourceTree = DEVELOPER_DIR; };
 		4EF8ED622E0A7282005B85E3 /* USBDriverKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = USBDriverKit.framework; path = Platforms/DriverKit.platform/Developer/SDKs/DriverKit24.1.sdk/System/DriverKit/System/Library/Frameworks/USBDriverKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -63,27 +75,6 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4EF8ED602E0A710C005B85E3 /* Exceptions for "Driver" folder in "Driver" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 4EF8ED502E0A710C005B85E3 /* Driver */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		4EF8ED542E0A710C005B85E3 /* Driver */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				4EF8ED602E0A710C005B85E3 /* Exceptions for "Driver" folder in "Driver" target */,
-			);
-			path = Driver;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
@@ -99,6 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EB145CC2E7D25CD00680D0D /* libBBUSBDriverCore.a in Frameworks */,
 				4EF8ED632E0A7282005B85E3 /* USBDriverKit.framework in Frameworks */,
 				4EF8ED532E0A710C005B85E3 /* DriverKit.framework in Frameworks */,
 			);
@@ -134,6 +126,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4EB145CB2E7D25CD00680D0D /* Driver */ = {
+			isa = PBXGroup;
+			children = (
+				4EB145C42E7D25CD00680D0D /* BBUSBDriverDataCommUserClient.iig */,
+				4EB145C52E7D25CD00680D0D /* BBUSBDriverDataStruct.h */,
+				4EB145C62E7D25CD00680D0D /* BBUSBDriverDetectionUserClient.iig */,
+				4EB145C72E7D25CD00680D0D /* BBUSBDriverHost.iig */,
+				4EB145C82E7D25CD00680D0D /* Driver.entitlements */,
+				4EB145C92E7D25CD00680D0D /* Info.plist */,
+				4EB145CA2E7D25CD00680D0D /* libBBUSBDriverCore.a */,
+			);
+			path = Driver;
+			sourceTree = "<group>";
+		};
 		6B9684456A2045ADE5A6E47E /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -156,7 +162,7 @@
 				C251B19429BC224000E3E4A2 /* stripe_terminal_react_native_dev_app.entitlements */,
 				13B07FAE1A68108700A75B9A /* StripeTerminalReactNativeDevApp */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				4EF8ED542E0A710C005B85E3 /* Driver */,
+				4EB145CB2E7D25CD00680D0D /* Driver */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				6B9684456A2045ADE5A6E47E /* Pods */,
@@ -182,6 +188,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EB145D12E7D25CD00680D0D /* BBUSBDriverDataStruct.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -223,9 +230,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				4EF8ED542E0A710C005B85E3 /* Driver */,
 			);
 			name = Driver;
 			productName = Driver;
@@ -374,6 +378,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EB145CD2E7D25CD00680D0D /* BBUSBDriverDataCommUserClient.iig in Sources */,
+				4EB145CE2E7D25CD00680D0D /* BBUSBDriverDetectionUserClient.iig in Sources */,
+				4EB145CF2E7D25CD00680D0D /* BBUSBDriverHost.iig in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
