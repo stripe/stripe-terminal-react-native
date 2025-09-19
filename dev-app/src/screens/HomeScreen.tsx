@@ -36,14 +36,11 @@ export default function HomeScreen() {
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
-  const [showReconnectSuccessAlert, setShowReconnectSuccessAlert] =
-    useState<boolean>(false);
-  const [showReconnectingAlert, setShowReconnectingAlert] =
-    useState<boolean>(false);
   const [showDisconnectAlert, setShowDisconnectAlert] = useState<{
     visible: boolean;
     reason?: string;
   }>({ visible: false });
+
   const [reconnectReader, setReconectReader] = useState<Reader.Type | null>(null);
   const [pendingUpdate, setPendingUpdate] =
     useState<Reader.SoftwareUpdate | null>(null);
@@ -63,7 +60,7 @@ export default function HomeScreen() {
   } = useStripeTerminal({
     onDidChangeConnectionStatus(status) {
       setConnectionStatus(status);
-      if (status == 'notConnected') {
+      if (status === 'notConnected') {
         setPendingUpdate(null);
       }
     },
@@ -119,6 +116,7 @@ export default function HomeScreen() {
         reason: 'Reader disconnected with reason ' + reason,
       });
     },
+
     onDidStartReaderReconnect(reader, reason) {
       console.log('onDidStartReaderReconnect ' + reason + ' for reader ' + reader.id);
       setReconectReader(reader);
