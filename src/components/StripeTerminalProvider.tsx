@@ -295,17 +295,13 @@ export function StripeTerminalProvider({
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
   useListener(ACCEPT_TERMS_OF_SERVICE, didAcceptTermsOfService);
 
-  const tokenProviderHandler = async ({
-    callbackId,
-  }: {
-    callbackId: string;
-  }) => {
+  const tokenProviderHandler = async () => {
     try {
       const connectionToken = await tokenProvider();
 
-      setConnectionToken(connectionToken, undefined, callbackId);
+      setConnectionToken(connectionToken, undefined);
     } catch (error) {
-      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE, callbackId);
+      setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
       console.error(error);
       console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
