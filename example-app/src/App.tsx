@@ -5,7 +5,7 @@ import {
   TransitionPresets,
   type StackNavigationOptions
 } from '@react-navigation/stack';
-import {HeaderBackButton} from '@react-navigation/elements';
+import { HeaderBackButton } from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
@@ -62,7 +62,7 @@ export type RouteParamList = {
     event: Event;
     log: Log;
   };
-  
+
   PaymentMethodSelect: {
     paymentMethodTypes: string[];
     enabledPaymentMethodTypes: string[];
@@ -220,7 +220,7 @@ export default function App() {
               component={DiscoverReadersScreen}
             />
             <Stack.Screen
-              name="RegisterInternetReader"
+              name="RegisterInternetReaderScreen"
               options={{
                 headerTitle: 'Register Reader',
               }}
