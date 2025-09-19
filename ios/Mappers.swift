@@ -302,6 +302,8 @@ class Mappers {
             return PaymentMethodType.affirm
         case "paynow":
             return PaymentMethodType.paynow
+        case "paypay":
+            return PaymentMethodType.paypay
         default:
             return PaymentMethodType.unknown
         }
@@ -648,6 +650,15 @@ class Mappers {
             return result
         }
 
+    class func mapFromPaypay(_ paypay: PaypayDetails) -> NSDictionary {
+        let result: NSDictionary = [
+            "location": paypay.location ?? NSNull(),
+            "reader": paypay.reader ?? NSNull(),
+            "reference": paypay.reference ?? NSNull(),
+        ]
+        return result
+    }
+
     class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
         var offlineCardPresentDetails: NSDictionary?
         if let cardPresentDetails = offlineDetails.cardPresentDetails {
@@ -768,6 +779,7 @@ class Mappers {
         case PaymentMethodType.wechatPay: return "wechatPay"
         case PaymentMethodType.affirm: return "affirm"
         case PaymentMethodType.paynow: return "paynow"
+        case PaymentMethodType.paypay: return "paypay"
         default: return "unknown"
         }
     }
@@ -793,6 +805,10 @@ class Mappers {
         if let paynow = paymentMethodDetails.paynow{
             paynowMapped = mapFromPaynow(paynow)
         }
+        var paypayMapped: NSDictionary?
+        if let paypay = paymentMethodDetails.paypay{
+            paypayMapped = mapFromPaypay(paypay)
+        }
         var cardDetailsMapped: NSDictionary?
         if let cardDetails = paymentMethodDetails.card {
             cardDetailsMapped = mapFromCardDetails(cardDetails)
@@ -804,6 +820,7 @@ class Mappers {
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "affirmDetails": affirmMapped ?? NSNull(),
             "paynowDetails": paynowMapped ?? NSNull(),
+            "paypayDetails": paypayMapped ?? NSNull(),
             "cardDetails": cardDetailsMapped ?? NSNull(),
         ]
         return result
@@ -873,6 +890,10 @@ class Mappers {
         if let paynow = paymentMethod.paynow{
             paynowMapped = mapFromPaynow(paynow)
         }
+        var paypayMapped: NSDictionary?
+        if let paypay = paymentMethod.paypay{
+            paypayMapped = mapFromPaypay(paypay)
+        }
 
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
@@ -880,6 +901,7 @@ class Mappers {
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "affirmDetails": affirmMapped ?? NSNull(),
             "paynowDetails": paynowMapped ?? NSNull(),
+            "paypayDetails": paypayMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
@@ -1103,6 +1125,7 @@ class Mappers {
         case "wechat_pay": return .wechatPay
         case "affirm": return .affirm
         case "paynow": return .paynow
+        case "paypay": return .paypay
         default: return .unknown
         }
     }

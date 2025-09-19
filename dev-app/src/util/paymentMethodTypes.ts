@@ -49,6 +49,7 @@ export const PAYMENT_METHOD_TYPES = [
   'p24',
   'pay_by_bank',
   'paynow',
+  'paypay',
   'paypal',
   'payto',
   'pix',
