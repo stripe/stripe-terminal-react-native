@@ -1902,11 +1902,55 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1)
   - stripe-terminal-react-native (0.0.1-beta.27):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
     - StripeTerminal (~> 4.6.1)
+    - Yoga
   - stripe-terminal-react-native/Tests (0.0.1-beta.27):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
     - StripeTerminal (~> 4.6.1)
+    - Yoga
   - StripeTerminal (4.6.1)
   - Yoga (0.0.0)
 
@@ -2235,7 +2279,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: f8d0f8c032ba1209eb370bcc29e1138788208673
   RNScreens: 5ec356ebbf743eafa3d263eda1f15d03299a9f64
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: b18026bf7005167dc6456b451e670a006cfc9471
+  stripe-terminal-react-native: 9b0834e7cbecc1807487c446ac24e645f1e158b7
   StripeTerminal: 542aee71cf148da0d30cf1a67bf19e8bf4e06567
   Yoga: dc7c21200195acacb62fa920c588e7c2106de45e
 
