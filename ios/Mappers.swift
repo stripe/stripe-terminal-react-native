@@ -300,6 +300,8 @@ class Mappers {
             return PaymentMethodType.wechatPay
         case "affirm":
             return PaymentMethodType.affirm
+        case "paynow":
+            return PaymentMethodType.paynow
         default:
             return PaymentMethodType.unknown
         }
