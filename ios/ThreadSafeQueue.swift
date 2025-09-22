@@ -1,6 +1,6 @@
 class ThreadSafeQueue<T> {
     private var array: [T] = []
-    private let queue = DispatchQueue(label: "com.stripe.threadSafeQueue")
+    private let queue = DispatchQueue(label: "com.stripe.terminal.reactnative.threadSafeQueue")
 
     func enqueue(_ element: T) {
         queue.sync {
