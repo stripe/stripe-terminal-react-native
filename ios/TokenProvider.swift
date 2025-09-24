@@ -12,11 +12,10 @@ class TokenProvider: ConnectionTokenProvider {
     func setConnectionToken(token: String?, error: String?) {
         while (!queue.isEmpty) {
             let completionCallback = queue.dequeue()
-            let unwrappedToken = token ?? ""
-            if (!unwrappedToken.isEmpty) {
+            if let unwrappedToken = token, !unwrappedToken.isEmpty {
                 completionCallback?(unwrappedToken, nil)
             } else {
-                completionCallback?(nil, TokenError.runtimeError(error ?? "Token is invalid"))
+              completionCallback?(nil, TokenError.runtimeError(error ?? "Token is invalid"))
             }
         }
     }
