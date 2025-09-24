@@ -262,7 +262,7 @@ export default function SetupIntentScreen() {
         });
         return;
       }
-      var parameter: CreateSetupIntentParams;
+      let parameter: CreateSetupIntentParams;
       if (moto) {
         parameter = {
           customer: resp.id,
