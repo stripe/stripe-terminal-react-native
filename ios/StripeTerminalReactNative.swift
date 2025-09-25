@@ -244,9 +244,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     func setConnectionToken(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let token = params["token"] as? String
         let error = params["error"] as? String
-        let callbackId = params["callbackId"] as? String
 
-        TokenProvider.shared.setConnectionToken(token: token, error: error, callbackId: callbackId)
+        TokenProvider.shared.setConnectionToken(token: token, error: error)
         resolve([:])
     }
 

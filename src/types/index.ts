@@ -15,7 +15,6 @@ export type InitParams = {
 export type SetConnectionTokenParams = {
   token?: string;
   error?: string;
-  callbackId?: string;
 };
 
 export type LogLevel = LogLevelIOS | LogLevelAndroid;
