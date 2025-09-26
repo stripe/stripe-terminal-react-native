@@ -6,7 +6,6 @@ import com.facebook.react.bridge.WritableMap
 import com.stripe.stripeterminal.external.api.ApiError
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
-import kotlinx.coroutines.CancellationException
 
 internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
 

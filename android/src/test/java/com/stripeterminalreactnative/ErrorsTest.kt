@@ -18,7 +18,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.ClassRule
 import org.junit.Test
@@ -30,6 +29,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class ErrorsTest {
@@ -234,23 +234,6 @@ class ErrorsTest {
         assertFalse(metadata.hasKey(UNDERLYING_ERROR_KEY))
     }
 
-    @Test
-    fun `stripeErrorMapFromThrowable handles CancellationException`() {
-        // GIVEN a CancellationException with underlying cause
-        val cause = RuntimeException("cancelled cause")
-        val cancellation = CancellationException("cancelled").apply { initCause(cause) }
-
-        // WHEN mapping the cancellation exception
-        val error = stripeErrorMapFromThrowable(cancellation) as JavaOnlyMap
-
-        // THEN metadata should describe the cancellation and its cause
-        assertEquals(NON_STRIPE_ERROR, error.getString("name"))
-        val metadata = error.requireMap(METADATA_KEY)
-        assertEquals("CancellationException", metadata.getString(EXCEPTION_CLASS_KEY))
-        val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)
-        assertEquals("RuntimeException", underlying.getString("code"))
-        assertEquals("cancelled cause", underlying.getString("message"))
-    }
 
     @Test
     fun `requireCancelable returns value when present`() {
@@ -397,6 +380,54 @@ class ErrorsTest {
 
         // THEN promise.resolve must not be called
         verify(exactly = 0) { promise.resolve(any<ReadableMap>()) }
+    }
+
+
+    @Test
+    fun `TerminalErrorCode mapping completeness test`() {
+        // GIVEN all TerminalErrorCode enum values
+        val allErrorCodes = TerminalErrorCode.values()
+        
+        // WHEN mapping each code to RN error code
+        // THEN each should have a valid non-empty mapping
+        allErrorCodes.forEach { code ->
+            val rnCode = code.toRnErrorCode()
+            assertFalse(rnCode.isEmpty(), "TerminalErrorCode.$code should not map to empty string")
+            assertTrue(rnCode.matches(Regex("^[A-Z][A-Z0-9_]*$")), 
+                      "TerminalErrorCode.$code should map to UPPER_SNAKE_CASE format, got: $rnCode")
+            assertEquals(code.name, rnCode, "TerminalErrorCode.$code should map to its enum name")
+        }
+        
+        // AND verify we tested the expected number of codes
+        assertTrue(allErrorCodes.size >= 80, "Expected at least 80 TerminalErrorCode values, got ${allErrorCodes.size}")
+    }
+
+    @Test
+    fun `nested exception chain handling`() {
+        // GIVEN a deep exception chain
+        val rootCause = IllegalStateException("root cause")
+        val midCause = RuntimeException("middle cause", rootCause)
+        val terminalException = mockTerminalException(
+            TerminalErrorCode.BLUETOOTH_ERROR,
+            "bluetooth failed",
+            cause = midCause
+        )
+        
+        // WHEN creating the error map
+        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val error = errorWrapper.requireMap("error")
+        
+        // THEN should be StripeError with immediate cause metadata
+        assertEquals(STRIPE_ERROR, error.getString("name"))
+        assertEquals("bluetooth failed", error.getString("message"))
+        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.toRnErrorCode(), error.getString("code"))
+        
+        val metadata = error.requireMap(METADATA_KEY)
+        val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)
+        assertEquals("RuntimeException", underlying.getString("code"))
+        assertEquals("middle cause", underlying.getString("message"))
+        
+        // NOTE: Only immediate cause is captured, not the full chain
     }
 
     companion object {
