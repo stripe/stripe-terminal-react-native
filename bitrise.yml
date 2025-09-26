@@ -164,6 +164,11 @@ workflows:
       - yarn@0:
           inputs:
             - cache_local_deps: 'yes'
+            - command: check:rn-error-codes
+          title: yarn check:rn-error-codes
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
             - command: lint
           title: yarn lint
     before_run:
