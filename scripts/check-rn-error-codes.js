@@ -33,8 +33,14 @@ function parseSwiftEnum(swiftPath) {
 
 function parseKotlinAndroidReturnCodes(kotlinPath) {
   const src = fs.readFileSync(kotlinPath, 'utf8');
-  const m = src.match(/fun\s+TerminalErrorCode\.toRnErrorCode\([^)]*\)\s*:\s*String\s*=\s*when\s*\(this\)\s*\{([\s\S]*?)\}/);
-  if (!m) { throw new Error('Could not find TerminalErrorCode.toRnErrorCode() in Kotlin'); }
+  const m = src.match(
+    /fun\s+TerminalErrorCode\.convertToReactNativeErrorCode\([^)]*\)\s*:\s*String\s*=\s*when\s*\(this\)\s*\{([\s\S]*?)\}/
+  );
+  if (!m) {
+    throw new Error(
+      'Could not find TerminalErrorCode.convertToReactNativeErrorCode() in Kotlin'
+    );
+  }
   const body = m[1];
   const hasElseBranch = /else\s*->/.test(body);
   const re = /->\s*"([A-Z0-9_]+)"/g;
