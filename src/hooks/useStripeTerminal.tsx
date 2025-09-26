@@ -9,7 +9,6 @@ import type {
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
   CollectPaymentMethodParams,
-  StripeError,
   PaymentStatus,
   UserCallbacks,
   EventResult,
@@ -30,6 +29,7 @@ import type {
   ConnectInternetReaderParams,
   PrintContent,
 } from '../types';
+import type { StripeError } from '../types/StripeError';
 import {
   discoverReaders,
   cancelDiscovering,
@@ -86,6 +86,8 @@ import { NativeModules } from 'react-native';
 //@ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+import { createStripeError } from '../Errors/StripeErrorHelpers';
+import { ErrorCode } from '../Errors/ErrorCodes';
 
 export const {
   FETCH_TOKEN_PROVIDER,
@@ -151,7 +153,10 @@ export function useStripeTerminal(props?: Props) {
     log,
   } = useContext(StripeTerminalContext);
 
-  const _isInitialized = useCallback(() => getIsInitialized(), [getIsInitialized]);
+  const _isInitialized = useCallback(
+    () => getIsInitialized(),
+    [getIsInitialized]
+  );
 
   const {
     onUpdateDiscoveredReaders,
@@ -386,10 +391,10 @@ export function useStripeTerminal(props?: Props) {
       log('Failed', errorMessage);
 
       return {
-        error: {
-          code: 'Failed',
+        error: createStripeError({
+          code: ErrorCode.UNEXPECTED_SDK_ERROR,
           message: errorMessage,
-        },
+        }),
         reader: undefined,
       };
     }

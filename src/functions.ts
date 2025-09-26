@@ -14,7 +14,6 @@ import type {
   PaymentIntentResultType,
   GetLocationsParams,
   GetLocationsResultType,
-  StripeError,
   Cart,
   CreateSetupIntentParams,
   ClearReaderDisplayResultType,
@@ -39,7 +38,9 @@ import type {
   ConnectReaderParams,
   PrintContent,
 } from './types';
-import { CommonError } from './types';
+import type { StripeError } from './types/StripeError';
+import { createStripeError } from './Errors/StripeErrorHelpers';
+import { ErrorCode } from './Errors/ErrorCodes';
 import { Platform } from 'react-native';
 
 export async function initialize(
@@ -419,8 +420,9 @@ export async function cancelInstallingUpdate(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelInstallingUpdate();
-      return {};
+      const result = (await StripeTerminalSdk.cancelInstallingUpdate()) as any;
+      const error = (result as any)?.error as StripeError | undefined;
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -566,9 +568,10 @@ export async function setSimulatedCard(
 ): Promise<{ error?: StripeError }> {
   return Logger.traceSdkMethod(async (innerCardNumber) => {
     try {
-      await StripeTerminalSdk.setSimulatedCard(innerCardNumber);
-
-      return {};
+      const { error } = await StripeTerminalSdk.setSimulatedCard(
+        innerCardNumber
+      );
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -582,8 +585,10 @@ export async function setSimulatedOfflineMode(
 ): Promise<{ error?: StripeError }> {
   return Logger.traceSdkMethod(async (innerSimulatedOffline) => {
     try {
-      await StripeTerminalSdk.setSimulatedOfflineMode(innerSimulatedOffline);
-      return {};
+      const { error } = await StripeTerminalSdk.setSimulatedOfflineMode(
+        innerSimulatedOffline
+      );
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -597,10 +602,10 @@ export async function setSimulatedCollectInputsResult(
 ): Promise<{ error?: StripeError }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.setSimulatedCollectInputsResult(
+      const { error } = await StripeTerminalSdk.setSimulatedCollectInputsResult(
         simulatedCollectInputsBehavior
       );
-      return {};
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -672,8 +677,8 @@ export async function cancelCollectPaymentMethod(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelCollectPaymentMethod();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelCollectPaymentMethod();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -687,8 +692,9 @@ export async function cancelCollectRefundPaymentMethod(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelCollectRefundPaymentMethod();
-      return {};
+      const { error } =
+        await StripeTerminalSdk.cancelCollectRefundPaymentMethod();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -702,8 +708,8 @@ export async function cancelCollectSetupIntent(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelCollectSetupIntent();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelCollectSetupIntent();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -717,8 +723,8 @@ export async function cancelConfirmPaymentIntent(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelConfirmPaymentIntent();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelConfirmPaymentIntent();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -732,8 +738,8 @@ export async function cancelConfirmSetupIntent(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelConfirmSetupIntent();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelConfirmSetupIntent();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -747,8 +753,8 @@ export async function cancelConfirmRefund(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelConfirmRefund();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelConfirmRefund();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -809,11 +815,17 @@ export async function getConnectedReader(): Promise<Reader.Type> {
   }, 'getConnectedReader')();
 }
 
-export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
+export async function getReaderSettings(): Promise<
+  Reader.ReaderSettings | { error?: StripeError }
+> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const readerSettings = await StripeTerminalSdk.getReaderSettings();
-      return readerSettings;
+      const response = await StripeTerminalSdk.getReaderSettings();
+      const maybeError = (response as any)?.error as StripeError | undefined;
+      if (maybeError) {
+        return { error: maybeError };
+      }
+      return response as Reader.ReaderSettings;
     } catch (error) {
       return {
         error: error as any,
@@ -824,11 +836,15 @@ export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
 
 export async function setReaderSettings(
   params: Reader.ReaderSettingsParameters
-): Promise<Reader.ReaderSettings> {
+): Promise<Reader.ReaderSettings | { error?: StripeError }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const readerSettings = await StripeTerminalSdk.setReaderSettings(params);
-      return readerSettings;
+      const response = await StripeTerminalSdk.setReaderSettings(params);
+      const maybeError = (response as any)?.error as StripeError | undefined;
+      if (maybeError) {
+        return { error: maybeError };
+      }
+      return response as Reader.ReaderSettings;
     } catch (error) {
       return {
         error: error as any,
@@ -857,8 +873,8 @@ export async function cancelCollectInputs(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelCollectInputs();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelCollectInputs();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -887,8 +903,8 @@ export async function cancelCollectData(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelCollectData();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelCollectData();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -922,8 +938,8 @@ export async function cancelReaderReconnection(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      await StripeTerminalSdk.cancelReaderReconnection();
-      return {};
+      const { error } = await StripeTerminalSdk.cancelReaderReconnection();
+      return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
@@ -956,10 +972,10 @@ export async function setTapToPayUxConfiguration(
 }> {
   if (Platform.OS === 'ios') {
     return {
-      error: {
+      error: createStripeError({
         message: "'setTapToPayUxConfiguration' is unsupported on iOS",
-        code: CommonError.Failed,
-      },
+        code: ErrorCode.UNSUPPORTED_OPERATION,
+      }),
     };
   }
 
