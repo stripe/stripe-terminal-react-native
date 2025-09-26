@@ -31,7 +31,7 @@ internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
 private fun WritableMap.putErrorContents(throwable: Throwable?) {
     when (throwable) {
         is TerminalException -> {
-            // Enrich to StripeError shape expected by RN layer
+
             putString("name", "StripeError")
             putString("message", throwable.errorMessage)
             putString("code", throwable.errorCode.toRnErrorCode())
@@ -39,16 +39,9 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
             putMap(
                 "metadata",
                 nativeMapOf {
-                    throwable.apiError?.let { apiErr ->
-                        putMap(
-                            "apiError",
-                            nativeMapOf {
-                                putString("code", apiErr.code)
-                                putString("message", apiErr.message)
-                                putString("declineCode", apiErr.declineCode)
-                            }
-                        )
-                    }
+                    addApiErrorInformation(throwable.apiError)
+                    addAndroidExceptionInformation(throwable.cause)
+                    addAndroidExceptionClassInfo(throwable)
                 }
             )
         }
@@ -69,18 +62,7 @@ private fun WritableMap.putUnknownErrorContents(throwable: Throwable?) {
     putMap(
         "metadata",
         nativeMapOf {
-            throwable?.let { t ->
-                putString("exceptionClass", t.javaClass.name)
-                t.cause?.let { c ->
-                    putMap(
-                        "cause",
-                        nativeMapOf {
-                            putString("class", c.javaClass.name)
-                            putString("message", c.message)
-                        }
-                    )
-                }
-            }
+            addUnknownExceptionInformation(throwable)
         }
     )
 }
@@ -249,4 +231,48 @@ fun TerminalErrorCode.toRnErrorCode(): String = when (this) {
     TerminalErrorCode.PRINTER_ABSENT -> "PRINTER_ABSENT"
     TerminalErrorCode.PRINTER_UNAVAILABLE -> "PRINTER_UNAVAILABLE"
     TerminalErrorCode.PRINTER_ERROR -> "PRINTER_ERROR"
+}
+
+private fun WritableMap.addApiErrorInformation(apiError: ApiError?) {
+    apiError?.let { apiErr ->
+        putMap(
+            "apiError",
+            nativeMapOf {
+                putString("code", apiErr.code)
+                putString("message", apiErr.message)
+                putString("declineCode", apiErr.declineCode)
+            }
+        )
+    }
+}
+
+private fun WritableMap.addAndroidExceptionInformation(cause: Throwable?) {
+    cause?.let { c ->
+        putMap(
+            "underlyingError",
+            nativeMapOf {
+                putString("code", c.javaClass.simpleName)
+                putString("message", c.message ?: "Unknown cause")
+            }
+        )
+    }
+}
+
+private fun WritableMap.addAndroidExceptionClassInfo(throwable: TerminalException) {
+    putString("exceptionClass", throwable.javaClass.simpleName)
+}
+
+private fun WritableMap.addUnknownExceptionInformation(throwable: Throwable?) {
+    throwable?.let { t ->
+        putString("exceptionClass", t.javaClass.simpleName)
+        t.cause?.let { c ->
+            putMap(
+                "underlyingError",
+                nativeMapOf {
+                    putString("code", c.javaClass.simpleName)
+                    putString("message", c.message ?: "Unknown cause")
+                }
+            )
+        }
+    }
 }
