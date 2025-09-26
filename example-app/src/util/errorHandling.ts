@@ -4,7 +4,7 @@ import { checkIfObjectIsStripeError } from '@stripe/stripe-terminal-react-native
 
 /**
  * Enhanced error handling utilities for example-app
- * 
+ *
  * These utilities provide consistent error handling while maintaining
  * backward compatibility with existing code patterns.
  */
@@ -21,7 +21,7 @@ const DEFAULT_TOAST_CONFIG = {
 
 /**
  * Shows an error Alert with proper title and message handling
- * 
+ *
  * Backward compatible with existing Alert.alert(error.code, error.message) patterns
  */
 export function showErrorAlert(error: unknown, customTitle?: string): void {
@@ -38,15 +38,15 @@ export function showErrorAlert(error: unknown, customTitle?: string): void {
 
 /**
  * Shows an error Toast with consistent configuration
- * 
+ *
  * Backward compatible with existing Toast.show() patterns
  */
 export function showErrorToast(
-  error: unknown, 
+  error: unknown,
   customConfig?: Partial<typeof DEFAULT_TOAST_CONFIG>
 ): number {
   let message: string;
-  
+
   if (checkIfObjectIsStripeError(error)) {
     message = error.message;
   } else if (error instanceof Error) {
@@ -54,24 +54,27 @@ export function showErrorToast(
   } else {
     message = error ? String(error) : 'Unknown error occurred';
   }
-  
+
   const config = { ...DEFAULT_TOAST_CONFIG, ...customConfig };
   const toast = Toast.show(message, config);
-  
+
   // Auto-hide after 3 seconds (existing pattern)
   setTimeout(() => {
     Toast.hide(toast);
   }, 3000);
-  
+
   return toast;
 }
 
 /**
  * Extracts error information for logging
- * 
+ *
  * Returns a consistent object structure for logging purposes
  */
-export function extractErrorInfo(error: unknown, context?: string): {
+export function extractErrorInfo(
+  error: unknown,
+  context?: string
+): {
   errorCode: string;
   errorMessage: string;
   nativeErrorCode?: string;
@@ -101,10 +104,13 @@ export function extractErrorInfo(error: unknown, context?: string): {
 
 /**
  * Gets a safe error message string
- * 
+ *
  * Backward compatible with error?.message patterns
  */
-export function getErrorMessage(error: unknown, fallback = 'Unknown error occurred'): string {
+export function getErrorMessage(
+  error: unknown,
+  fallback = 'Unknown error occurred'
+): string {
   if (checkIfObjectIsStripeError(error)) {
     return error.message;
   } else if (error instanceof Error) {
@@ -116,10 +122,13 @@ export function getErrorMessage(error: unknown, fallback = 'Unknown error occurr
 
 /**
  * Gets a safe error code string
- * 
+ *
  * Provides consistent error codes for all error types
  */
-export function getErrorCode(error: unknown, fallback = 'UNKNOWN_ERROR'): string {
+export function getErrorCode(
+  error: unknown,
+  fallback = 'UNKNOWN_ERROR'
+): string {
   if (checkIfObjectIsStripeError(error)) {
     return error.code;
   } else {
@@ -129,7 +138,7 @@ export function getErrorCode(error: unknown, fallback = 'UNKNOWN_ERROR'): string
 
 /**
  * Enhanced version of existing pattern: error?.message ? error.message : 'unknown error'
- * 
+ *
  * This function maintains the exact same behavior while adding type safety
  */
 export function safeErrorMessage(error: unknown): string {

@@ -5,7 +5,12 @@
  */
 
 // 🆕 Unified import - only need to add this one line to any file requiring error handling
-import { showErrorAlert, getErrorMessage, getErrorCode, extractErrorInfo } from './errorHandling';
+import {
+  showErrorAlert,
+  getErrorMessage,
+  getErrorCode,
+  extractErrorInfo,
+} from './errorHandling';
 
 // ================================================================================
 // 📝 Case 1: DiscoverReadersScreen.tsx - Line 169

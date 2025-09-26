@@ -35,7 +35,7 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 ### Android
 
 - Android API level 26 and above
-  * Note that attempting to override minSdkVersion to decrease the minimum supported API level will not work due to internal runtime API level validation.
+  - Note that attempting to override minSdkVersion to decrease the minimum supported API level will not work due to internal runtime API level validation.
 - compileSdkVersion = 35
 - targetSdkVersion = 35
 
@@ -204,12 +204,12 @@ All SDK methods return errors as `StripeError` objects, which provide informatio
 ```typescript
 interface StripeError extends Error {
   name: 'StripeError';
-  message: string;                    // Human-readable error message
-  code: ErrorCode;                    // SDK error code (e.g., 'BLUETOOTH_ERROR')
-  nativeErrorCode: string;            // Platform-specific error code
-  metadata: Record<string, unknown>;  // Additional error context
+  message: string; // Human-readable error message
+  code: ErrorCode; // SDK error code (e.g., 'BLUETOOTH_ERROR')
+  nativeErrorCode: string; // Platform-specific error code
+  metadata: Record<string, unknown>; // Additional error context
   paymentIntent?: PaymentIntent.Type; // Related PaymentIntent (if applicable)
-  setupIntent?: SetupIntent.Type;     // Related SetupIntent (if applicable)
+  setupIntent?: SetupIntent.Type; // Related SetupIntent (if applicable)
 }
 ```
 
@@ -218,7 +218,7 @@ interface StripeError extends Error {
 #### Structured Error Information
 
 - All errors follow the same structure across platforms
-- Multiple error codes and metadata provide debugging information  
+- Multiple error codes and metadata provide debugging information
 - Full TypeScript support prevents runtime errors
 
 #### Cross-Platform Consistency
@@ -240,22 +240,22 @@ The SDK provides error codes organized by category:
 
 ```typescript
 // Network errors
-'STRIPE_API_CONNECTION_ERROR'
-'REQUEST_TIMED_OUT'
-'SESSION_EXPIRED'
+'STRIPE_API_CONNECTION_ERROR';
+'REQUEST_TIMED_OUT';
+'SESSION_EXPIRED';
 
-// Reader/Hardware errors  
-'BLUETOOTH_ERROR'
-'READER_BUSY'
-'CARD_READ_TIMED_OUT'
+// Reader/Hardware errors
+'BLUETOOTH_ERROR';
+'READER_BUSY';
+'CARD_READ_TIMED_OUT';
 
 // Payment errors
-'DECLINED_BY_STRIPE_API'
-'DECLINED_BY_READER'
+'DECLINED_BY_STRIPE_API';
+'DECLINED_BY_READER';
 
 // Integration errors
-'NOT_CONNECTED_TO_READER'
-'INVALID_CLIENT_SECRET'
+'NOT_CONNECTED_TO_READER';
+'INVALID_CLIENT_SECRET';
 // ... and 60+ additional specific codes
 ```
 
@@ -272,7 +272,7 @@ try {
     console.log('Connection failed:', error.code);
     console.log('Message:', error.message);
     console.log('Native code:', error.nativeErrorCode);
-    
+
     // Handle specific error types
     switch (error.code) {
       case 'BLUETOOTH_ERROR':
@@ -299,14 +299,14 @@ const { confirmPaymentIntent } = useStripeTerminal();
 const { error, paymentIntent } = await confirmPaymentIntent('pi_...');
 if (error) {
   console.log('Payment failed:', error.code);
-  
+
   // Access decline details from metadata
   if (error.code === 'DECLINED_BY_STRIPE_API') {
     const declineCode = error.metadata?.decline_code;
     const networkStatus = error.metadata?.network_status;
     console.log('Decline reason:', declineCode);
   }
-  
+
   // Access related PaymentIntent for recovery
   if (error.paymentIntent) {
     console.log('PaymentIntent status:', error.paymentIntent.status);
@@ -371,6 +371,7 @@ Regardless of the underlying platform, your React Native code always receives th
 While the main `StripeError` structure is consistent, the `metadata` field contains platform-specific debugging information:
 
 **Android Metadata Structure**:
+
 ```typescript
 metadata: {
   // Android-specific fields
@@ -390,6 +391,7 @@ metadata: {
 ```
 
 **iOS Metadata Structure**:
+
 ```typescript
 metadata: {
   // iOS-specific fields
@@ -419,28 +421,28 @@ const { error } = await connectReader(reader, 'bluetoothScan');
 if (error) {
   console.log('Error code:', error.code);
   console.log('Native code:', error.nativeErrorCode);
-  
+
   // Access platform-specific debugging information
   if (error.metadata.apiError) {
     // Android-specific: Stripe API error details
     console.log('API Error:', error.metadata.apiError);
   }
-  
+
   if (error.metadata.userInfo) {
     // iOS-specific: Additional NSError userInfo
     console.log('iOS UserInfo:', error.metadata.userInfo);
   }
-  
+
   if (error.metadata.localizedFailureReason) {
     // iOS-specific: Localized failure reason
     console.log('iOS Failure Reason:', error.metadata.localizedFailureReason);
   }
-  
+
   if (error.metadata.underlyingError) {
     // Platform-specific: Underlying error details
     console.log('Underlying Error:', error.metadata.underlyingError);
   }
-  
+
   if (error.metadata.exceptionClass) {
     // Android-specific: Exception class information
     console.log('Android Exception Class:', error.metadata.exceptionClass);
@@ -470,9 +472,9 @@ This means you can write your error handling code once and it works the same way
 The SDK includes utility functions for error handling:
 
 ```typescript
-import { 
+import {
   checkIfObjectIsStripeError,
-  createStripeError
+  createStripeError,
 } from '@stripe/stripe-terminal-react-native';
 
 // Type-safe error checking
@@ -485,7 +487,7 @@ if (checkIfObjectIsStripeError(error)) {
 const customError = createStripeError({
   code: 'UNEXPECTED_SDK_ERROR',
   message: 'Custom error message',
-  metadata: { context: 'custom operation' }
+  metadata: { context: 'custom operation' },
 });
 ```
 
