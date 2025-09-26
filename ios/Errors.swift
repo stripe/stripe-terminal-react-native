@@ -181,6 +181,11 @@ class Errors {
         let code: String
         let nativeErrorCode: String
 
+        var metadata: [String: Any] = [
+            "domain": nsError.domain,
+            "isStripeError": isStripeError
+        ]
+
         if isStripeError {
             let codeEnum = ErrorCode.Code(rawValue: nsError.code)
             if let ce = codeEnum {
@@ -199,11 +204,6 @@ class Errors {
             code = "UNEXPECTED_SDK_ERROR"
             nativeErrorCode = "\(nsError.domain):\(nsError.code)"
         }
-
-        var metadata: [String: Any] = [
-            "domain": nsError.domain,
-            "isStripeError": isStripeError
-        ]
         if let failure = nsError.localizedFailureReason, failure.isEmpty == false {
             metadata["localizedFailureReason"] = failure
         }
@@ -315,7 +315,6 @@ class Errors {
         case .bluetoothAccessDenied: return RNErrorCode.BLUETOOTH_PERMISSION_DENIED.rawValue
         case .bluetoothScanTimedOut: return RNErrorCode.BLUETOOTH_SCAN_TIMED_OUT.rawValue
         case .bluetoothLowEnergyUnsupported: return RNErrorCode.BLUETOOTH_LOW_ENERGY_UNSUPPORTED.rawValue
-        case .noAvailableReaderSoftwareUpdate: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
         case .locationServicesDisabled: return RNErrorCode.LOCATION_SERVICES_DISABLED.rawValue
         case .connectionTokenProviderCompletedWithNothing: return RNErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR.rawValue
         case .connectionTokenProviderCompletedWithNothingWhileForwarding: return RNErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR_WHILE_FORWARDING.rawValue
@@ -367,8 +366,6 @@ class Errors {
         case .commandNotAllowedDuringCall: return RNErrorCode.UNSUPPORTED_OPERATION.rawValue
         case .invalidAmount: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
         case .invalidCurrency: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
-        case .appleBuiltInReaderTOSAcceptanceRequiresiCloudSignIn: return RNErrorCode.UNSUPPORTED_OPERATION.rawValue
-        case .appleBuiltInReaderTOSAcceptanceCanceled: return RNErrorCode.CANCELED.rawValue
         case .notConnectedToInternet: return RNErrorCode.STRIPE_API_CONNECTION_ERROR.rawValue
         case .requestTimedOut: return RNErrorCode.REQUEST_TIMED_OUT.rawValue
         case .stripeAPIError: return RNErrorCode.STRIPE_API_ERROR.rawValue
@@ -409,25 +406,13 @@ class Errors {
         case .surchargeNoticeRequiresUpdatePaymentIntent: return RNErrorCode.ALLOW_REDISPLAY_INVALID.rawValue
         case .surchargeUnavailableWithDynamicCurrencyConversion: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .invalidLocationIdParameter: return RNErrorCode.MISSING_REQUIRED_PARAMETER.rawValue
-        case .invalidCombinationDiscoveryAttempt: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .mustUseReaderParameterVariant: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .missingReaderDelegate: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .confirmCalledOnIncorrectReader: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .simultaneousReaderAccountIdMismatch: return RNErrorCode.ACCOUNT_ID_MISMATCH_WHILE_FORWARDING.rawValue
         case .bluetoothReconnectStarted: return RNErrorCode.BLUETOOTH_RECONNECT_STARTED.rawValue
         case .readerNotAccessibleInBackground: return RNErrorCode.UNSUPPORTED_OPERATION.rawValue
-        case .appleBuiltInReaderFailedToPrepare: return RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue
-        case .appleBuiltInReaderDeviceBanned: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .appleBuiltInReaderTOSNotYetAccepted: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .appleBuiltInReaderTOSAcceptanceFailed: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .appleBuiltInReaderMerchantBlocked: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
-        case .appleBuiltInReaderInvalidMerchant: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .offlineBehaviorForceOfflineWithFeatureDisabled: return RNErrorCode.FORCE_OFFLINE_WITH_FEATURE_DISABLED.rawValue
         case .collectInputsApplicationError: return RNErrorCode.COLLECT_INPUTS_APPLICATION_ERROR.rawValue
         case .collectInputsTimedOut: return RNErrorCode.COLLECT_INPUTS_TIMED_OUT.rawValue
         case .collectInputsInvalidParameter: return RNErrorCode.COLLECT_INPUTS_INVALID_PARAMETER.rawValue
         case .collectInputsUnsupported: return RNErrorCode.COLLECT_INPUTS_UNSUPPORTED.rawValue
-        case .appleBuiltInReaderAccountDeactivated: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .readerMissingEncryptionKeys: return RNErrorCode.READER_MISSING_ENCRYPTION_KEYS.rawValue
         case .requestDynamicCurrencyConversionRequiresUpdatePaymentIntent: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .dynamicCurrencyConversionNotAvailable: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
