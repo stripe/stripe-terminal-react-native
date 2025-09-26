@@ -31,7 +31,6 @@ internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
 private fun WritableMap.putErrorContents(throwable: Throwable?) {
     when (throwable) {
         is TerminalException -> {
-
             putString("name", "StripeError")
             putString("message", throwable.errorMessage)
             putString("code", throwable.errorCode.toRnErrorCode())
@@ -45,9 +44,6 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
                 }
             )
         }
-        is CancellationException -> {
-            putErrorContents(throwable.cause)
-        }
         else -> {
             putUnknownErrorContents(throwable)
         }
@@ -55,7 +51,7 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
 }
 
 private fun WritableMap.putUnknownErrorContents(throwable: Throwable?) {
-    putString("name", "StripeError")
+    putString("name", "NonStripeError")
     putString("message", throwable?.message ?: "Unknown error")
     putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toRnErrorCode())
     putString("nativeErrorCode", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
