@@ -1,6 +1,7 @@
 export * from './types';
 
 export { ErrorCode } from './Errors/ErrorCodes';
+export { createStripeError } from './Errors/StripeErrorHelpers';
 
 export * from './StripeTerminalSdk';
 export { default as StripeTerminalSdk } from './StripeTerminalSdk';
