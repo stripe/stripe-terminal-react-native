@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import Toast from 'react-native-root-toast';
-import { checkIfObjectIsStripeError } from '@stripe/stripe-terminal-react-native';
+import { checkIfObjectIsStripeError } from '../../../src/Errors/StripeErrorHelpers';
 
 /**
  * Enhanced error handling utilities for example-app
