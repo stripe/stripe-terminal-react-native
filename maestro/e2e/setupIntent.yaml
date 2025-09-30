@@ -27,6 +27,7 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       id: "Process"
-- scrollUntilVisible:
-    element:
+- extendedWaitUntil:
+    visible:
       id: "Finished"
+    timeout: 60000
