@@ -30,4 +30,3 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible:
       id: "Finished"
-    timeout: 60000
