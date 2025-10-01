@@ -27,6 +27,6 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       id: "Process"
-- extendedWaitUntil:
-    visible:
+- scrollUntilVisible:
+    element:
       id: "Finished"
