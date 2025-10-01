@@ -3,7 +3,6 @@ import Foundation
 
 class Errors {
     enum RNErrorCode: String {
-        // Integration-like
         case CANCEL_FAILED = "CANCEL_FAILED"
         case NOT_CONNECTED_TO_READER = "NOT_CONNECTED_TO_READER"
         case ALREADY_CONNECTED_TO_READER = "ALREADY_CONNECTED_TO_READER"
@@ -19,7 +18,6 @@ class Errors {
         case INVALID_REQUIRED_PARAMETER = "INVALID_REQUIRED_PARAMETER"
         case INVALID_TIP_PARAMETER = "INVALID_TIP_PARAMETER"
 
-        // User-like
         case CANCELED = "CANCELED"
         case LOCATION_SERVICES_DISABLED = "LOCATION_SERVICES_DISABLED"
         case BLUETOOTH_SCAN_TIMED_OUT = "BLUETOOTH_SCAN_TIMED_OUT"
@@ -34,7 +32,6 @@ class Errors {
         case CARD_LEFT_IN_READER = "CARD_LEFT_IN_READER"
         case USB_DISCOVERY_TIMED_OUT = "USB_DISCOVERY_TIMED_OUT"
 
-        // Reader / Hardware
         case READER_BUSY = "READER_BUSY"
         case READER_COMMUNICATION_ERROR = "READER_COMMUNICATION_ERROR"
         case BLUETOOTH_ERROR = "BLUETOOTH_ERROR"
@@ -50,15 +47,12 @@ class Errors {
         case UNSUPPORTED_READER_VERSION = "UNSUPPORTED_READER_VERSION"
         case GENERIC_READER_ERROR = "GENERIC_READER_ERROR"
 
-        // Unexpected
         case UNEXPECTED_SDK_ERROR = "UNEXPECTED_SDK_ERROR"
 
-        // Payment
         case DECLINED_BY_STRIPE_API = "DECLINED_BY_STRIPE_API"
         case DECLINED_BY_READER = "DECLINED_BY_READER"
         case MOBILE_WALLET_NOT_SUPPORTED_ON_SETUP_INTENTS = "MOBILE_WALLET_NOT_SUPPORTED_ON_SETUP_INTENTS"
 
-        // Network
         case REQUEST_TIMED_OUT = "REQUEST_TIMED_OUT"
         case STRIPE_API_CONNECTION_ERROR = "STRIPE_API_CONNECTION_ERROR"
         case STRIPE_API_ERROR = "STRIPE_API_ERROR"
@@ -68,7 +62,6 @@ class Errors {
         case SESSION_EXPIRED = "SESSION_EXPIRED"
         case ANDROID_API_LEVEL_ERROR = "ANDROID_API_LEVEL_ERROR"
 
-        // Offline / Account / Currency constraints
         case AMOUNT_EXCEEDS_MAX_OFFLINE_AMOUNT = "AMOUNT_EXCEEDS_MAX_OFFLINE_AMOUNT"
         case OFFLINE_PAYMENTS_DATABASE_TOO_LARGE = "OFFLINE_PAYMENTS_DATABASE_TOO_LARGE"
         case READER_CONNECTION_NOT_AVAILABLE_OFFLINE = "READER_CONNECTION_NOT_AVAILABLE_OFFLINE"
@@ -91,7 +84,6 @@ class Errors {
         case OFFLINE_MODE_UNSUPPORTED_ANDROID_VERSION = "OFFLINE_MODE_UNSUPPORTED_ANDROID_VERSION"
         case TEST_CARD_IN_LIVEMODE = "TEST_CARD_IN_LIVEMODE"
 
-        // Collect Inputs / surcharge / DCC
         case COLLECT_INPUTS_APPLICATION_ERROR = "COLLECT_INPUTS_APPLICATION_ERROR"
         case COLLECT_INPUTS_TIMED_OUT = "COLLECT_INPUTS_TIMED_OUT"
         case COLLECT_INPUTS_INVALID_PARAMETER = "COLLECT_INPUTS_INVALID_PARAMETER"
@@ -102,7 +94,6 @@ class Errors {
         case READER_SETTINGS_ERROR = "READER_SETTINGS_ERROR"
         case FEATURE_NOT_ENABLED_ON_ACCOUNT = "FEATURE_NOT_ENABLED_ON_ACCOUNT"
 
-        // Tap to Pay
         case TAP_TO_PAY_LIBRARY_NOT_INCLUDED = "TAP_TO_PAY_LIBRARY_NOT_INCLUDED"
         case TAP_TO_PAY_UNSUPPORTED_DEVICE = "TAP_TO_PAY_UNSUPPORTED_DEVICE"
         case TAP_TO_PAY_UNSUPPORTED_ANDROID_VERSION = "TAP_TO_PAY_UNSUPPORTED_ANDROID_VERSION"
@@ -111,7 +102,6 @@ class Errors {
         case TAP_TO_PAY_DEBUG_NOT_SUPPORTED = "TAP_TO_PAY_DEBUG_NOT_SUPPORTED"
         case TAP_TO_PAY_UNSUPPORTED_PROCESSOR = "TAP_TO_PAY_UNSUPPORTED_PROCESSOR"
 
-        // Printer
         case PRINTER_BUSY = "PRINTER_BUSY"
         case PRINTER_PAPERJAM = "PRINTER_PAPERJAM"
         case PRINTER_OUT_OF_PAPER = "PRINTER_OUT_OF_PAPER"
@@ -120,7 +110,6 @@ class Errors {
         case PRINTER_UNAVAILABLE = "PRINTER_UNAVAILABLE"
         case PRINTER_ERROR = "PRINTER_ERROR"
 
-        // Misc / Fallback
         case READER_TAMPERED = "READER_TAMPERED"
         case READER_MISSING_ENCRYPTION_KEYS = "READER_MISSING_ENCRYPTION_KEYS"
         case USB_PERMISSION_DENIED = "USB_PERMISSION_DENIED"
@@ -230,17 +219,8 @@ class Errors {
             ErrorConstants.isStripeErrorKey: isStripeError
         ]
         
-        // Add unmapped error code information for Stripe errors
         if isStripeError {
-            let codeEnum = ErrorCode.Code(rawValue: nsError.code)
-            if let ce = codeEnum {
-                let rn = convertToReactNativeErrorCode(from: ce)
-                if rn == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && ce != .unexpectedSdkError {
-                    metadata[ErrorConstants.unmappedErrorCodeKey] = toUpperSnakeCase(ce.stringValue)
-                }
-            } else {
-                metadata[ErrorConstants.unmappedErrorCodeKey] = String(nsError.code)
-            }
+            checkAndRecordUnmappedErrorCode(to: &metadata, from: nsError)
         }
         
         addLocalizedErrorInformation(to: &metadata, from: nsError)
@@ -248,6 +228,27 @@ class Errors {
         addUserInfoMetadata(to: &metadata, from: nsError)
         
         return metadata
+    }
+    
+    private class func checkAndRecordUnmappedErrorCode(to metadata: inout [String: Any], from nsError: NSError) {
+        let codeEnum = ErrorCode.Code(rawValue: nsError.code)
+        
+        if let ce = codeEnum {
+            let rn = convertToReactNativeErrorCode(from: ce)
+            if isUnmappedStripeError(reactNativeCode: rn, originalCode: ce) {
+                metadata[ErrorConstants.unmappedErrorCodeKey] = toUpperSnakeCase(ce.stringValue)
+            }
+        } else {
+            recordUnknownErrorCode(nsError.code, to: &metadata)
+        }
+    }
+    
+    private class func isUnmappedStripeError(reactNativeCode: String, originalCode: ErrorCode.Code) -> Bool {
+        return reactNativeCode == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && originalCode != .unexpectedSdkError
+    }
+    
+    private class func recordUnknownErrorCode(_ code: Int, to metadata: inout [String: Any]) {
+        metadata[ErrorConstants.unmappedErrorCodeKey] = String(code)
     }
 
     private class func stripeErrorObject(name: String = ErrorConstants.stripeErrorName, code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
@@ -272,12 +273,10 @@ class Errors {
     }
 
     private class func jsonSafeValue(_ value: Any) -> Any? {
-        // Use JSONSerialization for basic validation
         if JSONSerialization.isValidJSONObject([value]) {
             return value
         }
         
-        // Handle special types that need conversion
         switch value {
         case let url as URL:
             return url.absoluteString
@@ -316,7 +315,6 @@ class Errors {
             .uppercased()
     }
 
-    // Map iOS ErrorCode.Code to RN ErrorCode (UPPER_SNAKE_CASE).
     private class func convertToReactNativeErrorCode(from code: ErrorCode.Code) -> String {
         switch code {
         case .canceled: return RNErrorCode.CANCELED.rawValue
@@ -431,7 +429,6 @@ class Errors {
         case .usbDiscoveryTimedOut: return RNErrorCode.USB_DISCOVERY_TIMED_OUT.rawValue
         case .usbDisconnected: return RNErrorCode.USB_DISCONNECTED.rawValue
         
-        // Additional cases found when removing default - need explicit mapping
         case .cancelFailedUnavailable: return RNErrorCode.CANCEL_FAILED.rawValue
         case .nilPaymentIntent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
         case .nilSetupIntent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
