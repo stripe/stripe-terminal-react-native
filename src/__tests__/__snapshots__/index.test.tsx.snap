@@ -10,11 +10,6 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "NFC_UID": "nfcUid",
     "UNKNOWN": "unknown",
   },
-  "CommonError": {
-    "Canceled": "Canceled",
-    "Failed": "Failed",
-    "Unknown": "Unknown",
-  },
   "DarkMode": {
     "DARK": "dark",
     "LIGHT": "light",
