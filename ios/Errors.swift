@@ -157,7 +157,7 @@ class Errors {
 
     class func createErrorFromNSError(nsError: NSError) -> [String: Any] {
         let mapped = mapToStripeErrorObject(nsError: nsError)
-        return ["error": mapped]
+        return [ErrorConstants.errorKey: mapped]
     }
 
     class func rejectPromise(_ reject: RCTPromiseRejectBlock, rnCode: String, message: String) {
@@ -171,19 +171,19 @@ class Errors {
             message: message,
             metadata: metadata
         )
-        return ["error": error]
+        return [ErrorConstants.errorKey: error]
     }
 
     class func mapToStripeErrorObject(nsError: NSError) -> [String: Any] {
-        let stripeDomain = "com.stripe-terminal"
+        let stripeDomain = ErrorConstants.stripeTerminalDomain
 
         let isStripeError = (nsError.domain == stripeDomain)
         let code: String
         let nativeErrorCode: String
 
         var metadata: [String: Any] = [
-            "domain": nsError.domain,
-            "isStripeError": isStripeError
+            ErrorConstants.domainKey: nsError.domain,
+            ErrorConstants.isStripeErrorKey: isStripeError
         ]
 
         if isStripeError {
@@ -192,11 +192,11 @@ class Errors {
                 let rn = convertToReactNativeErrorCode(from: ce)
                 code = rn
                 if rn == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && ce != .unexpectedSdkError {
-                    metadata["unmappedErrorCode"] = toUpperSnakeCase(ce.stringValue)
+                    metadata[ErrorConstants.unmappedErrorCodeKey] = toUpperSnakeCase(ce.stringValue)
                 }
             } else {
                 code = RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue
-                metadata["unmappedErrorCode"] = String(nsError.code)
+                metadata[ErrorConstants.unmappedErrorCodeKey] = String(nsError.code)
             }
             nativeErrorCode = String(nsError.code)
         } else {
@@ -209,7 +209,7 @@ class Errors {
         addUserInfoMetadata(to: &metadata, from: nsError)
 
         return stripeErrorObject(
-            name: isStripeError ? "StripeError" : "NonStripeError",
+            name: isStripeError ? ErrorConstants.stripeErrorName : ErrorConstants.nonStripeErrorName,
             code: code,
             nativeErrorCode: nativeErrorCode,
             message: nsError.localizedDescription,
@@ -217,13 +217,13 @@ class Errors {
         )
     }
 
-    private class func stripeErrorObject(name: String = "StripeError", code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
+    private class func stripeErrorObject(name: String = ErrorConstants.stripeErrorName, code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
         return [
-            "name": name,
-            "message": message.isEmpty ? "Unknown error" : message,
-            "code": code,
-            "nativeErrorCode": nativeErrorCode,
-            "metadata": metadata
+            ErrorConstants.nameKey: name,
+            ErrorConstants.messageKey: message.isEmpty ? ErrorConstants.unknownErrorMessage : message,
+            ErrorConstants.codeKey: code,
+            ErrorConstants.nativeErrorCodeKey: nativeErrorCode,
+            ErrorConstants.metadataKey: metadata
         ]
     }
 
@@ -267,9 +267,9 @@ class Errors {
         if let date = value as? Date { return ISO8601DateFormatter().string(from: date) }
         if let err = value as? NSError {
             return [
-                "domain": err.domain,
-                "code": err.code,
-                "userInfo": sanitizeUserInfo(err.userInfo)
+                ErrorConstants.nsErrorDomainKey: err.domain,
+                ErrorConstants.nsErrorCodeKey: err.code,
+                ErrorConstants.nsErrorUserInfoKey: sanitizeUserInfo(err.userInfo)
             ]
         }
 
@@ -470,19 +470,19 @@ extension Errors {
     
     private class func addLocalizedErrorInformation(to metadata: inout [String: Any], from nsError: NSError) {
         if let failure = nsError.localizedFailureReason, failure.isEmpty == false {
-            metadata["localizedFailureReason"] = failure
+            metadata[ErrorConstants.localizedFailureReasonKey] = failure
         }
         if let suggestion = nsError.localizedRecoverySuggestion, suggestion.isEmpty == false {
-            metadata["localizedRecoverySuggestion"] = suggestion
+            metadata[ErrorConstants.localizedRecoverySuggestionKey] = suggestion
         }
     }
     
     private class func addUnderlyingErrorInformation(to metadata: inout [String: Any], from nsError: NSError) {
         if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-            metadata["underlyingError"] = [
-                "domain": underlying.domain,
-                "code": underlying.code,
-                "message": underlying.localizedDescription
+            metadata[ErrorConstants.underlyingErrorKey] = [
+                ErrorConstants.underlyingErrorDomainKey: underlying.domain,
+                ErrorConstants.underlyingErrorCodeKey: underlying.code,
+                ErrorConstants.underlyingErrorMessageKey: underlying.localizedDescription
             ]
         }
     }
@@ -491,7 +491,7 @@ extension Errors {
         if nsError.userInfo.isEmpty == false {
             let sanitized = sanitizeUserInfo(nsError.userInfo)
             if sanitized.isEmpty == false {
-                metadata["userInfo"] = sanitized
+                metadata[ErrorConstants.userInfoKey] = sanitized
             }
         }
     }
