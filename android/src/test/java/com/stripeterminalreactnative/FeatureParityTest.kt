@@ -14,7 +14,7 @@ class FeatureParityTest {
         "setTerminalListener",
         "setOfflineListener",
         "isInitialized",
-        "getInstance",
+//        "getInstance",
         "connectExternalChannel"
     )
 
