@@ -66,6 +66,7 @@
     "@react-native/metro-config": "^0.78.0",
     "@react-native/typescript-config": "0.78.0",
     "@rnx-kit/align-deps": "^3.0.5",
+    "@testing-library/react-native": "^12.4.0",
     "@types/base-64": "^1.0.0",
     "@types/jest": "^29.5.11",
     "@types/react": "^18.2.6",
@@ -184,7 +185,6 @@
     ]
   },
   "dependencies": {
-    "@testing-library/react-native": "^12.4.0",
     "base-64": "^1.0.0",
     "react-native-gradle-plugin": "^0.71.19"
   },
