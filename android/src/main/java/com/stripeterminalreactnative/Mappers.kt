@@ -148,6 +148,10 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.STRIPE_S700_DEVKIT -> DeviceSerialName.STRIPE_S700_DEVKIT.serialName
         DeviceType.STRIPE_S710 -> DeviceSerialName.STRIPE_S710.serialName
         DeviceType.STRIPE_S710_DEVKIT -> DeviceSerialName.STRIPE_S710_DEVKIT.serialName
+        DeviceType.STRIPE_T600 -> DeviceSerialName.STRIPE_T600.serialName
+        DeviceType.STRIPE_T610 -> DeviceSerialName.STRIPE_T610.serialName
+        DeviceType.STRIPE_T600_DEVKIT -> DeviceSerialName.STRIPE_T600_DEVKIT.serialName
+        DeviceType.STRIPE_T610_DEVKIT -> DeviceSerialName.STRIPE_T610_DEVKIT.serialName
         DeviceType.UNKNOWN -> DeviceSerialName.UNKNOWN.serialName
         DeviceType.VERIFONE_P400 -> DeviceSerialName.VERIFONE_P400.serialName
         DeviceType.WISECUBE -> DeviceSerialName.WISECUBE.serialName
@@ -163,6 +167,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.VERIFONE_UX700 -> DeviceSerialName.VERIFONE_UX700.serialName
         DeviceType.VERIFONE_V660P_DEVKIT -> DeviceSerialName.VERIFONE_V660P_DEVKIT.serialName
         DeviceType.VERIFONE_UX700_DEVKIT -> DeviceSerialName.VERIFONE_UX700_DEVKIT.serialName
+
     }
 }
 

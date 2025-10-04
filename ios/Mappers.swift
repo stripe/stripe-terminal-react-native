@@ -495,9 +495,14 @@ class Mappers {
         }
         let result: NSDictionary = [
             "displayName": unwrappedLocation.displayName ?? NSNull(),
+            "displayNameKanji": unwrappedLocation.displayNameKanji ?? NSNull(),
+            "displayNameKana": unwrappedLocation.displayNameKana ?? NSNull(),
             "id": unwrappedLocation.stripeId,
             "livemode": unwrappedLocation.livemode,
             "address": mapFromAddress(unwrappedLocation.address) ?? NSNull(),
+            "addressKanji": mapFromAddress(unwrappedLocation.addressKanji) ?? NSNull(),
+            "addressKana": mapFromAddress(unwrappedLocation.addressKana) ?? NSNull(),
+            "phone": unwrappedLocation.phone ?? NSNull(),
         ]
         return result
     }
@@ -511,6 +516,7 @@ class Mappers {
                 "line1": address.line1 ?? NSNull(),
                 "line2": address.line2 ?? NSNull(),
                 "state": address.state ?? NSNull(),
+                "town": address.town ?? NSNull(),
             ]
             return result
         } else {
@@ -975,6 +981,7 @@ class Mappers {
         case DisconnectReason.bluetoothSignalLost: return "bluetoothSignalLost"
         case DisconnectReason.usbDisconnected: return "usbDisconnected"
         case DisconnectReason.idlePowerDown: return "idlePowerDown"
+        case DisconnectReason.peerRemovedPairingInformation: return "peerRemovedPairingInformation"
         default: return "unknown"
         }
     }
