@@ -12,20 +12,24 @@
     },
     "plugins": [
       [
-        "@stripe/stripe-terminal-react-native",
+        "../lib/commonjs/plugin/withStripeTerminal",
         {
           "bluetoothBackgroundMode": true,
           "locationWhenInUsePermission": "Location access is required in order to accept payments.",
           "bluetoothPeripheralPermission": "Bluetooth access is required in order to connect to supported bluetooth card readers.",
           "bluetoothAlwaysUsagePermission": "This app uses Bluetooth to connect to supported card readers.",
-          "localNetworkUsagePermission": "This app uses the local WiFi network to connect to supported card readers."
+          "localNetworkUsagePermission": "This app uses the local WiFi network to connect to supported card readers.",
+          "appDelegate": true,
+          "tapToPayCheck": true
         }
       ]
     ],
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.stripeterminalreactnative"
