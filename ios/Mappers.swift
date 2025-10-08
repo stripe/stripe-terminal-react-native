@@ -654,7 +654,6 @@ class Mappers {
         let result: NSDictionary = [
             "location": paypay.location ?? NSNull(),
             "reader": paypay.reader ?? NSNull(),
-            "reference": paypay.reference ?? NSNull(),
         ]
         return result
     }

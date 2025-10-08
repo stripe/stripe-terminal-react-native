@@ -806,7 +806,6 @@ private fun mapFromPaypayDetails(paypayDetails: PaypayDetails?): ReadableMap? =
         nativeMapOf {
             putString("location", it.location)
             putString("reader", it.reader)
-            putString("reference", it.reference)
         }
     }
 
