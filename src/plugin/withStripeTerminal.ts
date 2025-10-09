@@ -4,6 +4,7 @@ import {
   IOSConfig,
   withInfoPlist,
   withAndroidManifest,
+  withMainApplication,
   withGradleProperties,
   AndroidConfig,
 } from '@expo/config-plugins';
@@ -28,12 +29,16 @@ type StripeTerminalPluginProps = {
   bluetoothPeripheralPermission?: string;
   bluetoothAlwaysUsagePermission?: string;
   localNetworkUsagePermission?: string;
+  tapToPayCheck?: boolean;
+  appDelegate?: boolean;
 };
 
 const withStripeTerminal: ConfigPlugin<StripeTerminalPluginProps> = (
   config,
   props
 ) => {
+  config = withTapToPayAndroid(config, props);
+  config = withDelegateAndroid(config, props);
   config = withStripeTerminalIos(config, props);
   config = withNoopSwiftFile(config);
   config = withStripeTerminalAndroid(config);
@@ -46,7 +51,50 @@ const withStripeTerminalAndroid: ConfigPlugin = (expoConfig) => {
   return withAndroidManifest(expoConfig, (config) => {
     config.modResults = addBTPermissionToManifest(config.modResults);
     config.modResults = addLocationPermissionToManifest(config.modResults);
+    return config;
+  });
+};
 
+const withDelegateAndroid: ConfigPlugin<StripeTerminalPluginProps> = (config, props) => {
+  return withMainApplication(config, config => {
+    if (props.appDelegate != true) {
+      return config;
+    }
+
+    if (!config.modResults.contents.includes('import com.stripeterminalreactnative.TerminalApplicationDelegate')) {
+      config.modResults.contents = config.modResults.contents.replace(
+        'import com.facebook.react.ReactApplication',
+        'import com.facebook.react.ReactApplication\nimport com.stripeterminalreactnative.TerminalApplicationDelegate'
+      );
+    }
+    if (!config.modResults.contents.includes('TerminalApplicationDelegate.onCreate(this)')) {
+      config.modResults.contents = config.modResults.contents.replace(
+        'super.onCreate()',
+        'super.onCreate()\n    TerminalApplicationDelegate.onCreate(this)'
+      );
+    }
+    return config;
+  });
+};
+
+const withTapToPayAndroid: ConfigPlugin<StripeTerminalPluginProps> = (expoConfig, props) => {
+  return withMainApplication(expoConfig, async config => {
+    if (props.tapToPayCheck != true) {
+      return config;
+    }
+
+    if (!config.modResults.contents.includes('import com.stripeterminalreactnative.TapToPay')) {
+      config.modResults.contents = config.modResults.contents.replace(
+        'import com.facebook.react.ReactApplication',
+        'import com.facebook.react.ReactApplication\nimport com.stripeterminalreactnative.TapToPay'
+      );
+    }
+    if (!config.modResults.contents.includes('TapToPay.isInTapToPayProcess()')) {
+      config.modResults.contents = config.modResults.contents.replace(
+        'super.onCreate()',
+        'super.onCreate()\n    if (TapToPay.isInTapToPayProcess()) { return }'
+      );
+    }
     return config;
   });
 };
