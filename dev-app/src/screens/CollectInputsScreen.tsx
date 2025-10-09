@@ -41,7 +41,9 @@ export default function CollectInputsScreen() {
   const [simulatedCollectInputsBehavior, setSimulatedCollectInputsBehavior] =
     useState<string>(COLLECT_PAYMENT_INPUT_BEHAVIOR[0].value);
 
-  const _collectInputs = async (params: ICollectInputsParameters) => {
+  const _collectInputs = async (
+    collectInputsParams: ICollectInputsParameters
+  ) => {
     clearLogs();
     setCancel({
       label: 'Cancel CollectInput',
@@ -74,6 +76,10 @@ export default function CollectInputsScreen() {
               metadata: {
                 errorCode: simulateResultResponse.error?.code,
                 errorMessage: simulateResultResponse.error?.message,
+                nativeErrorCode: simulateResultResponse.error?.nativeErrorCode,
+                errorMetadata: JSON.stringify(
+                  simulateResultResponse.error?.metadata
+                ),
               },
             },
           ],
@@ -91,7 +97,7 @@ export default function CollectInputsScreen() {
         });
       }
     }
-    const response = await collectInputs(params);
+    const response = await collectInputs(collectInputsParams);
 
     if (response.error) {
       addLogs({
@@ -103,6 +109,8 @@ export default function CollectInputsScreen() {
             metadata: {
               errorCode: response.error?.code,
               errorMessage: response.error?.message,
+              nativeErrorCode: response.error?.nativeErrorCode,
+              errorMetadata: JSON.stringify(response.error?.metadata),
             },
           },
         ],

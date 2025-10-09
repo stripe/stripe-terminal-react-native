@@ -2,6 +2,8 @@ import type { Refund } from './Refund';
 import type { PaymentIntent } from './PaymentIntent';
 import type { Reader } from './Reader';
 import type { SetupIntent } from './SetupIntent';
+import type { StripeError } from './StripeError';
+export type { StripeError } from './StripeError';
 
 export * from './Reader';
 export * from './SetupIntent';
@@ -77,24 +79,13 @@ export type Cart = {
   lineItems: LineItem[];
 };
 
-export enum CommonError {
-  Failed = 'Failed',
-  Canceled = 'Canceled',
-  Unknown = 'Unknown',
-}
-
 export type LocationStatus = 'notSet' | 'set' | 'unknown';
-
-export type StripeError<T = CommonError> = {
-  code: T;
-  message: string;
-};
 
 export type InitializeResultType =
   | {
-    reader?: Reader.Type;
-    error?: undefined;
-  }
+      reader?: Reader.Type;
+      error?: undefined;
+    }
   | { error: StripeError; reader?: undefined };
 
 export type DiscoverReadersResultType = Promise<{
@@ -107,9 +98,9 @@ export type CancelDiscoveringResultType = Promise<{
 
 export type ConnectReaderResultType =
   | {
-    reader: Reader.Type;
-    error?: undefined;
-  }
+      reader: Reader.Type;
+      error?: undefined;
+    }
   | { reader?: undefined; error: StripeError };
 
 export type DisconnectReaderResultType = {
@@ -260,39 +251,39 @@ export type CreateSetupIntentParams = {
 
 export type PaymentIntentResultType =
   | {
-    paymentIntent: PaymentIntent.Type;
-    error?: undefined;
-  }
+      paymentIntent: PaymentIntent.Type;
+      error?: undefined;
+    }
   | {
-    paymentIntent?: undefined;
-    error: StripeError;
-  }
+      paymentIntent?: undefined;
+      error: StripeError;
+    }
   | {
-    paymentIntent: PaymentIntent.Type;
-    error: StripeError;
-  };
+      paymentIntent: PaymentIntent.Type;
+      error: StripeError;
+    };
 
 export type SetupIntentResultType =
   | {
-    setupIntent: SetupIntent.Type;
-    error?: undefined;
-  }
+      setupIntent: SetupIntent.Type;
+      error?: undefined;
+    }
   | {
-    setupIntent?: undefined;
-    error: StripeError;
-  };
+      setupIntent?: undefined;
+      error: StripeError;
+    };
 
 export type GetLocationsResultType =
   | {
-    locations: Location[];
-    hasMore: boolean;
-    error?: undefined;
-  }
+      locations: Location[];
+      hasMore: boolean;
+      error?: undefined;
+    }
   | {
-    locations?: undefined;
-    hasMore?: undefined;
-    error: StripeError;
-  };
+      locations?: undefined;
+      hasMore?: undefined;
+      error: StripeError;
+    };
 
 export type ClearReaderDisplayResultType = {
   error: StripeError;
@@ -432,7 +423,10 @@ export type UserCallbacks = {
   onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
 
-  onDidStartReaderReconnect?(reader: Reader.Type, reason?: Reader.DisconnectReason): void;
+  onDidStartReaderReconnect?(
+    reader: Reader.Type,
+    reason?: Reader.DisconnectReason
+  ): void;
   onDidSucceedReaderReconnect?(reader: Reader.Type): void;
   onDidFailReaderReconnect?(reader: Reader.Type): void;
 
@@ -468,13 +462,13 @@ export namespace PaymentMethod {
 
 export type PaymentMethodResultType =
   | {
-    paymentMethod?: PaymentMethod.Type;
-    error: undefined;
-  }
+      paymentMethod?: PaymentMethod.Type;
+      error: undefined;
+    }
   | {
-    paymentMethod: undefined;
-    error: StripeError;
-  };
+      paymentMethod: undefined;
+      error: StripeError;
+    };
 
 export interface ICollectInputsParameters {
   inputs: Array<IInput>;
@@ -621,13 +615,13 @@ export enum CollectDataType {
 
 export type CollectDataResultType =
   | {
-    collectedData?: CollectedData;
-    error?: undefined;
-  }
+      collectedData?: CollectedData;
+      error?: undefined;
+    }
   | {
-    collectedData?: undefined;
-    error: StripeError;
-  };
+      collectedData?: undefined;
+      error: StripeError;
+    };
 
 export type TapToPayUxConfiguration = {
   tapZone?: TapZone;

@@ -1,7 +1,6 @@
 import { NativeModules } from 'react-native';
 import type {
   InitParams,
-  StripeError,
   DiscoverReadersParams,
   DiscoverReadersResultType,
   CancelDiscoveringResultType,
@@ -38,6 +37,7 @@ import type {
   ConnectReaderParams,
   PrintContent,
 } from './types';
+import type { StripeError } from './types/StripeError';
 
 const { StripeTerminalReactNative } = NativeModules;
 
@@ -97,7 +97,9 @@ export interface StripeTerminalSdkType {
   // Install available update
   installAvailableUpdate(): Promise<void>;
   // Cancel installing software update
-  cancelInstallingUpdate(): Promise<void>;
+  cancelInstallingUpdate(): Promise<{
+    error?: StripeError;
+  }>;
   // Set text on a reader display
   setReaderDisplay(cart: Cart): Promise<{
     error?: StripeError;
@@ -156,7 +158,7 @@ export interface StripeTerminalSdkType {
   getPaymentStatus(): Promise<PaymentStatus>;
   getConnectionStatus(): Promise<ConnectionStatus>;
   getConnectedReader(): Promise<Reader.Type>;
-  getReaderSettings(): Promise<Reader.ReaderSettings>;
+  getReaderSettings(): Promise<Reader.ReaderSettings | { error?: StripeError }>;
   setReaderSettings(
     params: Reader.ReaderSettingsParameters
   ): Promise<Reader.ReaderSettings>;

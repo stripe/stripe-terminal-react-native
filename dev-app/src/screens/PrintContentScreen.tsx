@@ -67,6 +67,8 @@ export default function PrintContentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              nativeErrorCode: error.nativeErrorCode,
+              errorMetadata: JSON.stringify(error.metadata),
             },
           },
         ],
