@@ -643,6 +643,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "paynowDetails",
                 mapFromPaynowDetails(it.paynowDetails)
             )
+            putMap(
+                "paypayDetails",
+                mapFromPaypayDetails(it.paypayDetails)
+            )
             putString("customer", it.customer)
             putString("id", it.id)
             putString("type", mapFromPaymentMethodDetailsType(it.type))
@@ -684,6 +688,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "paynowDetails",
             mapFromPaynowDetails(paymentMethodDetails?.paynowDetails)
         )
+        putMap(
+            "paypayDetails",
+            mapFromPaypayDetails(paymentMethodDetails?.paypayDetails)
+        )
         if (paymentMethodDetails?.cardDetails != null) {
             putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
         }
@@ -698,6 +706,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.WECHAT_PAY -> "wechatPay"
         PaymentMethodType.AFFIRM -> "affirm"
         PaymentMethodType.PAYNOW -> "paynow"
+        PaymentMethodType.PAYPAY -> "paypay"
         else -> "unknown"
     }
 }
@@ -731,6 +740,8 @@ internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
         "interacPresent" -> PaymentMethodType.INTERAC_PRESENT
         "wechatPay" -> PaymentMethodType.WECHAT_PAY
         "affirm" -> PaymentMethodType.AFFIRM
+        "paynow" -> PaymentMethodType.PAYNOW
+        "paypay" -> PaymentMethodType.PAYPAY
         else -> null
     }
 }
@@ -787,6 +798,14 @@ private fun mapFromPaynowDetails(paynowDetails: PaynowDetails?): ReadableMap? =
             putString("location", it.location)
             putString("reader", it.reader)
             putString("reference", it.reference)
+        }
+    }
+
+private fun mapFromPaypayDetails(paypayDetails: PaypayDetails?): ReadableMap? =
+    paypayDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
         }
     }
 
