@@ -42,9 +42,5 @@ If applicable, add screenshots to help explain your problem.
 - Reader type: [e.g. M2, S700]
 - Serial number: [e.g., WSC1234, STRM1234]
 
-**Stripe account ID**
-
-[e.g., acct_1234]
-
 **Additional context**
 Add any other context about the problem here.
