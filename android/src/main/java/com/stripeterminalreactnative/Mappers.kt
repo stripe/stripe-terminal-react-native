@@ -148,6 +148,10 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.STRIPE_S700_DEVKIT -> DeviceSerialName.STRIPE_S700_DEVKIT.serialName
         DeviceType.STRIPE_S710 -> DeviceSerialName.STRIPE_S710.serialName
         DeviceType.STRIPE_S710_DEVKIT -> DeviceSerialName.STRIPE_S710_DEVKIT.serialName
+        DeviceType.STRIPE_T600 -> DeviceSerialName.STRIPE_T600.serialName
+        DeviceType.STRIPE_T610 -> DeviceSerialName.STRIPE_T610.serialName
+        DeviceType.STRIPE_T600_DEVKIT -> DeviceSerialName.STRIPE_T600_DEVKIT.serialName
+        DeviceType.STRIPE_T610_DEVKIT -> DeviceSerialName.STRIPE_T610_DEVKIT.serialName
         DeviceType.UNKNOWN -> DeviceSerialName.UNKNOWN.serialName
         DeviceType.VERIFONE_P400 -> DeviceSerialName.VERIFONE_P400.serialName
         DeviceType.WISECUBE -> DeviceSerialName.WISECUBE.serialName
@@ -163,6 +167,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.VERIFONE_UX700 -> DeviceSerialName.VERIFONE_UX700.serialName
         DeviceType.VERIFONE_V660P_DEVKIT -> DeviceSerialName.VERIFONE_V660P_DEVKIT.serialName
         DeviceType.VERIFONE_UX700_DEVKIT -> DeviceSerialName.VERIFONE_UX700_DEVKIT.serialName
+
     }
 }
 
@@ -638,6 +643,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "paynowDetails",
                 mapFromPaynowDetails(it.paynowDetails)
             )
+            putMap(
+                "paypayDetails",
+                mapFromPaypayDetails(it.paypayDetails)
+            )
             putString("customer", it.customer)
             putString("id", it.id)
             putString("type", mapFromPaymentMethodDetailsType(it.type))
@@ -679,6 +688,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
             "paynowDetails",
             mapFromPaynowDetails(paymentMethodDetails?.paynowDetails)
         )
+        putMap(
+            "paypayDetails",
+            mapFromPaypayDetails(paymentMethodDetails?.paypayDetails)
+        )
         if (paymentMethodDetails?.cardDetails != null) {
             putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
         }
@@ -693,6 +706,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.WECHAT_PAY -> "wechatPay"
         PaymentMethodType.AFFIRM -> "affirm"
         PaymentMethodType.PAYNOW -> "paynow"
+        PaymentMethodType.PAYPAY -> "paypay"
         else -> "unknown"
     }
 }
@@ -726,6 +740,8 @@ internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
         "interacPresent" -> PaymentMethodType.INTERAC_PRESENT
         "wechatPay" -> PaymentMethodType.WECHAT_PAY
         "affirm" -> PaymentMethodType.AFFIRM
+        "paynow" -> PaymentMethodType.PAYNOW
+        "paypay" -> PaymentMethodType.PAYPAY
         else -> null
     }
 }
@@ -782,6 +798,14 @@ private fun mapFromPaynowDetails(paynowDetails: PaynowDetails?): ReadableMap? =
             putString("location", it.location)
             putString("reader", it.reader)
             putString("reference", it.reference)
+        }
+    }
+
+private fun mapFromPaypayDetails(paypayDetails: PaypayDetails?): ReadableMap? =
+    paypayDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
         }
     }
 

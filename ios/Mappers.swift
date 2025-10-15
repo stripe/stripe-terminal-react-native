@@ -302,6 +302,8 @@ class Mappers {
             return PaymentMethodType.affirm
         case "paynow":
             return PaymentMethodType.paynow
+        case "paypay":
+            return PaymentMethodType.paypay
         default:
             return PaymentMethodType.unknown
         }
@@ -495,9 +497,14 @@ class Mappers {
         }
         let result: NSDictionary = [
             "displayName": unwrappedLocation.displayName ?? NSNull(),
+            "displayNameKanji": unwrappedLocation.displayNameKanji ?? NSNull(),
+            "displayNameKana": unwrappedLocation.displayNameKana ?? NSNull(),
             "id": unwrappedLocation.stripeId,
             "livemode": unwrappedLocation.livemode,
             "address": mapFromAddress(unwrappedLocation.address) ?? NSNull(),
+            "addressKanji": mapFromAddress(unwrappedLocation.addressKanji) ?? NSNull(),
+            "addressKana": mapFromAddress(unwrappedLocation.addressKana) ?? NSNull(),
+            "phone": unwrappedLocation.phone ?? NSNull(),
         ]
         return result
     }
@@ -511,6 +518,7 @@ class Mappers {
                 "line1": address.line1 ?? NSNull(),
                 "line2": address.line2 ?? NSNull(),
                 "state": address.state ?? NSNull(),
+                "town": address.town ?? NSNull(),
             ]
             return result
         } else {
@@ -642,6 +650,14 @@ class Mappers {
             return result
         }
 
+    class func mapFromPaypay(_ paypay: PaypayDetails) -> NSDictionary {
+        let result: NSDictionary = [
+            "location": paypay.location ?? NSNull(),
+            "reader": paypay.reader ?? NSNull(),
+        ]
+        return result
+    }
+
     class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
         var offlineCardPresentDetails: NSDictionary?
         if let cardPresentDetails = offlineDetails.cardPresentDetails {
@@ -762,6 +778,7 @@ class Mappers {
         case PaymentMethodType.wechatPay: return "wechatPay"
         case PaymentMethodType.affirm: return "affirm"
         case PaymentMethodType.paynow: return "paynow"
+        case PaymentMethodType.paypay: return "paypay"
         default: return "unknown"
         }
     }
@@ -787,6 +804,10 @@ class Mappers {
         if let paynow = paymentMethodDetails.paynow{
             paynowMapped = mapFromPaynow(paynow)
         }
+        var paypayMapped: NSDictionary?
+        if let paypay = paymentMethodDetails.paypay{
+            paypayMapped = mapFromPaypay(paypay)
+        }
         var cardDetailsMapped: NSDictionary?
         if let cardDetails = paymentMethodDetails.card {
             cardDetailsMapped = mapFromCardDetails(cardDetails)
@@ -798,6 +819,7 @@ class Mappers {
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "affirmDetails": affirmMapped ?? NSNull(),
             "paynowDetails": paynowMapped ?? NSNull(),
+            "paypayDetails": paypayMapped ?? NSNull(),
             "cardDetails": cardDetailsMapped ?? NSNull(),
         ]
         return result
@@ -867,6 +889,10 @@ class Mappers {
         if let paynow = paymentMethod.paynow{
             paynowMapped = mapFromPaynow(paynow)
         }
+        var paypayMapped: NSDictionary?
+        if let paypay = paymentMethod.paypay{
+            paypayMapped = mapFromPaypay(paypay)
+        }
 
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
@@ -874,6 +900,7 @@ class Mappers {
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "affirmDetails": affirmMapped ?? NSNull(),
             "paynowDetails": paynowMapped ?? NSNull(),
+            "paypayDetails": paypayMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
@@ -975,6 +1002,7 @@ class Mappers {
         case DisconnectReason.bluetoothSignalLost: return "bluetoothSignalLost"
         case DisconnectReason.usbDisconnected: return "usbDisconnected"
         case DisconnectReason.idlePowerDown: return "idlePowerDown"
+        case DisconnectReason.peerRemovedPairingInformation: return "peerRemovedPairingInformation"
         default: return "unknown"
         }
     }
@@ -1096,6 +1124,7 @@ class Mappers {
         case "wechat_pay": return .wechatPay
         case "affirm": return .affirm
         case "paynow": return .paynow
+        case "paypay": return .paypay
         default: return .unknown
         }
     }

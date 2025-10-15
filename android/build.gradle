@@ -68,6 +68,9 @@ kotlin {
 }
 
 repositories {
+    maven {
+        url '$rootDir/../../../localMavenRepo'
+    }
     mavenCentral()
     google()
 
@@ -141,6 +144,7 @@ def kotlin_version = getExtOrDefault('kotlinVersion')
 
 dependencies {
     // noinspection GradleDynamicVersion
+
     api 'com.facebook.react:react-android:0.78.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.stripe:stripeterminal-core:$terminalAndroidSdkVersion"
@@ -148,9 +152,10 @@ dependencies {
       implementation("com.stripe:stripeterminal-taptopay:$terminalAndroidSdkVersion")
     }
     implementation "com.stripe:stripeterminal-handoffclient:$terminalAndroidSdkVersion"
-    implementation 'com.google.code.gson:gson:2.3.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+
+    implementation 'com.google.code.gson:gson:2.12.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testImplementation 'io.mockk:mockk:1.12.3'

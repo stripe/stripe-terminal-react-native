@@ -1924,7 +1924,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - StripeTerminal (~> 4.6.1)
+    - StripeTerminal (~> 4.7.2)
     - Yoga
   - stripe-terminal-react-native/Tests (0.0.1-beta.27):
     - DoubleConversion
@@ -1949,9 +1949,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - StripeTerminal (~> 4.6.1)
+    - StripeTerminal (~> 4.7.2)
     - Yoga
-  - StripeTerminal (4.6.1)
+  - StripeTerminal (4.7.2)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
