@@ -35,8 +35,8 @@ stages:
 workflows:
   complete_all:
     steps:
-      # - save-npm-cache@1: {}
-      # - save-cocoapods-cache@1: {}
+      - save-npm-cache@1: {}
+      - save-cocoapods-cache@1: {}
   deploy-firebase-android:
     steps:
       - fastlane@3:
@@ -47,7 +47,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: dev-app:build:android:release
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: Build app for Firebase deploy
       - fastlane@3:
           inputs:
@@ -69,12 +69,12 @@ workflows:
       - yarn@0:
           inputs:
             - command: install --frozen-lockfile
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: yarn install --frozen-lockfile
       - yarn@0:
           inputs:
             - command: e2e:build:android:release
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: build for maestro test
       - script@1:
           inputs:
@@ -100,7 +100,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: e2e:build:ios:release
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: build for detox
       - xcode-start-simulator:
           inputs:
@@ -130,7 +130,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: e2e:build:example:android
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: yarn e2e:build:example:android
     before_run:
       - prep_all
@@ -153,7 +153,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: e2e:build:example:ios
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: yarn e2e:build:example:ios
     before_run:
       - prep_all
@@ -163,7 +163,7 @@ workflows:
     steps:
       - yarn@0:
           inputs:
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
             - command: lint
           title: yarn lint
     before_run:
@@ -180,8 +180,8 @@ workflows:
           inputs:
             - path: $WORKING_DIR
             - is_create_path: false
-      # - restore-npm-cache@1: {}
-      # - restore-cocoapods-cache@1: {}
+      - restore-npm-cache@1: {}
+      - restore-cocoapods-cache@1: {}
       - script@1:
           inputs:
             - content: |-
@@ -197,19 +197,19 @@ workflows:
           title: Misc prep steps
       - yarn@0:
           inputs:
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
             - workdir: example-app
             - command: install
           title: yarn install example-app
       - yarn@0:
           inputs:
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
             - workdir: dev-app
             - command: install
           title: yarn install dev-app
       - yarn@0:
           inputs:
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
             - command: install
           title: yarn install
       - script@1:
@@ -236,13 +236,13 @@ workflows:
     steps:
       - yarn@0:
           inputs:
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
             - command: typescript
           title: yarn typescript
       - yarn@0:
           inputs:
             - workdir: example-app
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
             - command: typescript
           title: yarn typescript example-app
     before_run:
@@ -254,7 +254,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: unit-test:android
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: yarn unit-test:android
     before_run:
       - prep_all
@@ -265,7 +265,7 @@ workflows:
       - yarn@0:
           inputs:
             - command: unit-test:js --coverage
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: yarn unit-test:js --coverage
     before_run:
       - prep_all
@@ -279,7 +279,7 @@ workflows:
             - scheme: UnitTests
             - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
             - command: yarn unit-test:ios
-            # - cache_local_deps: 'yes'
+            - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
     before_run:
       - prep_all
