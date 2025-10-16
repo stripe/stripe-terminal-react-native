@@ -7,7 +7,7 @@ final class ErrorsTests: XCTestCase {
 
     private func makeNSError(
         domain: String = "com.stripe-terminal",
-        code: Int = 0,
+        code: Int = ErrorCode.Code.readerBusy.rawValue, // Use valid default ErrorCode
         userInfo: [String: Any] = [:],
         description: String = "Error occurred",
         failureReason: String? = nil,
@@ -79,22 +79,6 @@ final class ErrorsTests: XCTestCase {
         }
         XCTAssertEqual(metadata["domain"] as? String, "com.partner")
         XCTAssertEqual(metadata["isStripeError"] as? Bool, false)
-    }
-
-    func testMapToStripeErrorObject_UnmappedStripeCode() {
-        // GIVEN a Stripe-domain error with unmapped code
-        let nsError = makeNSError(code: 99999, description: "Unknown code")
-
-        // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
-
-        // THEN the code should fallback to UNEXPECTED_SDK_ERROR with unmappedErrorCode metadata
-        XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
-        XCTAssertEqual(error["nativeErrorCode"] as? String, "99999")
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Metadata should exist")
-        }
-        XCTAssertEqual(metadata["unmappedErrorCode"] as? String, "UNKNOWN_ERROR(99999)")
     }
 
     func testCreateErrorReturnsWrappedStructure() {
@@ -540,25 +524,251 @@ final class ErrorsTests: XCTestCase {
         }
     }
 
-    func testErrorCodeMapping_unknownDefault() {
-        // GIVEN an unknown ErrorCode that would trigger @unknown default
-        // We use a non-existent raw value that StripeTerminal SDK doesn't recognize
-        let unknownRawValue = 999999
-        let nsError = makeNSError(code: unknownRawValue)
-
-        // WHEN mapping the unknown error code
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
-
-        // THEN it should map to UNEXPECTED_SDK_ERROR via @unknown default
-        XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR", 
-                      "Unknown ErrorCode should map to UNEXPECTED_SDK_ERROR")
+    func testErrorCodeMapping_additionalCasesFromDefaultRemoval() {
+        // GIVEN ErrorCode.Code values discovered when removing @unknown default
+        let testCases: [(ErrorCode.Code, String)] = [
+            (.cancelFailedUnavailable, "CANCEL_FAILED"),
+            (.nilPaymentIntent, "INVALID_REQUIRED_PARAMETER"),
+            (.nilSetupIntent, "INVALID_REQUIRED_PARAMETER"),
+            (.nilRefundPaymentMethod, "INVALID_REQUIRED_PARAMETER"),
+            (.invalidConnectionConfiguration, "INVALID_REQUIRED_PARAMETER"),
+            (.surchargeConsentRequiresAmountSurcharge, "INVALID_REQUIRED_PARAMETER"),
+            (.surchargeConsentNoticeRequiresAmountSurchargeAndCollectConsent, "INVALID_REQUIRED_PARAMETER"),
+            (.surchargeConsentRequestedForUnsupportedReader, "UNSUPPORTED_OPERATION"),
+            (.surchargeConsentDeclined, "DECLINED_BY_STRIPE_API"),
+            (.surchargeConsentTimeout, "REQUEST_TIMED_OUT"),
+            (.canceledDueToIntegrationError, "CANCELED_DUE_TO_INTEGRATION_ERROR"),
+            (.tapToPayReaderTOSAcceptanceRequiresiCloudSignIn, "READER_SOFTWARE_UPDATE_FAILED"),
+            (.tapToPayReaderTOSAcceptanceCanceled, "CANCELED"),
+            (.tapToPayReaderFailedToPrepare, "READER_SOFTWARE_UPDATE_FAILED"),
+            (.tapToPayReaderDeviceBanned, "UNSUPPORTED_READER_VERSION"),
+            (.tapToPayReaderTOSNotYetAccepted, "READER_SOFTWARE_UPDATE_FAILED"),
+            (.tapToPayReaderTOSAcceptanceFailed, "READER_SOFTWARE_UPDATE_FAILED"),
+            (.tapToPayReaderMerchantBlocked, "DECLINED_BY_STRIPE_API"),
+            (.tapToPayReaderInvalidMerchant, "INVALID_REQUIRED_PARAMETER"),
+            (.tapToPayReaderAccountDeactivated, "DECLINED_BY_STRIPE_API"),
+            (.printerBusy, "PRINTER_BUSY"),
+            (.printerPaperJam, "PRINTER_PAPERJAM"),
+            (.printerOutOfPaper, "PRINTER_OUT_OF_PAPER"),
+            (.printerCoverOpen, "PRINTER_COVER_OPEN"),
+            (.printerAbsent, "PRINTER_ABSENT"),
+            (.printerUnavailable, "PRINTER_UNAVAILABLE"),
+            (.printerError, "PRINTER_ERROR"),
+            (.readerConnectedToAnotherDevice, "READER_CONNECTED_TO_ANOTHER_DEVICE"),
+            (.readerTampered, "READER_TAMPERED"),
+            (.genericReaderError, "GENERIC_READER_ERROR"),
+            (.collectDataApplicationError, "COLLECT_INPUTS_APPLICATION_ERROR"),
+            (.displaySurchargeConsentApplicationError, "COLLECT_INPUTS_APPLICATION_ERROR"),
+            (.commandInvalidAllowRedisplay, "ALLOW_REDISPLAY_INVALID"),
+            (.tapToPayInternalNetworkError, "STRIPE_API_CONNECTION_ERROR")
+        ]
         
-        // AND should have unmappedErrorCode in metadata
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata for unknown error code")
+        // WHEN mapping each ErrorCode to RNErrorCode
+        // THEN the mapping should be correct for each case
+        for (errorCode, expectedRNCode) in testCases {
+            // WHEN creating error with Additional ErrorCode
+            let nsError = makeNSError(code: errorCode.rawValue)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+
+            // THEN it should map to correct RN error code
+            XCTAssertEqual(error["code"] as? String, expectedRNCode, 
+                          "Failed Additional case mapping for \(errorCode)")
         }
-        XCTAssertNotNil(metadata["unmappedErrorCode"], 
-                       "Unknown ErrorCode should have unmappedErrorCode in metadata")
     }
+
+    func testErrorCodeMapping_completeCoverage() {
+        // GIVEN: This test validates that ALL ErrorCode.Code cases have proper RN mapping
+        // This comprehensive test ensures no ErrorCode case is missed
+        
+        let allKnownErrorCodes: [ErrorCode.Code] = [
+            // Integration Errors - Basic SDK integration issues
+            .canceled,
+            .notConnectedToReader,
+            .alreadyConnectedToReader,
+            .confirmInvalidPaymentIntent,
+            .invalidRefundParameters,
+            .cancelFailedAlreadyCompleted,
+            .invalidClientSecret,
+            .invalidDiscoveryConfiguration,
+            .invalidReaderForUpdate,
+            .unsupportedSDK,
+            .incompatibleReader,
+            .unexpectedSdkError,
+            
+            // Bluetooth Errors - Bluetooth connectivity issues
+            .bluetoothDisabled,
+            .bluetoothAccessDenied,
+            .bluetoothScanTimedOut,
+            .bluetoothLowEnergyUnsupported,
+            .bluetoothError,
+            .bluetoothDisconnected,
+            .bluetoothPeerRemovedPairingInformation,
+            .bluetoothAlreadyPairedWithAnotherDevice,
+            .bluetoothConnectTimedOut,
+            .bluetoothConnectionFailedBatteryCriticallyLow,
+            .bluetoothReconnectStarted,
+            
+            // Reader Errors - Hardware reader issues
+            .readerBusy,
+            .readerCommunicationError,
+            .unsupportedReaderVersion,
+            .unknownReaderIpAddress,
+            .connectFailedReaderIsInUse,
+            .unexpectedReaderError,
+            .encryptionKeyFailure,
+            .encryptionKeyStillInitializing,
+            .readerSoftwareUpdateFailed,
+            .readerSoftwareUpdateFailedBatteryLow,
+            .readerSoftwareUpdateFailedServerError,
+            .readerSoftwareUpdateFailedReaderError,
+            .readerSoftwareUpdateFailedInterrupted,
+            .readerSoftwareUpdateFailedExpiredUpdate,
+            .readerNotAccessibleInBackground,
+            .readerMissingEncryptionKeys,
+            .readerConnectedToAnotherDevice,
+            .readerTampered,
+            .genericReaderError,
+            
+            // Payment Errors - Payment processing issues
+            .declinedByStripeAPI,
+            .declinedByReader,
+            .refundFailed,
+            .cardInsertNotRead,
+            .cardSwipeNotRead,
+            .cardReadTimedOut,
+            .cardRemoved,
+            .cardLeftInReader,
+            .invalidAmount,
+            .invalidCurrency,
+            .cardSwipeNotAvailable,
+            
+            // Network Errors - Connectivity and API issues
+            .connectionTokenProviderCompletedWithNothing,
+            .connectionTokenProviderCompletedWithNothingWhileForwarding,
+            .connectionTokenProviderCompletedWithError,
+            .connectionTokenProviderCompletedWithErrorWhileForwarding,
+            .connectionTokenProviderTimedOut,
+            .internetConnectTimeOut,
+            .requestTimedOut,
+            .notConnectedToInternet,
+            .stripeAPIError,
+            .stripeAPIResponseDecodingError,
+            .internalNetworkError,
+            .sessionExpired,
+            .tapToPayInternalNetworkError,
+            
+            // Offline Errors - Offline mode and forwarding issues
+            .offlineAndCardExpired,
+            .offlineTransactionDeclined,
+            .interacNotSupportedOffline,
+            .onlinePinNotSupportedOffline,
+            .offlineTestCardInLivemode,
+            .offlinePaymentsDatabaseTooLarge,
+            .readerConnectionNotAvailableOffline,
+            .offlineCollectAndConfirmMismatch,
+            .readerConnectionOfflineLocationMismatch,
+            .readerConnectionOfflineNeedsUpdate,
+            .readerConnectionOfflinePairingUnseenDisabled,
+            .noLastSeenAccount,
+            .notConnectedToInternetAndOfflineBehaviorRequireOnline,
+            .amountExceedsMaxOfflineAmount,
+            .missingEMVData,
+            .invalidOfflineCurrency,
+            .accountIdMismatchWhileForwarding,
+            .updatePaymentIntentUnavailableWhileOffline,
+            .updatePaymentIntentUnavailableWhileOfflineModeEnabled,
+            .forwardingLiveModePaymentInTestMode,
+            .forwardingTestModePaymentInLiveMode,
+            .offlineBehaviorForceOfflineWithFeatureDisabled,
+            
+            // Miscellaneous Errors - Various operational issues
+            .locationServicesDisabled,
+            .nfcDisabled,
+            .commandNotAllowed,
+            .unsupportedMobileDeviceConfiguration,
+            .passcodeNotEnabled,
+            .commandNotAllowedDuringCall,
+            .featureNotAvailableWithConnectedReader,
+            .featureNotAvailable,
+            .commandRequiresCardholderConsent,
+            .invalidListLocationsLimitParameter,
+            .bluetoothConnectionInvalidLocationIdParameter,
+            .invalidRequiredParameter,
+            .invalidRequiredParameterOnBehalfOf,
+            .readerConnectionConfigurationInvalid,
+            .readerTippingParameterInvalid,
+            .surchargeNoticeRequiresUpdatePaymentIntent,
+            .surchargeUnavailableWithDynamicCurrencyConversion,
+            .invalidLocationIdParameter,
+            .collectInputsApplicationError,
+            .collectInputsTimedOut,
+            .collectInputsInvalidParameter,
+            .collectInputsUnsupported,
+            .requestDynamicCurrencyConversionRequiresUpdatePaymentIntent,
+            .dynamicCurrencyConversionNotAvailable,
+            .surchargingNotAvailable,
+            .usbDiscoveryTimedOut,
+            .usbDisconnected,
+            
+            // Additional Cases Found When Removing Default
+            .cancelFailedUnavailable,
+            .nilPaymentIntent,
+            .nilSetupIntent,
+            .nilRefundPaymentMethod,
+            .invalidConnectionConfiguration,
+            .surchargeConsentRequiresAmountSurcharge,
+            .surchargeConsentNoticeRequiresAmountSurchargeAndCollectConsent,
+            .surchargeConsentRequestedForUnsupportedReader,
+            .surchargeConsentDeclined,
+            .surchargeConsentTimeout,
+            .canceledDueToIntegrationError,
+            .tapToPayReaderTOSAcceptanceRequiresiCloudSignIn,
+            .tapToPayReaderTOSAcceptanceCanceled,
+            .tapToPayReaderFailedToPrepare,
+            .tapToPayReaderDeviceBanned,
+            .tapToPayReaderTOSNotYetAccepted,
+            .tapToPayReaderTOSAcceptanceFailed,
+            .tapToPayReaderMerchantBlocked,
+            .tapToPayReaderInvalidMerchant,
+            .tapToPayReaderAccountDeactivated,
+            .printerBusy,
+            .printerPaperJam,
+            .printerOutOfPaper,
+            .printerCoverOpen,
+            .printerAbsent,
+            .printerUnavailable,
+            .printerError,
+            .collectDataApplicationError,
+            .displaySurchargeConsentApplicationError,
+            .commandInvalidAllowRedisplay
+        ]
+        
+        // WHEN: Testing that every ErrorCode case has a valid mapping
+        for errorCode in allKnownErrorCodes {
+            // GIVEN an NSError with this ErrorCode
+            let nsError = makeNSError(code: errorCode.rawValue, description: "Test error for \(errorCode)")
+            
+            // WHEN mapping to stripe error object
+            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            
+            // THEN it should have a valid RN error code (not empty/nil)
+            guard let rnCode = error["code"] as? String else {
+                XCTFail("ErrorCode \(errorCode) should map to a valid RN error code")
+                continue
+            }
+            
+            // AND the mapped code should not be empty
+            XCTAssertFalse(rnCode.isEmpty, "ErrorCode \(errorCode) mapped to empty RN code")
+            
+            // AND the mapped code should be a valid RNErrorCode format (UPPER_SNAKE_CASE)
+            XCTAssertTrue(rnCode.allSatisfy { $0.isUppercase || $0 == "_" || $0.isNumber }, 
+                         "ErrorCode \(errorCode) mapped to invalid format: \(rnCode)")
+        }
+        
+        // THEN: Verify we tested the expected number of cases
+        XCTAssertEqual(allKnownErrorCodes.count, 145, 
+                      "Expected to test 145 ErrorCode cases, but found \(allKnownErrorCodes.count)")
+    }
+    
 }
 

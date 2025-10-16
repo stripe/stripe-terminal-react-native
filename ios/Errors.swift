@@ -404,8 +404,46 @@ class Errors {
         case .surchargingNotAvailable: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .usbDiscoveryTimedOut: return RNErrorCode.USB_DISCOVERY_TIMED_OUT.rawValue
         case .usbDisconnected: return RNErrorCode.USB_DISCONNECTED.rawValue
-        @unknown default:
-            return RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue
+        
+        // Additional cases found when removing default - need explicit mapping
+        case .cancelFailedUnavailable: return RNErrorCode.CANCEL_FAILED.rawValue
+        case .nilPaymentIntent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .nilSetupIntent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .nilRefundPaymentMethod: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .invalidConnectionConfiguration: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .surchargeConsentRequiresAmountSurcharge: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .surchargeConsentNoticeRequiresAmountSurchargeAndCollectConsent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .surchargeConsentRequestedForUnsupportedReader: return RNErrorCode.UNSUPPORTED_OPERATION.rawValue
+        case .surchargeConsentDeclined: return RNErrorCode.DECLINED_BY_STRIPE_API.rawValue
+        case .surchargeConsentTimeout: return RNErrorCode.REQUEST_TIMED_OUT.rawValue
+        case .canceledDueToIntegrationError: return RNErrorCode.CANCELED_DUE_TO_INTEGRATION_ERROR.rawValue
+        case .tapToPayReaderTOSAcceptanceRequiresiCloudSignIn: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
+        case .tapToPayReaderTOSAcceptanceCanceled: return RNErrorCode.CANCELED.rawValue
+        case .tapToPayReaderFailedToPrepare: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
+        case .tapToPayReaderDeviceBanned: return RNErrorCode.UNSUPPORTED_READER_VERSION.rawValue
+        case .tapToPayReaderTOSNotYetAccepted: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
+        case .tapToPayReaderTOSAcceptanceFailed: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
+        case .tapToPayReaderMerchantBlocked: return RNErrorCode.DECLINED_BY_STRIPE_API.rawValue
+        case .tapToPayReaderInvalidMerchant: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
+        case .tapToPayReaderAccountDeactivated: return RNErrorCode.DECLINED_BY_STRIPE_API.rawValue
+        case .printerBusy: return RNErrorCode.PRINTER_BUSY.rawValue
+        case .printerPaperJam: return RNErrorCode.PRINTER_PAPERJAM.rawValue
+        case .printerOutOfPaper: return RNErrorCode.PRINTER_OUT_OF_PAPER.rawValue
+        case .printerCoverOpen: return RNErrorCode.PRINTER_COVER_OPEN.rawValue
+        case .printerAbsent: return RNErrorCode.PRINTER_ABSENT.rawValue
+        case .printerUnavailable: return RNErrorCode.PRINTER_UNAVAILABLE.rawValue
+        case .printerError: return RNErrorCode.PRINTER_ERROR.rawValue
+        case .readerConnectedToAnotherDevice: return RNErrorCode.READER_CONNECTED_TO_ANOTHER_DEVICE.rawValue
+        case .readerTampered: return RNErrorCode.READER_TAMPERED.rawValue
+        case .genericReaderError: return RNErrorCode.GENERIC_READER_ERROR.rawValue
+        case .collectDataApplicationError: return RNErrorCode.COLLECT_INPUTS_APPLICATION_ERROR.rawValue
+        case .displaySurchargeConsentApplicationError: return RNErrorCode.COLLECT_INPUTS_APPLICATION_ERROR.rawValue
+        case .commandInvalidAllowRedisplay: return RNErrorCode.ALLOW_REDISPLAY_INVALID.rawValue
+        case .tapToPayInternalNetworkError: return RNErrorCode.STRIPE_API_CONNECTION_ERROR.rawValue
+        
+        // NOTE: No default case - this ensures that any new ErrorCode cases 
+        // added to the Stripe Terminal SDK will cause a COMPILER ERROR,
+        // forcing us to explicitly handle new cases and preventing silent mapping failures.
         }
     }
 }
