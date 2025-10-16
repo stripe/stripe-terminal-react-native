@@ -10,6 +10,7 @@ object TestConstants {
     const val UNDERLYING_ERROR_KEY = "underlyingError"
     const val EXCEPTION_CLASS_KEY = "exceptionClass"
     const val PAYMENT_INTENT_KEY = "paymentIntent"
+    const val SETUP_INTENT_KEY = "setupIntent"
     // endregion
 }
 

@@ -11,9 +11,11 @@ import com.stripeterminalreactnative.TestConstants.EXCEPTION_CLASS_KEY
 import com.stripeterminalreactnative.TestConstants.METADATA_KEY
 import com.stripeterminalreactnative.TestConstants.NON_STRIPE_ERROR
 import com.stripeterminalreactnative.TestConstants.PAYMENT_INTENT_KEY
+import com.stripeterminalreactnative.TestConstants.SETUP_INTENT_KEY
 import com.stripeterminalreactnative.TestConstants.STRIPE_ERROR
 import com.stripeterminalreactnative.TestConstants.UNDERLYING_ERROR_KEY
 import com.stripeterminalreactnative.mapFromPaymentIntent
+import com.stripeterminalreactnative.mapFromSetupIntent
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -52,6 +54,7 @@ class ErrorsTest {
         every { this@mockk.apiError } returns apiError
         every { this@mockk.cause } returns cause
         every { paymentIntent } returns null
+        every { setupIntent } returns null
     }
 
     @Test
@@ -122,27 +125,6 @@ class ErrorsTest {
     }
 
     @Test
-    fun `stripeErrorMapFromThrowable mirrors StripeError structure`() {
-        // GIVEN a TerminalException
-        val terminalException = mockTerminalException(
-            TerminalErrorCode.BLUETOOTH_ERROR,
-            "Bluetooth error"
-        )
-
-        // WHEN mapping with stripeErrorMapFromThrowable
-        val error = stripeErrorMapFromThrowable(terminalException) as JavaOnlyMap
-
-        // THEN the structure should match StripeError expectations
-        assertEquals(STRIPE_ERROR, error.getString("name"))
-        assertEquals("Bluetooth error", error.getString("message"))
-        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
-        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.toString(), error.getString("nativeErrorCode"))
-        val metadata = error.requireMap(METADATA_KEY)
-        assertEquals("TerminalException", metadata.getString(EXCEPTION_CLASS_KEY))
-        assertFalse(metadata.hasKey(API_ERROR_KEY))
-    }
-
-    @Test
     fun `createError with generic Throwable returns NonStripeError`() {
         // GIVEN a RuntimeException with a cause
         val rootCause = IllegalArgumentException("root cause")
@@ -181,7 +163,7 @@ class ErrorsTest {
     }
 
     @Test
-    fun `createError attaches paymentIntent when present`() {
+    fun `createError includes paymentIntent in both top-level and metadata when present`() {
         // GIVEN a TerminalException with paymentIntent data
         val paymentIntentMap = JavaOnlyMap().apply { putString("id", "pi_123") }
         every { mapFromPaymentIntent(any(), any()) } returns paymentIntentMap
@@ -194,11 +176,18 @@ class ErrorsTest {
 
         // WHEN creating the error wrapper
         val result = createError(terminalException) as JavaOnlyMap
-        val paymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
-
-        // THEN the wrapper should include paymentIntent data
-        assertNotNull(paymentIntent)
-        assertEquals("pi_123", paymentIntent.getString("id"))
+        val error = result.requireMap("error")
+        val metadata = error.requireMap(METADATA_KEY)
+        
+        // THEN paymentIntent should be present at top-level (for RN layer compatibility)
+        val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(topLevelPaymentIntent)
+        assertEquals("pi_123", topLevelPaymentIntent.getString("id"))
+        
+        // AND also in metadata (consistent with iOS enhanced error context)
+        val metadataPaymentIntent = metadata.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(metadataPaymentIntent)
+        assertEquals("pi_123", metadataPaymentIntent.getString("id"))
     }
 
     @Test
@@ -212,28 +201,101 @@ class ErrorsTest {
 
         // WHEN creating the error wrapper
         val result = createError(terminalException) as JavaOnlyMap
+        val error = result.requireMap("error")
+        val metadata = error.requireMap(METADATA_KEY)
 
-        // THEN paymentIntent key should be absent
+        // THEN paymentIntent key should be absent from both top-level and metadata
         assertFalse(result.hasKey(PAYMENT_INTENT_KEY))
+        assertFalse(metadata.hasKey(PAYMENT_INTENT_KEY))
     }
 
     @Test
-    fun `stripeErrorMapFromThrowable returns NonStripeError for generic Throwable`() {
-        // GIVEN a generic RuntimeException
-        val err = RuntimeException("boom")
+    fun `createError with uuid passes uuid to mapper functions`() {
+        // GIVEN a TerminalException with paymentIntent and setupIntent
+        val testUuid = "test-uuid-123"
+        val paymentIntentMap = JavaOnlyMap().apply { 
+            putString("id", "pi_test")
+            putString("sdkUuid", testUuid)
+        }
+        val setupIntentMap = JavaOnlyMap().apply { 
+            putString("id", "seti_test")
+            putString("sdkUuid", testUuid)
+        }
+        
+        val paymentIntentSlot = slot<String>()
+        val setupIntentSlot = slot<String>()
+        
+        every { mapFromPaymentIntent(any(), capture(paymentIntentSlot)) } returns paymentIntentMap
+        every { mapFromSetupIntent(any(), capture(setupIntentSlot)) } returns setupIntentMap
 
-        // WHEN mapping with stripeErrorMapFromThrowable
-        val error = stripeErrorMapFromThrowable(err) as JavaOnlyMap
+        val terminalException = mockTerminalException(
+            TerminalErrorCode.DECLINED_BY_STRIPE_API,
+            "Payment declined"
+        )
+        every { terminalException.paymentIntent } returns mockk()
+        every { terminalException.setupIntent } returns mockk()
 
-        // THEN the result should be a NonStripeError without underlying metadata
-        assertEquals(NON_STRIPE_ERROR, error.getString("name"))
-        assertEquals("boom", error.getString("message"))
-        assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
+        // WHEN creating error with uuid
+        val result = createError(terminalException, testUuid) as JavaOnlyMap
+        
+        // THEN uuid should be passed to both mapper functions
+        assertEquals(testUuid, paymentIntentSlot.captured)
+        assertEquals(testUuid, setupIntentSlot.captured)
+        
+        // AND paymentIntent and setupIntent should be at top-level with correct uuid
+        val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(topLevelPaymentIntent)
+        assertEquals("pi_test", topLevelPaymentIntent.getString("id"))
+        assertEquals(testUuid, topLevelPaymentIntent.getString("sdkUuid"))
+        
+        val topLevelSetupIntent = result.getMap(SETUP_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(topLevelSetupIntent)
+        assertEquals("seti_test", topLevelSetupIntent.getString("id"))
+        assertEquals(testUuid, topLevelSetupIntent.getString("sdkUuid"))
+        
+        // AND also in metadata
+        val error = result.requireMap("error")
         val metadata = error.requireMap(METADATA_KEY)
-        assertEquals("RuntimeException", metadata.getString(EXCEPTION_CLASS_KEY))
-        assertFalse(metadata.hasKey(UNDERLYING_ERROR_KEY))
+        
+        val metadataPaymentIntent = metadata.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(metadataPaymentIntent)
+        assertEquals("pi_test", metadataPaymentIntent.getString("id"))
+        assertEquals(testUuid, metadataPaymentIntent.getString("sdkUuid"))
+        
+        val metadataSetupIntent = metadata.getMap(SETUP_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(metadataSetupIntent)
+        assertEquals("seti_test", metadataSetupIntent.getString("id"))
+        assertEquals(testUuid, metadataSetupIntent.getString("sdkUuid"))
     }
 
+    @Test
+    fun `createError without uuid uses empty string as default`() {
+        // GIVEN a TerminalException with paymentIntent
+        val paymentIntentMap = JavaOnlyMap().apply { 
+            putString("id", "pi_test")
+            putString("sdkUuid", "")
+        }
+        
+        val uuidSlot = slot<String>()
+        every { mapFromPaymentIntent(any(), capture(uuidSlot)) } returns paymentIntentMap
+
+        val terminalException = mockTerminalException(
+            TerminalErrorCode.DECLINED_BY_STRIPE_API,
+            "Payment declined"
+        )
+        every { terminalException.paymentIntent } returns mockk()
+
+        // WHEN creating error without uuid
+        val result = createError(terminalException) as JavaOnlyMap
+        
+        // THEN empty string should be passed to mapper function
+        assertEquals("", uuidSlot.captured)
+        
+        // AND paymentIntent should be at top-level with empty uuid
+        val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(topLevelPaymentIntent)
+        assertEquals("", topLevelPaymentIntent.getString("sdkUuid"))
+    }
 
     @Test
     fun `requireCancelable returns value when present`() {

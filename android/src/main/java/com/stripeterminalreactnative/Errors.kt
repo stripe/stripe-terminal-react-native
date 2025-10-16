@@ -9,25 +9,26 @@ import com.stripe.stripeterminal.external.models.TerminalException
 
 internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
 
-internal fun stripeErrorMapFromThrowable(throwable: Throwable): ReadableMap = nativeMapOf {
-    putErrorContents(throwable)
-}
+internal fun createError(throwable: Throwable, uuid: String): ReadableMap = nativeMapOf { putError(throwable, uuid) }
 
-internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
+internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): ReadableMap = apply {
     putMap(
         ErrorConstants.ERROR_KEY,
         nativeMapOf {
-            putErrorContents(throwable)
+            putErrorContents(throwable, uuid)
         }
     )
     if (throwable is TerminalException) {
         throwable.paymentIntent?.let {
-            putMap(ErrorConstants.PAYMENT_INTENT_KEY, mapFromPaymentIntent(it, ""))
+            putMap(ErrorConstants.PAYMENT_INTENT_KEY, mapFromPaymentIntent(it, uuid ?: ""))
+        }
+        throwable.setupIntent?.let {
+            putMap(ErrorConstants.SETUP_INTENT_KEY, mapFromSetupIntent(it, uuid ?: ""))
         }
     }
 }
 
-private fun WritableMap.putErrorContents(throwable: Throwable?) {
+private fun WritableMap.putErrorContents(throwable: Throwable?, uuid: String? = null) {
     when (throwable) {
         is TerminalException -> {
             putString(ErrorConstants.NAME_KEY, ErrorConstants.STRIPE_ERROR_NAME)
@@ -40,6 +41,7 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
                     addApiErrorInformation(throwable.apiError)
                     addAndroidExceptionInformation(throwable.cause)
                     addAndroidExceptionClassInfo(throwable)
+                    addTerminalExceptionIntentInformation(throwable, uuid)
                 }
             )
         }
@@ -255,6 +257,15 @@ private fun WritableMap.addAndroidExceptionInformation(cause: Throwable?) {
 
 private fun WritableMap.addAndroidExceptionClassInfo(throwable: TerminalException) {
     putString(ErrorConstants.EXCEPTION_CLASS_KEY, throwable.javaClass.simpleName)
+}
+
+private fun WritableMap.addTerminalExceptionIntentInformation(throwable: TerminalException, uuid: String?) {
+    throwable.paymentIntent?.let {
+        putMap(ErrorConstants.PAYMENT_INTENT_KEY, mapFromPaymentIntent(it, uuid ?: ""))
+    }
+    throwable.setupIntent?.let {
+        putMap(ErrorConstants.SETUP_INTENT_KEY, mapFromSetupIntent(it, uuid ?: ""))
+    }
 }
 
 private fun WritableMap.addUnknownExceptionInformation(throwable: Throwable?) {

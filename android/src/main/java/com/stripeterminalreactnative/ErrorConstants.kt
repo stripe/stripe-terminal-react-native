@@ -9,6 +9,7 @@ internal object ErrorConstants {
     // Error object keys
     const val ERROR_KEY = "error"
     const val PAYMENT_INTENT_KEY = "paymentIntent"
+    const val SETUP_INTENT_KEY = "setupIntent"
 
     // Error property keys
     const val NAME_KEY = "name"
