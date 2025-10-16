@@ -1,15 +1,59 @@
 import type { StripeError } from '../types/StripeError';
-import type { ErrorCode } from './ErrorCodes';
+import { ErrorCode } from './ErrorCodes';
+
+function warnInvalidErrorCode(code: string): void {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    !Object.values(ErrorCode).includes(code as any)
+  ) {
+    console.warn(
+      `Invalid error code: ${code}. Consider using a valid ErrorCode enum value.`
+    );
+  }
+}
+
+function extractUserInfo(
+  obj: Record<string, unknown>
+): Record<string, unknown> | undefined {
+  return obj.userInfo &&
+    typeof obj.userInfo === 'object' &&
+    obj.userInfo !== null
+    ? (obj.userInfo as Record<string, unknown>)
+    : undefined;
+}
+
+function extractMetadata(
+  obj: Record<string, unknown>,
+  userInfo?: Record<string, unknown>
+): Record<string, unknown> {
+  const rawMetadata = obj.metadata ?? userInfo?.metadata;
+  return rawMetadata && typeof rawMetadata === 'object' && rawMetadata !== null
+    ? (rawMetadata as Record<string, unknown>)
+    : {};
+}
+
+function createUnknownError(): StripeError {
+  return createStripeError({
+    code: ErrorCode.UNKNOWN,
+    nativeErrorCode: ErrorCode.UNKNOWN,
+    message: ErrorCode.UNKNOWN,
+    metadata: {},
+  });
+}
 
 export function checkIfObjectIsStripeError(e: unknown): e is StripeError {
+  if (!e || typeof e !== 'object') {
+    return false;
+  }
+
+  const obj = e as Record<string, unknown>;
   return (
-    !!e &&
-    typeof e === 'object' &&
-    (e as any).name === 'StripeError' &&
-    typeof (e as any).message === 'string' &&
-    typeof (e as any).code === 'string' &&
-    typeof (e as any).nativeErrorCode === 'string' &&
-    typeof (e as any).metadata === 'object'
+    obj.name === 'StripeError' &&
+    typeof obj.message === 'string' &&
+    typeof obj.code === 'string' &&
+    typeof obj.nativeErrorCode === 'string' &&
+    typeof obj.metadata === 'object' &&
+    obj.metadata !== null
   );
 }
 
@@ -19,31 +63,48 @@ export function createStripeError(
     metadata?: Record<string, unknown>;
   }
 ): StripeError {
-  const err = new Error(init.message) as StripeError;
+  warnInvalidErrorCode(init.code);
+
+  const err = new Error(init.message || ErrorCode.UNKNOWN) as StripeError;
   err.name = 'StripeError';
-  const nativeErrorCode = init.nativeErrorCode ?? (init as any).code;
-  const metadata = init.metadata ?? {};
-  Object.assign(err, { ...init, nativeErrorCode, metadata });
+  err.code = init.code;
+  err.nativeErrorCode = init.nativeErrorCode ?? init.code;
+  err.metadata = init.metadata ?? {};
+
+  if (init.paymentIntent) {
+    err.paymentIntent = init.paymentIntent;
+  }
+  if (init.setupIntent) {
+    err.setupIntent = init.setupIntent;
+  }
+
   return err;
 }
 
-export function convertNativeErrorToStripeError(raw: any): StripeError {
-  const codeStr = raw?.code ?? raw?.userInfo?.code ?? 'UNKNOWN';
-  const nativeErrorCode = raw?.userInfo?.nativeErrorCode ?? codeStr;
-  const metadata = (raw?.metadata ?? raw?.userInfo?.metadata ?? {}) as Record<
-    string,
-    unknown
-  >;
-  const paymentIntent = raw?.userInfo?.paymentIntent;
-  const setupIntent = raw?.userInfo?.setupIntent;
+/**
+ * Converts native platform error objects to standardized StripeError format.
+ * Handles both iOS (userInfo structure) and Android (direct properties) error formats.
+ */
+export function convertNativeErrorToStripeError(raw: unknown): StripeError {
+  if (!raw || typeof raw !== 'object') {
+    return createUnknownError();
+  }
 
-  const message = raw?.message ?? codeStr;
+  const obj = raw as Record<string, unknown>;
+  const userInfo = extractUserInfo(obj);
+
+  const code =
+    (obj.code as string) ?? (userInfo?.code as string) ?? ErrorCode.UNKNOWN;
+  const nativeErrorCode = (userInfo?.nativeErrorCode as string) ?? code;
+  const message = (obj.message as string) ?? code;
+  const metadata = extractMetadata(obj, userInfo);
+
   return createStripeError({
-    code: codeStr as ErrorCode,
+    code: code as any,
     nativeErrorCode,
     message,
     metadata,
-    paymentIntent,
-    setupIntent,
+    paymentIntent: userInfo?.paymentIntent as StripeError['paymentIntent'],
+    setupIntent: userInfo?.setupIntent as StripeError['setupIntent'],
   });
 }
