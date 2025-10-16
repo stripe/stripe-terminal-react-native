@@ -1,182 +1,107 @@
-# Example-App Error Handling Utility Guide
+# Error Handling Utilities
 
-This guide demonstrates how to use the new error handling utilities while minimizing changes to existing code.
+This guide shows how to use the enhanced error handling utilities in the example app while maintaining backward compatibility with existing code.
 
-## 🎯 Design Principles
+## Getting started
 
-1. **Backward Compatible** - New utilities won't break existing code
-2. **Progressive Migration** - Gradually replace existing error handling
-3. **Preserve Existing Patterns** - Maintain current Alert and Toast usage habits
+The error handling utilities provide safer, more consistent error handling across the example app. You can adopt them gradually without breaking existing functionality.
 
-## 📝 Usage Examples
+## Key utilities
 
-### 1️⃣ Existing Patterns → Enhanced Versions
-
-#### **Alert Error Display**
+### Error display functions
 
 ```typescript
-// Existing code (ReaderDisplayScreen.tsx:44)
-Alert.alert('setReaderDisplay error', error.message);
+import { showErrorAlert, showErrorToast } from './src/util/errorHandling';
 
-// Enhanced version - safer error handling
-import { showErrorAlert } from './src/util/errorHandling';
-showErrorAlert(error, 'setReaderDisplay error');
+// Enhanced Alert with automatic error extraction
+showErrorAlert(error, 'Connection failed');
 
-// Or maintain exact same behavior
-import { getErrorMessage } from './src/util/errorHandling';
-Alert.alert('setReaderDisplay error', getErrorMessage(error));
+// Simplified Toast with consistent configuration
+showErrorToast(error);
 ```
 
-#### **Toast Error Display**
+### Error information extraction
 
 ```typescript
-// Existing code (HomeScreen.tsx:40)
+import { getErrorMessage, getErrorCode, extractErrorInfo } from './src/util/errorHandling';
+
+// Safe error message extraction
+const message = getErrorMessage(error, 'Unknown error');
+
+// Safe error code extraction
+const code = getErrorCode(error, 'UNKNOWN_ERROR');
+
+// Complete error information for logging
+const errorInfo = extractErrorInfo(error, 'Payment processing');
+```
+
+## Migration examples
+
+### Alert error display
+
+```typescript
+// Before
+Alert.alert('setReaderDisplay error', error.message);
+
+// After
+import { showErrorAlert } from './src/util/errorHandling';
+showErrorAlert(error, 'setReaderDisplay error');
+```
+
+### Toast error display
+
+```typescript
+// Before
 let toast = Toast.show(error?.message ? error.message : 'unknown error', {
   duration: Toast.durations.LONG,
-  // ... config
+  position: Toast.positions.BOTTOM,
+  shadow: true,
+  animation: true,
+  hideOnPress: true,
+  delay: 0,
 });
 setTimeout(() => Toast.hide(toast), 3000);
 
-// Enhanced version - one line completes all logic
+// After
 import { showErrorToast } from './src/util/errorHandling';
 showErrorToast(error);
-
-// Or replace only the error message part
-import { safeErrorMessage } from '../util/errorHandling';
-let toast = Toast.show(safeErrorMessage(error), { /* existing config */ });
 ```
 
-#### **Error Code Handling**
+### Error logging
 
 ```typescript
-// Existing code (DiscoverReadersScreen.tsx:169)
-Alert.alert(error.code, error.message);
-
-// Enhanced version - safer
-import { showErrorAlert } from './src/util/errorHandling';
-showErrorAlert(error); // Automatically uses error.code as title
-
-// Or more precise control
-import { getErrorCode, getErrorMessage } from './src/util/errorHandling';
-Alert.alert(getErrorCode(error), getErrorMessage(error));
-```
-
-#### **Logging**
-
-```typescript
-// Existing code (SetupIntentScreen.tsx:207-208)
+// Before
 metadata: {
   errorCode: resp.error.code,
   errorMessage: resp.error.message,
 }
 
-// Enhanced version - unified error info extraction
+// After
 import { extractErrorInfo } from './src/util/errorHandling';
-metadata: extractErrorInfo(resp.error, 'Setup Intent Creation')
-// Returns: { errorCode, errorMessage, nativeErrorCode?, context }
+metadata: extractErrorInfo(resp.error, 'Setup Intent Creation');
 ```
 
-### 2️⃣ Progressive Migration Strategy
+## Benefits
 
-#### **Phase 1: Add imports, keep existing logic**
-```typescript
-// Only import needed functions, existing code unchanged
-import { getErrorMessage } from './src/util/errorHandling';
+- **Safer**: Handles undefined error properties automatically
+- **Consistent**: Standardized error display across the app
+- **Concise**: Reduces boilerplate code
+- **Type-safe**: Full TypeScript support
+- **Backward compatible**: Existing code continues to work
 
-// Existing code remains unchanged, just safer
-const message = getErrorMessage(error, 'fallback message');
-```
+## Migration strategy
 
-#### **Phase 2: Gradually replace complex logic**
-```typescript
-// Replace complex Toast handling
-import { showErrorToast } from './src/util/errorHandling';
+1. **Start with imports**: Add utility imports without changing existing logic
+2. **Replace simple cases**: Begin with basic error message extraction
+3. **Optimize complex logic**: Replace verbose Toast and Alert configurations
+4. **Test thoroughly**: Ensure changes don't break existing functionality
 
-// From this:
-let toast = Toast.show(error?.message ? error.message : 'unknown error', {
-  duration: Toast.durations.LONG,
-  position: Toast.positions.BOTTOM,
-  // ... 10 lines of config
-});
-setTimeout(() => Toast.hide(toast), 3000);
+## Additional utilities
 
-// To this:
-showErrorToast(error);
-```
+The error handling module also provides:
 
-#### **Phase 3: Unify error handling patterns**
-```typescript
-// Final goal: consistent error handling
-import { showErrorAlert, extractErrorInfo } from '../util/errorHandling';
+- `checkIfObjectIsStripeError()`: Type-safe error checking
+- `createStripeError()`: Create custom StripeError objects
+- Legacy compatibility aliases for existing patterns
 
-const handleError = (error: unknown, context: string) => {
-  showErrorAlert(error);
-  console.log('Error details:', extractErrorInfo(error, context));
-};
-```
-
-## 🔧 Practical Application Examples
-
-### ReaderDisplayScreen.tsx - Minimal Changes
-
-```typescript
-// Original code
-if (error) {
-  console.log('error', error);
-  Alert.alert('setReaderDisplay error', error.message);
-  return;
-}
-
-// Enhanced version - only modify one line
-import { showErrorAlert } from './src/util/errorHandling';
-
-if (error) {
-  console.log('error', error);
-  showErrorAlert(error, 'setReaderDisplay error'); // Safer
-  return;
-}
-```
-
-### HomeScreen.tsx - Toast Improvements
-
-```typescript
-// Original code
-onDidForwardingFailure(error) {
-  console.log('onDidForwardingFailure ' + error?.message);
-  let toast = Toast.show(error?.message ? error.message : 'unknown error', {
-    duration: Toast.durations.LONG,
-    position: Toast.positions.BOTTOM,
-    shadow: true,
-    animation: true,
-    hideOnPress: true,
-    delay: 0,
-  });
-  setTimeout(function () {
-    Toast.hide(toast);
-  }, 3000);
-}
-
-// Enhanced version - simplified and safer
-import { getErrorMessage, showErrorToast } from '../util/errorHandling';
-
-onDidForwardingFailure(error) {
-  console.log('onDidForwardingFailure ' + getErrorMessage(error));
-  showErrorToast(error);
-}
-```
-
-## ✅ Benefits
-
-1. **Safer** - Automatically handles cases where `error.message` might be undefined
-2. **More Consistent** - All error displays use the same format and configuration
-3. **More Concise** - Reduces duplicate Toast configuration code
-4. **Better Types** - TypeScript support reduces runtime errors
-5. **Backward Compatible** - Existing code continues to work
-6. **Easy Migration** - Provides staged migration strategy
-
-## 🚀 Migration Recommendations
-
-1. **Start by importing utilities** - Don't modify existing logic
-2. **Replace simple cases** - Begin with the simplest error handling
-3. **Gradually optimize** - Replace complex error handling logic when time permits
-4. **Keep testing** - Ensure changes don't break existing functionality
+For complete API documentation, see the utility functions in `src/util/errorHandling.ts`.
