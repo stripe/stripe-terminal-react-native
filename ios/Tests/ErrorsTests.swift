@@ -1064,7 +1064,11 @@ private class MockConfirmSetupIntentError: NSError {
     }
 }
 
-private class MockRefund: Refund {
+@objc private class MockRefund: Refund {
+    @objc override init() {
+        super.init()
+    }
+    
     override var stripeId: String { "re_test_123" }
     override var amount: UInt { 1000 }
     override var charge: String { "ch_test_123" }
@@ -1076,7 +1080,11 @@ private class MockRefund: Refund {
     override var failureReason: String? { nil }
 }
 
-private class MockPaymentIntent: PaymentIntent {
+@objc private class MockPaymentIntent: PaymentIntent {
+    @objc override init() {
+        super.init()
+    }
+    
     override var stripeId: String { "pi_test_123" }
     override var created: Date { Date(timeIntervalSince1970: 1234567890) }
     override var status: PaymentIntentStatus { .requiresPaymentMethod }
@@ -1087,7 +1095,11 @@ private class MockPaymentIntent: PaymentIntent {
     override var paymentMethod: PaymentMethod? { nil }
 }
 
-private class MockSetupIntent: SetupIntent {
+@objc private class MockSetupIntent: SetupIntent {
+    @objc override init() {
+        super.init()
+    }
+    
     override var stripeId: String { "seti_test_123" }
     override var created: Date { Date(timeIntervalSince1970: 1234567890) }
     override var customer: String? { "cus_test_123" }
