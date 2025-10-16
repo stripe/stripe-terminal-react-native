@@ -938,27 +938,21 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
 internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
     return nativeMapOf {
         val ra = settings.readerAccessibility
-
-        val accessibility = nativeMapOf {
-            when (ra) {
-                is ReaderAccessibility.Accessibility -> {
-                    putString(
-                        "textToSpeechStatus",
-                        when (ra.textToSpeechStatus) {
-                            ReaderTextToSpeechStatus.OFF -> "off"
-                            ReaderTextToSpeechStatus.HEADPHONES -> "headphones"
-                            ReaderTextToSpeechStatus.SPEAKERS -> "speakers"
-                        }
-                    )
-                }
-                is ReaderAccessibility.Error -> {
-                    putString("textToSpeechStatus", "unknown")
-                    putMap("error", stripeErrorMapFromThrowable(ra.error))
-                }
+        if (ra is ReaderAccessibility.Accessibility) {
+            val accessibility = nativeMapOf {
+                putString(
+                    "textToSpeechStatus",
+                    when (ra.textToSpeechStatus) {
+                        ReaderTextToSpeechStatus.OFF -> "off"
+                        ReaderTextToSpeechStatus.HEADPHONES -> "headphones"
+                        ReaderTextToSpeechStatus.SPEAKERS -> "speakers"
+                    }
+                )
             }
+            putMap("accessibility", accessibility)
+        } else if (ra is ReaderAccessibility.Error) {
+            putError(ra.error)
         }
-
-        putMap("accessibility", accessibility)
     }
 }
 
