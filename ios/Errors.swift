@@ -200,29 +200,13 @@ class Errors {
             }
             nativeErrorCode = String(nsError.code)
         } else {
-            // For non-Stripe domains, surface a generic RN code and carry details in nativeErrorCode/metadata
-            code = "UNEXPECTED_SDK_ERROR"
-            nativeErrorCode = "\(nsError.domain):\(nsError.code)"
+            let nonStripeErrorMapping = mapNonStripeError(nsError: nsError)
+            code = nonStripeErrorMapping.code
+            nativeErrorCode = nonStripeErrorMapping.nativeErrorCode
         }
-        if let failure = nsError.localizedFailureReason, failure.isEmpty == false {
-            metadata["localizedFailureReason"] = failure
-        }
-        if let suggestion = nsError.localizedRecoverySuggestion, suggestion.isEmpty == false {
-            metadata["localizedRecoverySuggestion"] = suggestion
-        }
-        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-            metadata["underlyingError"] = [
-                "domain": underlying.domain,
-                "code": underlying.code,
-                "message": underlying.localizedDescription
-            ]
-        }
-        if nsError.userInfo.isEmpty == false {
-            let sanitized = sanitizeUserInfo(nsError.userInfo)
-            if sanitized.isEmpty == false {
-                metadata["userInfo"] = sanitized
-            }
-        }
+        addLocalizedErrorInformation(to: &metadata, from: nsError)
+        addUnderlyingErrorInformation(to: &metadata, from: nsError)
+        addUserInfoMetadata(to: &metadata, from: nsError)
 
         return stripeErrorObject(
             code: code,
@@ -432,5 +416,44 @@ func busyMessage(command: String, by busyCommand: String) -> String {
 extension ErrorCode.Code {
     var stringValue: String {
         return Terminal.stringFromError(self)
+    }
+}
+
+// MARK: - Metadata Helper Functions
+
+extension Errors {
+    private class func mapNonStripeError(nsError: NSError) -> (code: String, nativeErrorCode: String) {
+        return (
+            code: "UNEXPECTED_SDK_ERROR",
+            nativeErrorCode: "\(nsError.domain):\(nsError.code)"
+        )
+    }
+    
+    private class func addLocalizedErrorInformation(to metadata: inout [String: Any], from nsError: NSError) {
+        if let failure = nsError.localizedFailureReason, failure.isEmpty == false {
+            metadata["localizedFailureReason"] = failure
+        }
+        if let suggestion = nsError.localizedRecoverySuggestion, suggestion.isEmpty == false {
+            metadata["localizedRecoverySuggestion"] = suggestion
+        }
+    }
+    
+    private class func addUnderlyingErrorInformation(to metadata: inout [String: Any], from nsError: NSError) {
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            metadata["underlyingError"] = [
+                "domain": underlying.domain,
+                "code": underlying.code,
+                "message": underlying.localizedDescription
+            ]
+        }
+    }
+    
+    private class func addUserInfoMetadata(to metadata: inout [String: Any], from nsError: NSError) {
+        if nsError.userInfo.isEmpty == false {
+            let sanitized = sanitizeUserInfo(nsError.userInfo)
+            if sanitized.isEmpty == false {
+                metadata["userInfo"] = sanitized
+            }
+        }
     }
 }
