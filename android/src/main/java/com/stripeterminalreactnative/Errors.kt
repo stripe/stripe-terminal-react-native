@@ -228,6 +228,7 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     TerminalErrorCode.PRINTER_ABSENT -> "PRINTER_ABSENT"
     TerminalErrorCode.PRINTER_UNAVAILABLE -> "PRINTER_UNAVAILABLE"
     TerminalErrorCode.PRINTER_ERROR -> "PRINTER_ERROR"
+    TerminalErrorCode.INVALID_MOTO_CONFIGURATION -> "INVALID_MOTO_CONFIGURATION"
 }
 
 private fun WritableMap.addApiErrorInformation(apiError: ApiError?) {
