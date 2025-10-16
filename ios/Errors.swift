@@ -141,26 +141,26 @@ class Errors {
         return joined.isEmpty ? nil : joined
     }
 
-    class func createError(code: ErrorCode.Code, message: String) -> [String: Any] {
-        let rn = rnCode(from: code)
+    class func createErrorFromCode(code: ErrorCode.Code, message: String) -> [String: Any] {
+        let rn = convertToReactNativeErrorCode(from: code)
 
         return stripeWrappedError(code: rn, nativeErrorCode: code.stringValue, message: message, metadata: [:])
     }
 
-    class func createError(rnCode: String, message: String) -> [String: Any] {
+    class func createErrorFromRnCode(rnCode: String, message: String) -> [String: Any] {
         return stripeWrappedError(code: rnCode, nativeErrorCode: rnCode, message: message, metadata: [:])
     }
 
-    class func createError(rnCode: RNErrorCode, message: String) -> [String: Any] {
+    class func createErrorFromRnCodeEnum(rnCode: RNErrorCode, message: String) -> [String: Any] {
         return stripeWrappedError(code: rnCode.rawValue, nativeErrorCode: rnCode.rawValue, message: message, metadata: [:])
     }
 
-    class func createError(nsError: NSError) -> [String: Any] {
+    class func createErrorFromNSError(nsError: NSError) -> [String: Any] {
         let mapped = mapToStripeErrorObject(nsError: nsError)
         return ["error": mapped]
     }
 
-    class func reject(_ reject: RCTPromiseRejectBlock, rnCode: String, message: String) {
+    class func rejectPromise(_ reject: RCTPromiseRejectBlock, rnCode: String, message: String) {
         reject(rnCode, message.isEmpty ? rnCode : message, nil)
     }
 
@@ -189,7 +189,7 @@ class Errors {
         if isStripeError {
             let codeEnum = ErrorCode.Code(rawValue: nsError.code)
             if let ce = codeEnum {
-                let rn = rnCode(from: ce)
+                let rn = convertToReactNativeErrorCode(from: ce)
                 code = rn
                 if rn == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && ce != .unexpectedSdkError {
                     metadata["unmappedErrorCode"] = toUpperSnakeCase(ce.stringValue)
@@ -291,7 +291,7 @@ class Errors {
     }
 
     // Map iOS ErrorCode.Code to RN ErrorCode (UPPER_SNAKE_CASE).
-    private class func rnCode(from code: ErrorCode.Code) -> String {
+    private class func convertToReactNativeErrorCode(from code: ErrorCode.Code) -> String {
         switch code {
         case .canceled: return RNErrorCode.CANCELED.rawValue
         case .notConnectedToReader: return RNErrorCode.NOT_CONNECTED_TO_READER.rawValue
@@ -448,7 +448,7 @@ class Errors {
     }
 }
 
-func busyMessage(command: String, by busyCommand: String) -> String {
+func createBusyMessage(command: String, by busyCommand: String) -> String {
     return "Could not execute \(command) because the SDK is busy with another command: \(busyCommand)."
 }
 

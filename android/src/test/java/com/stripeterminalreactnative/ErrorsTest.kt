@@ -55,12 +55,12 @@ class ErrorsTest {
     }
 
     @Test
-    fun `TerminalErrorCode toRnErrorCode returns enum name`() {
+    fun `TerminalErrorCode convertToReactNativeErrorCode returns enum name`() {
         // GIVEN no additional setup
         // WHEN mapping all TerminalErrorCode values
         // THEN each mapping should equal the enum name
         TerminalErrorCode.values().forEach { code ->
-            assertEquals(code.name, code.toRnErrorCode(), "Mapping mismatch for $code")
+            assertEquals(code.name, code.convertToReactNativeErrorCode(), "Mapping mismatch for $code")
         }
     }
 
@@ -87,7 +87,7 @@ class ErrorsTest {
         // THEN the output should be a StripeError with rich metadata
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals("terminal failed", error.getString("message"))
-        assertEquals(TerminalErrorCode.STRIPE_API_ERROR.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.STRIPE_API_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         assertEquals(TerminalErrorCode.STRIPE_API_ERROR.toString(), error.getString("nativeErrorCode"))
 
         val metadata = error.requireMap(METADATA_KEY)
@@ -135,7 +135,7 @@ class ErrorsTest {
         // THEN the structure should match StripeError expectations
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals("Bluetooth error", error.getString("message"))
-        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.toString(), error.getString("nativeErrorCode"))
         val metadata = error.requireMap(METADATA_KEY)
         assertEquals("TerminalException", metadata.getString(EXCEPTION_CLASS_KEY))
@@ -155,7 +155,7 @@ class ErrorsTest {
         // THEN the result should describe a NonStripeError with cause metadata
         assertEquals(NON_STRIPE_ERROR, error.getString("name"))
         assertEquals("top level", error.getString("message"))
-        assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString(), error.getString("nativeErrorCode"))
 
         val metadata = error.requireMap(METADATA_KEY)
@@ -228,7 +228,7 @@ class ErrorsTest {
         // THEN the result should be a NonStripeError without underlying metadata
         assertEquals(NON_STRIPE_ERROR, error.getString("name"))
         assertEquals("boom", error.getString("message"))
-        assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         val metadata = error.requireMap(METADATA_KEY)
         assertEquals("RuntimeException", metadata.getString(EXCEPTION_CLASS_KEY))
         assertFalse(metadata.hasKey(UNDERLYING_ERROR_KEY))
@@ -286,24 +286,24 @@ class ErrorsTest {
     }
 
     @Test
-    fun `requireParam returns value when not null`() {
+    fun `requireNonNullParameter returns value when not null`() {
         // GIVEN a parameter value
         val value = "param"
 
-        // WHEN invoking requireParam
-        val result = requireParam(value) { "missing" }
+        // WHEN invoking requireNonNullParameter
+        val result = requireNonNullParameter(value) { "missing" }
 
         // THEN the same value is returned
         assertEquals(value, result)
     }
 
     @Test
-    fun `requireParam throws TerminalException when null`() {
+    fun `requireNonNullParameter throws TerminalException when null`() {
         // GIVEN a null parameter
 
-        // WHEN invoking requireParam
+        // WHEN invoking requireNonNullParameter
         val exception = assertFailsWith<TerminalException> {
-            requireParam<String>(null) { "missing" }
+            requireNonNullParameter<String>(null) { "missing" }
         }
 
         // THEN INVALID_REQUIRED_PARAMETER error should be raised
@@ -329,7 +329,7 @@ class ErrorsTest {
         verify { promise.resolve(capture(captured)) }
         val error = (captured.captured.getMap("error") as JavaOnlyMap)
         assertEquals(STRIPE_ERROR, error.getString("name"))
-        assertEquals(TerminalErrorCode.READER_BUSY.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.READER_BUSY.convertToReactNativeErrorCode(), error.getString("code"))
     }
 
     @Test
@@ -365,7 +365,7 @@ class ErrorsTest {
         verify { promise.resolve(capture(captured)) }
         val error = (captured.captured.getMap("error") as JavaOnlyMap)
         assertEquals(STRIPE_ERROR, error.getString("name"))
-        assertEquals(TerminalErrorCode.STRIPE_API_ERROR.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.STRIPE_API_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
     }
 
     @Test
@@ -391,7 +391,7 @@ class ErrorsTest {
         // WHEN mapping each code to RN error code
         // THEN each should have a valid non-empty mapping
         allErrorCodes.forEach { code ->
-            val rnCode = code.toRnErrorCode()
+            val rnCode = code.convertToReactNativeErrorCode()
             assertFalse(rnCode.isEmpty(), "TerminalErrorCode.$code should not map to empty string")
             assertTrue(rnCode.matches(Regex("^[A-Z][A-Z0-9_]*$")), 
                       "TerminalErrorCode.$code should map to UPPER_SNAKE_CASE format, got: $rnCode")
@@ -420,7 +420,7 @@ class ErrorsTest {
         // THEN should be StripeError with immediate cause metadata
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals("bluetooth failed", error.getString("message"))
-        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.toRnErrorCode(), error.getString("code"))
+        assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         
         val metadata = error.requireMap(METADATA_KEY)
         val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)

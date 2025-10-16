@@ -32,7 +32,7 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
         is TerminalException -> {
             putString("name", "StripeError")
             putString("message", throwable.errorMessage)
-            putString("code", throwable.errorCode.toRnErrorCode())
+            putString("code", throwable.errorCode.convertToReactNativeErrorCode())
             putString("nativeErrorCode", throwable.errorCode.toString())
             putMap(
                 "metadata",
@@ -52,7 +52,7 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
 private fun WritableMap.putUnknownErrorContents(throwable: Throwable?) {
     putString("name", "NonStripeError")
     putString("message", throwable?.message ?: "Unknown error")
-    putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toRnErrorCode())
+    putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode())
     putString("nativeErrorCode", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
     putMap(
         "metadata",
@@ -81,7 +81,7 @@ internal fun <T> throwIfBusy(command: T?, lazyMessage: () -> String): Unit? {
 }
 
 @Throws(TerminalException::class)
-internal fun <T> requireParam(input: T?, lazyMessage: () -> String): T {
+internal fun <T> requireNonNullParameter(input: T?, lazyMessage: () -> String): T {
     return input ?: throw TerminalException(
         TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
         lazyMessage()
@@ -104,7 +104,7 @@ internal suspend fun withSuspendExceptionResolver(promise: Promise, block: suspe
     }
 }
 
-fun TerminalErrorCode.toRnErrorCode(): String = when (this) {
+fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     // Integration-like
     TerminalErrorCode.CANCEL_FAILED -> "CANCEL_FAILED"
     TerminalErrorCode.NOT_CONNECTED_TO_READER -> "NOT_CONNECTED_TO_READER"
