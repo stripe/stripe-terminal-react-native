@@ -130,29 +130,27 @@ class Errors {
     }
     
     class func validateRequiredParameters(params: NSDictionary, requiredParams: [String]) -> String? {
-        var invalid: [String] = []
-
-        requiredParams.forEach {
-            if (params.object(forKey: $0) == nil) {
-                invalid.append($0)
-            }
-        }
-        let joined = invalid.joined(separator: ", ")
-        return joined.isEmpty ? nil : joined
+        let missing = requiredParams.filter { params.object(forKey: $0) == nil }
+        return missing.isEmpty ? nil : missing.joined(separator: ", ")
     }
 
     class func createErrorFromCode(code: ErrorCode.Code, message: String) -> [String: Any] {
         let rn = convertToReactNativeErrorCode(from: code)
-
-        return stripeWrappedError(code: rn, nativeErrorCode: code.stringValue, message: message, metadata: [:])
+        return createError(code: rn, nativeCode: code.stringValue, message: message)
     }
 
     class func createErrorFromRnCode(rnCode: String, message: String) -> [String: Any] {
-        return stripeWrappedError(code: rnCode, nativeErrorCode: rnCode, message: message, metadata: [:])
+        return createError(code: rnCode, nativeCode: rnCode, message: message)
     }
 
     class func createErrorFromRnCodeEnum(rnCode: RNErrorCode, message: String) -> [String: Any] {
-        return stripeWrappedError(code: rnCode.rawValue, nativeErrorCode: rnCode.rawValue, message: message, metadata: [:])
+        return createError(code: rnCode.rawValue, nativeCode: rnCode.rawValue, message: message)
+    }
+
+    // MARK: - Unified Error Creation
+    
+    private class func createError(code: String, nativeCode: String, message: String) -> [String: Any] {
+        return stripeWrappedError(code: code, nativeErrorCode: nativeCode, message: message, metadata: [:])
     }
 
     class func createErrorFromNSError(nsError: NSError) -> [String: Any] {
@@ -175,28 +173,41 @@ class Errors {
     }
 
     class func mapToStripeErrorObject(nsError: NSError) -> [String: Any] {
-        let stripeDomain = ErrorConstants.stripeTerminalDomain
+        let errorInfo = extractErrorInformation(from: nsError)
+        let metadata = buildMetadata(from: nsError, isStripeError: errorInfo.isStripeError)
+        
+        return stripeErrorObject(
+            name: errorInfo.errorName,
+            code: errorInfo.code,
+            nativeErrorCode: errorInfo.nativeErrorCode,
+            message: nsError.localizedDescription,
+            metadata: metadata
+        )
+    }
 
-        let isStripeError = (nsError.domain == stripeDomain)
+    // MARK: - Error Information Extraction
+    
+    private struct ErrorInformation {
+        let isStripeError: Bool
         let code: String
         let nativeErrorCode: String
-
-        var metadata: [String: Any] = [
-            ErrorConstants.domainKey: nsError.domain,
-            ErrorConstants.isStripeErrorKey: isStripeError
-        ]
-
+        let errorName: String
+    }
+    
+    private class func extractErrorInformation(from nsError: NSError) -> ErrorInformation {
+        let stripeDomain = ErrorConstants.stripeTerminalDomain
+        let isStripeError = (nsError.domain == stripeDomain)
+        
+        let code: String
+        let nativeErrorCode: String
+        
         if isStripeError {
             let codeEnum = ErrorCode.Code(rawValue: nsError.code)
             if let ce = codeEnum {
                 let rn = convertToReactNativeErrorCode(from: ce)
                 code = rn
-                if rn == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && ce != .unexpectedSdkError {
-                    metadata[ErrorConstants.unmappedErrorCodeKey] = toUpperSnakeCase(ce.stringValue)
-                }
             } else {
                 code = RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue
-                metadata[ErrorConstants.unmappedErrorCodeKey] = String(nsError.code)
             }
             nativeErrorCode = String(nsError.code)
         } else {
@@ -204,17 +215,39 @@ class Errors {
             code = nonStripeErrorMapping.code
             nativeErrorCode = nonStripeErrorMapping.nativeErrorCode
         }
+        
+        return ErrorInformation(
+            isStripeError: isStripeError,
+            code: code,
+            nativeErrorCode: nativeErrorCode,
+            errorName: isStripeError ? ErrorConstants.stripeErrorName : ErrorConstants.nonStripeErrorName
+        )
+    }
+    
+    private class func buildMetadata(from nsError: NSError, isStripeError: Bool) -> [String: Any] {
+        var metadata: [String: Any] = [
+            ErrorConstants.domainKey: nsError.domain,
+            ErrorConstants.isStripeErrorKey: isStripeError
+        ]
+        
+        // Add unmapped error code information for Stripe errors
+        if isStripeError {
+            let codeEnum = ErrorCode.Code(rawValue: nsError.code)
+            if let ce = codeEnum {
+                let rn = convertToReactNativeErrorCode(from: ce)
+                if rn == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && ce != .unexpectedSdkError {
+                    metadata[ErrorConstants.unmappedErrorCodeKey] = toUpperSnakeCase(ce.stringValue)
+                }
+            } else {
+                metadata[ErrorConstants.unmappedErrorCodeKey] = String(nsError.code)
+            }
+        }
+        
         addLocalizedErrorInformation(to: &metadata, from: nsError)
         addUnderlyingErrorInformation(to: &metadata, from: nsError)
         addUserInfoMetadata(to: &metadata, from: nsError)
-
-        return stripeErrorObject(
-            name: isStripeError ? ErrorConstants.stripeErrorName : ErrorConstants.nonStripeErrorName,
-            code: code,
-            nativeErrorCode: nativeErrorCode,
-            message: nsError.localizedDescription,
-            metadata: metadata
-        )
+        
+        return metadata
     }
 
     private class func stripeErrorObject(name: String = ErrorConstants.stripeErrorName, code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
@@ -239,14 +272,26 @@ class Errors {
     }
 
     private class func jsonSafeValue(_ value: Any) -> Any? {
-        if let s = value as? String { return s }
-        if let n = value as? NSNumber { return n }
-        if value is NSNull { return NSNull() }
-
-        if let dict = value as? [AnyHashable: Any] {
-            return sanitizeUserInfo(dict)
+        // Use JSONSerialization for basic validation
+        if JSONSerialization.isValidJSONObject([value]) {
+            return value
         }
-        if let nsDict = value as? NSDictionary {
+        
+        // Handle special types that need conversion
+        switch value {
+        case let url as URL:
+            return url.absoluteString
+        case let date as Date:
+            return ISO8601DateFormatter().string(from: date)
+        case let error as NSError:
+            return [
+                ErrorConstants.nsErrorDomainKey: error.domain,
+                ErrorConstants.nsErrorCodeKey: error.code,
+                ErrorConstants.nsErrorUserInfoKey: sanitizeUserInfo(error.userInfo)
+            ]
+        case let dict as [AnyHashable: Any]:
+            return sanitizeUserInfo(dict)
+        case let nsDict as NSDictionary:
             var bridged: [AnyHashable: Any] = [:]
             nsDict.forEach { (kv) in
                 if let k = kv.key as? AnyHashable {
@@ -254,40 +299,21 @@ class Errors {
                 }
             }
             return sanitizeUserInfo(bridged)
-        }
-
-        if let arr = value as? [Any] {
+        case let arr as [Any]:
             return arr.compactMap { jsonSafeValue($0) }
-        }
-        if let nsArr = value as? NSArray {
+        case let nsArr as NSArray:
             return nsArr.compactMap { jsonSafeValue($0) }
+        default:
+            return String(describing: value)
         }
-
-        if let url  = value as? URL { return url.absoluteString }
-        if let date = value as? Date { return ISO8601DateFormatter().string(from: date) }
-        if let err = value as? NSError {
-            return [
-                ErrorConstants.nsErrorDomainKey: err.domain,
-                ErrorConstants.nsErrorCodeKey: err.code,
-                ErrorConstants.nsErrorUserInfoKey: sanitizeUserInfo(err.userInfo)
-            ]
-        }
-
-        return String(describing: value)
     }
 
     private class func toUpperSnakeCase(_ input: String) -> String {
-        if input.isEmpty { return input }
-        var result = ""
-        for (i, ch) in input.enumerated() {
-            if ch.isUppercase && i != 0 {
-                result.append("_")
-            }
-            result.append(ch.uppercased())
-        }
-        return result
-            .replacingOccurrences(of: "__", with: "_")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !input.isEmpty else { return input }
+        
+        return input
+            .replacingOccurrences(of: "([a-z])([A-Z])", with: "$1_$2", options: .regularExpression)
+            .uppercased()
     }
 
     // Map iOS ErrorCode.Code to RN ErrorCode (UPPER_SNAKE_CASE).
@@ -463,7 +489,7 @@ extension ErrorCode.Code {
 extension Errors {
     private class func mapNonStripeError(nsError: NSError) -> (code: String, nativeErrorCode: String) {
         return (
-            code: "UNEXPECTED_SDK_ERROR",
+            code: RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue,
             nativeErrorCode: "\(nsError.domain):\(nsError.code)"
         )
     }
