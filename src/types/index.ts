@@ -79,16 +79,6 @@ export type Cart = {
   lineItems: LineItem[];
 };
 
-/**
- * @deprecated Use ErrorCode for cross-platform error handling.
- * This enum is retained for backwards compatibility with example apps.
- */
-export enum CommonError {
-  Failed = 'Failed',
-  Canceled = 'Canceled',
-  Unknown = 'Unknown',
-}
-
 export type LocationStatus = 'notSet' | 'set' | 'unknown';
 
 export type InitializeResultType =
