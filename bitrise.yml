@@ -34,7 +34,7 @@ stages:
       - deploy-firebase-android: {}
 workflows:
   complete_all:
-    steps:
+    steps: []
       # - save-npm-cache@1: {}
       # - save-cocoapods-cache@1: {}
   deploy-firebase-android:
@@ -161,6 +161,11 @@ workflows:
       - complete_all
   lint:
     steps:
+      - yarn@0:
+          inputs:
+            - cache_local_deps: 'yes'
+            - command: check:rn-error-codes
+          title: yarn check:rn-error-codes
       - yarn@0:
           inputs:
             # - cache_local_deps: 'yes'
