@@ -71,7 +71,7 @@ tags:
 - runFlow:
     file: e2e/connectReader.yaml
     env:
-      discoveryMethod: "bt-scn-btn"
+      discoveryMethod: "internet-btn"
 - runFlow:
     file: e2e/setupIntent.yaml
 
