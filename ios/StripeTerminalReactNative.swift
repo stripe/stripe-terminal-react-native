@@ -266,7 +266,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         guard discoverCancelable == nil else {
             let message = busyMessage(command: "discoverReaders", by: "discoverReaders")
-            resolve(Errors.createError(code: CommonErrorType.AlreadyDiscovering, message: message))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.READER_BUSY, message: message))
             return
         }
 
@@ -306,7 +306,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(connectReader:discoveryMethod:resolver:rejecter:)
     func connectReader(params: NSDictionary, discoveryMethod: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a reader object"))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.MISSING_REQUIRED_PARAMETER, message: "You must provide a reader object"))
             return
         }
 
@@ -314,7 +314,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let readerId = reader["serialNumber"] as? String
         let discoveryMethodType = Mappers.mapToDiscoveryMethod(discoveryMethod)
         guard let selectedReader = discoveredReadersList?.first(where: { $0.serialNumber == readerId }) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "Could not find reader with id \(readerId ?? "")"))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "Could not find reader with id \(readerId ?? "")"))
             return
 
         }
