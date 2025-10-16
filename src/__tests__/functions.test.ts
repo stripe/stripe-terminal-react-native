@@ -398,9 +398,7 @@ describe('functions.test.ts', () => {
         cancelReadReusableCard: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
-        print: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
+        print: jest.fn().mockImplementation(() => ({ error: '_error' })),
 
         simulateReaderUpdate: jest.fn().mockRejectedValue('_error'),
         clearCachedCredentials: jest.fn().mockRejectedValue('_error'),

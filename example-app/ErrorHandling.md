@@ -23,7 +23,11 @@ showErrorToast(error);
 ### Error information extraction
 
 ```typescript
-import { getErrorMessage, getErrorCode, extractErrorInfo } from './src/util/errorHandling';
+import {
+  getErrorMessage,
+  getErrorCode,
+  extractErrorInfo,
+} from './src/util/errorHandling';
 
 // Safe error message extraction
 const message = getErrorMessage(error, 'Unknown error');

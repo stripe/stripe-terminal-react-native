@@ -6,7 +6,9 @@ const path = require('path');
 function parseTsErrorCodes(tsPath) {
   const src = fs.readFileSync(tsPath, 'utf8');
   const m = src.match(/export const ErrorCode = \{([\s\S]*?)\}\s+as const;/);
-  if (!m) { throw new Error('Could not find ErrorCode object in TS'); }
+  if (!m) {
+    throw new Error('Could not find ErrorCode object in TS');
+  }
   const body = m[1];
   const re = /([A-Z0-9_]+)\s*:\s*'\1'/g;
   const keys = new Set();
@@ -20,7 +22,9 @@ function parseTsErrorCodes(tsPath) {
 function parseSwiftEnum(swiftPath) {
   const src = fs.readFileSync(swiftPath, 'utf8');
   const m = src.match(/enum\s+RNErrorCode\s*:\s*String\s*\{([\s\S]*?)\}/);
-  if (!m) { throw new Error('Could not find RNErrorCode enum in Swift'); }
+  if (!m) {
+    throw new Error('Could not find RNErrorCode enum in Swift');
+  }
   const body = m[1];
   const re = /case\s+([A-Z0-9_]+)\s*=\s*"\1"/g;
   const keys = new Set();
@@ -71,20 +75,22 @@ function main() {
   const swiftKeys = parseSwiftEnum(swiftPath);
   const androidReturnCodes = parseKotlinAndroidReturnCodes(kotlinPath);
 
-  const missingInSwift = [...tsKeys].filter(k => !swiftKeys.has(k)).sort();
-  const extraInSwift = [...swiftKeys].filter(k => !tsKeys.has(k)).sort();
+  const missingInSwift = [...tsKeys].filter((k) => !swiftKeys.has(k)).sort();
+  const extraInSwift = [...swiftKeys].filter((k) => !tsKeys.has(k)).sort();
 
-  const androidReturnsNotInTs = [...androidReturnCodes.codes].filter(k => !tsKeys.has(k)).sort();
+  const androidReturnsNotInTs = [...androidReturnCodes.codes]
+    .filter((k) => !tsKeys.has(k))
+    .sort();
 
   if (missingInSwift.length || extraInSwift.length) {
     console.error('RN ErrorCode mismatch found:');
     if (missingInSwift.length) {
       console.error('\nMissing in Swift RNErrorCode:');
-      missingInSwift.forEach(k => console.error('  - ' + k));
+      missingInSwift.forEach((k) => console.error('  - ' + k));
     }
     if (extraInSwift.length) {
       console.error('\nExtra in Swift RNErrorCode (not in TS):');
-      extraInSwift.forEach(k => console.error('  - ' + k));
+      extraInSwift.forEach((k) => console.error('  - ' + k));
     }
     process.exit(1);
   } else {
@@ -93,17 +99,21 @@ function main() {
 
   // Android mapping checks
   if (androidReturnCodes.hasElseBranch) {
-    console.error('\nAndroid Errors.kt mapping contains an else branch; expected exhaustive when without else.');
+    console.error(
+      '\nAndroid Errors.kt mapping contains an else branch; expected exhaustive when without else.'
+    );
     process.exit(1);
   }
   if (androidReturnsNotInTs.length) {
-    console.error('\nAndroid Errors.kt returns codes not present in TS ErrorCode:');
-    androidReturnsNotInTs.forEach(k => console.error('  - ' + k));
+    console.error(
+      '\nAndroid Errors.kt returns codes not present in TS ErrorCode:'
+    );
+    androidReturnsNotInTs.forEach((k) => console.error('  - ' + k));
     process.exit(1);
   }
-  console.log('Android mapping: exhaustive when (no else) and all return codes exist in TS.');
+  console.log(
+    'Android mapping: exhaustive when (no else) and all return codes exist in TS.'
+  );
 }
 
 main();
-
-
