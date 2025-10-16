@@ -220,6 +220,7 @@ class Errors {
         
         if isStripeError {
             checkAndRecordUnmappedErrorCode(to: &metadata, from: nsError)
+            extractSpecializedErrorFields(to: &metadata, from: nsError)
         }
         
         addLocalizedErrorInformation(to: &metadata, from: nsError)
@@ -515,6 +516,69 @@ extension Errors {
             if sanitized.isEmpty == false {
                 metadata[ErrorConstants.userInfoKey] = sanitized
             }
+        }
+    }
+    
+    /// Router for specialized error handlers. Add new error type handlers as else-if branches below.
+    private class func extractSpecializedErrorFields(to metadata: inout [String: Any], from nsError: NSError) {
+        let className = String(describing: type(of: nsError))
+        
+        if className.contains("ConfirmRefundError") || className.contains("SCPConfirmRefundError") {
+            addConfirmRefundErrorInfo(to: &metadata, from: nsError)
+        } else if className.contains("ConfirmPaymentIntentError") || className.contains("SCPConfirmPaymentIntentError") {
+            addConfirmPaymentIntentErrorInfo(to: &metadata, from: nsError)
+        } else if className.contains("ConfirmSetupIntentError") || className.contains("SCPConfirmSetupIntentError") {
+            addConfirmSetupIntentErrorInfo(to: &metadata, from: nsError)
+        }
+    }
+    
+    private class func addConfirmRefundErrorInfo(to metadata: inout [String: Any], from error: NSError) {
+        if let refund = error.value(forKey: "refund") as? Refund {
+            metadata[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
+        }
+        
+        if let requestError = error.value(forKey: "requestError") as? NSError {
+            metadata[ErrorConstants.requestErrorKey] = [
+                ErrorConstants.nsErrorDomainKey: requestError.domain,
+                ErrorConstants.nsErrorCodeKey: requestError.code,
+                ErrorConstants.messageKey: requestError.localizedDescription
+            ]
+        }
+    }
+    
+    private class func addConfirmPaymentIntentErrorInfo(to metadata: inout [String: Any], from error: NSError) {
+        if let paymentIntent = error.value(forKey: "paymentIntent") as? PaymentIntent {
+            metadata[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: "")
+        }
+        
+        if let requestError = error.value(forKey: "requestError") as? NSError {
+            metadata[ErrorConstants.requestErrorKey] = [
+                ErrorConstants.nsErrorDomainKey: requestError.domain,
+                ErrorConstants.nsErrorCodeKey: requestError.code,
+                ErrorConstants.messageKey: requestError.localizedDescription
+            ]
+        }
+        
+        if let declineCode = error.value(forKey: "declineCode") as? String {
+            metadata[ErrorConstants.declineCodeKey] = declineCode
+        }
+    }
+    
+    private class func addConfirmSetupIntentErrorInfo(to metadata: inout [String: Any], from error: NSError) {
+        if let setupIntent = error.value(forKey: "setupIntent") as? SetupIntent {
+            metadata[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(setupIntent, uuid: "")
+        }
+        
+        if let requestError = error.value(forKey: "requestError") as? NSError {
+            metadata[ErrorConstants.requestErrorKey] = [
+                ErrorConstants.nsErrorDomainKey: requestError.domain,
+                ErrorConstants.nsErrorCodeKey: requestError.code,
+                ErrorConstants.messageKey: requestError.localizedDescription
+            ]
+        }
+        
+        if let declineCode = error.value(forKey: "declineCode") as? String {
+            metadata[ErrorConstants.declineCodeKey] = declineCode
         }
     }
 }

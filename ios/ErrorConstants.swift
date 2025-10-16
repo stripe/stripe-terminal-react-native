@@ -1,9 +1,6 @@
 import Foundation
 
-/**
- * Constants used for error object structure and keys.
- * These constants ensure consistency between error creation and testing.
- */
+/// Constants for error object structure and keys.
 struct ErrorConstants {
     
     // MARK: - Error Object Keys
@@ -34,7 +31,7 @@ struct ErrorConstants {
     static let underlyingErrorCodeKey = "code"
     static let underlyingErrorMessageKey = "message"
     
-    // MARK: - NSError Keys (for jsonSafeValue function)
+    // MARK: - NSError Keys
     static let nsErrorDomainKey = "domain"
     static let nsErrorCodeKey = "code"
     static let nsErrorUserInfoKey = "userInfo"
@@ -44,4 +41,11 @@ struct ErrorConstants {
     
     // MARK: - Domain Constants
     static let stripeTerminalDomain = "com.stripe-terminal"
+    
+    // MARK: - Specialized Error Keys
+    static let refundKey = "refund"
+    static let paymentIntentKey = "paymentIntent"
+    static let setupIntentKey = "setupIntent"
+    static let requestErrorKey = "requestError"
+    static let declineCodeKey = "declineCode"
 }

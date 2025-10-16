@@ -440,6 +440,59 @@ metadata: {
   userInfo?: {
     // Additional NSError userInfo dictionary
     [key: string]: any
+  },
+  
+  // Enhanced error context for Confirm operations (iOS only)
+  refund?: { /* Full Refund object */ },              // For ConfirmRefundError
+  paymentIntent?: { /* Full PaymentIntent object */ }, // For ConfirmPaymentIntentError
+  setupIntent?: { /* Full SetupIntent object */ },     // For ConfirmSetupIntentError
+  requestError?: {                                     // Underlying request error if present
+    domain: string,
+    code: number,
+    message: string
+  },
+  declineCode?: string                                 // Decline code for payment/setup failures
+}
+```
+
+#### Enhanced Error Context for Confirm Operations (iOS)
+
+When confirm operations fail on iOS (`confirmPaymentIntent`, `confirmSetupIntent`, `confirmRefund`), the error metadata includes the full transaction object and additional context:
+
+**ConfirmPaymentIntentError includes**:
+
+- `paymentIntent`: Full PaymentIntent object with current status and details
+- `requestError`: Underlying network/API error that caused the failure (if any)
+- `declineCode`: Specific decline reason when payment is declined
+
+**ConfirmSetupIntentError includes**:
+
+- `setupIntent`: Full SetupIntent object with current status and details
+- `requestError`: Underlying network/API error that caused the failure (if any)
+- `declineCode`: Specific decline reason when setup is declined
+
+**ConfirmRefundError includes**:
+
+- `refund`: Full Refund object with current status and details
+- `requestError`: Underlying network/API error that caused the failure (if any)
+
+This enhanced context enables sophisticated error recovery flows:
+
+```typescript
+const { error, paymentIntent } = await confirmPaymentIntent('pi_...');
+if (error && error.code === ErrorCode.DECLINED_BY_STRIPE_API) {
+  // iOS: Access full PaymentIntent from error metadata
+  const piFromError = error.metadata.paymentIntent;
+  console.log('Payment status:', piFromError?.status);
+  
+  // Check decline code for specific reason
+  if (error.metadata.declineCode === 'insufficient_funds') {
+    // Guide user to use different payment method
+  }
+  
+  // Access underlying network error if present
+  if (error.metadata.requestError) {
+    console.log('Network issue:', error.metadata.requestError.message);
   }
 }
 ```

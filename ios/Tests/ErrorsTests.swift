@@ -749,5 +749,350 @@ final class ErrorsTests: XCTestCase {
         XCTAssertNotNil(metadata["isStripeError"])
     }
     
+    // MARK: - Specialized Error Extraction Tests
+    
+    func testExtractSpecializedErrorFields_ConfirmRefundError() {
+        // GIVEN a ConfirmRefundError with refund and requestError
+        let mockRefund = MockRefund()
+        let mockRequestError = makeNSError(domain: "com.stripe-terminal", code: 123, description: "Request failed")
+        
+        let confirmRefundError = MockConfirmRefundError(
+            refund: mockRefund,
+            requestError: mockRequestError
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError)
+        
+        // THEN should extract refund and requestError into metadata
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        // Check refund field
+        guard let refundDict = metadata["refund"] as? NSDictionary else {
+            return XCTFail("Expected refund in metadata")
+        }
+        XCTAssertEqual(refundDict["id"] as? String, "re_test_123")
+        XCTAssertEqual(refundDict["amount"] as? Int, 1000)
+        XCTAssertEqual(refundDict["status"] as? String, "succeeded")
+        
+        // Check requestError field
+        guard let requestErrorDict = metadata["requestError"] as? [String: Any] else {
+            return XCTFail("Expected requestError in metadata")
+        }
+        XCTAssertEqual(requestErrorDict["domain"] as? String, "com.stripe-terminal")
+        XCTAssertEqual(requestErrorDict["code"] as? Int, 123)
+        XCTAssertEqual(requestErrorDict["message"] as? String, "Request failed")
+        
+        // Should NOT have declineCode for ConfirmRefundError
+        XCTAssertNil(metadata["declineCode"])
+    }
+    
+    func testExtractSpecializedErrorFields_ConfirmRefundError_OnlyRefund() {
+        // GIVEN a ConfirmRefundError with only refund (no requestError)
+        let mockRefund = MockRefund()
+        let confirmRefundError = MockConfirmRefundError(refund: mockRefund, requestError: nil)
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError)
+        
+        // THEN should extract only refund
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        XCTAssertNotNil(metadata["refund"])
+        XCTAssertNil(metadata["requestError"])
+        XCTAssertNil(metadata["declineCode"])
+    }
+    
+    func testExtractSpecializedErrorFields_ConfirmPaymentIntentError() {
+        // GIVEN a ConfirmPaymentIntentError with all fields
+        let mockPaymentIntent = MockPaymentIntent()
+        let mockRequestError = makeNSError(domain: "com.stripe-terminal", code: 456, description: "Network error")
+        let declineCode = "card_declined"
+        
+        let confirmPaymentIntentError = MockConfirmPaymentIntentError(
+            paymentIntent: mockPaymentIntent,
+            requestError: mockRequestError,
+            declineCode: declineCode
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
+        
+        // THEN should extract all fields into metadata
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        // Check paymentIntent field
+        guard let paymentIntentDict = metadata["paymentIntent"] as? NSDictionary else {
+            return XCTFail("Expected paymentIntent in metadata")
+        }
+        XCTAssertEqual(paymentIntentDict["id"] as? String, "pi_test_123")
+        XCTAssertEqual(paymentIntentDict["amount"] as? UInt, 5000)
+        XCTAssertEqual(paymentIntentDict["currency"] as? String, "usd")
+        
+        // Check requestError field
+        guard let requestErrorDict = metadata["requestError"] as? [String: Any] else {
+            return XCTFail("Expected requestError in metadata")
+        }
+        XCTAssertEqual(requestErrorDict["domain"] as? String, "com.stripe-terminal")
+        XCTAssertEqual(requestErrorDict["code"] as? Int, 456)
+        
+        // Check declineCode field
+        XCTAssertEqual(metadata["declineCode"] as? String, "card_declined")
+    }
+    
+    func testExtractSpecializedErrorFields_ConfirmPaymentIntentError_OnlyPaymentIntent() {
+        // GIVEN a ConfirmPaymentIntentError with only paymentIntent
+        let mockPaymentIntent = MockPaymentIntent()
+        let confirmPaymentIntentError = MockConfirmPaymentIntentError(
+            paymentIntent: mockPaymentIntent,
+            requestError: nil,
+            declineCode: nil
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
+        
+        // THEN should extract only paymentIntent
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        XCTAssertNotNil(metadata["paymentIntent"])
+        XCTAssertNil(metadata["requestError"])
+        XCTAssertNil(metadata["declineCode"])
+    }
+    
+    func testExtractSpecializedErrorFields_ConfirmSetupIntentError() {
+        // GIVEN a ConfirmSetupIntentError with all fields
+        let mockSetupIntent = MockSetupIntent()
+        let mockRequestError = makeNSError(domain: "com.stripe-terminal", code: 789, description: "API error")
+        let declineCode = "insufficient_funds"
+        
+        let confirmSetupIntentError = MockConfirmSetupIntentError(
+            setupIntent: mockSetupIntent,
+            requestError: mockRequestError,
+            declineCode: declineCode
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError)
+        
+        // THEN should extract all fields into metadata
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        // Check setupIntent field
+        guard let setupIntentDict = metadata["setupIntent"] as? NSDictionary else {
+            return XCTFail("Expected setupIntent in metadata")
+        }
+        XCTAssertEqual(setupIntentDict["id"] as? String, "seti_test_123")
+        XCTAssertEqual(setupIntentDict["status"] as? String, "requiresPaymentMethod")
+        XCTAssertEqual(setupIntentDict["usage"] as? String, "offSession")
+        
+        // Check requestError field
+        guard let requestErrorDict = metadata["requestError"] as? [String: Any] else {
+            return XCTFail("Expected requestError in metadata")
+        }
+        XCTAssertEqual(requestErrorDict["domain"] as? String, "com.stripe-terminal")
+        XCTAssertEqual(requestErrorDict["code"] as? Int, 789)
+        
+        // Check declineCode field
+        XCTAssertEqual(metadata["declineCode"] as? String, "insufficient_funds")
+    }
+    
+    func testExtractSpecializedErrorFields_ConfirmSetupIntentError_PartialFields() {
+        // GIVEN a ConfirmSetupIntentError with setupIntent and declineCode only
+        let mockSetupIntent = MockSetupIntent()
+        let confirmSetupIntentError = MockConfirmSetupIntentError(
+            setupIntent: mockSetupIntent,
+            requestError: nil,
+            declineCode: "expired_card"
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError)
+        
+        // THEN should extract only present fields
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        XCTAssertNotNil(metadata["setupIntent"])
+        XCTAssertNil(metadata["requestError"])
+        XCTAssertEqual(metadata["declineCode"] as? String, "expired_card")
+    }
+    
+    func testExtractSpecializedErrorFields_NonConfirmError() {
+        // GIVEN a regular NSError (not a Confirm*Error)
+        let regularError = makeNSError(
+            code: ErrorCode.Code.readerBusy.rawValue,
+            description: "Regular error"
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: regularError)
+        
+        // THEN should not have specialized error fields
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        XCTAssertNil(metadata["refund"])
+        XCTAssertNil(metadata["paymentIntent"])
+        XCTAssertNil(metadata["setupIntent"])
+        XCTAssertNil(metadata["requestError"])
+        XCTAssertNil(metadata["declineCode"])
+    }
+    
+    func testExtractSpecializedErrorFields_CreateErrorWrapper() {
+        // GIVEN a ConfirmPaymentIntentError
+        let mockPaymentIntent = MockPaymentIntent()
+        let confirmPaymentIntentError = MockConfirmPaymentIntentError(
+            paymentIntent: mockPaymentIntent,
+            requestError: nil,
+            declineCode: "card_declined"
+        )
+        
+        // WHEN creating error wrapper (the public API used by RN bridge)
+        let wrapped = Errors.createErrorFromNSError(nsError: confirmPaymentIntentError)
+        
+        // THEN should have proper structure with specialized fields
+        guard let error = wrapped["error"] as? [String: Any],
+              let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected error with metadata")
+        }
+        
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertNotNil(metadata["paymentIntent"])
+        XCTAssertEqual(metadata["declineCode"] as? String, "card_declined")
+    }
+}
+
+// MARK: - Mock Classes for Testing Specialized Errors
+
+private class MockConfirmRefundError: NSError {
+    private let mockRefund: Refund?
+    private let mockRequestError: NSError?
+    
+    init(refund: Refund?, requestError: NSError?) {
+        self.mockRefund = refund
+        self.mockRequestError = requestError
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.refundFailed.rawValue, userInfo: [:])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override var description: String {
+        return "SCPConfirmRefundError"
+    }
+    
+    override func value(forKey key: String) -> Any? {
+        switch key {
+        case "refund": return mockRefund
+        case "requestError": return mockRequestError
+        default: return super.value(forKey: key)
+        }
+    }
+}
+
+private class MockConfirmPaymentIntentError: NSError {
+    private let mockPaymentIntent: PaymentIntent?
+    private let mockRequestError: NSError?
+    private let mockDeclineCode: String?
+    
+    init(paymentIntent: PaymentIntent?, requestError: NSError?, declineCode: String?) {
+        self.mockPaymentIntent = paymentIntent
+        self.mockRequestError = requestError
+        self.mockDeclineCode = declineCode
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: [:])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override var description: String {
+        return "SCPConfirmPaymentIntentError"
+    }
+    
+    override func value(forKey key: String) -> Any? {
+        switch key {
+        case "paymentIntent": return mockPaymentIntent
+        case "requestError": return mockRequestError
+        case "declineCode": return mockDeclineCode
+        default: return super.value(forKey: key)
+        }
+    }
+}
+
+private class MockConfirmSetupIntentError: NSError {
+    private let mockSetupIntent: SetupIntent?
+    private let mockRequestError: NSError?
+    private let mockDeclineCode: String?
+    
+    init(setupIntent: SetupIntent?, requestError: NSError?, declineCode: String?) {
+        self.mockSetupIntent = setupIntent
+        self.mockRequestError = requestError
+        self.mockDeclineCode = declineCode
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: [:])
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override var description: String {
+        return "SCPConfirmSetupIntentError"
+    }
+    
+    override func value(forKey key: String) -> Any? {
+        switch key {
+        case "setupIntent": return mockSetupIntent
+        case "requestError": return mockRequestError
+        case "declineCode": return mockDeclineCode
+        default: return super.value(forKey: key)
+        }
+    }
+}
+
+private class MockRefund: Refund {
+    override var stripeId: String { "re_test_123" }
+    override var amount: UInt { 1000 }
+    override var charge: String { "ch_test_123" }
+    override var created: Date { Date(timeIntervalSince1970: 1234567890) }
+    override var currency: String { "usd" }
+    override var metadata: [String: String] { [:] }
+    override var status: RefundStatus { .succeeded }
+    override var paymentMethodDetails: PaymentMethodDetails? { nil }
+    override var failureReason: String? { nil }
+}
+
+private class MockPaymentIntent: PaymentIntent {
+    override var stripeId: String { "pi_test_123" }
+    override var created: Date { Date(timeIntervalSince1970: 1234567890) }
+    override var status: PaymentIntentStatus { .requiresPaymentMethod }
+    override var amount: UInt { 5000 }
+    override var currency: String { "usd" }
+    override var metadata: [String: String]? { [:] }
+    override var charges: [Charge] { [] }
+    override var paymentMethod: PaymentMethod? { nil }
+}
+
+private class MockSetupIntent: SetupIntent {
+    override var stripeId: String { "seti_test_123" }
+    override var created: Date { Date(timeIntervalSince1970: 1234567890) }
+    override var customer: String? { "cus_test_123" }
+    override var metadata: [String: String]? { [:] }
+    override var status: SetupIntentStatus { .requiresPaymentMethod }
+    override var usage: SetupIntentUsage { .offSession }
 }
 
