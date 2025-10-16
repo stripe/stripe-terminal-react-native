@@ -35,7 +35,28 @@ function parseSwiftEnum(swiftPath) {
   return keys;
 }
 
-function parseKotlinAndroidReturnCodes(kotlinPath) {
+function parseSwiftMapping(swiftPath) {
+  const src = fs.readFileSync(swiftPath, 'utf8');
+  const m = src.match(
+    /private\s+class\s+func\s+convertToReactNativeErrorCode\(from\s+code:\s*ErrorCode\.Code\)\s*->\s*String\s*\{\s*switch\s+code\s*\{([\s\S]*?)\}/
+  );
+  if (!m) {
+    throw new Error(
+      'Could not find convertToReactNativeErrorCode switch statement in Swift'
+    );
+  }
+  const body = m[1];
+  const hasDefaultBranch = /default\s*:/.test(body);
+  const re = /case\s+\.[a-zA-Z0-9_]+\s*:\s*return\s+RNErrorCode\.([A-Z0-9_]+)\.rawValue/g;
+  const codes = new Set();
+  let match;
+  while ((match = re.exec(body))) {
+    codes.add(match[1]);
+  }
+  return { codes, hasDefaultCase: hasDefaultBranch };
+}
+
+function parseAndroidMapping(kotlinPath) {
   const src = fs.readFileSync(kotlinPath, 'utf8');
   const m = src.match(
     /fun\s+TerminalErrorCode\.convertToReactNativeErrorCode\([^)]*\)\s*:\s*String\s*=\s*when\s*\(this\)\s*\{([\s\S]*?)\}/
@@ -53,7 +74,7 @@ function parseKotlinAndroidReturnCodes(kotlinPath) {
   while ((match = re.exec(body))) {
     codes.add(match[1]);
   }
-  return { codes, hasElseBranch };
+  return { codes, hasDefaultCase: hasElseBranch };
 }
 
 function main() {
@@ -73,15 +94,17 @@ function main() {
 
   const tsKeys = parseTsErrorCodes(tsPath);
   const swiftKeys = parseSwiftEnum(swiftPath);
-  const androidReturnCodes = parseKotlinAndroidReturnCodes(kotlinPath);
+  const swiftMapping = parseSwiftMapping(swiftPath);
+  const androidMapping = parseAndroidMapping(kotlinPath);
 
   const missingInSwift = [...tsKeys].filter((k) => !swiftKeys.has(k)).sort();
   const extraInSwift = [...swiftKeys].filter((k) => !tsKeys.has(k)).sort();
 
-  const androidReturnsNotInTs = [...androidReturnCodes.codes]
+  const androidReturnsNotInTs = [...androidMapping.codes]
     .filter((k) => !tsKeys.has(k))
     .sort();
 
+  // Check TS and Swift enum sync
   if (missingInSwift.length || extraInSwift.length) {
     console.error('RN ErrorCode mismatch found:');
     if (missingInSwift.length) {
@@ -97,8 +120,18 @@ function main() {
     console.log('RN ErrorCode: TS and Swift are in sync.');
   }
 
+  // Check Swift switch statement has no default
+  if (swiftMapping.hasDefaultCase) {
+    console.error(
+      '\nSwift Errors.swift convertToReactNativeErrorCode switch contains a default branch; expected exhaustive switch without default.'
+    );
+    process.exit(1);
+  } else {
+    console.log('Swift mapping: exhaustive switch (no default) confirmed.');
+  }
+
   // Android mapping checks
-  if (androidReturnCodes.hasElseBranch) {
+  if (androidMapping.hasDefaultCase) {
     console.error(
       '\nAndroid Errors.kt mapping contains an else branch; expected exhaustive when without else.'
     );
