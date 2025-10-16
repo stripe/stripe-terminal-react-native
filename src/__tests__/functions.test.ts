@@ -114,7 +114,7 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({})),
         cancelCollectSetupIntent: jest.fn().mockImplementation(() => ({})),
-        setSimulatedCard: jest.fn(),
+        setSimulatedCard: jest.fn().mockImplementation(() => ({})),
         print: jest.fn().mockImplementation(() => ({})),
       }));
     });
