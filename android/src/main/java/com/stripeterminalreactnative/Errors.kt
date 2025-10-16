@@ -66,7 +66,23 @@ private fun WritableMap.putUnknownErrorContents(throwable: Throwable?) {
     putString("message", throwable?.message ?: "Unknown error")
     putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toRnErrorCode())
     putString("nativeErrorCode", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
-    putMap("metadata", nativeMapOf { })
+    putMap(
+        "metadata",
+        nativeMapOf {
+            throwable?.let { t ->
+                putString("exceptionClass", t.javaClass.name)
+                t.cause?.let { c ->
+                    putMap(
+                        "cause",
+                        nativeMapOf {
+                            putString("class", c.javaClass.name)
+                            putString("message", c.message)
+                        }
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Throws(TerminalException::class)
