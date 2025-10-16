@@ -113,6 +113,7 @@ class Errors {
 
         case READER_TAMPERED = "READER_TAMPERED"
         case READER_MISSING_ENCRYPTION_KEYS = "READER_MISSING_ENCRYPTION_KEYS"
+        case OFFLINE_ENCRYPTION_KEYS_UNAVAILABLE = "OFFLINE_ENCRYPTION_KEYS_UNAVAILABLE"
         case USB_PERMISSION_DENIED = "USB_PERMISSION_DENIED"
         case USB_RECONNECT_STARTED = "USB_RECONNECT_STARTED"
         case CANCELED_DUE_TO_INTEGRATION_ERROR = "CANCELED_DUE_TO_INTEGRATION_ERROR"
@@ -424,6 +425,7 @@ class Errors {
         case .collectInputsInvalidParameter: return RNErrorCode.COLLECT_INPUTS_INVALID_PARAMETER.rawValue
         case .collectInputsUnsupported: return RNErrorCode.COLLECT_INPUTS_UNSUPPORTED.rawValue
         case .readerMissingEncryptionKeys: return RNErrorCode.READER_MISSING_ENCRYPTION_KEYS.rawValue
+        case .offlineEncryptionKeysUnavailable: return RNErrorCode.OFFLINE_ENCRYPTION_KEYS_UNAVAILABLE.rawValue
         case .requestDynamicCurrencyConversionRequiresUpdatePaymentIntent: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .dynamicCurrencyConversionNotAvailable: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .surchargingNotAvailable: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
@@ -464,6 +466,7 @@ class Errors {
         case .displaySurchargeConsentApplicationError: return RNErrorCode.COLLECT_INPUTS_APPLICATION_ERROR.rawValue
         case .commandInvalidAllowRedisplay: return RNErrorCode.ALLOW_REDISPLAY_INVALID.rawValue
         case .tapToPayInternalNetworkError: return RNErrorCode.STRIPE_API_CONNECTION_ERROR.rawValue
+
         
         // NOTE: No default case - this ensures that any new ErrorCode cases 
         // added to the Stripe Terminal SDK will cause a COMPILER ERROR,
