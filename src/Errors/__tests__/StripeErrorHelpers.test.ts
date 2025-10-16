@@ -1,12 +1,12 @@
-import { 
-  isStripeError, 
-  createStripeError, 
-  normalizeNativeError 
+import {
+  checkIfObjectIsStripeError,
+  createStripeError,
+  convertNativeErrorToStripeError,
 } from '../StripeErrorHelpers';
 import { ErrorCode } from '../ErrorCodes';
 
 describe('StripeErrorHelpers', () => {
-  describe('isStripeError', () => {
+  describe('checkIfObjectIsStripeError', () => {
     it('should return true for valid StripeError object', () => {
       // GIVEN a valid StripeError-like object
       const validStripeError = {
@@ -18,7 +18,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN checking if it's a StripeError
-      const result = isStripeError(validStripeError);
+      const result = checkIfObjectIsStripeError(validStripeError);
 
       // THEN it should return true
       expect(result).toBe(true);
@@ -28,17 +28,17 @@ describe('StripeErrorHelpers', () => {
       // GIVEN null and undefined values
       // WHEN checking if they are StripeErrors
       // THEN they should return false
-      expect(isStripeError(null)).toBe(false);
-      expect(isStripeError(undefined)).toBe(false);
+      expect(checkIfObjectIsStripeError(null)).toBe(false);
+      expect(checkIfObjectIsStripeError(undefined)).toBe(false);
     });
 
     it('should return false for non-object values', () => {
       // GIVEN primitive values
       // WHEN checking if they are StripeErrors
       // THEN they should return false
-      expect(isStripeError('string')).toBe(false);
-      expect(isStripeError(123)).toBe(false);
-      expect(isStripeError(true)).toBe(false);
+      expect(checkIfObjectIsStripeError('string')).toBe(false);
+      expect(checkIfObjectIsStripeError(123)).toBe(false);
+      expect(checkIfObjectIsStripeError(true)).toBe(false);
     });
 
     it('should return false for objects missing required properties', () => {
@@ -80,11 +80,11 @@ describe('StripeErrorHelpers', () => {
 
       // WHEN checking if they are StripeErrors
       // THEN they should return false
-      expect(isStripeError(missingName)).toBe(false);
-      expect(isStripeError(missingMessage)).toBe(false);
-      expect(isStripeError(missingCode)).toBe(false);
-      expect(isStripeError(missingNativeErrorCode)).toBe(false);
-      expect(isStripeError(missingMetadata)).toBe(false);
+      expect(checkIfObjectIsStripeError(missingName)).toBe(false);
+      expect(checkIfObjectIsStripeError(missingMessage)).toBe(false);
+      expect(checkIfObjectIsStripeError(missingCode)).toBe(false);
+      expect(checkIfObjectIsStripeError(missingNativeErrorCode)).toBe(false);
+      expect(checkIfObjectIsStripeError(missingMetadata)).toBe(false);
     });
 
     it('should return false for objects with wrong property types', () => {
@@ -131,11 +131,11 @@ describe('StripeErrorHelpers', () => {
 
       // WHEN checking if they are StripeErrors
       // THEN they should return false
-      expect(isStripeError(wrongNameType)).toBe(false);
-      expect(isStripeError(wrongMessageType)).toBe(false);
-      expect(isStripeError(wrongCodeType)).toBe(false);
-      expect(isStripeError(wrongNativeErrorCodeType)).toBe(false);
-      expect(isStripeError(wrongMetadataType)).toBe(false);
+      expect(checkIfObjectIsStripeError(wrongNameType)).toBe(false);
+      expect(checkIfObjectIsStripeError(wrongMessageType)).toBe(false);
+      expect(checkIfObjectIsStripeError(wrongCodeType)).toBe(false);
+      expect(checkIfObjectIsStripeError(wrongNativeErrorCodeType)).toBe(false);
+      expect(checkIfObjectIsStripeError(wrongMetadataType)).toBe(false);
     });
 
     it('should return false for wrong name value', () => {
@@ -149,7 +149,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN checking if it's a StripeError
-      const result = isStripeError(wrongName);
+      const result = checkIfObjectIsStripeError(wrongName);
 
       // THEN it should return false
       expect(result).toBe(false);
@@ -210,7 +210,7 @@ describe('StripeErrorHelpers', () => {
       // GIVEN error creation parameters with optional fields
       const paymentIntent = { id: 'pi_test' } as any;
       const setupIntent = { id: 'seti_test' } as any;
-      
+
       const init = {
         code: ErrorCode.DECLINED_BY_STRIPE_API,
         message: 'Payment failed',
@@ -225,25 +225,9 @@ describe('StripeErrorHelpers', () => {
       expect(error.paymentIntent).toBe(paymentIntent);
       expect(error.setupIntent).toBe(setupIntent);
     });
-
-    it('should preserve cause property when provided', () => {
-      // GIVEN error creation parameters with cause
-      const originalError = new Error('Original error');
-      const init = {
-        code: ErrorCode.UNEXPECTED_SDK_ERROR,
-        message: 'Unexpected error occurred',
-        cause: originalError,
-      };
-
-      // WHEN creating a StripeError
-      const error = createStripeError(init);
-
-      // THEN it should preserve the cause
-      expect(error.cause).toBe(originalError);
-    });
   });
 
-  describe('normalizeNativeError', () => {
+  describe('convertNativeErrorToStripeError', () => {
     it('should normalize Android error structure', () => {
       // GIVEN a raw Android error structure (Android doesn't use userInfo)
       const rawAndroidError = {
@@ -259,7 +243,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawAndroidError);
+      const normalizedError = convertNativeErrorToStripeError(rawAndroidError);
 
       // THEN it should create a proper StripeError
       expect(normalizedError.name).toBe('StripeError');
@@ -292,7 +276,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawIOSError);
+      const normalizedError = convertNativeErrorToStripeError(rawIOSError);
 
       // THEN it should create a proper StripeError
       expect(normalizedError.name).toBe('StripeError');
@@ -313,7 +297,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawError);
+      const normalizedError = convertNativeErrorToStripeError(rawError);
 
       // THEN it should use fallback values
       expect(normalizedError.name).toBe('StripeError');
@@ -339,7 +323,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawError);
+      const normalizedError = convertNativeErrorToStripeError(rawError);
 
       // THEN direct properties should take precedence
       expect(normalizedError.code).toBe('DIRECT_CODE');
@@ -357,7 +341,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawError);
+      const normalizedError = convertNativeErrorToStripeError(rawError);
 
       // THEN nativeErrorCode should fallback to code
       expect(normalizedError.nativeErrorCode).toBe('READER_BUSY');
@@ -370,7 +354,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawError);
+      const normalizedError = convertNativeErrorToStripeError(rawError);
 
       // THEN message should fallback to code
       expect(normalizedError.message).toBe('READER_BUSY');
@@ -387,7 +371,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawError);
+      const normalizedError = convertNativeErrorToStripeError(rawError);
 
       // THEN setupIntent should be included
       expect(normalizedError.setupIntent).toEqual({ id: 'seti_test' });
@@ -396,8 +380,8 @@ describe('StripeErrorHelpers', () => {
     it('should handle null or undefined raw error', () => {
       // GIVEN null and undefined raw errors
       // WHEN normalizing them
-      const nullResult = normalizeNativeError(null);
-      const undefinedResult = normalizeNativeError(undefined);
+      const nullResult = convertNativeErrorToStripeError(null);
+      const undefinedResult = convertNativeErrorToStripeError(undefined);
 
       // THEN they should use fallback values
       expect(nullResult.code).toBe('UNKNOWN');
@@ -430,7 +414,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = normalizeNativeError(rawError);
+      const normalizedError = convertNativeErrorToStripeError(rawError);
 
       // THEN complex metadata should be preserved
       expect(normalizedError.metadata).toEqual({

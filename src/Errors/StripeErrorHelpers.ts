@@ -19,9 +19,7 @@ export function createStripeError(
     metadata?: Record<string, unknown>;
   }
 ): StripeError {
-  const err = new Error(init.message, {
-    cause: (init as any).cause,
-  }) as StripeError;
+  const err = new Error(init.message) as StripeError;
   err.name = 'StripeError';
   const nativeErrorCode = init.nativeErrorCode ?? (init as any).code;
   const metadata = init.metadata ?? {};
