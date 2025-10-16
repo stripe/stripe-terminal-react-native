@@ -14,7 +14,7 @@ function parseTypeScriptErrorCodes(tsPath) {
   if (!match) {
     throw new Error('Could not find ErrorCode object in TypeScript');
   }
-  
+
   const body = match[1];
   const regex = /([A-Z0-9_]+)\s*:\s*'\1'/g;
   const errorCodes = new Set();
