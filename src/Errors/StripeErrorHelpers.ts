@@ -1,7 +1,7 @@
 import type { StripeError } from '../types/StripeError';
 import type { ErrorCode } from './ErrorCodes';
 
-export function isStripeError(e: unknown): e is StripeError {
+export function checkIfObjectIsStripeError(e: unknown): e is StripeError {
   return (
     !!e &&
     typeof e === 'object' &&
@@ -19,7 +19,9 @@ export function createStripeError(
     metadata?: Record<string, unknown>;
   }
 ): StripeError {
-  const err = new Error(init.message, { cause: (init as any).cause }) as StripeError;
+  const err = new Error(init.message, {
+    cause: (init as any).cause,
+  }) as StripeError;
   err.name = 'StripeError';
   const nativeErrorCode = init.nativeErrorCode ?? (init as any).code;
   const metadata = init.metadata ?? {};
@@ -27,10 +29,13 @@ export function createStripeError(
   return err;
 }
 
-export function normalizeNativeError(raw: any): StripeError {
+export function convertNativeErrorToStripeError(raw: any): StripeError {
   const codeStr = raw?.code ?? raw?.userInfo?.code ?? 'UNKNOWN';
   const nativeErrorCode = raw?.userInfo?.nativeErrorCode ?? codeStr;
-  const metadata = (raw?.metadata ?? raw?.userInfo?.metadata ?? {}) as Record<string, unknown>;
+  const metadata = (raw?.metadata ?? raw?.userInfo?.metadata ?? {}) as Record<
+    string,
+    unknown
+  >;
   const paymentIntent = raw?.userInfo?.paymentIntent;
   const setupIntent = raw?.userInfo?.setupIntent;
 
