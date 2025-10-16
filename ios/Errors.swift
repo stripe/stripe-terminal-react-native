@@ -209,6 +209,7 @@ class Errors {
         addUserInfoMetadata(to: &metadata, from: nsError)
 
         return stripeErrorObject(
+            name: isStripeError ? "StripeError" : "NonStripeError",
             code: code,
             nativeErrorCode: nativeErrorCode,
             message: nsError.localizedDescription,
@@ -216,9 +217,9 @@ class Errors {
         )
     }
 
-    private class func stripeErrorObject(code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
+    private class func stripeErrorObject(name: String = "StripeError", code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
         return [
-            "name": "StripeError",
+            "name": name,
             "message": message.isEmpty ? "Unknown error" : message,
             "code": code,
             "nativeErrorCode": nativeErrorCode,
