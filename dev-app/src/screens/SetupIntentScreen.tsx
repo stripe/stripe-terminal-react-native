@@ -8,10 +8,11 @@ import { StyleSheet, Switch, Platform } from 'react-native';
 import {
   type SetupIntent,
   useStripeTerminal,
-  CommonError,
   type StripeError,
   type AllowRedisplay,
   type CollectionReason,
+  ErrorCode,
+  createStripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -111,6 +112,8 @@ export default function SetupIntentScreen() {
               metadata: {
                 errorCode: error.code,
                 errorMessage: error.message,
+                nativeErrorCode: error.nativeErrorCode,
+                errorMetadata: JSON.stringify(error.metadata),
               },
             },
           ],
@@ -163,6 +166,8 @@ export default function SetupIntentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              nativeErrorCode: error.nativeErrorCode,
+              errorMetadata: JSON.stringify(error.metadata),
             },
           },
         ],
@@ -197,7 +202,7 @@ export default function SetupIntentScreen() {
     });
 
     let setupIntent: SetupIntent.Type | undefined;
-    let setupIntentError: StripeError<CommonError> | undefined;
+    let setupIntentError: StripeError | undefined;
 
     if (deviceType === 'verifoneP400') {
       const resp = await api.createSetupIntent({});
@@ -222,6 +227,16 @@ export default function SetupIntentScreen() {
 
       if (!resp?.client_secret) {
         console.error('no client secret returned!');
+        const error = createStripeError({
+          code: ErrorCode.INVALID_CLIENT_SECRET,
+          message: 'No client_secret returned from API',
+          nativeErrorCode: 'INVALID_CLIENT_SECRET',
+          metadata: {
+            apiResponse: resp,
+            context: 'createSetupIntent',
+          },
+        });
+
         addLogs({
           name: 'Create Setup Intent',
           events: [
@@ -229,8 +244,10 @@ export default function SetupIntentScreen() {
               name: 'Failed',
               description: 'terminal.createSetupIntent',
               metadata: {
-                errorCode: 'no_code',
-                errorMessage: 'no client secret returned!',
+                errorCode: error.code,
+                errorMessage: error.message,
+                nativeErrorCode: error.nativeErrorCode,
+                errorMetadata: JSON.stringify(error.metadata),
               },
             },
           ],
@@ -288,6 +305,8 @@ export default function SetupIntentScreen() {
             metadata: {
               errorCode: setupIntentError.code,
               errorMessage: setupIntentError.message,
+              nativeErrorCode: setupIntentError.nativeErrorCode,
+              errorMetadata: JSON.stringify(setupIntentError.metadata),
             },
           },
         ],

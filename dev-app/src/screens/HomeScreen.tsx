@@ -67,7 +67,12 @@ export default function HomeScreen() {
       setOnline(status.sdk.networkStatus === 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
-      console.log('onDidForwardingFailure ' + error?.message);
+      console.log('onDidForwardingFailure', {
+        code: error?.code,
+        message: error?.message,
+        nativeErrorCode: error?.nativeErrorCode,
+        metadata: error?.metadata,
+      });
       let toast = Toast.show(error?.message ? error.message : 'unknown error', {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
