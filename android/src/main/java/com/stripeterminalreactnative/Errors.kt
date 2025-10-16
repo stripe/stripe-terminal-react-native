@@ -15,14 +15,14 @@ internal fun stripeErrorMapFromThrowable(throwable: Throwable): ReadableMap = na
 
 internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
     putMap(
-        "error",
+        ErrorConstants.ERROR_KEY,
         nativeMapOf {
             putErrorContents(throwable)
         }
     )
     if (throwable is TerminalException) {
         throwable.paymentIntent?.let {
-            putMap("paymentIntent", mapFromPaymentIntent(it, ""))
+            putMap(ErrorConstants.PAYMENT_INTENT_KEY, mapFromPaymentIntent(it, ""))
         }
     }
 }
@@ -30,12 +30,12 @@ internal fun WritableMap.putError(throwable: Throwable): ReadableMap = apply {
 private fun WritableMap.putErrorContents(throwable: Throwable?) {
     when (throwable) {
         is TerminalException -> {
-            putString("name", "StripeError")
-            putString("message", throwable.errorMessage)
-            putString("code", throwable.errorCode.convertToReactNativeErrorCode())
-            putString("nativeErrorCode", throwable.errorCode.toString())
+            putString(ErrorConstants.NAME_KEY, ErrorConstants.STRIPE_ERROR_NAME)
+            putString(ErrorConstants.MESSAGE_KEY, throwable.errorMessage)
+            putString(ErrorConstants.CODE_KEY, throwable.errorCode.convertToReactNativeErrorCode())
+            putString(ErrorConstants.NATIVE_ERROR_CODE_KEY, throwable.errorCode.toString())
             putMap(
-                "metadata",
+                ErrorConstants.METADATA_KEY,
                 nativeMapOf {
                     addApiErrorInformation(throwable.apiError)
                     addAndroidExceptionInformation(throwable.cause)
@@ -50,12 +50,12 @@ private fun WritableMap.putErrorContents(throwable: Throwable?) {
 }
 
 private fun WritableMap.putUnknownErrorContents(throwable: Throwable?) {
-    putString("name", "NonStripeError")
-    putString("message", throwable?.message ?: "Unknown error")
-    putString("code", TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode())
-    putString("nativeErrorCode", TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
+    putString(ErrorConstants.NAME_KEY, ErrorConstants.NON_STRIPE_ERROR_NAME)
+    putString(ErrorConstants.MESSAGE_KEY, throwable?.message ?: ErrorConstants.UNKNOWN_ERROR_MESSAGE)
+    putString(ErrorConstants.CODE_KEY, TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode())
+    putString(ErrorConstants.NATIVE_ERROR_CODE_KEY, TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
     putMap(
-        "metadata",
+        ErrorConstants.METADATA_KEY,
         nativeMapOf {
             addUnknownExceptionInformation(throwable)
         }
@@ -231,11 +231,11 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
 private fun WritableMap.addApiErrorInformation(apiError: ApiError?) {
     apiError?.let { apiErr ->
         putMap(
-            "apiError",
+            ErrorConstants.API_ERROR_KEY,
             nativeMapOf {
-                putString("code", apiErr.code)
-                putString("message", apiErr.message)
-                putString("declineCode", apiErr.declineCode)
+                putString(ErrorConstants.API_ERROR_CODE_KEY, apiErr.code)
+                putString(ErrorConstants.API_ERROR_MESSAGE_KEY, apiErr.message)
+                putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, apiErr.declineCode)
             }
         )
     }
@@ -244,28 +244,28 @@ private fun WritableMap.addApiErrorInformation(apiError: ApiError?) {
 private fun WritableMap.addAndroidExceptionInformation(cause: Throwable?) {
     cause?.let { c ->
         putMap(
-            "underlyingError",
+            ErrorConstants.UNDERLYING_ERROR_KEY,
             nativeMapOf {
-                putString("code", c.javaClass.simpleName)
-                putString("message", c.message ?: "Unknown cause")
+                putString(ErrorConstants.UNDERLYING_ERROR_CODE_KEY, c.javaClass.simpleName)
+                putString(ErrorConstants.UNDERLYING_ERROR_MESSAGE_KEY, c.message ?: ErrorConstants.UNKNOWN_CAUSE_MESSAGE)
             }
         )
     }
 }
 
 private fun WritableMap.addAndroidExceptionClassInfo(throwable: TerminalException) {
-    putString("exceptionClass", throwable.javaClass.simpleName)
+    putString(ErrorConstants.EXCEPTION_CLASS_KEY, throwable.javaClass.simpleName)
 }
 
 private fun WritableMap.addUnknownExceptionInformation(throwable: Throwable?) {
     throwable?.let { t ->
-        putString("exceptionClass", t.javaClass.simpleName)
+        putString(ErrorConstants.EXCEPTION_CLASS_KEY, t.javaClass.simpleName)
         t.cause?.let { c ->
             putMap(
-                "underlyingError",
+                ErrorConstants.UNDERLYING_ERROR_KEY,
                 nativeMapOf {
-                    putString("code", c.javaClass.simpleName)
-                    putString("message", c.message ?: "Unknown cause")
+                    putString(ErrorConstants.UNDERLYING_ERROR_CODE_KEY, c.javaClass.simpleName)
+                    putString(ErrorConstants.UNDERLYING_ERROR_MESSAGE_KEY, c.message ?: ErrorConstants.UNKNOWN_CAUSE_MESSAGE)
                 }
             )
         }
