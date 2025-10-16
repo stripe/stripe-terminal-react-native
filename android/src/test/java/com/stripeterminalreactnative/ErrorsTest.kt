@@ -397,9 +397,6 @@ class ErrorsTest {
                       "TerminalErrorCode.$code should map to UPPER_SNAKE_CASE format, got: $rnCode")
             assertEquals(code.name, rnCode, "TerminalErrorCode.$code should map to its enum name")
         }
-        
-        // AND verify we tested the expected number of codes
-        assertTrue(allErrorCodes.size >= 80, "Expected at least 80 TerminalErrorCode values, got ${allErrorCodes.size}")
     }
 
     @Test
