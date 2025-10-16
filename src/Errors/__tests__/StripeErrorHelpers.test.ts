@@ -301,9 +301,9 @@ describe('StripeErrorHelpers', () => {
 
       // THEN it should use fallback values
       expect(normalizedError.name).toBe('StripeError');
-      expect(normalizedError.code).toBe('UNKNOWN');
-      expect(normalizedError.message).toBe('UNKNOWN');
-      expect(normalizedError.nativeErrorCode).toBe('UNKNOWN');
+      expect(normalizedError.code).toBe('UNEXPECTED_SDK_ERROR');
+      expect(normalizedError.message).toBe('UNEXPECTED_SDK_ERROR');
+      expect(normalizedError.nativeErrorCode).toBe('UNEXPECTED_SDK_ERROR');
       expect(normalizedError.metadata).toEqual({});
       expect(normalizedError.paymentIntent).toBeUndefined();
       expect(normalizedError.setupIntent).toBeUndefined();
@@ -384,14 +384,14 @@ describe('StripeErrorHelpers', () => {
       const undefinedResult = convertNativeErrorToStripeError(undefined);
 
       // THEN they should use fallback values
-      expect(nullResult.code).toBe('UNKNOWN');
-      expect(nullResult.message).toBe('UNKNOWN');
-      expect(nullResult.nativeErrorCode).toBe('UNKNOWN');
+      expect(nullResult.code).toBe('UNEXPECTED_SDK_ERROR');
+      expect(nullResult.message).toBe('UNEXPECTED_SDK_ERROR');
+      expect(nullResult.nativeErrorCode).toBe('UNEXPECTED_SDK_ERROR');
       expect(nullResult.metadata).toEqual({});
 
-      expect(undefinedResult.code).toBe('UNKNOWN');
-      expect(undefinedResult.message).toBe('UNKNOWN');
-      expect(undefinedResult.nativeErrorCode).toBe('UNKNOWN');
+      expect(undefinedResult.code).toBe('UNEXPECTED_SDK_ERROR');
+      expect(undefinedResult.message).toBe('UNEXPECTED_SDK_ERROR');
+      expect(undefinedResult.nativeErrorCode).toBe('UNEXPECTED_SDK_ERROR');
       expect(undefinedResult.metadata).toEqual({});
     });
 

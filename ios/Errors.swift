@@ -115,7 +115,6 @@ class Errors {
         case USB_PERMISSION_DENIED = "USB_PERMISSION_DENIED"
         case USB_RECONNECT_STARTED = "USB_RECONNECT_STARTED"
         case CANCELED_DUE_TO_INTEGRATION_ERROR = "CANCELED_DUE_TO_INTEGRATION_ERROR"
-        case UNKNOWN = "UNKNOWN"
     }
     
     class func validateRequiredParameters(params: NSDictionary, requiredParams: [String]) -> String? {

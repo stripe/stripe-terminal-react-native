@@ -131,9 +131,6 @@ export const ErrorCode = {
   PRINTER_ABSENT: 'PRINTER_ABSENT',
   PRINTER_UNAVAILABLE: 'PRINTER_UNAVAILABLE',
   PRINTER_ERROR: 'PRINTER_ERROR',
-
-  // Fallback
-  UNKNOWN: 'UNKNOWN',
 } as const;
 
 // value union of ErrorCode

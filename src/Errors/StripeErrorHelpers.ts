@@ -34,9 +34,9 @@ function extractMetadata(
 
 function createUnknownError(): StripeError {
   return createStripeError({
-    code: ErrorCode.UNKNOWN,
-    nativeErrorCode: ErrorCode.UNKNOWN,
-    message: ErrorCode.UNKNOWN,
+    code: ErrorCode.UNEXPECTED_SDK_ERROR,
+    nativeErrorCode: ErrorCode.UNEXPECTED_SDK_ERROR,
+    message: ErrorCode.UNEXPECTED_SDK_ERROR,
     metadata: {},
   });
 }
@@ -65,7 +65,9 @@ export function createStripeError(
 ): StripeError {
   warnInvalidErrorCode(init.code);
 
-  const err = new Error(init.message || ErrorCode.UNKNOWN) as StripeError;
+  const err = new Error(
+    init.message || ErrorCode.UNEXPECTED_SDK_ERROR
+  ) as StripeError;
   err.name = 'StripeError';
   err.code = init.code;
   err.nativeErrorCode = init.nativeErrorCode ?? init.code;
@@ -94,7 +96,9 @@ export function convertNativeErrorToStripeError(raw: unknown): StripeError {
   const userInfo = extractUserInfo(obj);
 
   const code =
-    (obj.code as string) ?? (userInfo?.code as string) ?? ErrorCode.UNKNOWN;
+    (obj.code as string) ??
+    (userInfo?.code as string) ??
+    ErrorCode.UNEXPECTED_SDK_ERROR;
   const nativeErrorCode = (userInfo?.nativeErrorCode as string) ?? code;
   const message = (obj.message as string) ?? code;
   const metadata = extractMetadata(obj, userInfo);
