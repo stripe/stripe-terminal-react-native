@@ -573,15 +573,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(collectPaymentMethod:resolver:rejecter:)
     func collectPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let paymentIntentJSON = params["paymentIntent"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent."))
             return
         }
         guard let uuid = paymentIntentJSON["sdkUuid"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let paymentIntent = self.paymentIntents[uuid] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
 
@@ -651,7 +651,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(retrievePaymentIntent:resolver:rejecter:)
     func retrievePaymentIntent(secret: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let clientSecret = secret else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide cliectSecret."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide cliectSecret."))
             return
         }
 
@@ -706,15 +706,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(confirmPaymentIntent:resolver:rejecter:)
     func confirmPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let paymentIntent = self.paymentIntents[uuid] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
 
@@ -797,15 +797,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(cancelPaymentIntent:resolver:rejecter:)
     func cancelPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let paymentIntent = self.paymentIntents[uuid] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
             return
         }
         Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
@@ -842,7 +842,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["currency", "tax", "total"])
 
         guard invalidParams == nil else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams!) parameters."))
             return
         }
 
@@ -877,15 +877,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(cancelSetupIntent:resolver:rejecter:)
     func cancelSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
             return
         }
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let setupIntent = self.setupIntents[uuid] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
             return
         }
         Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
@@ -914,7 +914,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(retrieveSetupIntent:resolver:rejecter:)
     func retrieveSetupIntent(secret: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let clientSecret = secret else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide cliectSecret."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide cliectSecret."))
             return
         }
         Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret) { si, error in
@@ -932,16 +932,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(collectSetupIntentPaymentMethod:resolver:rejecter:)
     func collectSetupIntentPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
             return
         }
 
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let setupIntent = self.setupIntents[uuid] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
             return
         }
 
@@ -975,15 +975,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(confirmSetupIntent:resolver:rejecter:)
     func confirmSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide setupIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
             return
         }
         guard let uuid = setupIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
             return
         }
         guard let setupIntent = self.setupIntents[uuid] else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
             return
         }
 
@@ -1004,13 +1004,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["amount", "currency"])
 
         guard invalidParams == nil else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams!) parameters."))
             return
         }
         let chargeId = params["chargeId"] as? String
         let paymentIntentId = params["paymentIntentId"] as? String
         if ((chargeId==nil||chargeId!.isEmpty) == (paymentIntentId==nil||paymentIntentId!.isEmpty)) {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide either a charge ID or a payment intent ID."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide either a charge ID or a payment intent ID."))
             return
         }
         let amount = params["amount"] as? NSNumber
@@ -1078,7 +1078,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         let collectDataType = Mappers.mapToCollectDataType(collectDataTypeParam)
         guard let collectDataType else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a collectDataType."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide a collectDataType."))
             return
         }
 
@@ -1124,7 +1124,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     @objc(print:resolver:rejecter:)
     func print(contentUri: NSString, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let image = Mappers.mapToUIImage(contentUri as String) else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide a valid base64 string or a 'data:' URI scheme"))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide a valid base64 string or a 'data:' URI scheme"))
             return
         }
         let printContent: PrintContent
@@ -1192,7 +1192,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["inputs"])
 
         guard invalidParams == nil else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams!) parameters."))
             return
         }
 
@@ -1466,7 +1466,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["textToSpeechViaSpeakers"])
 
         guard invalidParams == nil else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams!) parameters."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams!) parameters."))
             return
         }
 
@@ -1487,7 +1487,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["deviceType", "discoveryMethod"])
 
         if let invalidParams {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide \(invalidParams) parameters."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams) parameters."))
             return
         }
 
@@ -1496,7 +1496,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let discoveryMethod = params["discoveryMethod"] as? String
         let deviceType = Mappers.mapToDeviceType(deviceTypeParam)
         guard let deviceType else {
-            resolve(Errors.createError(code: CommonErrorType.InvalidRequiredParameter, message: "You must provide correct deviceType parameter."))
+            resolve(Errors.createError(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide correct deviceType parameter."))
             return
         }
         let result = Terminal.shared.supportsReaders(of: deviceType, discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod), simulated: simulated)
