@@ -26,11 +26,11 @@ export default function ReaderSettingsScreen() {
       return;
     }
 
-    if (response.accessibility?.error) {
-      console.log('error', response.accessibility?.error);
+    if ('accessibility' in response && response.accessibility?.error) {
+      console.log('error', response.accessibility.error);
       Alert.alert(
-        'getReaderSettings error',
-        response.accessibility?.error.message
+        'setReaderSettings error',
+        response.accessibility.error.message
       );
       return;
     }
@@ -51,16 +51,19 @@ export default function ReaderSettingsScreen() {
         return;
       }
 
-      if (response.accessibility?.error) {
-        console.log('error', response.accessibility?.error);
+      if ('accessibility' in response && response.accessibility?.error) {
+        console.log('error', response.accessibility.error);
         Alert.alert(
           'getReaderSettings error',
-          response.accessibility?.error.message
+          response.accessibility.error.message
         );
         return;
       }
 
-      if (response.accessibility?.textToSpeechStatus === 'speakers') {
+      if (
+        'accessibility' in response &&
+        response.accessibility?.textToSpeechStatus === 'speakers'
+      ) {
         setEnableTextToSpeechViaSpeakers(true);
       } else {
         setEnableTextToSpeechViaSpeakers(false);
