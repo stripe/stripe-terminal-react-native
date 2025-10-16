@@ -264,6 +264,8 @@ The SDK provides error codes organized by category:
 #### Basic Error Handling
 
 ```typescript
+import { useStripeTerminal, ErrorCode } from '@stripe/stripe-terminal-react-native';
+
 const { connectReader } = useStripeTerminal();
 
 try {
@@ -273,12 +275,12 @@ try {
     console.log('Message:', error.message);
     console.log('Native code:', error.nativeErrorCode);
 
-    // Handle specific error types
+    // Recommended: Use ErrorCode enum for type safety
     switch (error.code) {
-      case 'BLUETOOTH_ERROR':
+      case ErrorCode.BLUETOOTH_ERROR:
         // Guide user to enable Bluetooth
         break;
-      case 'READER_BUSY':
+      case ErrorCode.READER_BUSY:
         // Retry after delay
         break;
       default:
@@ -294,6 +296,8 @@ try {
 #### Payment Error Handling with Context
 
 ```typescript
+import { useStripeTerminal, ErrorCode } from '@stripe/stripe-terminal-react-native';
+
 const { confirmPaymentIntent } = useStripeTerminal();
 
 const { error, paymentIntent } = await confirmPaymentIntent('pi_...');
@@ -301,7 +305,7 @@ if (error) {
   console.log('Payment failed:', error.code);
 
   // Access decline details from metadata
-  if (error.code === 'DECLINED_BY_STRIPE_API') {
+  if (error.code === ErrorCode.DECLINED_BY_STRIPE_API) {
     const declineCode = error.metadata?.decline_code;
     const networkStatus = error.metadata?.network_status;
     console.log('Decline reason:', declineCode);
@@ -313,6 +317,34 @@ if (error) {
     // Implement recovery logic based on status
   }
 }
+```
+
+#### Error Code Usage
+
+The SDK exports an `ErrorCode` enum for type-safe error handling:
+
+```typescript
+import { ErrorCode } from '@stripe/stripe-terminal-react-native';
+
+// Recommended: Use ErrorCode enum for type safety
+if (error.code === ErrorCode.BLUETOOTH_ERROR) {
+  // TypeScript knows this is a valid error code
+  // IDE provides autocomplete and refactoring support
+}
+
+// Also supported: String comparison (backward compatible)
+if (error.code === 'BLUETOOTH_ERROR') {
+  // Works, but no compile-time validation
+}
+
+// Available error codes include:
+// ErrorCode.BLUETOOTH_ERROR
+// ErrorCode.READER_BUSY  
+// ErrorCode.CANCELED
+// ErrorCode.DECLINED_BY_STRIPE_API
+// ErrorCode.CARD_READ_TIMED_OUT
+// ErrorCode.REQUEST_TIMED_OUT
+// ... and 130+ additional specific codes
 ```
 
 ### Platform Error Conversion
@@ -417,10 +449,19 @@ metadata: {
 You can access platform-specific debugging information while maintaining cross-platform compatibility:
 
 ```typescript
+import { useStripeTerminal, ErrorCode } from '@stripe/stripe-terminal-react-native';
+
+const { connectReader } = useStripeTerminal();
+
 const { error } = await connectReader(reader, 'bluetoothScan');
 if (error) {
   console.log('Error code:', error.code);
   console.log('Native code:', error.nativeErrorCode);
+
+  // Type-safe error code checking
+  if (error.code === ErrorCode.BLUETOOTH_ERROR) {
+    // Handle Bluetooth-specific error
+  }
 
   // Access platform-specific debugging information
   if (error.metadata.apiError) {
@@ -475,6 +516,7 @@ The SDK includes utility functions for error handling:
 import {
   checkIfObjectIsStripeError,
   createStripeError,
+  ErrorCode,
 } from '@stripe/stripe-terminal-react-native';
 
 // Type-safe error checking
@@ -485,7 +527,7 @@ if (checkIfObjectIsStripeError(error)) {
 
 // Create custom StripeError objects for testing or custom error scenarios
 const customError = createStripeError({
-  code: 'UNEXPECTED_SDK_ERROR',
+  code: ErrorCode.UNEXPECTED_SDK_ERROR,
   message: 'Custom error message',
   metadata: { context: 'custom operation' },
 });
