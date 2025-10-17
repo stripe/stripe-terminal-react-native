@@ -2,7 +2,7 @@
   "name": "@stripe/stripe-terminal-react-native-example-app",
   "version": "1.0.0",
   "scripts": {
-    "android": "expo run:android",
+    "android": "expo run:android --variant Release",
     "build:android:ci": "expo run:android --no-bundler",
     "eject": "expo eject",
     "ios": "expo run:ios",
@@ -40,7 +40,7 @@
     "react-native-reanimated": "^3.17.5",
     "react-native-root-toast": "^3.5.1",
     "react-native-safe-area-context": "^5.4.0",
-    "react-native-screens": "^4.10.0",
+    "react-native-screens": "^4.5.0",
     "react-native-web": "^0.20.0"
   },
   "resolutions": {

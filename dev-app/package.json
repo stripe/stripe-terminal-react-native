@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android  --mode release",
     "android:all": "concurrently \"yarn start\" \"yarn android\"",
     "bootstrap": "cd .. && yarn bootstrap",
     "ios": "react-native run-ios",

@@ -168,7 +168,7 @@ dependencies {
             implementation("com.facebook.fresco:animated-webp:${expoLibs.versions.fresco.get()}")
         }
     }
-
+    implementation 'com.squareup.leakcanary:leakcanary-android:2.14'
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

@@ -4,5 +4,5 @@
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
-
+    <bool name="leak_canary_allow_in_non_debuggable_build">true</bool>
 </resources>
