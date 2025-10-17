@@ -418,7 +418,11 @@ metadata: {
     code: string,        // Exception class name
     message: string
   },
-  exceptionClass: string  // TerminalException class name
+  exceptionClass: string,  // TerminalException class name
+  
+  // Enhanced error context for Confirm operations (Android)
+  paymentIntent?: { /* Full PaymentIntent object */ },  // When TerminalException contains PaymentIntent
+  setupIntent?: { /* Full SetupIntent object */ }       // When TerminalException contains SetupIntent
 }
 ```
 
@@ -455,9 +459,11 @@ metadata: {
 }
 ```
 
-#### Enhanced Error Context for Confirm Operations (iOS)
+#### Enhanced Error Context for Confirm Operations
 
-When confirm operations fail on iOS (`confirmPaymentIntent`, `confirmSetupIntent`, `confirmRefund`), the error metadata includes the full transaction object and additional context:
+When confirm operations fail (`confirmPaymentIntent`, `confirmSetupIntent`, `confirmRefund`), the error metadata includes the full transaction object and additional context on both platforms:
+
+**iOS provides**:
 
 **ConfirmPaymentIntentError includes**:
 
@@ -476,23 +482,40 @@ When confirm operations fail on iOS (`confirmPaymentIntent`, `confirmSetupIntent
 - `refund`: Full Refund object with current status and details
 - `requestError`: Underlying network/API error that caused the failure (if any)
 
-This enhanced context enables sophisticated error recovery flows:
+**Android provides**:
+
+When a `TerminalException` occurs during confirm operations, the exception may contain the related transaction object, which is automatically included in the error metadata:
+
+- `paymentIntent`: Full PaymentIntent object (when available in the TerminalException)
+- `setupIntent`: Full SetupIntent object (when available in the TerminalException)
+
+Note: Unlike iOS which provides `requestError` and `declineCode` for all confirm errors, Android includes these details in the `apiError` field when the error is related to a Stripe API call.
+
+This enhanced context enables sophisticated error recovery flows on both platforms:
 
 ```typescript
 const { error, paymentIntent } = await confirmPaymentIntent('pi_...');
 if (error && error.code === ErrorCode.DECLINED_BY_STRIPE_API) {
-  // iOS: Access full PaymentIntent from error metadata
+  // Access full PaymentIntent from error metadata (both platforms)
   const piFromError = error.metadata.paymentIntent;
   console.log('Payment status:', piFromError?.status);
   
-  // Check decline code for specific reason
+  // iOS: Check decline code for specific reason
   if (error.metadata.declineCode === 'insufficient_funds') {
     // Guide user to use different payment method
   }
   
-  // Access underlying network error if present
+  // iOS: Access underlying network error if present
   if (error.metadata.requestError) {
     console.log('Network issue:', error.metadata.requestError.message);
+  }
+  
+  // Android: Check API error details
+  if (error.metadata.apiError) {
+    console.log('API Error:', error.metadata.apiError.message);
+    if (error.metadata.apiError.declineCode === 'insufficient_funds') {
+      // Guide user to use different payment method
+    }
   }
 }
 ```
