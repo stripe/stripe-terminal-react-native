@@ -135,6 +135,8 @@ export default function RefundPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              nativeErrorCode: error.nativeErrorCode,
+              errorMetadata: JSON.stringify(error.metadata),
             },
           },
         ],
@@ -177,6 +179,8 @@ export default function RefundPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              nativeErrorCode: error.nativeErrorCode,
+              errorMetadata: JSON.stringify(error.metadata),
             },
           },
         ],
