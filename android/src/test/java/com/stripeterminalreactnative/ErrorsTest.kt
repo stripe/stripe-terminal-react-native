@@ -74,6 +74,9 @@ class ErrorsTest {
             every { code } returns "api_code"
             every { message } returns "api_message"
             every { declineCode } returns "decline_code"
+            every { charge } returns "ch_123"
+            every { docUrl } returns "https://stripe.com/docs/error"
+            every { param } returns "amount"
         }
         val cause = IllegalStateException("cause message")
         val terminalException = mockTerminalException(
@@ -98,6 +101,9 @@ class ErrorsTest {
         assertEquals("api_code", apiErrorMap.getString("code"))
         assertEquals("api_message", apiErrorMap.getString("message"))
         assertEquals("decline_code", apiErrorMap.getString("declineCode"))
+        assertEquals("ch_123", apiErrorMap.getString("charge"))
+        assertEquals("https://stripe.com/docs/error", apiErrorMap.getString("docUrl"))
+        assertEquals("amount", apiErrorMap.getString("param"))
 
         val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)
         assertEquals("IllegalStateException", underlying.getString("code"))
