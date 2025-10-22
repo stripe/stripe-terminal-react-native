@@ -39,7 +39,7 @@ class Mappers {
         case LocationStatus.notSet: return "notSet"
         case LocationStatus.set: return "set"
         case LocationStatus.unknown: return "unknown"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -47,7 +47,7 @@ class Mappers {
         switch status {
         case ReaderNetworkStatus.offline: return "offline"
         case ReaderNetworkStatus.online: return "online"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -57,7 +57,7 @@ class Mappers {
         case BatteryStatus.low: return "low"
         case BatteryStatus.nominal: return "nominal"
         case BatteryStatus.unknown: return "unknown"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -75,7 +75,7 @@ class Mappers {
         case DeviceType.wisePad3: return "wisePad3"
         case DeviceType.wisePosE: return "wisePosE"
         case DeviceType.wisePosEDevKit: return "wisePosEDevkit"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -164,7 +164,7 @@ class Mappers {
         switch captureMethod {
         case CaptureMethod.manual: return "manual"
         case CaptureMethod.automatic: return "automatic"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -332,7 +332,7 @@ class Mappers {
         switch usage {
         case SetupIntentUsage.offSession: return "offSession"
         case SetupIntentUsage.onSession: return "onSession"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -386,7 +386,7 @@ class Mappers {
         case SetupIntentStatus.requiresPaymentMethod: return "requiresPaymentMethod"
         case SetupIntentStatus.succeeded: return "succeeded"
         case SetupIntentStatus.requiresAction: return "requiresAction"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -399,7 +399,7 @@ class Mappers {
         case PaymentIntentStatus.requiresPaymentMethod: return "requiresPaymentMethod"
         case PaymentIntentStatus.succeeded: return "succeeded"
         case PaymentIntentStatus.requiresAction: return "requiresAction"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -408,7 +408,7 @@ class Mappers {
         case ChargeStatus.failed: return "failed"
         case ChargeStatus.pending: return "pending"
         case ChargeStatus.succeeded: return "succeeded"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -423,7 +423,7 @@ class Mappers {
         case ReaderDisplayMessage.tryAnotherCard: return "tryAnotherCard"
         case ReaderDisplayMessage.tryAnotherReadMethod: return "tryAnotherReadMethod"
         case ReaderDisplayMessage.cardRemovedTooEarly: return "cardRemovedTooEarly"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -473,7 +473,7 @@ class Mappers {
         case UpdateTimeEstimate.estimate2To5Minutes: return "estimate2To5Minutes"
         case UpdateTimeEstimate.estimate5To15Minutes: return "estimate5To15Minutes"
         case UpdateTimeEstimate.estimateLessThan1Minute: return "estimateLessThan1Minute"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -721,7 +721,7 @@ class Mappers {
         case CardFundingType.debit: return "debit"
         case CardFundingType.credit: return "credit"
         case CardFundingType.prepaid: return "prepaid"
-        default: return "other"
+        @unknown default: return "other"
         }
     }
 
@@ -736,7 +736,7 @@ class Mappers {
         case CardBrand.interac: return "interac"
         case CardBrand.unionPay: return "unionPay"
         case CardBrand.eftposAu: return "eftposAu"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -779,7 +779,7 @@ class Mappers {
         case PaymentMethodType.affirm: return "affirm"
         case PaymentMethodType.paynow: return "paynow"
         case PaymentMethodType.paypay: return "paypay"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -852,7 +852,7 @@ class Mappers {
         case RefundStatus.pending: return "pending"
         case RefundStatus.succeeded: return "succeeded"
         case RefundStatus.unknown: return "unknown"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -915,7 +915,7 @@ class Mappers {
         case PaymentStatus.ready: return "ready"
         case PaymentStatus.processing: return "processing"
         case PaymentStatus.waitingForInput: return "waitingForInput"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -925,7 +925,7 @@ class Mappers {
         case ConnectionStatus.connecting: return "connecting"
         case ConnectionStatus.notConnected: return "notConnected"
         case ConnectionStatus.discovering: return "discovering"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -942,7 +942,7 @@ class Mappers {
         case NetworkStatus.online: return "online"
         case NetworkStatus.offline: return "offline"
         case NetworkStatus.unknown: return "unknown"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -970,7 +970,7 @@ class Mappers {
         case ReaderTextToSpeechStatus.off: return "off"
         case ReaderTextToSpeechStatus.headphones: return "headphones"
         case ReaderTextToSpeechStatus.speakers: return "speakers"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -1003,7 +1003,7 @@ class Mappers {
         case DisconnectReason.usbDisconnected: return "usbDisconnected"
         case DisconnectReason.idlePowerDown: return "idlePowerDown"
         case DisconnectReason.peerRemovedPairingInformation: return "peerRemovedPairingInformation"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -1014,7 +1014,7 @@ class Mappers {
         case SCPReadMethod.contactlessMagstripeMode: return "contactlessMagstripeMode"
         case SCPReadMethod.magneticStripeFallback: return "magneticStripeFallback"
         case SCPReadMethod.magneticStripeTrack2: return "magneticStripeTrack2"
-        default: return "unknown"
+        @unknown default: return "unknown"
         }
     }
 

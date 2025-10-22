@@ -473,7 +473,8 @@ internal fun mapFromPaymentIntentStatus(status: PaymentIntentStatus?): String {
         PaymentIntentStatus.REQUIRES_PAYMENT_METHOD -> "requiresPaymentMethod"
         PaymentIntentStatus.SUCCEEDED -> "succeeded"
         PaymentIntentStatus.REQUIRES_ACTION -> "requiresAction"
-        else -> "unknown"
+        PaymentIntentStatus.PROCESSING -> "processing"
+        null -> "unknown"
     }
 }
 
