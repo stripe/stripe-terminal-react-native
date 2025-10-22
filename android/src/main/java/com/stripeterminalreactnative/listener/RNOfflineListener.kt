@@ -11,7 +11,7 @@ import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromOfflineStatus
 import com.stripeterminalreactnative.mapFromPaymentIntent
-import com.stripeterminalreactnative.nativeMapOf
+import com.stripeterminalreactnative.putError
 
 @OptIn(OfflineMode::class)
 class RNOfflineListener(
@@ -26,15 +26,7 @@ class RNOfflineListener(
     override fun onPaymentIntentForwarded(paymentIntent: PaymentIntent, e: TerminalException?) {
         context.sendEvent(ReactNativeConstants.FORWARD_PAYMENT_INTENT.listenerName) {
             putMap("result", mapFromPaymentIntent(paymentIntent, ""))
-            if (e != null) {
-                putMap(
-                    "error",
-                    nativeMapOf {
-                        putString("code", e.errorCode.toString())
-                        putString("message", e.errorMessage)
-                    }
-                )
-            }
+            e?.let { putError(it) }
         }
     }
 

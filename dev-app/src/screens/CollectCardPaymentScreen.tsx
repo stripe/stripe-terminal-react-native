@@ -20,8 +20,9 @@ import {
   useStripeTerminal,
   type PaymentIntent,
   type StripeError,
-  CommonError,
   type AllowRedisplay,
+  ErrorCode,
+  createStripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -235,7 +236,7 @@ export default function CollectCardPaymentScreen() {
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
-    let paymentIntentError: StripeError<CommonError> | undefined;
+    let paymentIntentError: StripeError | undefined;
 
     if (deviceType === 'verifoneP400') {
       const resp = await api.createPaymentIntent({
@@ -267,9 +268,16 @@ export default function CollectCardPaymentScreen() {
       }
 
       if (!resp.client_secret) {
-        return Promise.resolve({
-          error: { message: 'no client_secret returned!' },
+        const error = createStripeError({
+          code: ErrorCode.INVALID_CLIENT_SECRET,
+          message: 'No client_secret returned from API',
+          nativeErrorCode: 'INVALID_CLIENT_SECRET',
+          metadata: {
+            apiResponse: resp,
+            context: 'createPaymentIntent',
+          },
         });
+        return Promise.resolve({ error });
       }
 
       const response = await retrievePaymentIntent(resp.client_secret);
@@ -341,6 +349,8 @@ export default function CollectCardPaymentScreen() {
             metadata: {
               errorCode: paymentIntentError?.code,
               errorMessage: paymentIntentError?.message,
+              nativeErrorCode: paymentIntentError?.nativeErrorCode,
+              errorMetadata: JSON.stringify(paymentIntentError?.metadata),
             },
           },
         ],
@@ -349,6 +359,18 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (!paymentIntent) {
+      const error = createStripeError({
+        code: ErrorCode.MISSING_REQUIRED_PARAMETER,
+        message: 'PaymentIntent is null after creation',
+        nativeErrorCode: 'MISSING_PAYMENT_INTENT',
+        metadata: {
+          context: 'createPaymentIntent',
+          paymentIntentError: paymentIntentError
+            ? JSON.stringify(paymentIntentError)
+            : null,
+        },
+      });
+
       addLogs({
         name: 'Create Payment Intent',
         events: [
@@ -357,8 +379,10 @@ export default function CollectCardPaymentScreen() {
             description: 'terminal.createPaymentIntent',
             onBack: cancelCollectPaymentMethod,
             metadata: {
-              errorCode: 'no_code',
-              errorMessage: 'PaymentIntent is null!',
+              errorCode: error.code,
+              errorMessage: error.message,
+              nativeErrorCode: error.nativeErrorCode,
+              errorMetadata: JSON.stringify(error.metadata),
             },
           },
         ],
@@ -423,6 +447,8 @@ export default function CollectCardPaymentScreen() {
             metadata: {
               errorCode: error.code,
               errorMessage: error.message,
+              nativeErrorCode: error.nativeErrorCode,
+              errorMetadata: JSON.stringify(error.metadata),
               pi: JSON.stringify(paymentIntent, undefined, 2),
             },
           },
@@ -432,7 +458,21 @@ export default function CollectCardPaymentScreen() {
       if (enableUpdatePaymentIntent) {
         let cardBrand = paymentIntent.paymentMethod?.cardPresentDetails?.brand;
 
-        if (cardBrand && cardBrand == declineCardBrand) {
+        if (cardBrand && cardBrand === declineCardBrand) {
+          const integrationError = createStripeError({
+            code: ErrorCode.CANCELED,
+            message: `Card brand '${cardBrand}' rejected by integration logic`,
+            nativeErrorCode: 'INTEGRATION_CANCELED_CARD_BRAND',
+            metadata: {
+              cardBrand,
+              declineCardBrand,
+              paymentIntentId: paymentIntent.id,
+              context: 'collectPaymentMethod',
+              reason: 'card_brand_rejection',
+            },
+            paymentIntent,
+          });
+
           addLogs({
             name: 'Collect Payment Method',
             events: [
@@ -441,7 +481,10 @@ export default function CollectCardPaymentScreen() {
                 description: 'terminal.collectPaymentMethod',
                 onBack: cancelCollectPaymentMethod,
                 metadata: {
-                  errorMessage: 'Integration rejected card due to card brand',
+                  errorCode: integrationError.code,
+                  errorMessage: integrationError.message,
+                  nativeErrorCode: integrationError.nativeErrorCode,
+                  errorMetadata: JSON.stringify(integrationError.metadata),
                 },
               },
             ],
