@@ -31,6 +31,9 @@ internal object ErrorConstants {
     const val API_ERROR_CODE_KEY = "code"
     const val API_ERROR_MESSAGE_KEY = "message"
     const val API_ERROR_DECLINE_CODE_KEY = "declineCode"
+    const val API_ERROR_CHARGE_KEY = "charge"
+    const val API_ERROR_DOC_URL_KEY = "docUrl"
+    const val API_ERROR_PARAM_KEY = "param"
 
     // UnderlyingError keys
     const val UNDERLYING_ERROR_CODE_KEY = "code"

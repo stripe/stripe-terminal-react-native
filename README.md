@@ -411,7 +411,10 @@ metadata: {
     // Stripe API error details when applicable
     code: string,
     message: string,
-    declineCode?: string
+    declineCode?: string,
+    charge?: string,     // Charge ID when applicable
+    docUrl?: string,     // Documentation URL for the error
+    param?: string       // Parameter that caused the error
   },
   underlyingError?: {
     // Java/Kotlin exception information

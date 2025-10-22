@@ -239,6 +239,9 @@ private fun WritableMap.addApiErrorInformation(apiError: ApiError?) {
                 putString(ErrorConstants.API_ERROR_CODE_KEY, apiErr.code)
                 putString(ErrorConstants.API_ERROR_MESSAGE_KEY, apiErr.message)
                 putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, apiErr.declineCode)
+                apiErr.charge?.let { putString(ErrorConstants.API_ERROR_CHARGE_KEY, it) }
+                apiErr.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
+                apiErr.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
             }
         )
     }
