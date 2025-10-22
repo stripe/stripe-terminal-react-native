@@ -211,26 +211,6 @@ interface StripeError extends Error {
 }
 ```
 
-#### What You Receive as a Developer
-
-Regardless of the underlying platform, your React Native code always receives the same `StripeError` structure:
-
-```typescript
-// Consistent StripeError format across all platforms
-{
-  name: "StripeError",
-  code: "BLUETOOTH_ERROR",           // Standardized error code
-  message: "Bluetooth connection failed",
-  nativeErrorCode: "1001",          // Platform-specific code for debugging
-  metadata: {                       // Rich debugging context - see platform differences below
-    // Platform-specific debugging information
-    // Different fields available on Android vs iOS
-  },
-  paymentIntent?: { /* Related PaymentIntent */ },
-  setupIntent?: { /* Related SetupIntent */ }
-}
-```
-
 #### Platform-Specific Metadata Differences
 
 While the main `StripeError` structure is consistent, the `metadata` field contains platform-specific debugging information:
