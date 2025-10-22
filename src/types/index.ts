@@ -3,8 +3,8 @@ import type { PaymentIntent } from './PaymentIntent';
 import type { Reader } from './Reader';
 import type { SetupIntent } from './SetupIntent';
 import type { StripeError } from './StripeError';
-export type { StripeError } from './StripeError';
 
+export * from './StripeError';
 export * from './Reader';
 export * from './SetupIntent';
 export * from './PaymentIntent';
