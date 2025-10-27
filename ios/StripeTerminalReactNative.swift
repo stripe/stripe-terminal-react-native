@@ -63,6 +63,32 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     var confirmRefundCancelable: Cancelable? = nil
     var loggingToken: String? = nil
 
+    private func resolvePaymentIntentError(
+        error: NSError,
+        paymentIntent: PaymentIntent?,
+        resolve: @escaping RCTPromiseResolveBlock
+    ) {
+        var result = Errors.createErrorFromNSError(nsError: error)
+        if let pi = paymentIntent {
+            let mappedIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
+            result["paymentIntent"] = mappedIntent
+        }
+        resolve(result)
+    }
+
+    private func resolveSetupIntentError(
+        error: NSError,
+        setupIntent: SetupIntent?,
+        resolve: @escaping RCTPromiseResolveBlock
+    ) {
+        var result = Errors.createErrorFromNSError(nsError: error)
+        if let si = setupIntent {
+            let mappedIntent = Mappers.mapFromSetupIntent(si, uuid: "")
+            result["setupIntent"] = mappedIntent
+        }
+        resolve(result)
+    }
+
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
         guard terminal.connectionStatus == .notConnected || terminal.connectionStatus == .discovering else { return }
@@ -533,12 +559,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
             if let error = error as NSError? {
-                var result = Errors.createErrorFromNSError(nsError: error)
-                if let pi {
-                    let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
-                    result["paymentIntent"] = paymentIntent
-                }
-                resolve(result)
+                self.resolvePaymentIntentError(error: error, paymentIntent: pi, resolve: resolve)
             } else if let pi = pi {
                 let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
@@ -560,7 +581,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         Terminal.shared.createSetupIntent(setupIntentParams) { si, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolveSetupIntentError(error: error, setupIntent: si, resolve: resolve)
             } else if let si = si {
                 let uuid = UUID().uuidString
                 let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
@@ -632,12 +653,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             collectConfig: collectConfig
         ) { pi, collectError  in
             if let error = collectError as NSError? {
-                var result = Errors.createErrorFromNSError(nsError: error)
-                if let pi {
-                    let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
-                    result["paymentIntent"] = paymentIntent
-                }
-                resolve(result)
+                self.resolvePaymentIntentError(error: error, paymentIntent: pi, resolve: resolve)
             } else if let paymentIntent = pi {
                 // Always store the latest instance of the PaymentIntent so we pass the latest instance back in
                 // to the confirm call.
@@ -657,7 +673,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret) { pi, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolvePaymentIntentError(error: error, paymentIntent: pi, resolve: resolve)
             } else if let pi = pi {
                 let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
@@ -740,12 +756,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         self.confirmPaymentIntentCancelable = Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
             if let error = error as NSError? {
-                var result = Errors.createErrorFromNSError(nsError: error)
-                if let pi {
-                    let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: "")
-                    result["paymentIntent"] = paymentIntent
-                }
-                resolve(result)
+                self.resolvePaymentIntentError(error: error, paymentIntent: pi, resolve: resolve)
             } else if let pi = pi {
                 let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
@@ -810,7 +821,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
         Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
             if let error = collectError as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolvePaymentIntentError(error: error, paymentIntent: pi, resolve: resolve)
             } else if let pi = pi {
                 let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
@@ -890,7 +901,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
         Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
             if let error = collectError as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolveSetupIntentError(error: error, setupIntent: si, resolve: resolve)
             } else if let si = si {
                 let uuid = UUID().uuidString
                 let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
@@ -919,7 +930,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
         Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret) { si, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolveSetupIntentError(error: error, setupIntent: si, resolve: resolve)
             } else if let si = si {
                 let uuid = UUID().uuidString
                 self.setupIntents[uuid] = si
@@ -964,7 +975,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, allowRedisplay: Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay), setupConfig: setupIntentConfiguration) { si, collectError  in
             if let error = collectError as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolveSetupIntentError(error: error, setupIntent: si, resolve: resolve)
             } else if let setupIntent = si {
                 let setupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 resolve(["setupIntent": setupIntent])
@@ -989,7 +1000,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         self.confirmSetupIntentCancelable = Terminal.shared.confirmSetupIntent(setupIntent) { si, collectError  in
             if let error = collectError as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                self.resolveSetupIntentError(error: error, setupIntent: si, resolve: resolve)
             } else if let setupIntent = si {
                 let uuid = UUID().uuidString
                 let setupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
