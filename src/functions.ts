@@ -43,6 +43,12 @@ import { createStripeError } from './Errors/StripeErrorHelpers';
 import { ErrorCode } from './Errors/ErrorCodes';
 import { Platform } from 'react-native';
 
+function hasError<T extends object>(
+  response: T
+): response is T & { error: StripeError } {
+  return 'error' in response && !!(response as any).error;
+}
+
 export async function initialize(
   params: InitParams
 ): Promise<InitializeResultType> {
@@ -819,11 +825,10 @@ export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.getReaderSettings();
-      const maybeError = (response as any)?.error as StripeError | undefined;
-      if (maybeError) {
-        return { error: maybeError };
+      if (hasError(response)) {
+        return { error: response.error };
       }
-      return response as Reader.ReaderSettings;
+      return response;
     } catch (error) {
       return {
         error: error as any,
@@ -838,11 +843,10 @@ export async function setReaderSettings(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.setReaderSettings(params);
-      const maybeError = (response as any)?.error as StripeError | undefined;
-      if (maybeError) {
-        return { error: maybeError };
+      if (hasError(response)) {
+        return { error: response.error };
       }
-      return response as Reader.ReaderSettings;
+      return response;
     } catch (error) {
       return {
         error: error as any,
@@ -857,9 +861,8 @@ export async function collectInputs(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectInputs(params);
-      const maybeError = (response as any)?.error as StripeError | undefined;
-      if (maybeError) {
-        return { error: maybeError };
+      if (hasError(response)) {
+        return { error: response.error };
       }
       return response;
     } catch (error) {
@@ -891,9 +894,8 @@ export async function collectData(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectData(params);
-      const maybeError = (response as any)?.error as StripeError | undefined;
-      if (maybeError) {
-        return { error: maybeError };
+      if (hasError(response)) {
+        return { error: response.error };
       }
       return response;
     } catch (error) {
