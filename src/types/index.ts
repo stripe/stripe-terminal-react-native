@@ -386,10 +386,15 @@ export type CardDetails = {
   last4?: string;
 };
 
-export type ConfirmRefundResultType = {
-  refund?: Refund.Props;
-  error?: StripeError;
-};
+export type ConfirmRefundResultType =
+  | {
+      refund: Refund.Props;
+      error?: undefined;
+    }
+  | {
+      refund?: undefined;
+      error: StripeError;
+    };
 
 export type OfflineStatusDetails = {
   networkStatus: 'online' | 'offline' | 'unknown';
@@ -503,10 +508,15 @@ export interface IInput {
   selectionButtons?: ISelectionButton[];
 }
 
-export interface ICollectInputsResults {
-  collectInputResults?: ICollectInputsResult[];
-  error: StripeError;
-}
+export type ICollectInputsResults =
+  | {
+      collectInputResults?: ICollectInputsResult[];
+      error?: undefined;
+    }
+  | {
+      collectInputResults?: undefined;
+      error: StripeError;
+    };
 
 export interface ICollectInputsResult {
   skipped: boolean;

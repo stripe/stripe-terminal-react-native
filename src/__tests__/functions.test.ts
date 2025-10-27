@@ -42,6 +42,16 @@ const mockLocations = [
   },
 ];
 
+const mockCollectInputResults = {
+  collectInputResults: [{ text: 'example input' }],
+};
+
+const mockCollectedData = {
+  collectedData: {
+    stripeId: '_stripe_id',
+  },
+};
+
 describe('functions.test.ts', () => {
   describe('Functions snapshot', () => {
     it('ensure there are no unexpected changes to the functions exports', () => {
@@ -116,6 +126,10 @@ describe('functions.test.ts', () => {
         cancelCollectSetupIntent: jest.fn().mockImplementation(() => ({})),
         setSimulatedCard: jest.fn().mockImplementation(() => ({})),
         print: jest.fn().mockImplementation(() => ({})),
+        collectInputs: jest
+          .fn()
+          .mockImplementation(() => mockCollectInputResults),
+        collectData: jest.fn().mockImplementation(() => mockCollectedData),
       }));
     });
 
@@ -327,6 +341,20 @@ describe('functions.test.ts', () => {
       const functions = require('../functions');
       await expect(functions.print({} as any)).resolves.toEqual({});
     });
+
+    it('collectInputs returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.collectInputs({} as any)).resolves.toEqual(
+        mockCollectInputResults
+      );
+    });
+
+    it('collectData returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.collectData({} as any)).resolves.toEqual(
+        mockCollectedData
+      );
+    });
   });
 
   describe('Functions error results', () => {
@@ -399,6 +427,10 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         print: jest.fn().mockImplementation(() => ({ error: '_error' })),
+        collectInputs: jest
+          .fn()
+          .mockImplementation(() => ({ error: '_error' })),
+        collectData: jest.fn().mockImplementation(() => ({ error: '_error' })),
 
         simulateReaderUpdate: jest.fn().mockRejectedValue('_error'),
         clearCachedCredentials: jest.fn().mockRejectedValue('_error'),
@@ -604,6 +636,20 @@ describe('functions.test.ts', () => {
     it('print returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.print({} as any)).resolves.toEqual({
+        error: '_error',
+      });
+    });
+
+    it('collectInputs returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.collectInputs({} as any)).resolves.toEqual({
+        error: '_error',
+      });
+    });
+
+    it('collectData returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.collectData({} as any)).resolves.toEqual({
         error: '_error',
       });
     });

@@ -815,9 +815,7 @@ export async function getConnectedReader(): Promise<Reader.Type> {
   }, 'getConnectedReader')();
 }
 
-export async function getReaderSettings(): Promise<
-  Reader.ReaderSettings | { error?: StripeError }
-> {
+export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.getReaderSettings();
@@ -836,7 +834,7 @@ export async function getReaderSettings(): Promise<
 
 export async function setReaderSettings(
   params: Reader.ReaderSettingsParameters
-): Promise<Reader.ReaderSettings | { error?: StripeError }> {
+): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.setReaderSettings(params);
@@ -859,6 +857,10 @@ export async function collectInputs(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectInputs(params);
+      const maybeError = (response as any)?.error as StripeError | undefined;
+      if (maybeError) {
+        return { error: maybeError };
+      }
       return response;
     } catch (error) {
       return {
@@ -889,6 +891,10 @@ export async function collectData(
   return Logger.traceSdkMethod(async () => {
     try {
       const response = await StripeTerminalSdk.collectData(params);
+      const maybeError = (response as any)?.error as StripeError | undefined;
+      if (maybeError) {
+        return { error: maybeError };
+      }
       return response;
     } catch (error) {
       return {

@@ -158,7 +158,7 @@ export interface StripeTerminalSdkType {
   getPaymentStatus(): Promise<PaymentStatus>;
   getConnectionStatus(): Promise<ConnectionStatus>;
   getConnectedReader(): Promise<Reader.Type>;
-  getReaderSettings(): Promise<Reader.ReaderSettings | { error?: StripeError }>;
+  getReaderSettings(): Promise<Reader.ReaderSettings>;
   setReaderSettings(
     params: Reader.ReaderSettingsParameters
   ): Promise<Reader.ReaderSettings>;
