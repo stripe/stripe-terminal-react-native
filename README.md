@@ -12,6 +12,8 @@ Stripe Terminal enables you to build your own in-person checkout to accept payme
 - [Example code](#example-code)
   - [Initialization](#initialization)
   - [Hooks and events](#hooks-and-events)
+- [Error Handling](#error-handling)
+  - [StripeError](#stripeerror)
 - [Additional docs](#additional-docs)
 - [Contributing](#contributing)
 
@@ -31,7 +33,7 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 ### Android
 
 - Android API level 26 and above
-  * Note that attempting to override minSdkVersion to decrease the minimum supported API level will not work due to internal runtime API level validation.
+  - Note that attempting to override minSdkVersion to decrease the minimum supported API level will not work due to internal runtime API level validation.
 - compileSdkVersion = 35
 - targetSdkVersion = 35
 
@@ -186,6 +188,81 @@ class PaymentScreen extends React.Component {
 
 export default withStripeTerminal(PaymentScreen);
 ```
+
+## Error Handling
+
+The SDK provides comprehensive error handling through `StripeError` objects, giving you detailed information about failures and their context.
+
+### StripeError
+
+All SDK methods return errors as `StripeError` objects with a consistent structure across platforms.
+
+#### Interface
+
+```typescript
+interface StripeError extends Error {
+  name: 'StripeError';
+  message: string;              // Human-readable error message
+  code: ErrorCode;              // SDK error code (e.g., 'BLUETOOTH_ERROR')
+  nativeErrorCode: string;      // Platform-specific error code
+  
+  /** Platform-specific metadata (flexible map structure) */
+  metadata: Record<string, unknown>;
+  
+  /** Associated PaymentIntent (if applicable) */
+  paymentIntent?: PaymentIntent.Type;
+  
+  /** Associated SetupIntent (if applicable) */
+  setupIntent?: SetupIntent.Type;
+  
+  /** Associated Refund (if applicable, iOS only) */
+  refund?: Refund.Props;
+  
+  /** API-level error information (unified across platforms) */
+  apiError?: ApiErrorInformation;
+  
+  /** Underlying error information (unified structure) */
+  underlyingError?: UnderlyingErrorInformation;
+}
+```
+
+#### API Error Information
+
+**`apiError`**: Structured Stripe API error details (when applicable):
+
+```typescript
+interface ApiErrorInformation {
+  code: string;           // API error code (e.g., 'card_declined')
+  message: string;        // API error message
+  declineCode: string;    // Decline code (e.g., 'insufficient_funds')
+  type?: string;          // Error type (e.g., 'card_error')
+  charge?: string;        // Related charge ID
+  docUrl?: string;        // Documentation URL
+  param?: string;         // Parameter that caused the error
+}
+```
+
+#### Underlying Error Information
+
+**`underlyingError`**: Low-level error details from the platform SDK:
+
+```typescript
+interface UnderlyingErrorInformation {
+  code: string;                       // Error code or exception class
+  message: string;                    // Error message
+  iosDomain?: string;                 // iOS: NSError domain
+  iosLocalizedFailureReason?: string; // iOS: Localized failure reason
+  iosLocalizedRecoverySuggestion?: string; // iOS: Recovery suggestion
+}
+```
+
+#### Platform-Specific Metadata
+
+The `metadata` field contains additional platform-specific debugging information.
+
+On **iOS**, this may include fields like `deviceBannedUntilDate`, `prepareFailedReason`, `httpStatusCode`, `readerMessage`, `stripeAPIRequestId`, `stripeAPIFailureReason`, and `offlineDeclineReason`.
+
+On **Android**, the `metadata` field is reserved for future platform-specific fields and is currently empty.
 
 ## Additional docs
 

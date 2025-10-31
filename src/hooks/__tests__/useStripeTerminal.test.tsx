@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useStripeTerminal } from '../useStripeTerminal';
-import { act, renderHook } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import { StripeTerminalContext } from '../../components/StripeTerminalContext';
 import * as functions from '../../functions';
 
@@ -249,9 +249,7 @@ describe('useStripeTerminal.test.tsx', () => {
         wrapper: ContextWrapper,
       });
 
-      act(() => {
-        result.current.clearCachedCredentials();
-      });
+      result.current.clearCachedCredentials();
 
       expect(clearCachedCredentials).toBeCalled();
     });
@@ -263,56 +261,107 @@ describe('useStripeTerminal.test.tsx', () => {
         wrapper: ContextWrapper,
       });
 
-      act(() => {
-        result.current.initialize();
-      });
+      result.current.initialize();
 
       expect(initializeFn).toBeCalled();
+    });
+
+    it('should return UNEXPECTED_SDK_ERROR when StripeTerminalProvider is not found', async () => {
+      // GIVEN: StripeTerminalProvider is not properly mounted (initialize function is null)
+      const ContextWrapper = createContextWrapper({ initialize: null });
+      const { result } = renderHook(() => useStripeTerminal(), {
+        wrapper: ContextWrapper,
+      });
+
+      // WHEN: calling initialize
+      const initResult = await result.current.initialize();
+
+      // THEN: should return StripeError with UNEXPECTED_SDK_ERROR code
+      expect(initResult).toEqual({
+        error: expect.objectContaining({
+          name: 'StripeError',
+          code: 'UNEXPECTED_SDK_ERROR',
+          message:
+            'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized properly',
+          nativeErrorCode: 'UNEXPECTED_SDK_ERROR',
+          metadata: {},
+        }),
+        reader: undefined,
+      });
+      expect(initResult.error).toBeInstanceOf(Error);
+    });
+
+    it('should return UNEXPECTED_SDK_ERROR when initialize is not a function', async () => {
+      // GIVEN: StripeTerminalProvider initialize is not a function
+      const ContextWrapper = createContextWrapper({
+        initialize: 'not a function',
+      });
+      const { result } = renderHook(() => useStripeTerminal(), {
+        wrapper: ContextWrapper,
+      });
+
+      // WHEN: calling initialize
+      const initResult = await result.current.initialize();
+
+      // THEN: should return StripeError with UNEXPECTED_SDK_ERROR code
+      expect(initResult).toEqual({
+        error: expect.objectContaining({
+          name: 'StripeError',
+          code: 'UNEXPECTED_SDK_ERROR',
+          message:
+            'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized properly',
+          nativeErrorCode: 'UNEXPECTED_SDK_ERROR',
+          metadata: {},
+        }),
+        reader: undefined,
+      });
+      expect(initResult.error).toBeInstanceOf(Error);
     });
 
     it('public methods are called when it is initialized', () => {
       const fns = spyAllFunctions({ returnWith: '_value' });
 
-      const ContextWrapper = createContextWrapper({ isInitialized: true, getIsInitialized: () => true });
+      const ContextWrapper = createContextWrapper({
+        isInitialized: true,
+        getIsInitialized: () => true,
+      });
       const { result } = renderHook(() => useStripeTerminal(), {
         wrapper: ContextWrapper,
       });
 
-      act(() => {
-        try {
-          result.current.discoverReaders({} as any);
-          result.current.cancelCollectPaymentMethod();
-          result.current.cancelDiscovering();
-          result.current.cancelCollectRefundPaymentMethod();
-          result.current.cancelInstallingUpdate();
-          result.current.cancelPaymentIntent({} as any);
-          result.current.cancelSetupIntent({} as any);
-          result.current.clearCachedCredentials();
-          result.current.clearReaderDisplay();
-          result.current.collectPaymentMethod({} as any);
-          result.current.collectRefundPaymentMethod({} as any);
-          result.current.collectSetupIntentPaymentMethod({} as any);
-          result.current.confirmSetupIntent({} as any);
-          result.current.connectReader({} as any, {} as any);
-          result.current.createPaymentIntent({} as any);
-          result.current.createSetupIntent({} as any);
-          result.current.disconnectReader();
-          result.current.rebootReader();
-          result.current.retrievePaymentIntent('');
-          result.current.getLocations({} as any);
-          result.current.confirmPaymentIntent({} as any);
-          result.current.retrieveSetupIntent('');
-          result.current.simulateReaderUpdate({} as any);
-          result.current.setSimulatedCard('');
-          result.current.installAvailableUpdate();
-          result.current.setReaderDisplay({} as any);
-          result.current.print({} as any);
-          result.current.confirmRefund();
-          result.current.cancelCollectSetupIntent();
-        } catch (error) {
-          console.error(error);
-        }
-      });
+      try {
+        result.current.discoverReaders({} as any);
+        result.current.cancelCollectPaymentMethod();
+        result.current.cancelDiscovering();
+        result.current.cancelCollectRefundPaymentMethod();
+        result.current.cancelInstallingUpdate();
+        result.current.cancelPaymentIntent({} as any);
+        result.current.cancelSetupIntent({} as any);
+        result.current.clearCachedCredentials();
+        result.current.clearReaderDisplay();
+        result.current.collectPaymentMethod({} as any);
+        result.current.collectRefundPaymentMethod({} as any);
+        result.current.collectSetupIntentPaymentMethod({} as any);
+        result.current.confirmSetupIntent({} as any);
+        result.current.connectReader({} as any, {} as any);
+        result.current.createPaymentIntent({} as any);
+        result.current.createSetupIntent({} as any);
+        result.current.disconnectReader();
+        result.current.rebootReader();
+        result.current.retrievePaymentIntent('');
+        result.current.getLocations({} as any);
+        result.current.confirmPaymentIntent({} as any);
+        result.current.retrieveSetupIntent('');
+        result.current.simulateReaderUpdate({} as any);
+        result.current.setSimulatedCard('');
+        result.current.installAvailableUpdate();
+        result.current.setReaderDisplay({} as any);
+        result.current.print({} as any);
+        result.current.confirmRefund();
+        result.current.cancelCollectSetupIntent();
+      } catch (error) {
+        console.error(error);
+      }
 
       Object.values(fns).forEach((fn) => {
         expect(fn).toBeCalled();
@@ -323,7 +372,10 @@ describe('useStripeTerminal.test.tsx', () => {
       const fns = spyAllFunctions();
       console.error = jest.fn();
 
-      const ContextWrapper = createContextWrapper({ isInitialized: false, getIsInitialized: () => false });
+      const ContextWrapper = createContextWrapper({
+        isInitialized: false,
+        getIsInitialized: () => false,
+      });
       const { result } = renderHook(() => useStripeTerminal(), {
         wrapper: ContextWrapper,
       });
@@ -379,7 +431,10 @@ describe('useStripeTerminal.test.tsx', () => {
     it('public methods are returns with mocked value', async () => {
       spyAllFunctions({ returnWith: '_value' });
 
-      const ContextWrapper = createContextWrapper({ isInitialized: true, getIsInitialized: () => true });
+      const ContextWrapper = createContextWrapper({
+        isInitialized: true,
+        getIsInitialized: () => true,
+      });
       const { result } = renderHook(() => useStripeTerminal(), {
         wrapper: ContextWrapper,
       });

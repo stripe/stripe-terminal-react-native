@@ -1,8 +1,8 @@
 import type { PaymentMethodDetails } from './';
 
 export namespace Refund {
-  export type Props = IOS.Props &
-    Android.Props & {
+  export type Props = IOS.Type &
+    Android.Type & {
       id: string;
       amount?: number;
       chargeId: string;
@@ -15,7 +15,7 @@ export namespace Refund {
     };
 
   export namespace IOS {
-    export interface Props {
+    export interface Type {
       created: string;
       paymentMethodDetails?: PaymentMethodDetails;
     }
@@ -24,7 +24,7 @@ export namespace Refund {
   export type Status = 'succeeded' | 'failed' | 'pending' | 'unknown';
 
   export namespace Android {
-    export interface Props {
+    export interface Type {
       balanceTransaction?: string;
       failureBalanceTransaction?: string;
       receiptNumber?: string;
