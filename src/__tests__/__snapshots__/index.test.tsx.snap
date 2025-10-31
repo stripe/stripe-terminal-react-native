@@ -151,6 +151,15 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "SECONDARY": "secondary",
   },
   "SetupIntent": undefined,
+  "StripeErrorMetadataKeys": {
+    "IOS_DEVICE_BANNED_UNTIL_DATE": "deviceBannedUntilDate",
+    "IOS_HTTP_STATUS_CODE": "httpStatusCode",
+    "IOS_OFFLINE_DECLINE_REASON": "offlineDeclineReason",
+    "IOS_PREPARE_FAILED_REASON": "prepareFailedReason",
+    "IOS_READER_MESSAGE": "readerMessage",
+    "IOS_STRIPE_API_FAILURE_REASON": "stripeAPIFailureReason",
+    "IOS_STRIPE_API_REQUEST_ID": "stripeAPIRequestId",
+  },
   "StripeTerminalProvider": [Function],
   "StripeTerminalSdk": {
     "getConstants": [Function],
