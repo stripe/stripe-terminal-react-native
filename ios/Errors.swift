@@ -164,15 +164,25 @@ class Errors {
 
     class func mapToStripeErrorObject(nsError: NSError) -> [String: Any] {
         let errorInfo = extractErrorInformation(from: nsError)
-        let metadata = buildMetadata(from: nsError, isStripeError: errorInfo.isStripeError)
         
-        return stripeErrorObject(
+        var result = stripeErrorObject(
             name: errorInfo.errorName,
             code: errorInfo.code,
             nativeErrorCode: errorInfo.nativeErrorCode,
             message: nsError.localizedDescription,
-            metadata: metadata
+            metadata: [:]
         )
+        
+        if errorInfo.isStripeError {
+            extractApiErrorToTopLevel(from: nsError, to: &result)
+            extractRefundToTopLevel(from: nsError, to: &result)
+        }
+        
+        extractUnderlyingErrorToTopLevel(from: nsError, to: &result)
+        
+        result[ErrorConstants.metadataKey] = addPlatformMetadata(from: nsError)
+        
+        return result
     }
 
     // MARK: - Error Information Extraction
@@ -214,43 +224,143 @@ class Errors {
         )
     }
     
-    private class func buildMetadata(from nsError: NSError, isStripeError: Bool) -> [String: Any] {
-        var metadata: [String: Any] = [
-            ErrorConstants.domainKey: nsError.domain,
-            ErrorConstants.isStripeErrorKey: isStripeError
-        ]
+    // MARK: - Top-level Field Extraction
+    
+    /**
+     * Extracts API error information to top-level
+     * Maps iOS NSError data to unified apiError structure
+     */
+    private class func extractApiErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
+        let className = String(describing: type(of: nsError))
+        var apiError: [String: Any] = [:]
         
-        if isStripeError {
-            checkAndRecordUnmappedErrorCode(to: &metadata, from: nsError)
-            extractSpecializedErrorFields(to: &metadata, from: nsError)
+        // Extract declineCode from Confirm*Error via KVC
+        if className.contains("ConfirmPaymentIntentError") || 
+           className.contains("ConfirmSetupIntentError") ||
+           className.contains("SCPConfirmPaymentIntentError") ||
+           className.contains("SCPConfirmSetupIntentError") {
+            
+            if let declineCode = nsError.value(forKey: "declineCode") as? String {
+                apiError[ErrorConstants.apiErrorDeclineCodeKey] = declineCode
+            }
         }
         
-        addLocalizedErrorInformation(to: &metadata, from: nsError)
-        addUnderlyingErrorInformation(to: &metadata, from: nsError)
-        addUserInfoMetadata(to: &metadata, from: nsError)
+        if let failureReason = nsError.userInfo[ErrorConstants.scpStripeAPIFailureReason] as? String {
+            apiError[ErrorConstants.apiErrorMessageKey] = failureReason
+        } else {
+            // Use localized description as fallback message
+            apiError[ErrorConstants.apiErrorMessageKey] = nsError.localizedDescription
+        }
+
+        apiError[ErrorConstants.apiErrorCodeKey] = String(nsError.code)
+        
+        if apiError[ErrorConstants.apiErrorDeclineCodeKey] == nil {
+            apiError[ErrorConstants.apiErrorDeclineCodeKey] = ""
+        }
+        
+        if let type = nsError.userInfo[ErrorConstants.scpStripeAPIErrorType] as? String {
+            apiError[ErrorConstants.apiErrorTypeKey] = type
+        }
+        
+        if let docUrl = nsError.userInfo[ErrorConstants.scpStripeAPIDocUrl] as? String {
+            apiError[ErrorConstants.apiErrorDocUrlKey] = docUrl
+        }
+        
+        if let param = nsError.userInfo[ErrorConstants.scpStripeAPIErrorParameter] as? String {
+            apiError[ErrorConstants.apiErrorParamKey] = param
+        }
+        
+        if let charge = nsError.userInfo[ErrorConstants.scpStripeAPICharge] as? String {
+            apiError[ErrorConstants.apiErrorChargeKey] = charge
+        }
+        
+        if !apiError.isEmpty {
+            result[ErrorConstants.apiErrorKey] = apiError
+        }
+    }
+    
+    /**
+     * Extracts refund information to top-level
+     * Maps iOS NSError refund data via KVC
+     */
+    private class func extractRefundToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
+        let className = String(describing: type(of: nsError))
+        
+        if className.contains("ConfirmRefundError") || className.contains("SCPConfirmRefundError") {
+            if let refund = nsError.value(forKey: "refund") as? Refund {
+                result[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
+            }
+        }
+    }
+    
+    /**
+     * Extracts underlying error information to top-level
+     * Maps iOS NSError underlying error + localized information to unified underlyingError structure
+     */
+    private class func extractUnderlyingErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
+        var underlyingError: [String: Any] = [:]
+        
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            underlyingError[ErrorConstants.underlyingErrorCodeKey] = String(underlying.code)
+            underlyingError[ErrorConstants.underlyingErrorMessageKey] = underlying.localizedDescription
+            underlyingError[ErrorConstants.underlyingErrorIosDomainKey] = underlying.domain
+        } else {
+            underlyingError[ErrorConstants.underlyingErrorCodeKey] = String(nsError.code)
+            underlyingError[ErrorConstants.underlyingErrorMessageKey] = nsError.localizedDescription
+            underlyingError[ErrorConstants.underlyingErrorIosDomainKey] = nsError.domain
+        }
+        
+        if let failure = nsError.localizedFailureReason, !failure.isEmpty {
+            underlyingError[ErrorConstants.underlyingErrorIosLocalizedFailureReasonKey] = failure
+        }
+        if let suggestion = nsError.localizedRecoverySuggestion, !suggestion.isEmpty {
+            underlyingError[ErrorConstants.underlyingErrorIosLocalizedRecoverySuggestionKey] = suggestion
+        }
+        
+        if !underlyingError.isEmpty {
+            result[ErrorConstants.underlyingErrorKey] = underlyingError
+        }
+    }
+    
+    // MARK: - Metadata Building (iOS-specific userInfo extraction)
+    
+    /**
+     * Adds platform-specific metadata fields to the error object
+     * Android: Currently empty - no platform-specific fields are extracted from TerminalException
+     * iOS: Extracts fields like deviceBannedUntilDate, httpStatusCode, etc. from NSError.userInfo
+     */
+    private class func addPlatformMetadata(from nsError: NSError) -> [String: Any] {
+        var metadata: [String: Any] = [:]
+        
+        if let deviceBannedUntilDate = nsError.userInfo[ErrorConstants.scpDeviceBannedUntilDate] as? String {
+            metadata[ErrorConstants.deviceBannedUntilDateKey] = deviceBannedUntilDate
+        }
+        
+        if let prepareFailedReason = nsError.userInfo[ErrorConstants.scpPrepareFailedReason] as? String {
+            metadata[ErrorConstants.prepareFailedReasonKey] = prepareFailedReason
+        }
+        
+        if let httpStatusCode = nsError.userInfo[ErrorConstants.scpHttpStatusCode] as? Int {
+            metadata[ErrorConstants.httpStatusCodeKey] = httpStatusCode
+        }
+        
+        if let readerMessage = nsError.userInfo[ErrorConstants.scpReaderMessage] as? String {
+            metadata[ErrorConstants.readerMessageKey] = readerMessage
+        }
+        
+        if let stripeAPIRequestId = nsError.userInfo[ErrorConstants.scpStripeAPIRequestId] as? String {
+            metadata[ErrorConstants.stripeAPIRequestIdKey] = stripeAPIRequestId
+        }
+        
+        if let stripeAPIFailureReason = nsError.userInfo[ErrorConstants.scpStripeAPIFailureReason] as? String {
+            metadata[ErrorConstants.stripeAPIFailureReasonKey] = stripeAPIFailureReason
+        }
+        
+        if let offlineDeclineReason = nsError.userInfo[ErrorConstants.scpOfflineDeclineReason] as? String {
+            metadata[ErrorConstants.offlineDeclineReasonKey] = offlineDeclineReason
+        }
         
         return metadata
-    }
-    
-    private class func checkAndRecordUnmappedErrorCode(to metadata: inout [String: Any], from nsError: NSError) {
-        let codeEnum = ErrorCode.Code(rawValue: nsError.code)
-        
-        if let ce = codeEnum {
-            let rn = convertToReactNativeErrorCode(from: ce)
-            if isUnmappedStripeError(reactNativeCode: rn, originalCode: ce) {
-                metadata[ErrorConstants.unmappedErrorCodeKey] = toUpperSnakeCase(ce.stringValue)
-            }
-        } else {
-            recordUnknownErrorCode(nsError.code, to: &metadata)
-        }
-    }
-    
-    private class func isUnmappedStripeError(reactNativeCode: String, originalCode: ErrorCode.Code) -> Bool {
-        return reactNativeCode == RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue && originalCode != .unexpectedSdkError
-    }
-    
-    private class func recordUnknownErrorCode(_ code: Int, to metadata: inout [String: Any]) {
-        metadata[ErrorConstants.unmappedErrorCodeKey] = String(code)
     }
 
     private class func stripeErrorObject(name: String = ErrorConstants.stripeErrorName, code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
@@ -261,60 +371,6 @@ class Errors {
             ErrorConstants.nativeErrorCodeKey: nativeErrorCode,
             ErrorConstants.metadataKey: metadata
         ]
-    }
-
-    private class func sanitizeUserInfo(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
-        var result: [String: Any] = [:]
-        for (k, v) in userInfo {
-            let key = String(describing: k)
-            if let safe = jsonSafeValue(v) {
-                result[key] = safe
-            }
-        }
-        return result
-    }
-
-    private class func jsonSafeValue(_ value: Any) -> Any? {
-        if JSONSerialization.isValidJSONObject([value]) {
-            return value
-        }
-        
-        switch value {
-        case let url as URL:
-            return url.absoluteString
-        case let date as Date:
-            return ISO8601DateFormatter().string(from: date)
-        case let error as NSError:
-            return [
-                ErrorConstants.nsErrorDomainKey: error.domain,
-                ErrorConstants.nsErrorCodeKey: error.code,
-                ErrorConstants.nsErrorUserInfoKey: sanitizeUserInfo(error.userInfo)
-            ]
-        case let dict as [AnyHashable: Any]:
-            return sanitizeUserInfo(dict)
-        case let nsDict as NSDictionary:
-            var bridged: [AnyHashable: Any] = [:]
-            nsDict.forEach { (kv) in
-                if let k = kv.key as? AnyHashable {
-                    bridged[k] = kv.value
-                }
-            }
-            return sanitizeUserInfo(bridged)
-        case let arr as [Any]:
-            return arr.compactMap { jsonSafeValue($0) }
-        case let nsArr as NSArray:
-            return nsArr.compactMap { jsonSafeValue($0) }
-        default:
-            return String(describing: value)
-        }
-    }
-
-    private class func toUpperSnakeCase(_ input: String) -> String {
-        guard !input.isEmpty else { return input }
-        
-        return input
-            .replacingOccurrences(of: "([a-z])([A-Z])", with: "$1_$2", options: .regularExpression)
-            .uppercased()
     }
 
     private class func convertToReactNativeErrorCode(from code: ErrorCode.Code) -> String {
@@ -485,7 +541,7 @@ extension ErrorCode.Code {
     }
 }
 
-// MARK: - Metadata Helper Functions
+// MARK: - Metadata Helper Functions (Legacy - No longer used in new structure)
 
 extension Errors {
     private class func mapNonStripeError(nsError: NSError) -> (code: String, nativeErrorCode: String) {
@@ -493,96 +549,5 @@ extension Errors {
             code: RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue,
             nativeErrorCode: "\(nsError.domain):\(nsError.code)"
         )
-    }
-    
-    private class func addLocalizedErrorInformation(to metadata: inout [String: Any], from nsError: NSError) {
-        if let failure = nsError.localizedFailureReason, failure.isEmpty == false {
-            metadata[ErrorConstants.localizedFailureReasonKey] = failure
-        }
-        if let suggestion = nsError.localizedRecoverySuggestion, suggestion.isEmpty == false {
-            metadata[ErrorConstants.localizedRecoverySuggestionKey] = suggestion
-        }
-    }
-    
-    private class func addUnderlyingErrorInformation(to metadata: inout [String: Any], from nsError: NSError) {
-        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-            metadata[ErrorConstants.underlyingErrorKey] = [
-                ErrorConstants.underlyingErrorDomainKey: underlying.domain,
-                ErrorConstants.underlyingErrorCodeKey: underlying.code,
-                ErrorConstants.underlyingErrorMessageKey: underlying.localizedDescription
-            ]
-        }
-    }
-    
-    private class func addUserInfoMetadata(to metadata: inout [String: Any], from nsError: NSError) {
-        if nsError.userInfo.isEmpty == false {
-            let sanitized = sanitizeUserInfo(nsError.userInfo)
-            if sanitized.isEmpty == false {
-                metadata[ErrorConstants.userInfoKey] = sanitized
-            }
-        }
-    }
-    
-    /// Router for specialized error handlers. Add new error type handlers as else-if branches below.
-    private class func extractSpecializedErrorFields(to metadata: inout [String: Any], from nsError: NSError) {
-        let className = String(describing: type(of: nsError))
-        
-        if className.contains("ConfirmRefundError") || className.contains("SCPConfirmRefundError") {
-            addConfirmRefundErrorInfo(to: &metadata, from: nsError)
-        } else if className.contains("ConfirmPaymentIntentError") || className.contains("SCPConfirmPaymentIntentError") {
-            addConfirmPaymentIntentErrorInfo(to: &metadata, from: nsError)
-        } else if className.contains("ConfirmSetupIntentError") || className.contains("SCPConfirmSetupIntentError") {
-            addConfirmSetupIntentErrorInfo(to: &metadata, from: nsError)
-        }
-    }
-    
-    private class func addConfirmRefundErrorInfo(to metadata: inout [String: Any], from error: NSError) {
-        if let refund = error.value(forKey: "refund") as? Refund {
-            metadata[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
-        }
-        
-        if let requestError = error.value(forKey: "requestError") as? NSError {
-            metadata[ErrorConstants.requestErrorKey] = [
-                ErrorConstants.nsErrorDomainKey: requestError.domain,
-                ErrorConstants.nsErrorCodeKey: requestError.code,
-                ErrorConstants.messageKey: requestError.localizedDescription
-            ]
-        }
-    }
-    
-    private class func addConfirmPaymentIntentErrorInfo(to metadata: inout [String: Any], from error: NSError) {
-        if let paymentIntent = error.value(forKey: "paymentIntent") as? PaymentIntent {
-            metadata[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: "")
-        }
-        
-        if let requestError = error.value(forKey: "requestError") as? NSError {
-            metadata[ErrorConstants.requestErrorKey] = [
-                ErrorConstants.nsErrorDomainKey: requestError.domain,
-                ErrorConstants.nsErrorCodeKey: requestError.code,
-                ErrorConstants.messageKey: requestError.localizedDescription
-            ]
-        }
-        
-        if let declineCode = error.value(forKey: "declineCode") as? String {
-            metadata[ErrorConstants.declineCodeKey] = declineCode
-        }
-    }
-    
-    private class func addConfirmSetupIntentErrorInfo(to metadata: inout [String: Any], from error: NSError) {
-        if let setupIntent = error.value(forKey: "setupIntent") as? SetupIntent {
-            metadata[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(setupIntent, uuid: "")
-        }
-        
-        if let requestError = error.value(forKey: "requestError") as? NSError {
-            metadata[ErrorConstants.requestErrorKey] = [
-                ErrorConstants.nsErrorDomainKey: requestError.domain,
-                ErrorConstants.nsErrorCodeKey: requestError.code,
-                ErrorConstants.messageKey: requestError.localizedDescription
-            ]
-        }
-        
-        if let declineCode = error.value(forKey: "declineCode") as? String {
-            metadata[ErrorConstants.declineCodeKey] = declineCode
-        }
     }
 }

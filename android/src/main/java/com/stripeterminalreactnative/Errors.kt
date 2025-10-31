@@ -18,6 +18,59 @@ internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): R
             putErrorContents(throwable, uuid)
         }
     )
+
+    addResponseObjects(throwable, uuid)
+}
+
+/**
+ * Adds error contents (name, message, code, apiError, underlyingError, metadata) to the error object
+ */
+private fun WritableMap.putErrorContents(throwable: Throwable?, uuid: String? = null) {
+    when (throwable) {
+        is TerminalException -> putStripeErrorContents(throwable)
+        else -> putNonStripeErrorContents(throwable)
+    }
+}
+
+/**
+ * Populates StripeError contents from TerminalException
+ */
+private fun WritableMap.putStripeErrorContents(exception: TerminalException) {
+    putString(ErrorConstants.NAME_KEY, ErrorConstants.STRIPE_ERROR_NAME)
+    putString(ErrorConstants.MESSAGE_KEY, exception.errorMessage)
+    putString(ErrorConstants.CODE_KEY, exception.errorCode.convertToReactNativeErrorCode())
+    putString(ErrorConstants.NATIVE_ERROR_CODE_KEY, exception.errorCode.toString())
+
+    addTopLevelApiError(exception.apiError)
+    addTopLevelUnderlyingError(exception.cause)
+    addPlatformMetadata()
+}
+
+/**
+ * Populates NonStripeError contents from generic Throwable
+ */
+private fun WritableMap.putNonStripeErrorContents(throwable: Throwable?) {
+    putString(ErrorConstants.NAME_KEY, ErrorConstants.NON_STRIPE_ERROR_NAME)
+    putString(ErrorConstants.MESSAGE_KEY, throwable?.message ?: ErrorConstants.UNKNOWN_ERROR_MESSAGE)
+    putString(ErrorConstants.CODE_KEY, TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode())
+    putString(ErrorConstants.NATIVE_ERROR_CODE_KEY, TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
+
+    addTopLevelUnderlyingError(throwable?.cause)
+    addPlatformMetadata()
+}
+
+/**
+ * Adds response objects that may accompany an error (paymentIntent, setupIntent, refund)
+ * These objects are placed at the top-level alongside the error object.
+ * They represent the state of resources even when the operation fails (partial success).
+ *
+ * Example: A payment may be declined (error), but the PaymentIntent was still created
+ * and needs to be returned so the caller can retry or cancel it.
+ *
+ * Note: Android TerminalException does not have a refund property yet
+ * Future: refund will be added to TerminalException in upcoming SDK versions
+ */
+private fun WritableMap.addResponseObjects(throwable: Throwable, uuid: String?) {
     if (throwable is TerminalException) {
         throwable.paymentIntent?.let {
             putMap(ErrorConstants.PAYMENT_INTENT_KEY, mapFromPaymentIntent(it, uuid ?: ""))
@@ -25,43 +78,63 @@ internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): R
         throwable.setupIntent?.let {
             putMap(ErrorConstants.SETUP_INTENT_KEY, mapFromSetupIntent(it, uuid ?: ""))
         }
+        // TODO: Add refund support when available in Android Terminal SDK
+        // throwable.refund?.let {
+        //     putMap(ErrorConstants.REFUND_KEY, mapFromRefund(it))
+        // }
     }
 }
 
-private fun WritableMap.putErrorContents(throwable: Throwable?, uuid: String? = null) {
-    when (throwable) {
-        is TerminalException -> {
-            putString(ErrorConstants.NAME_KEY, ErrorConstants.STRIPE_ERROR_NAME)
-            putString(ErrorConstants.MESSAGE_KEY, throwable.errorMessage)
-            putString(ErrorConstants.CODE_KEY, throwable.errorCode.convertToReactNativeErrorCode())
-            putString(ErrorConstants.NATIVE_ERROR_CODE_KEY, throwable.errorCode.toString())
-            putMap(
-                ErrorConstants.METADATA_KEY,
-                nativeMapOf {
-                    addApiErrorInformation(throwable.apiError)
-                    addAndroidExceptionInformation(throwable.cause)
-                    addAndroidExceptionClassInfo(throwable)
-                    addTerminalExceptionIntentInformation(throwable, uuid)
-                }
-            )
-        }
-        else -> {
-            putUnknownErrorContents(throwable)
-        }
+/**
+ * Adds ApiError information to top-level of error object
+ * Maps Android's ApiError to the unified apiError structure
+ *
+ * Field handling (matching iOS behavior and TypeScript contract):
+ * - code: Required field, fallback to empty string if null
+ * - message: Required field, fallback to generic message if null (iOS uses localizedDescription)
+ * - declineCode: Required field, fallback to empty string if null
+ * - type, charge, docUrl, param: Optional fields, omitted if null
+ */
+private fun WritableMap.addTopLevelApiError(apiError: ApiError?) {
+    apiError?.let { apiErr ->
+        putMap(
+            ErrorConstants.API_ERROR_KEY,
+            nativeMapOf {
+                putString(ErrorConstants.API_ERROR_CODE_KEY, apiErr.code ?: "")
+                putString(ErrorConstants.API_ERROR_MESSAGE_KEY, apiErr.message)
+                putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, apiErr.declineCode ?: "")
+                apiErr.type?.let { putString(ErrorConstants.API_ERROR_TYPE_KEY, it.toString()) }
+                apiErr.charge?.let { putString(ErrorConstants.API_ERROR_CHARGE_KEY, it) }
+                apiErr.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
+                apiErr.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
+            }
+        )
     }
 }
 
-private fun WritableMap.putUnknownErrorContents(throwable: Throwable?) {
-    putString(ErrorConstants.NAME_KEY, ErrorConstants.NON_STRIPE_ERROR_NAME)
-    putString(ErrorConstants.MESSAGE_KEY, throwable?.message ?: ErrorConstants.UNKNOWN_ERROR_MESSAGE)
-    putString(ErrorConstants.CODE_KEY, TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode())
-    putString(ErrorConstants.NATIVE_ERROR_CODE_KEY, TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString())
-    putMap(
-        ErrorConstants.METADATA_KEY,
-        nativeMapOf {
-            addUnknownExceptionInformation(throwable)
-        }
-    )
+/**
+ * Adds underlying error information to top-level of error object
+ * Maps Android's exception cause to the unified underlyingError structure
+ */
+private fun WritableMap.addTopLevelUnderlyingError(cause: Throwable?) {
+    cause?.let { c ->
+        putMap(
+            ErrorConstants.UNDERLYING_ERROR_KEY,
+            nativeMapOf {
+                putString(ErrorConstants.UNDERLYING_ERROR_CODE_KEY, c.javaClass.simpleName)
+                putString(ErrorConstants.UNDERLYING_ERROR_MESSAGE_KEY, c.message ?: ErrorConstants.UNKNOWN_CAUSE_MESSAGE)
+            }
+        )
+    }
+}
+
+/**
+ * Adds platform-specific metadata fields to the error object
+ * Android: Currently empty - no platform-specific fields are extracted from TerminalException
+ * iOS: Extracts fields like deviceBannedUntilDate, httpStatusCode, etc. from NSError.userInfo
+ */
+private fun WritableMap.addPlatformMetadata() {
+    putMap(ErrorConstants.METADATA_KEY, nativeMapOf {})
 }
 
 @Throws(TerminalException::class)
@@ -229,60 +302,4 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     TerminalErrorCode.PRINTER_UNAVAILABLE -> "PRINTER_UNAVAILABLE"
     TerminalErrorCode.PRINTER_ERROR -> "PRINTER_ERROR"
     TerminalErrorCode.INVALID_MOTO_CONFIGURATION -> "INVALID_MOTO_CONFIGURATION"
-}
-
-private fun WritableMap.addApiErrorInformation(apiError: ApiError?) {
-    apiError?.let { apiErr ->
-        putMap(
-            ErrorConstants.API_ERROR_KEY,
-            nativeMapOf {
-                putString(ErrorConstants.API_ERROR_CODE_KEY, apiErr.code)
-                putString(ErrorConstants.API_ERROR_MESSAGE_KEY, apiErr.message)
-                putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, apiErr.declineCode)
-                apiErr.charge?.let { putString(ErrorConstants.API_ERROR_CHARGE_KEY, it) }
-                apiErr.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
-                apiErr.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
-            }
-        )
-    }
-}
-
-private fun WritableMap.addAndroidExceptionInformation(cause: Throwable?) {
-    cause?.let { c ->
-        putMap(
-            ErrorConstants.UNDERLYING_ERROR_KEY,
-            nativeMapOf {
-                putString(ErrorConstants.UNDERLYING_ERROR_CODE_KEY, c.javaClass.simpleName)
-                putString(ErrorConstants.UNDERLYING_ERROR_MESSAGE_KEY, c.message ?: ErrorConstants.UNKNOWN_CAUSE_MESSAGE)
-            }
-        )
-    }
-}
-
-private fun WritableMap.addAndroidExceptionClassInfo(throwable: TerminalException) {
-    putString(ErrorConstants.EXCEPTION_CLASS_KEY, throwable.javaClass.simpleName)
-}
-
-private fun WritableMap.addTerminalExceptionIntentInformation(throwable: TerminalException, uuid: String?) {
-    throwable.paymentIntent?.let {
-        putMap(ErrorConstants.PAYMENT_INTENT_KEY, mapFromPaymentIntent(it, uuid ?: ""))
-    }
-    throwable.setupIntent?.let {
-        putMap(ErrorConstants.SETUP_INTENT_KEY, mapFromSetupIntent(it, uuid ?: ""))
-    }
-}
-
-private fun WritableMap.addUnknownExceptionInformation(throwable: Throwable?) {
-    throwable?.let { t ->
-        putString(ErrorConstants.EXCEPTION_CLASS_KEY, t.javaClass.simpleName)
-        t.cause?.let { c ->
-            putMap(
-                ErrorConstants.UNDERLYING_ERROR_KEY,
-                nativeMapOf {
-                    putString(ErrorConstants.UNDERLYING_ERROR_CODE_KEY, c.javaClass.simpleName)
-                    putString(ErrorConstants.UNDERLYING_ERROR_MESSAGE_KEY, c.message ?: ErrorConstants.UNKNOWN_CAUSE_MESSAGE)
-                }
-            )
-        }
-    }
 }

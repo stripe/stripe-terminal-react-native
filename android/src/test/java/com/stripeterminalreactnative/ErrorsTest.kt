@@ -68,12 +68,14 @@ class ErrorsTest {
     }
 
     @Test
-    fun `createError maps TerminalException to StripeError with metadata`() {
+    fun `createError maps TerminalException to StripeError with apiError at top-level`() {
         // GIVEN a TerminalException with ApiError and cause
+        // Note: type is optional and tested separately due to ApiErrorType enum complexity
         val apiError = mockk<ApiError> {
             every { code } returns "api_code"
             every { message } returns "api_message"
             every { declineCode } returns "decline_code"
+            every { type } returns null // Optional field, tested in separate test
             every { charge } returns "ch_123"
             every { docUrl } returns "https://stripe.com/docs/error"
             every { param } returns "amount"
@@ -90,26 +92,63 @@ class ErrorsTest {
         val errorWrapper = createError(terminalException) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
-        // THEN the output should be a StripeError with rich metadata
+        // THEN the output should be a StripeError with apiError and underlyingError at top-level
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals("terminal failed", error.getString("message"))
         assertEquals(TerminalErrorCode.STRIPE_API_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         assertEquals(TerminalErrorCode.STRIPE_API_ERROR.toString(), error.getString("nativeErrorCode"))
 
-        val metadata = error.requireMap(METADATA_KEY)
-        val apiErrorMap = metadata.requireMap(API_ERROR_KEY)
+        // apiError should be at top-level (not in metadata)
+        val apiErrorMap = error.requireMap(API_ERROR_KEY)
         assertEquals("api_code", apiErrorMap.getString("code"))
         assertEquals("api_message", apiErrorMap.getString("message"))
         assertEquals("decline_code", apiErrorMap.getString("declineCode"))
+        // type is optional and null in this test
+        assertFalse(apiErrorMap.hasKey("type"), "type should not be present when null")
         assertEquals("ch_123", apiErrorMap.getString("charge"))
         assertEquals("https://stripe.com/docs/error", apiErrorMap.getString("docUrl"))
         assertEquals("amount", apiErrorMap.getString("param"))
 
-        val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)
+        // underlyingError should be at top-level (not in metadata)
+        val underlying = error.requireMap(UNDERLYING_ERROR_KEY)
         assertEquals("IllegalStateException", underlying.getString("code"))
         assertEquals("cause message", underlying.getString("message"))
 
-        assertEquals("TerminalException", metadata.getString(EXCEPTION_CLASS_KEY))
+        // metadata should be empty for Android
+        val metadata = error.requireMap(METADATA_KEY)
+        assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
+    }
+
+    @Test
+    fun `createError includes ApiError type when present`() {
+        // GIVEN a TerminalException with ApiError containing type
+        // Note: We use relaxed mocking for ApiErrorType to avoid enum complexity
+        val mockType = mockk<com.stripe.stripeterminal.external.api.ApiErrorType>(relaxed = true)
+        every { mockType.toString() } returns "card_error"
+        
+        val apiError = mockk<ApiError>(relaxed = true) {
+            every { code } returns "card_declined"
+            every { message } returns "Card was declined"
+            every { declineCode } returns "generic_decline"
+            every { type } returns mockType
+            every { charge } returns null
+            every { docUrl } returns null
+            every { param } returns null
+        }
+        val terminalException = mockTerminalException(
+            TerminalErrorCode.STRIPE_API_ERROR,
+            "Card declined",
+            apiError,
+            null
+        )
+
+        // WHEN creating the error map
+        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val error = errorWrapper.requireMap("error")
+
+        // THEN apiError should include the type field converted to string
+        val apiErrorMap = error.requireMap(API_ERROR_KEY)
+        assertEquals("card_error", apiErrorMap.getString("type"))
     }
 
     @Test
@@ -122,12 +161,15 @@ class ErrorsTest {
 
         // WHEN creating the error map
         val errorWrapper = createError(terminalException) as JavaOnlyMap
-        val metadata = errorWrapper.requireMap("error").requireMap(METADATA_KEY)
+        val error = errorWrapper.requireMap("error")
 
-        // THEN metadata should only contain the exception class
-        assertFalse(metadata.hasKey(API_ERROR_KEY))
-        assertFalse(metadata.hasKey(UNDERLYING_ERROR_KEY))
-        assertEquals("TerminalException", metadata.getString(EXCEPTION_CLASS_KEY))
+        // THEN apiError and underlyingError should not be present
+        assertFalse(error.hasKey(API_ERROR_KEY), "apiError should not be present")
+        assertFalse(error.hasKey(UNDERLYING_ERROR_KEY), "underlyingError should not be present")
+        
+        // AND metadata should be empty
+        val metadata = error.requireMap(METADATA_KEY)
+        assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
     }
 
     @Test
@@ -140,17 +182,20 @@ class ErrorsTest {
         val errorWrapper = createError(runtime) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
-        // THEN the result should describe a NonStripeError with cause metadata
+        // THEN the result should describe a NonStripeError with underlyingError at top-level
         assertEquals(NON_STRIPE_ERROR, error.getString("name"))
         assertEquals("top level", error.getString("message"))
         assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         assertEquals(TerminalErrorCode.UNEXPECTED_SDK_ERROR.toString(), error.getString("nativeErrorCode"))
 
-        val metadata = error.requireMap(METADATA_KEY)
-        assertEquals("RuntimeException", metadata.getString(EXCEPTION_CLASS_KEY))
-        val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)
+        // underlyingError should be at top-level
+        val underlying = error.requireMap(UNDERLYING_ERROR_KEY)
         assertEquals("IllegalArgumentException", underlying.getString("code"))
         assertEquals("root cause", underlying.getString("message"))
+        
+        // metadata should be empty
+        val metadata = error.requireMap(METADATA_KEY)
+        assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
     }
 
     @Test
@@ -159,17 +204,18 @@ class ErrorsTest {
         val runtime = RuntimeException("message only")
 
         // WHEN creating the error map
-        val metadata = (createError(runtime) as JavaOnlyMap)
-            .requireMap("error")
-            .requireMap(METADATA_KEY)
+        val error = (createError(runtime) as JavaOnlyMap).requireMap("error")
 
-        // THEN the metadata should not contain underlyingError
-        assertEquals("RuntimeException", metadata.getString(EXCEPTION_CLASS_KEY))
-        assertFalse(metadata.hasKey(UNDERLYING_ERROR_KEY))
+        // THEN underlyingError should not be present
+        assertFalse(error.hasKey(UNDERLYING_ERROR_KEY), "underlyingError should not be present")
+        
+        // AND metadata should be empty
+        val metadata = error.requireMap(METADATA_KEY)
+        assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
     }
 
     @Test
-    fun `createError includes paymentIntent in both top-level and metadata when present`() {
+    fun `createError includes paymentIntent at top-level when present`() {
         // GIVEN a TerminalException with paymentIntent data
         val paymentIntentMap = JavaOnlyMap().apply { putString("id", "pi_123") }
         every { mapFromPaymentIntent(any(), any()) } returns paymentIntentMap
@@ -182,18 +228,11 @@ class ErrorsTest {
 
         // WHEN creating the error wrapper
         val result = createError(terminalException) as JavaOnlyMap
-        val error = result.requireMap("error")
-        val metadata = error.requireMap(METADATA_KEY)
         
-        // THEN paymentIntent should be present at top-level (for RN layer compatibility)
+        // THEN paymentIntent should be present at top-level (outside error object)
         val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
         assertNotNull(topLevelPaymentIntent)
         assertEquals("pi_123", topLevelPaymentIntent.getString("id"))
-        
-        // AND also in metadata (consistent with iOS enhanced error context)
-        val metadataPaymentIntent = metadata.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(metadataPaymentIntent)
-        assertEquals("pi_123", metadataPaymentIntent.getString("id"))
     }
 
     @Test
@@ -207,12 +246,9 @@ class ErrorsTest {
 
         // WHEN creating the error wrapper
         val result = createError(terminalException) as JavaOnlyMap
-        val error = result.requireMap("error")
-        val metadata = error.requireMap(METADATA_KEY)
 
-        // THEN paymentIntent key should be absent from both top-level and metadata
+        // THEN paymentIntent key should be absent from top-level
         assertFalse(result.hasKey(PAYMENT_INTENT_KEY))
-        assertFalse(metadata.hasKey(PAYMENT_INTENT_KEY))
     }
 
     @Test
@@ -258,20 +294,6 @@ class ErrorsTest {
         assertNotNull(topLevelSetupIntent)
         assertEquals("seti_test", topLevelSetupIntent.getString("id"))
         assertEquals(testUuid, topLevelSetupIntent.getString("sdkUuid"))
-        
-        // AND also in metadata
-        val error = result.requireMap("error")
-        val metadata = error.requireMap(METADATA_KEY)
-        
-        val metadataPaymentIntent = metadata.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(metadataPaymentIntent)
-        assertEquals("pi_test", metadataPaymentIntent.getString("id"))
-        assertEquals(testUuid, metadataPaymentIntent.getString("sdkUuid"))
-        
-        val metadataSetupIntent = metadata.getMap(SETUP_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(metadataSetupIntent)
-        assertEquals("seti_test", metadataSetupIntent.getString("id"))
-        assertEquals(testUuid, metadataSetupIntent.getString("sdkUuid"))
     }
 
     @Test
@@ -482,13 +504,12 @@ class ErrorsTest {
         val errorWrapper = createError(terminalException) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
         
-        // THEN should be StripeError with immediate cause metadata
+        // THEN should be StripeError with immediate cause at top-level underlyingError
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals("bluetooth failed", error.getString("message"))
         assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
         
-        val metadata = error.requireMap(METADATA_KEY)
-        val underlying = metadata.requireMap(UNDERLYING_ERROR_KEY)
+        val underlying = error.requireMap(UNDERLYING_ERROR_KEY)
         assertEquals("RuntimeException", underlying.getString("code"))
         assertEquals("middle cause", underlying.getString("message"))
         

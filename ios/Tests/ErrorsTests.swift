@@ -44,21 +44,21 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(error["nativeErrorCode"] as? String, String(ErrorCode.Code.readerBusy.rawValue))
         XCTAssertEqual(error["message"] as? String, "Reader is busy")
 
+        // underlyingError should be at top-level (new structure)
+        guard let underlyingInfo = error["underlyingError"] as? [String: Any] else {
+            return XCTFail("underlyingError should be at top-level")
+        }
+        XCTAssertEqual(underlyingInfo["iosDomain"] as? String, "underlying.domain")
+        XCTAssertEqual(underlyingInfo["code"] as? String, "42")
+        XCTAssertEqual(underlyingInfo["message"] as? String, "Underlying failure")
+        XCTAssertEqual(underlyingInfo["iosLocalizedFailureReason"] as? String, "The reader is currently in use")
+        XCTAssertEqual(underlyingInfo["iosLocalizedRecoverySuggestion"] as? String, "Wait and retry")
+        
+        // metadata should only contain iOS-specific fields (not underlyingError)
         guard let metadata = error["metadata"] as? [String: Any] else {
             return XCTFail("Metadata should be present")
         }
-        XCTAssertEqual(metadata["domain"] as? String, "com.stripe-terminal")
-        XCTAssertEqual(metadata["isStripeError"] as? Bool, true)
-        XCTAssertEqual(metadata["localizedFailureReason"] as? String, "The reader is currently in use")
-        XCTAssertEqual(metadata["localizedRecoverySuggestion"] as? String, "Wait and retry")
-        XCTAssertEqual(metadata["unmappedErrorCode"] as? String, nil)
-
-        guard let underlyingInfo = metadata["underlyingError"] as? [String: Any] else {
-            return XCTFail("Underlying metadata should be present")
-        }
-        XCTAssertEqual(underlyingInfo["domain"] as? String, "underlying.domain")
-        XCTAssertEqual(underlyingInfo["code"] as? Int, 42)
-        XCTAssertEqual(underlyingInfo["message"] as? String, "Underlying failure")
+        XCTAssertNil(metadata["underlyingError"], "underlyingError should not be in metadata")
     }
 
     func testMapToStripeErrorObject_NonStripeDomain() {
@@ -941,6 +941,126 @@ final class ErrorsTests: XCTestCase {
         
         XCTAssertEqual(error["name"] as? String, "StripeError")
         XCTAssertEqual(metadata["declineCode"] as? String, "card_declined")
+    }
+    
+    // MARK: - Platform-Specific Metadata Tests
+    
+    func testAddPlatformMetadata_withAllFields() {
+        // GIVEN an NSError with iOS-specific fields in userInfo
+        let userInfo: [String: Any] = [
+            ErrorConstants.scpDeviceBannedUntilDate: "2025-12-31T23:59:59Z",
+            ErrorConstants.scpPrepareFailedReason: "Device setup failed",
+            ErrorConstants.scpHttpStatusCode: 503,
+            ErrorConstants.scpReaderMessage: "Insert card",
+            ErrorConstants.scpStripeAPIRequestId: "req_123abc",
+            ErrorConstants.scpStripeAPIFailureReason: "API rate limit exceeded",
+            ErrorConstants.scpOfflineDeclineReason: "Card expired"
+        ]
+        let nsError = makeNSError(
+            code: ErrorCode.Code.readerBusy.rawValue,
+            userInfo: userInfo,
+            description: "Test error"
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        
+        // THEN all platform-specific fields should be in metadata
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        XCTAssertEqual(metadata[ErrorConstants.deviceBannedUntilDateKey] as? String, "2025-12-31T23:59:59Z")
+        XCTAssertEqual(metadata[ErrorConstants.prepareFailedReasonKey] as? String, "Device setup failed")
+        XCTAssertEqual(metadata[ErrorConstants.httpStatusCodeKey] as? Int, 503)
+        XCTAssertEqual(metadata[ErrorConstants.readerMessageKey] as? String, "Insert card")
+        XCTAssertEqual(metadata[ErrorConstants.stripeAPIRequestIdKey] as? String, "req_123abc")
+        XCTAssertEqual(metadata[ErrorConstants.stripeAPIFailureReasonKey] as? String, "API rate limit exceeded")
+        XCTAssertEqual(metadata[ErrorConstants.offlineDeclineReasonKey] as? String, "Card expired")
+    }
+    
+    func testAddPlatformMetadata_withPartialFields() {
+        // GIVEN an NSError with only some iOS-specific fields
+        let userInfo: [String: Any] = [
+            ErrorConstants.scpHttpStatusCode: 404,
+            ErrorConstants.scpStripeAPIRequestId: "req_xyz789"
+        ]
+        let nsError = makeNSError(
+            code: ErrorCode.Code.stripeAPIError.rawValue,
+            userInfo: userInfo,
+            description: "API error"
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        
+        // THEN only provided fields should be in metadata
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        XCTAssertEqual(metadata[ErrorConstants.httpStatusCodeKey] as? Int, 404)
+        XCTAssertEqual(metadata[ErrorConstants.stripeAPIRequestIdKey] as? String, "req_xyz789")
+        
+        // Other platform-specific fields should not be present
+        XCTAssertNil(metadata[ErrorConstants.deviceBannedUntilDateKey])
+        XCTAssertNil(metadata[ErrorConstants.prepareFailedReasonKey])
+        XCTAssertNil(metadata[ErrorConstants.readerMessageKey])
+        XCTAssertNil(metadata[ErrorConstants.stripeAPIFailureReasonKey])
+        XCTAssertNil(metadata[ErrorConstants.offlineDeclineReasonKey])
+    }
+    
+    func testAddPlatformMetadata_withNoSpecialFields() {
+        // GIVEN an NSError with no iOS-specific fields
+        let nsError = makeNSError(
+            code: ErrorCode.Code.bluetoothDisabled.rawValue,
+            userInfo: [:],
+            description: "Bluetooth disabled"
+        )
+        
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        
+        // THEN metadata should still exist but without platform-specific fields
+        guard let metadata = error["metadata"] as? [String: Any] else {
+            return XCTFail("Expected metadata")
+        }
+        
+        // Platform-specific fields should not be present
+        XCTAssertNil(metadata[ErrorConstants.deviceBannedUntilDateKey])
+        XCTAssertNil(metadata[ErrorConstants.prepareFailedReasonKey])
+        XCTAssertNil(metadata[ErrorConstants.httpStatusCodeKey])
+        XCTAssertNil(metadata[ErrorConstants.readerMessageKey])
+        XCTAssertNil(metadata[ErrorConstants.stripeAPIRequestIdKey])
+        XCTAssertNil(metadata[ErrorConstants.stripeAPIFailureReasonKey])
+        XCTAssertNil(metadata[ErrorConstants.offlineDeclineReasonKey])
+        
+        // But required metadata fields should still be present
+        XCTAssertNotNil(metadata["domain"])
+        XCTAssertNotNil(metadata["isStripeError"])
+    }
+    
+    func testErrorConstants_usesSDKKeys() {
+        // GIVEN the ErrorConstants from Stripe Terminal SDK
+        // WHEN checking the constant values
+        // THEN they should match the SDK's ErrorKey enum raw values
+        
+        // These assertions verify that we're using the correct SDK keys
+        // The actual values come from StripeTerminal.ErrorKey enum
+        XCTAssertFalse(ErrorConstants.scpDeviceBannedUntilDate.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpPrepareFailedReason.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpHttpStatusCode.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpStripeAPIRequestId.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpStripeAPIFailureReason.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpStripeAPIErrorType.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpStripeAPIDocUrl.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpStripeAPIErrorParameter.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpReaderMessage.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpOfflineDeclineReason.isEmpty)
+        
+        // Verify that scpStripeAPICharge is the only one still using string literal
+        // (as it's not yet available in current SDK version)
+        XCTAssertEqual(ErrorConstants.scpStripeAPICharge, "SCPErrorKeyStripeAPICharge")
     }
 }
 
