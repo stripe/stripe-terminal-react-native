@@ -191,89 +191,78 @@ export default withStripeTerminal(PaymentScreen);
 
 ## Error Handling
 
-The SDK provides error handling through `StripeError` objects and utility functions to help you build robust payment applications.
+The SDK provides comprehensive error handling through `StripeError` objects, giving you detailed information about failures and their context.
 
 ### StripeError
 
-All SDK methods return errors as `StripeError` objects, which provide information about what went wrong and context for debugging.
+All SDK methods return errors as `StripeError` objects with a consistent structure across platforms.
 
 #### Interface
 
 ```typescript
 interface StripeError extends Error {
   name: 'StripeError';
-  message: string; // Human-readable error message
-  code: ErrorCode; // SDK error code (e.g., 'BLUETOOTH_ERROR')
-  nativeErrorCode: string; // Platform-specific error code
-  metadata: Record<string, unknown>; // Additional error context
-  paymentIntent?: PaymentIntent.Type; // Related PaymentIntent (if applicable)
-  setupIntent?: SetupIntent.Type; // Related SetupIntent (if applicable)
+  message: string;              // Human-readable error message
+  code: ErrorCode;              // SDK error code (e.g., 'BLUETOOTH_ERROR')
+  nativeErrorCode: string;      // Platform-specific error code
+  
+  /** Platform-specific metadata (flexible map structure) */
+  metadata: Record<string, unknown>;
+  
+  /** Associated PaymentIntent (if applicable) */
+  paymentIntent?: PaymentIntent.Type;
+  
+  /** Associated SetupIntent (if applicable) */
+  setupIntent?: SetupIntent.Type;
+  
+  /** Associated Refund (if applicable, iOS only) */
+  refund?: Refund.Props;
+  
+  /** API-level error information (unified across platforms) */
+  apiError?: ApiErrorInformation;
+  
+  /** Underlying error information (unified structure) */
+  underlyingError?: UnderlyingErrorInformation;
 }
 ```
 
-#### Platform-Specific Metadata Differences
+#### API Error Information
 
-While the main `StripeError` structure is consistent, the `metadata` field contains platform-specific debugging information:
-
-**Android Metadata Structure**:
+**`apiError`**: Structured Stripe API error details (when applicable):
 
 ```typescript
-metadata: {
-  // Android-specific fields
-  apiError?: {
-    // Stripe API error details when applicable
-    code: string,
-    message: string,
-    declineCode?: string,
-    charge?: string,     // Charge ID when applicable
-    docUrl?: string,     // Documentation URL for the error
-    param?: string       // Parameter that caused the error
-  },
-  underlyingError?: {
-    // Java/Kotlin exception information
-    code: string,        // Exception class name
-    message: string
-  },
-  exceptionClass: string,  // TerminalException class name
-  
-  // Enhanced error context for Confirm operations (Android)
-  paymentIntent?: { /* Full PaymentIntent object */ },  // When TerminalException contains PaymentIntent
-  setupIntent?: { /* Full SetupIntent object */ }       // When TerminalException contains SetupIntent
+interface ApiErrorInformation {
+  code: string;           // API error code (e.g., 'card_declined')
+  message: string;        // API error message
+  declineCode: string;    // Decline code (e.g., 'insufficient_funds')
+  type?: string;          // Error type (e.g., 'card_error')
+  charge?: string;        // Related charge ID
+  docUrl?: string;        // Documentation URL
+  param?: string;         // Parameter that caused the error
 }
 ```
 
-**iOS Metadata Structure**:
+#### Underlying Error Information
+
+**`underlyingError`**: Low-level error details from the platform SDK:
 
 ```typescript
-metadata: {
-  // iOS-specific fields
-  domain: string,                        // NSError domain
-  isStripeError: boolean,
-  localizedFailureReason?: string,       // iOS localized failure reason
-  localizedRecoverySuggestion?: string,  // iOS recovery suggestion
-  underlyingError?: {
-    // NSError chain information
-    domain: string,
-    code: number,
-    message: string
-  },
-  userInfo?: {
-    // Additional NSError userInfo dictionary
-    [key: string]: any
-  },
-  
-  // Enhanced error context for Confirm operations (iOS only)
-  refund?: { /* Full Refund object */ },              // For ConfirmRefundError
-  paymentIntent?: { /* Full PaymentIntent object */ }, // For ConfirmPaymentIntentError
-  setupIntent?: { /* Full SetupIntent object */ },     // For ConfirmSetupIntentError
-  requestError?: {                                     // Underlying request error if present
-    domain: string,
-    code: number,
-    message: string
-  },
-  declineCode?: string                                 // Decline code for payment/setup failures
+interface UnderlyingErrorInformation {
+  code: string;                       // Error code or exception class
+  message: string;                    // Error message
+  iosDomain?: string;                 // iOS: NSError domain
+  iosLocalizedFailureReason?: string; // iOS: Localized failure reason
+  iosLocalizedRecoverySuggestion?: string; // iOS: Recovery suggestion
 }
 ```
+
+#### Platform-Specific Metadata
+
+The `metadata` field contains additional platform-specific debugging information.
+
+On **iOS**, this may include fields like `deviceBannedUntilDate`, `prepareFailedReason`, `httpStatusCode`, `readerMessage`, `stripeAPIRequestId`, `stripeAPIFailureReason`, and `offlineDeclineReason`.
+
+On **Android**, the `metadata` field is reserved for future platform-specific fields and is currently empty.
 
 ## Additional docs
 
