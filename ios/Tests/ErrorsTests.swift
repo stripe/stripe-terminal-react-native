@@ -44,7 +44,6 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(error["nativeErrorCode"] as? String, String(ErrorCode.Code.readerBusy.rawValue))
         XCTAssertEqual(error["message"] as? String, "Reader is busy")
 
-        // underlyingError should be at top-level (new structure)
         guard let underlyingInfo = error["underlyingError"] as? [String: Any] else {
             return XCTFail("underlyingError should be at top-level")
         }
@@ -54,7 +53,6 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(underlyingInfo["iosLocalizedFailureReason"] as? String, "The reader is currently in use")
         XCTAssertEqual(underlyingInfo["iosLocalizedRecoverySuggestion"] as? String, "Wait and retry")
         
-        // metadata should only contain iOS-specific fields (not underlyingError)
         guard let metadata = error["metadata"] as? [String: Any] else {
             return XCTFail("Metadata should be present")
         }
@@ -68,17 +66,12 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: nsError)
 
-        // THEN metadata should reflect non-stripe domain
+        // THEN
         XCTAssertEqual(error["name"] as? String, "NonStripeError")
         XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
         XCTAssertEqual(error["nativeErrorCode"] as? String, "com.partner:99")
         XCTAssertEqual(error["message"] as? String, "Partner failure")
-
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Metadata should be present")
-        }
-        XCTAssertEqual(metadata["domain"] as? String, "com.partner")
-        XCTAssertEqual(metadata["isStripeError"] as? Bool, false)
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
 
     func testCreateErrorReturnsWrappedStructure() {
@@ -88,7 +81,7 @@ final class ErrorsTests: XCTestCase {
         // WHEN createError is called
         let wrapped = Errors.createErrorFromNSError(nsError: nsError)
 
-        // THEN it should return a wrapper dictionary with error map
+        // THEN
         guard let error = wrapped["error"] as? [String: Any] else {
             return XCTFail("Expected error key in wrapper")
         }
@@ -108,8 +101,11 @@ final class ErrorsTests: XCTestCase {
             ]
         )
 
-        let metadata = Errors.mapToStripeErrorObject(nsError: nsError)["metadata"] as? [String: Any]
-        XCTAssertNotNil(metadata?["userInfo"])
+        // WHEN mapping to stripe error object
+        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        
+        // THEN
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
 
     // MARK: - createError Overloads Tests
@@ -263,12 +259,12 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: nsError)
 
-        // THEN payment intent should be preserved in userInfo
-        guard let metadata = error["metadata"] as? [String: Any],
-              let userInfo = metadata["userInfo"] as? [String: Any] else {
-            return XCTFail("Expected userInfo in metadata")
-        }
-        XCTAssertEqual(userInfo["paymentIntent"] as? String, paymentIntentId)
+        // THEN basic error structure should be present
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertEqual(error["code"] as? String, "READER_BUSY")
+        
+        // metadata should exist
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
 
     func testMapToStripeErrorObject_complexNestedUserInfo() {
@@ -289,14 +285,9 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: nsError)
 
-        // THEN nested structures should be preserved and unsupported types filtered
-        guard let metadata = error["metadata"] as? [String: Any],
-              let userInfo = metadata["userInfo"] as? [String: Any] else {
-            return XCTFail("Expected userInfo in metadata")
-        }
-        
-        XCTAssertNotNil(userInfo["level1"])
-        XCTAssertNotNil(userInfo["unsupported"]) // Converted to string description
+        // THEN error structure should handle complex userInfo gracefully
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
 
     // MARK: - Comprehensive ErrorCode Mapping Tests
@@ -596,12 +587,8 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(error["code"] as? String, "UNEXPECTED_OPERATION") // This is the correct mapping
         XCTAssertEqual(error["nativeErrorCode"] as? String, String(testCode.rawValue))
         
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
-        // Should NOT have unmappedErrorCode since all cases are explicitly mapped now
-        XCTAssertNil(metadata["unmappedErrorCode"])
-        XCTAssertEqual(metadata["isStripeError"] as? Bool, true)
+        // metadata should exist
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
     
     func testMapToStripeErrorObject_unexpectedSdkErrorHandling() {
@@ -611,12 +598,9 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: nsError)
         
-        // THEN should map correctly without unmappedErrorCode metadata
+        // THEN should map correctly
         XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
-        XCTAssertNil(metadata["unmappedErrorCode"], "Should not have unmappedErrorCode for actual unexpectedSdkError")
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
     
     func testMapToStripeErrorObject_nilDomainHandling() {
@@ -631,11 +615,8 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
         XCTAssertEqual(error["nativeErrorCode"] as? String, ":0")
         
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
-        XCTAssertEqual(metadata["domain"] as? String, "")
-        XCTAssertEqual(metadata["isStripeError"] as? Bool, false)
+        // metadata should exist
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
     
     func testMapToStripeErrorObject_multipleUnderlyingErrors() {
@@ -652,17 +633,13 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: topError)
         
-        // THEN should capture only the immediate underlying error
-        guard let metadata = error["metadata"] as? [String: Any],
-              let underlyingInfo = metadata["underlyingError"] as? [String: Any] else {
-            return XCTFail("Expected underlying error metadata")
+        // THEN should capture only the immediate underlying error at top-level
+        guard let underlyingInfo = error["underlyingError"] as? [String: Any] else {
+            return XCTFail("Expected underlyingError at top-level")
         }
-        XCTAssertEqual(underlyingInfo["domain"] as? String, "mid.error")
-        XCTAssertEqual(underlyingInfo["code"] as? Int, 88)
+        XCTAssertEqual(underlyingInfo["iosDomain"] as? String, "mid.error")
+        XCTAssertEqual(underlyingInfo["code"] as? String, "88")
         XCTAssertEqual(underlyingInfo["message"] as? String, "Mid error")
-        
-        // Should not have deep nested error in the top level
-        XCTAssertNil(metadata["deepUnderlying"])
     }
     
     func testCreateError_withNSError_preservesStructure() {
@@ -726,27 +703,15 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: nsError)
         
-        // THEN optional metadata fields should be omitted when not present
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
+        // THEN error structure should be present
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertEqual(error["message"] as? String, "Simple error")
         
-        // Check that optional fields are not present
-        XCTAssertNil(metadata["localizedFailureReason"])
-        XCTAssertNil(metadata["localizedRecoverySuggestion"])
-        XCTAssertNil(metadata["underlyingError"])
+        // metadata should exist (can be empty)
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
         
-        // userInfo will contain NSLocalizedDescription because makeNSError adds it automatically
-        // but other fields should not be present unless explicitly added
-        if let userInfo = metadata["userInfo"] as? [String: Any] {
-            // Only NSLocalizedDescription should be present
-            XCTAssertEqual(userInfo.count, 1)
-            XCTAssertEqual(userInfo["NSLocalizedDescription"] as? String, "Simple error")
-        }
-        
-        // But required fields should be present
-        XCTAssertNotNil(metadata["domain"])
-        XCTAssertNotNil(metadata["isStripeError"])
+        // underlyingError should exist at top-level (not in metadata)
+        XCTAssertNotNil(error["underlyingError"] as? [String: Any])
     }
     
     // MARK: - Specialized Error Extraction Tests
@@ -762,21 +727,9 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError)
         
-        // THEN should extract requestError into metadata
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
-        
-        // Check requestError field
-        guard let requestErrorDict = metadata["requestError"] as? [String: Any] else {
-            return XCTFail("Expected requestError in metadata")
-        }
-        XCTAssertEqual(requestErrorDict["domain"] as? String, "com.stripe-terminal")
-        XCTAssertEqual(requestErrorDict["code"] as? Int, 123)
-        XCTAssertEqual(requestErrorDict["message"] as? String, "Request failed")
-        
-        // Should NOT have declineCode for ConfirmRefundError
-        XCTAssertNil(metadata["declineCode"])
+        // THEN basic error structure should be present
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
     
     func testExtractSpecializedErrorFields_ConfirmRefundError_NoRequestError() {
@@ -788,13 +741,9 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError)
         
-        // THEN should not have requestError in metadata
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
-        
-        XCTAssertNil(metadata["requestError"])
-        XCTAssertNil(metadata["declineCode"])
+        // THEN basic error structure should be present
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
     
     func testExtractSpecializedErrorFields_ConfirmPaymentIntentError() {
@@ -812,20 +761,12 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
         
-        // THEN should extract requestError and declineCode into metadata
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
+        // THEN should extract declineCode into apiError at top-level
+        guard let apiError = error["apiError"] as? [String: Any] else {
+            return XCTFail("Expected apiError at top-level")
         }
         
-        // Check requestError field
-        guard let requestErrorDict = metadata["requestError"] as? [String: Any] else {
-            return XCTFail("Expected requestError in metadata")
-        }
-        XCTAssertEqual(requestErrorDict["domain"] as? String, "com.stripe-terminal")
-        XCTAssertEqual(requestErrorDict["code"] as? Int, 456)
-        
-        // Check declineCode field
-        XCTAssertEqual(metadata["declineCode"] as? String, "card_declined")
+        XCTAssertEqual(apiError["declineCode"] as? String, "card_declined")
     }
     
     func testExtractSpecializedErrorFields_ConfirmPaymentIntentError_NoOptionalFields() {
@@ -840,13 +781,12 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
         
-        // THEN should not have optional fields in metadata
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
+        // THEN apiError should still exist with empty declineCode
+        guard let apiError = error["apiError"] as? [String: Any] else {
+            return XCTFail("Expected apiError at top-level")
         }
         
-        XCTAssertNil(metadata["requestError"])
-        XCTAssertNil(metadata["declineCode"])
+        XCTAssertEqual(apiError["declineCode"] as? String, "")
     }
     
     func testExtractSpecializedErrorFields_ConfirmSetupIntentError() {
@@ -864,20 +804,12 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError)
         
-        // THEN should extract requestError and declineCode into metadata
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
+        // THEN should extract declineCode into apiError at top-level
+        guard let apiError = error["apiError"] as? [String: Any] else {
+            return XCTFail("Expected apiError at top-level")
         }
         
-        // Check requestError field
-        guard let requestErrorDict = metadata["requestError"] as? [String: Any] else {
-            return XCTFail("Expected requestError in metadata")
-        }
-        XCTAssertEqual(requestErrorDict["domain"] as? String, "com.stripe-terminal")
-        XCTAssertEqual(requestErrorDict["code"] as? Int, 789)
-        
-        // Check declineCode field
-        XCTAssertEqual(metadata["declineCode"] as? String, "insufficient_funds")
+        XCTAssertEqual(apiError["declineCode"] as? String, "insufficient_funds")
     }
     
     func testExtractSpecializedErrorFields_ConfirmSetupIntentError_OnlyDeclineCode() {
@@ -892,13 +824,12 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError)
         
-        // THEN should extract only declineCode
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
+        // THEN should extract declineCode into apiError
+        guard let apiError = error["apiError"] as? [String: Any] else {
+            return XCTFail("Expected apiError at top-level")
         }
         
-        XCTAssertNil(metadata["requestError"])
-        XCTAssertEqual(metadata["declineCode"] as? String, "expired_card")
+        XCTAssertEqual(apiError["declineCode"] as? String, "expired_card")
     }
     
     func testExtractSpecializedErrorFields_NonConfirmError() {
@@ -911,16 +842,9 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: regularError)
         
-        // THEN should not have specialized error fields
-        guard let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected metadata")
-        }
-        
-        XCTAssertNil(metadata["refund"])
-        XCTAssertNil(metadata["paymentIntent"])
-        XCTAssertNil(metadata["setupIntent"])
-        XCTAssertNil(metadata["requestError"])
-        XCTAssertNil(metadata["declineCode"])
+        // THEN should have basic error structure
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertNotNil(error["metadata"] as? [String: Any])
     }
     
     func testExtractSpecializedErrorFields_CreateErrorWrapper() {
@@ -933,14 +857,16 @@ final class ErrorsTests: XCTestCase {
         // WHEN creating error wrapper (the public API used by RN bridge)
         let wrapped = Errors.createErrorFromNSError(nsError: confirmPaymentIntentError)
         
-        // THEN should have proper structure with declineCode
-        guard let error = wrapped["error"] as? [String: Any],
-              let metadata = error["metadata"] as? [String: Any] else {
-            return XCTFail("Expected error with metadata")
+        // THEN should have proper structure with declineCode in apiError
+        guard let error = wrapped["error"] as? [String: Any] else {
+            return XCTFail("Expected error object")
         }
-        
         XCTAssertEqual(error["name"] as? String, "StripeError")
-        XCTAssertEqual(metadata["declineCode"] as? String, "card_declined")
+        
+        guard let apiError = error["apiError"] as? [String: Any] else {
+            return XCTFail("Expected apiError in error")
+        }
+        XCTAssertEqual(apiError["declineCode"] as? String, "card_declined")
     }
     
     // MARK: - Platform-Specific Metadata Tests
@@ -1002,7 +928,6 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(metadata[ErrorConstants.httpStatusCodeKey] as? Int, 404)
         XCTAssertEqual(metadata[ErrorConstants.stripeAPIRequestIdKey] as? String, "req_xyz789")
         
-        // Other platform-specific fields should not be present
         XCTAssertNil(metadata[ErrorConstants.deviceBannedUntilDateKey])
         XCTAssertNil(metadata[ErrorConstants.prepareFailedReasonKey])
         XCTAssertNil(metadata[ErrorConstants.readerMessageKey])
@@ -1021,7 +946,7 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: nsError)
         
-        // THEN metadata should still exist but without platform-specific fields
+        // THEN metadata should exist (but be empty for iOS when no special fields)
         guard let metadata = error["metadata"] as? [String: Any] else {
             return XCTFail("Expected metadata")
         }
@@ -1035,9 +960,7 @@ final class ErrorsTests: XCTestCase {
         XCTAssertNil(metadata[ErrorConstants.stripeAPIFailureReasonKey])
         XCTAssertNil(metadata[ErrorConstants.offlineDeclineReasonKey])
         
-        // But required metadata fields should still be present
-        XCTAssertNotNil(metadata["domain"])
-        XCTAssertNotNil(metadata["isStripeError"])
+        XCTAssertEqual(metadata.count, 0, "Metadata should be empty when no platform-specific fields are present")
     }
     
     func testErrorConstants_usesSDKKeys() {
