@@ -7,15 +7,38 @@ import com.stripe.stripeterminal.external.api.ApiError
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 
+/**
+ * Creates an error response from a throwable
+ *
+ * @param throwable The throwable to convert to an error response
+ * @return ReadableMap containing the error structure
+ */
 internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
 
+/**
+ * Creates an error response from a throwable with a UUID
+ *
+ * @param throwable The throwable to convert to an error response
+ * @param uuid The UUID to associate with response objects (PaymentIntent, SetupIntent)
+ * @return ReadableMap containing the error structure
+ */
 internal fun createError(throwable: Throwable, uuid: String): ReadableMap = nativeMapOf { putError(throwable, uuid) }
 
+/**
+ * Populates this WritableMap with error structure
+ *
+ * Adds both the error object and any associated response objects (PaymentIntent, SetupIntent)
+ * to the root level of the response.
+ *
+ * @param throwable The throwable to convert to an error
+ * @param uuid Optional UUID to associate with response objects
+ * @return This WritableMap for chaining
+ */
 internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): ReadableMap = apply {
     putMap(
         ErrorConstants.ERROR_KEY,
         nativeMapOf {
-            putErrorContents(throwable, uuid)
+            putErrorContents(throwable)
         }
     )
 
@@ -24,8 +47,12 @@ internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): R
 
 /**
  * Adds error contents (name, message, code, apiError, underlyingError, metadata) to the error object
+ *
+ * Routes to the appropriate handler based on whether the throwable is a TerminalException or not.
+ *
+ * @param throwable The throwable to convert
  */
-private fun WritableMap.putErrorContents(throwable: Throwable?, uuid: String? = null) {
+private fun WritableMap.putErrorContents(throwable: Throwable?) {
     when (throwable) {
         is TerminalException -> putStripeErrorContents(throwable)
         else -> putNonStripeErrorContents(throwable)
@@ -34,6 +61,11 @@ private fun WritableMap.putErrorContents(throwable: Throwable?, uuid: String? = 
 
 /**
  * Populates StripeError contents from TerminalException
+ *
+ * Extracts name, message, code, and other fields from a TerminalException and
+ * adds them to this WritableMap.
+ *
+ * @param exception The TerminalException to extract error information from
  */
 private fun WritableMap.putStripeErrorContents(exception: TerminalException) {
     putString(ErrorConstants.NAME_KEY, ErrorConstants.STRIPE_ERROR_NAME)
@@ -48,6 +80,11 @@ private fun WritableMap.putStripeErrorContents(exception: TerminalException) {
 
 /**
  * Populates NonStripeError contents from generic Throwable
+ *
+ * Handles non-TerminalException throwables by creating a generic error structure
+ * with UNEXPECTED_SDK_ERROR code.
+ *
+ * @param throwable The generic throwable to extract error information from
  */
 private fun WritableMap.putNonStripeErrorContents(throwable: Throwable?) {
     putString(ErrorConstants.NAME_KEY, ErrorConstants.NON_STRIPE_ERROR_NAME)
@@ -61,14 +98,18 @@ private fun WritableMap.putNonStripeErrorContents(throwable: Throwable?) {
 
 /**
  * Adds response objects that may accompany an error (paymentIntent, setupIntent, refund)
+ *
  * These objects are placed at the top-level alongside the error object.
  * They represent the state of resources even when the operation fails (partial success).
  *
  * Example: A payment may be declined (error), but the PaymentIntent was still created
  * and needs to be returned so the caller can retry or cancel it.
  *
- * Note: Android TerminalException does not have a refund property yet
- * Future: refund will be added to TerminalException in upcoming SDK versions
+ * Note: Android TerminalException does not have a refund property yet.
+ * Future: refund will be added to TerminalException in upcoming SDK versions.
+ *
+ * @param throwable The throwable that may contain response objects
+ * @param uuid Optional UUID to associate with response objects
  */
 private fun WritableMap.addResponseObjects(throwable: Throwable, uuid: String?) {
     if (throwable is TerminalException) {
@@ -87,13 +128,16 @@ private fun WritableMap.addResponseObjects(throwable: Throwable, uuid: String?) 
 
 /**
  * Adds ApiError information to top-level of error object
- * Maps Android's ApiError to the unified apiError structure
+ *
+ * Maps Android's ApiError to the unified apiError structure.
  *
  * Field handling (matching iOS behavior and TypeScript contract):
  * - code: Required field, fallback to empty string if null
- * - message: Required field, fallback to generic message if null (iOS uses localizedDescription)
+ * - message: Required field (non-null String in SDK)
  * - declineCode: Required field, fallback to empty string if null
  * - type, charge, docUrl, param: Optional fields, omitted if null
+ *
+ * @param apiError The ApiError from TerminalException, or null if not available
  */
 private fun WritableMap.addTopLevelApiError(apiError: ApiError?) {
     apiError?.let { apiErr ->
@@ -114,7 +158,10 @@ private fun WritableMap.addTopLevelApiError(apiError: ApiError?) {
 
 /**
  * Adds underlying error information to top-level of error object
- * Maps Android's exception cause to the unified underlyingError structure
+ *
+ * Maps Android's exception cause to the unified underlyingError structure.
+ *
+ * @param cause The cause of the exception, or null if not available
  */
 private fun WritableMap.addTopLevelUnderlyingError(cause: Throwable?) {
     cause?.let { c ->
@@ -130,13 +177,25 @@ private fun WritableMap.addTopLevelUnderlyingError(cause: Throwable?) {
 
 /**
  * Adds platform-specific metadata fields to the error object
- * Android: Currently empty - no platform-specific fields are extracted from TerminalException
- * iOS: Extracts fields like deviceBannedUntilDate, httpStatusCode, etc. from NSError.userInfo
+ *
+ * Android: Currently empty - no platform-specific fields are extracted from TerminalException.
+ * iOS: Extracts fields like deviceBannedUntilDate, httpStatusCode, etc. from NSError.userInfo.
  */
 private fun WritableMap.addPlatformMetadata() {
     putMap(ErrorConstants.METADATA_KEY, nativeMapOf {})
 }
 
+/**
+ * Requires a cancelable to be non-null, throwing TerminalException if null
+ *
+ * Used to validate that a cancelable operation exists before attempting to cancel it.
+ *
+ * @param T The type of the cancelable
+ * @param cancelable The cancelable to validate
+ * @param lazyMessage Lazy message provider for the exception
+ * @return The non-null cancelable
+ * @throws TerminalException with CANCEL_FAILED code if cancelable is null
+ */
 @Throws(TerminalException::class)
 internal fun <T> requireCancelable(cancelable: T?, lazyMessage: () -> String): T {
     return cancelable ?: throw TerminalException(
@@ -145,6 +204,17 @@ internal fun <T> requireCancelable(cancelable: T?, lazyMessage: () -> String): T
     )
 }
 
+/**
+ * Throws TerminalException if command is not null (indicating SDK is busy)
+ *
+ * Used to check if an operation is already in progress before starting a new one.
+ *
+ * @param T The type of the command
+ * @param command The current command being executed, or null if SDK is idle
+ * @param lazyMessage Lazy message provider for the exception
+ * @return Unit? Always returns null if successful
+ * @throws TerminalException with READER_BUSY code if command is not null
+ */
 @Throws(TerminalException::class)
 internal fun <T> throwIfBusy(command: T?, lazyMessage: () -> String): Unit? {
     return command?.run {
@@ -155,6 +225,17 @@ internal fun <T> throwIfBusy(command: T?, lazyMessage: () -> String): Unit? {
     }
 }
 
+/**
+ * Requires a non-null parameter, throwing TerminalException if null
+ *
+ * Used to validate required parameters in SDK methods.
+ *
+ * @param T The type of the parameter
+ * @param input The parameter to validate
+ * @param lazyMessage Lazy message provider for the exception
+ * @return The non-null parameter
+ * @throws TerminalException with INVALID_REQUIRED_PARAMETER code if input is null
+ */
 @Throws(TerminalException::class)
 internal fun <T> requireNonNullParameter(input: T?, lazyMessage: () -> String): T {
     return input ?: throw TerminalException(
@@ -163,6 +244,14 @@ internal fun <T> requireNonNullParameter(input: T?, lazyMessage: () -> String): 
     )
 }
 
+/**
+ * Executes a block and resolves promise with error if TerminalException is thrown
+ *
+ * Provides a convenient way to wrap SDK operations and automatically handle exceptions.
+ *
+ * @param promise The React Native promise to resolve with error if exception occurs
+ * @param block The block to execute
+ */
 internal fun withExceptionResolver(promise: Promise, block: () -> Unit) {
     try {
         block()
@@ -171,6 +260,14 @@ internal fun withExceptionResolver(promise: Promise, block: () -> Unit) {
     }
 }
 
+/**
+ * Executes a suspending block and resolves promise with error if TerminalException is thrown
+ *
+ * Provides a convenient way to wrap suspending SDK operations and automatically handle exceptions.
+ *
+ * @param promise The React Native promise to resolve with error if exception occurs
+ * @param block The suspending block to execute
+ */
 internal suspend fun withSuspendExceptionResolver(promise: Promise, block: suspend () -> Unit) {
     try {
         block()
@@ -179,6 +276,18 @@ internal suspend fun withSuspendExceptionResolver(promise: Promise, block: suspe
     }
 }
 
+/**
+ * Converts Android Terminal SDK TerminalErrorCode to React Native error code string
+ *
+ * This extension function maps Android-specific error codes to the unified React Native
+ * error code strings that are consistent across both platforms (iOS and Android).
+ *
+ * Note: Exhaustive when expression - if new error codes are added to the Android SDK,
+ * this function will fail to compile, ensuring all cases are explicitly handled.
+ *
+ * @receiver TerminalErrorCode from Android Terminal SDK
+ * @return Unified React Native error code string
+ */
 fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     // Integration-like
     TerminalErrorCode.CANCEL_FAILED -> "CANCEL_FAILED"

@@ -293,7 +293,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         guard discoverCancelable == nil else {
-            let message = createBusyMessage(command: "discoverReaders", by: "discoverReaders")
+            let message = Errors.createBusyMessage(command: "discoverReaders", by: "discoverReaders")
             resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.READER_BUSY, message: message))
             return
         }

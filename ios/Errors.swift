@@ -119,39 +119,90 @@ class Errors {
         case CANCELED_DUE_TO_INTEGRATION_ERROR = "CANCELED_DUE_TO_INTEGRATION_ERROR"
     }
     
+    /// Validates that all required parameters are present in the provided dictionary.
+    ///
+    /// - Parameters:
+    ///   - params: The dictionary containing parameters to validate
+    ///   - requiredParams: Array of parameter names that must be present
+    /// - Returns: A comma-separated string of missing parameter names, or `nil` if all are present
     class func validateRequiredParameters(params: NSDictionary, requiredParams: [String]) -> String? {
         let missing = requiredParams.filter { params.object(forKey: $0) == nil }
         return missing.isEmpty ? nil : missing.joined(separator: ", ")
     }
 
+    /// Creates an error response from a Stripe Terminal SDK error code.
+    ///
+    /// - Parameters:
+    ///   - code: The Stripe Terminal SDK error code
+    ///   - message: The error message to include
+    /// - Returns: A dictionary containing the wrapped error structure
     class func createErrorFromCode(code: ErrorCode.Code, message: String) -> [String: Any] {
         let rn = convertToReactNativeErrorCode(from: code)
         return createError(code: rn, nativeCode: code.stringValue, message: message)
     }
 
+    /// Creates an error response from a React Native error code string.
+    ///
+    /// - Parameters:
+    ///   - rnCode: The React Native error code string
+    ///   - message: The error message to include
+    /// - Returns: A dictionary containing the wrapped error structure
     class func createErrorFromRnCode(rnCode: String, message: String) -> [String: Any] {
         return createError(code: rnCode, nativeCode: rnCode, message: message)
     }
 
+    /// Creates an error response from a React Native error code enum.
+    ///
+    /// - Parameters:
+    ///   - rnCode: The React Native error code enum value
+    ///   - message: The error message to include
+    /// - Returns: A dictionary containing the wrapped error structure
     class func createErrorFromRnCodeEnum(rnCode: RNErrorCode, message: String) -> [String: Any] {
         return createError(code: rnCode.rawValue, nativeCode: rnCode.rawValue, message: message)
     }
 
     // MARK: - Unified Error Creation
     
+    /// Creates a base error structure with the provided error information.
+    ///
+    /// - Parameters:
+    ///   - code: The React Native error code
+    ///   - nativeCode: The native SDK error code
+    ///   - message: The error message
+    /// - Returns: A dictionary containing the wrapped error structure
     private class func createError(code: String, nativeCode: String, message: String) -> [String: Any] {
         return stripeWrappedError(code: code, nativeErrorCode: nativeCode, message: message, metadata: [:])
     }
 
+    /// Creates an error response from an NSError instance.
+    ///
+    /// Converts an iOS NSError into the unified error structure used across the React Native bridge.
+    ///
+    /// - Parameter nsError: The NSError to convert
+    /// - Returns: A dictionary containing the wrapped error structure with all contextual information
     class func createErrorFromNSError(nsError: NSError) -> [String: Any] {
         let mapped = mapToStripeErrorObject(nsError: nsError)
         return [ErrorConstants.errorKey: mapped]
     }
 
+    /// Rejects a React Native promise with an error code and message.
+    ///
+    /// - Parameters:
+    ///   - reject: The React Native promise reject block
+    ///   - rnCode: The React Native error code
+    ///   - message: The error message (uses code if empty)
     class func rejectPromise(_ reject: RCTPromiseRejectBlock, rnCode: String, message: String) {
         reject(rnCode, message.isEmpty ? rnCode : message, nil)
     }
 
+    /// Wraps an error object in the standard error structure.
+    ///
+    /// - Parameters:
+    ///   - code: The React Native error code
+    ///   - nativeErrorCode: The native SDK error code
+    ///   - message: The error message
+    ///   - metadata: Platform-specific metadata
+    /// - Returns: A dictionary with the error wrapped under the "error" key
     private class func stripeWrappedError(code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
         let error = stripeErrorObject(
             code: code,
@@ -161,7 +212,33 @@ class Errors {
         )
         return [ErrorConstants.errorKey: error]
     }
+    
+    /// Creates a base error object dictionary with standard fields.
+    ///
+    /// - Parameters:
+    ///   - name: The error name (defaults to "StripeError")
+    ///   - code: The React Native error code
+    ///   - nativeErrorCode: The native SDK error code
+    ///   - message: The error message
+    ///   - metadata: Platform-specific metadata
+    /// - Returns: A dictionary containing error properties
+    private class func stripeErrorObject(name: String = ErrorConstants.stripeErrorName, code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
+        return [
+            ErrorConstants.nameKey: name,
+            ErrorConstants.messageKey: message.isEmpty ? ErrorConstants.unknownErrorMessage : message,
+            ErrorConstants.codeKey: code,
+            ErrorConstants.nativeErrorCodeKey: nativeErrorCode,
+            ErrorConstants.metadataKey: metadata
+        ]
+    }
 
+    /// Maps an NSError to the unified StripeError object structure.
+    ///
+    /// Extracts error information, API error details, refund information, underlying error,
+    /// and platform-specific metadata from the NSError.
+    ///
+    /// - Parameter nsError: The NSError to convert
+    /// - Returns: A dictionary containing the complete StripeError structure
     class func mapToStripeErrorObject(nsError: NSError) -> [String: Any] {
         let errorInfo = extractErrorInformation(from: nsError)
         
@@ -187,6 +264,7 @@ class Errors {
 
     // MARK: - Error Information Extraction
     
+    /// Internal structure containing extracted error information.
     private struct ErrorInformation {
         let isStripeError: Bool
         let code: String
@@ -194,6 +272,13 @@ class Errors {
         let errorName: String
     }
     
+    /// Extracts and classifies error information from an NSError.
+    ///
+    /// Determines if the error is from Stripe Terminal SDK and maps it to the appropriate
+    /// React Native error code.
+    ///
+    /// - Parameter nsError: The NSError to extract information from
+    /// - Returns: An ErrorInformation struct containing classified error details
     private class func extractErrorInformation(from nsError: NSError) -> ErrorInformation {
         let stripeDomain = ErrorConstants.stripeTerminalDomain
         let isStripeError = (nsError.domain == stripeDomain)
@@ -224,12 +309,30 @@ class Errors {
         )
     }
     
+    /// Maps non-Stripe errors to the unified error structure.
+    ///
+    /// Handles errors that don't originate from the Stripe Terminal SDK by creating a generic
+    /// error code and native error identifier.
+    ///
+    /// - Parameter nsError: The non-Stripe NSError to map
+    /// - Returns: A tuple containing the React Native error code and formatted native error code
+    private class func mapNonStripeError(nsError: NSError) -> (code: String, nativeErrorCode: String) {
+        return (
+            code: RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue,
+            nativeErrorCode: "\(nsError.domain):\(nsError.code)"
+        )
+    }
+    
     // MARK: - Top-level Field Extraction
     
-    /**
-     * Extracts API error information to top-level
-     * Maps iOS NSError data to unified apiError structure
-     */
+    /// Extracts API error information from NSError and adds it to the result dictionary.
+    ///
+    /// Maps iOS NSError data to the unified apiError structure, including decline code extraction
+    /// via KVC for Confirm*Error types.
+    ///
+    /// - Parameters:
+    ///   - nsError: The NSError containing API error information
+    ///   - result: The result dictionary to populate (modified in place)
     private class func extractApiErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
         let className = String(describing: type(of: nsError))
         var apiError: [String: Any] = [:]
@@ -279,10 +382,13 @@ class Errors {
         }
     }
     
-    /**
-     * Extracts refund information to top-level
-     * Maps iOS NSError refund data via KVC
-     */
+    /// Extracts refund information from NSError and adds it to the result dictionary.
+    ///
+    /// Maps iOS NSError refund data via KVC for ConfirmRefundError types.
+    ///
+    /// - Parameters:
+    ///   - nsError: The NSError potentially containing refund information
+    ///   - result: The result dictionary to populate (modified in place)
     private class func extractRefundToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
         let className = String(describing: type(of: nsError))
         
@@ -293,10 +399,14 @@ class Errors {
         }
     }
     
-    /**
-     * Extracts underlying error information to top-level
-     * Maps iOS NSError underlying error + localized information to unified underlyingError structure
-     */
+    /// Extracts underlying error information from NSError and adds it to the result dictionary.
+    ///
+    /// Maps iOS NSError underlying error + localized information to the unified underlyingError structure.
+    /// Includes domain, code, message, failure reason, and recovery suggestion.
+    ///
+    /// - Parameters:
+    ///   - nsError: The NSError containing underlying error information
+    ///   - result: The result dictionary to populate (modified in place)
     private class func extractUnderlyingErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
         var underlyingError: [String: Any] = [:]
         
@@ -324,11 +434,14 @@ class Errors {
     
     // MARK: - Metadata Building (iOS-specific userInfo extraction)
     
-    /**
-     * Adds platform-specific metadata fields to the error object
-     * Android: Currently empty - no platform-specific fields are extracted from TerminalException
-     * iOS: Extracts fields like deviceBannedUntilDate, httpStatusCode, etc. from NSError.userInfo
-     */
+    /// Adds platform-specific metadata fields extracted from NSError.userInfo.
+    ///
+    /// **Platform differences:**
+    /// - **iOS:** Extracts fields like deviceBannedUntilDate, httpStatusCode, etc. from NSError.userInfo
+    /// - **Android:** Currently returns empty metadata - no platform-specific fields are extracted
+    ///
+    /// - Parameter nsError: The NSError containing platform-specific information
+    /// - Returns: A dictionary of platform-specific metadata fields
     private class func addPlatformMetadata(from nsError: NSError) -> [String: Any] {
         var metadata: [String: Any] = [:]
         
@@ -363,16 +476,19 @@ class Errors {
         return metadata
     }
 
-    private class func stripeErrorObject(name: String = ErrorConstants.stripeErrorName, code: String, nativeErrorCode: String, message: String, metadata: [String: Any]) -> [String: Any] {
-        return [
-            ErrorConstants.nameKey: name,
-            ErrorConstants.messageKey: message.isEmpty ? ErrorConstants.unknownErrorMessage : message,
-            ErrorConstants.codeKey: code,
-            ErrorConstants.nativeErrorCodeKey: nativeErrorCode,
-            ErrorConstants.metadataKey: metadata
-        ]
-    }
-
+    // MARK: - Error Code Mapping
+    
+    /// Converts Stripe Terminal iOS ErrorCode to React Native error code string.
+    ///
+    /// This function maps iOS-specific error codes to the unified React Native error code strings
+    /// that are consistent across both platforms (iOS and Android).
+    ///
+    /// - Note: No default case is used in the switch statement. This ensures that if new error codes
+    ///         are added to the Stripe Terminal SDK, the code will fail to compile, forcing explicit
+    ///         handling and preventing silent mapping failures.
+    ///
+    /// - Parameter code: The Stripe Terminal SDK error code
+    /// - Returns: The unified React Native error code string
     private class func convertToReactNativeErrorCode(from code: ErrorCode.Code) -> String {
         switch code {
         case .canceled: return RNErrorCode.CANCELED.rawValue
@@ -529,25 +645,24 @@ class Errors {
         // forcing us to explicitly handle new cases and preventing silent mapping failures.
         }
     }
-}
-
-func createBusyMessage(command: String, by busyCommand: String) -> String {
-    return "Could not execute \(command) because the SDK is busy with another command: \(busyCommand)."
-}
-
-extension ErrorCode.Code {
-    var stringValue: String {
-        return Terminal.stringFromError(self)
+    
+    // MARK: - Helper Functions
+    
+    /// Creates a busy error message indicating the SDK is already executing another command.
+    ///
+    /// - Parameters:
+    ///   - command: The command that was attempted
+    ///   - busyCommand: The command currently being executed
+    /// - Returns: A formatted error message
+    class func createBusyMessage(command: String, by busyCommand: String) -> String {
+        return "Could not execute \(command) because the SDK is busy with another command: \(busyCommand)."
     }
 }
 
-// MARK: - Metadata Helper Functions (Legacy - No longer used in new structure)
-
-extension Errors {
-    private class func mapNonStripeError(nsError: NSError) -> (code: String, nativeErrorCode: String) {
-        return (
-            code: RNErrorCode.UNEXPECTED_SDK_ERROR.rawValue,
-            nativeErrorCode: "\(nsError.domain):\(nsError.code)"
-        )
+/// Extension providing string value conversion for ErrorCode.Code.
+extension ErrorCode.Code {
+    /// Returns the string representation of the error code using Stripe Terminal SDK.
+    var stringValue: String {
+        return Terminal.stringFromError(self)
     }
 }
