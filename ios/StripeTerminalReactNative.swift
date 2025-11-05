@@ -531,11 +531,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
+        let uuid = UUID().uuidString
         Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let pi = pi {
-                let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
                 self.paymentIntents[uuid] = pi
                 resolve(["paymentIntent": paymentIntent])
@@ -553,11 +553,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
+        let uuid = UUID().uuidString
         Terminal.shared.createSetupIntent(setupIntentParams) { si, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let si = si {
-                let uuid = UUID().uuidString
                 let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
                 self.setupIntents[uuid] = si
                 resolve(["setupIntent": setupIntent])
@@ -645,11 +645,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
+        let uuid = UUID().uuidString
         Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret) { pi, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let pi = pi {
-                let uuid = UUID().uuidString
                 let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
                 self.paymentIntents[uuid] = pi
                 resolve(["paymentIntent": paymentIntent])
@@ -902,11 +902,11 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide cliectSecret."))
             return
         }
+        let uuid = UUID().uuidString
         Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret) { si, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let si = si {
-                let uuid = UUID().uuidString
                 self.setupIntents[uuid] = si
                 let si = Mappers.mapFromSetupIntent(si,uuid: uuid)
                 resolve(["setupIntent": si])
