@@ -62,10 +62,13 @@ struct ErrorConstants {
     static let scpHttpStatusCode = ErrorKey.httpStatusCode.rawValue
     static let scpStripeAPIRequestId = ErrorKey.stripeAPIRequestId.rawValue
     static let scpStripeAPIFailureReason = ErrorKey.stripeAPIFailureReason.rawValue
+    static let scpStripeAPIDeclineCode = ErrorKey.stripeAPIDeclineCode.rawValue
+    static let scpStripeAPIErrorCode = ErrorKey.stripeAPIErrorCode.rawValue
     static let scpStripeAPIErrorType = ErrorKey.stripeAPIErrorType.rawValue
     static let scpStripeAPIDocUrl = ErrorKey.stripeAPIDocUrl.rawValue
     static let scpStripeAPIErrorParameter = ErrorKey.stripeAPIErrorParameter.rawValue
-    static let scpStripeAPICharge = "SCPErrorKeyStripeAPICharge" // Not yet available in current SDK version
+    // TODO: Replace with ErrorKey.stripeAPICharge.rawValue when available in Stripe Terminal iOS SDK v5.1+
+    static let scpStripeAPICharge = "com.stripe-terminal:StripeAPIErrorCharge"
     
     // Reader and offline specific
     static let scpReaderMessage = ErrorKey.readerMessage.rawValue
@@ -73,6 +76,15 @@ struct ErrorConstants {
     
     // MARK: - Default Messages
     static let unknownErrorMessage = "Unknown error"
+    
+    // MARK: - Default Values
+    /// Empty string default for required apiError fields (e.g., code, declineCode) when SDK returns nil
+    /// Required to maintain TypeScript contract (non-optional fields) and cross-platform consistency with Android
+    static let apiErrorRequiredFieldEmpty = ""
+    
+    /// Default value for unknown API error codes
+    /// Used when SDK doesn't provide an API error code
+    static let apiErrorUnknownCode = "unknown_api_error_code"
     
     // MARK: - Domain Constants
     static let stripeTerminalDomain = "com.stripe-terminal"

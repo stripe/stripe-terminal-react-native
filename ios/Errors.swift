@@ -184,6 +184,29 @@ class Errors {
         let mapped = mapToStripeErrorObject(nsError: nsError)
         return [ErrorConstants.errorKey: mapped]
     }
+    
+    /// Converts an iOS NSError into the unified error structure with UUID for response objects.
+    ///
+    /// This overload is used when the error may contain PaymentIntent, SetupIntent, or Refund
+    /// that need to be tracked with a UUID for later retrieval (matching Android behavior).
+    ///
+    /// - Parameters:
+    ///   - nsError: The NSError to convert
+    ///   - uuid: The UUID to associate with response objects (PaymentIntent, SetupIntent, Refund)
+    /// - Returns: A dictionary containing the wrapped error structure with response objects mapped using the UUID
+    class func createErrorFromNSError(nsError: NSError, uuid: String) -> [String: Any] {
+        var result = createErrorFromNSError(nsError: nsError)
+        
+        if let confirmError = nsError as? ConfirmPaymentIntentError {
+            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(confirmError.paymentIntent, uuid: uuid)
+        } else if let confirmError = nsError as? ConfirmSetupIntentError {
+            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(confirmError.setupIntent, uuid: uuid)
+        } else if let confirmError = nsError as? ConfirmRefundError {
+            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(confirmError.refund)
+        }
+        
+        return result
+    }
 
     /// Rejects a React Native promise with an error code and message.
     ///
@@ -252,7 +275,7 @@ class Errors {
         
         if errorInfo.isStripeError {
             extractApiErrorToTopLevel(from: nsError, to: &result)
-            extractRefundToTopLevel(from: nsError, to: &result)
+            extractResponseObjectFromConfirmError(from: nsError, to: &result)
         }
         
         extractUnderlyingErrorToTopLevel(from: nsError, to: &result)
@@ -327,75 +350,72 @@ class Errors {
     
     /// Extracts API error information from NSError and adds it to the result dictionary.
     ///
-    /// Maps iOS NSError data to the unified apiError structure, including decline code extraction
-    /// via KVC for Confirm*Error types.
+    /// Maps iOS NSError data to the unified apiError structure.
     ///
     /// - Parameters:
     ///   - nsError: The NSError containing API error information
     ///   - result: The result dictionary to populate (modified in place)
     private class func extractApiErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
-        let className = String(describing: type(of: nsError))
         var apiError: [String: Any] = [:]
         
-        // Extract declineCode from Confirm*Error via KVC
-        if className.contains("ConfirmPaymentIntentError") || 
-           className.contains("ConfirmSetupIntentError") ||
-           className.contains("SCPConfirmPaymentIntentError") ||
-           className.contains("SCPConfirmSetupIntentError") {
-            
-            if let declineCode = nsError.value(forKey: "declineCode") as? String {
-                apiError[ErrorConstants.apiErrorDeclineCodeKey] = declineCode
-            }
-        }
+        addRequiredApiErrorFields(from: nsError, to: &apiError)
+        addOptionalApiErrorFields(from: nsError, to: &apiError)
+        
+        result[ErrorConstants.apiErrorKey] = apiError
+    }
+
+    /// Adds required ApiError fields per TypeScript contract.
+    ///
+    /// These fields (code, message, declineCode) are non-optional in the TypeScript ApiErrorInformation interface
+    /// and must always be present to maintain cross-platform consistency with Android.
+    ///
+    /// - Parameters:
+    ///   - nsError: The NSError containing API error information
+    ///   - apiError: The dictionary to add fields to (modified in place)
+    private class func addRequiredApiErrorFields(from nsError: NSError, to apiError: inout [String: Any]) {
+        apiError[ErrorConstants.apiErrorCodeKey] = nsError.userInfo[ErrorConstants.scpStripeAPIErrorCode] as? String ?? ErrorConstants.apiErrorUnknownCode
         
         if let failureReason = nsError.userInfo[ErrorConstants.scpStripeAPIFailureReason] as? String {
             apiError[ErrorConstants.apiErrorMessageKey] = failureReason
         } else {
-            // Use localized description as fallback message
             apiError[ErrorConstants.apiErrorMessageKey] = nsError.localizedDescription
         }
-
-        apiError[ErrorConstants.apiErrorCodeKey] = String(nsError.code)
         
-        if apiError[ErrorConstants.apiErrorDeclineCodeKey] == nil {
-            apiError[ErrorConstants.apiErrorDeclineCodeKey] = ""
-        }
-        
-        if let type = nsError.userInfo[ErrorConstants.scpStripeAPIErrorType] as? String {
-            apiError[ErrorConstants.apiErrorTypeKey] = type
-        }
-        
-        if let docUrl = nsError.userInfo[ErrorConstants.scpStripeAPIDocUrl] as? String {
-            apiError[ErrorConstants.apiErrorDocUrlKey] = docUrl
-        }
-        
-        if let param = nsError.userInfo[ErrorConstants.scpStripeAPIErrorParameter] as? String {
-            apiError[ErrorConstants.apiErrorParamKey] = param
-        }
-        
-        if let charge = nsError.userInfo[ErrorConstants.scpStripeAPICharge] as? String {
-            apiError[ErrorConstants.apiErrorChargeKey] = charge
-        }
-        
-        if !apiError.isEmpty {
-            result[ErrorConstants.apiErrorKey] = apiError
-        }
+        apiError[ErrorConstants.apiErrorDeclineCodeKey] = nsError.userInfo[ErrorConstants.scpStripeAPIDeclineCode] as? String ?? ErrorConstants.apiErrorRequiredFieldEmpty
     }
     
-    /// Extracts refund information from NSError and adds it to the result dictionary.
+    /// Adds optional ApiError fields from NSError userInfo.
     ///
-    /// Maps iOS NSError refund data via KVC for ConfirmRefundError types.
+    /// These fields (type, docUrl, param, charge) are optional in the TypeScript ApiErrorInformation interface
+    /// and will only be present if available from the Stripe SDK.
     ///
     /// - Parameters:
-    ///   - nsError: The NSError potentially containing refund information
+    ///   - nsError: The NSError containing API error information
+    ///   - apiError: The dictionary to add fields to (modified in place)
+    private class func addOptionalApiErrorFields(from nsError: NSError, to apiError: inout [String: Any]) {
+        apiError[ErrorConstants.apiErrorTypeKey] = nsError.userInfo[ErrorConstants.scpStripeAPIErrorType] as? String
+        apiError[ErrorConstants.apiErrorDocUrlKey] = nsError.userInfo[ErrorConstants.scpStripeAPIDocUrl] as? String
+        apiError[ErrorConstants.apiErrorParamKey] = nsError.userInfo[ErrorConstants.scpStripeAPIErrorParameter] as? String
+        apiError[ErrorConstants.apiErrorChargeKey] = nsError.userInfo[ErrorConstants.scpStripeAPICharge] as? String
+    }
+    
+    /// Extracts response objects (PaymentIntent/SetupIntent/Refund) from Confirm*Error types.
+    ///
+    /// When confirmation operations fail, the error object itself contains the resource (PaymentIntent, SetupIntent, or Refund)
+    /// with its current state. This allows access to these resources even when the operation failed.
+    ///
+    /// Note: These error types are mutually exclusive - an error can only be one of these types.
+    ///
+    /// - Parameters:
+    ///   - nsError: The NSError that may be a Confirm*Error type
     ///   - result: The result dictionary to populate (modified in place)
-    private class func extractRefundToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
-        let className = String(describing: type(of: nsError))
-        
-        if className.contains("ConfirmRefundError") || className.contains("SCPConfirmRefundError") {
-            if let refund = nsError.value(forKey: "refund") as? Refund {
-                result[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
-            }
+    private class func extractResponseObjectFromConfirmError(from nsError: NSError, to result: inout [String: Any]) {
+        if let confirmError = nsError as? ConfirmPaymentIntentError {
+            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(confirmError.paymentIntent, uuid: "")
+        } else if let confirmError = nsError as? ConfirmSetupIntentError {
+            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(confirmError.setupIntent, uuid: "")
+        } else if let confirmError = nsError as? ConfirmRefundError {
+            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(confirmError.refund)
         }
     }
     
@@ -427,9 +447,7 @@ class Errors {
             underlyingError[ErrorConstants.underlyingErrorIosLocalizedRecoverySuggestionKey] = suggestion
         }
         
-        if !underlyingError.isEmpty {
-            result[ErrorConstants.underlyingErrorKey] = underlyingError
-        }
+        result[ErrorConstants.underlyingErrorKey] = underlyingError
     }
     
     // MARK: - Metadata Building (iOS-specific userInfo extraction)
@@ -445,33 +463,13 @@ class Errors {
     private class func addPlatformMetadata(from nsError: NSError) -> [String: Any] {
         var metadata: [String: Any] = [:]
         
-        if let deviceBannedUntilDate = nsError.userInfo[ErrorConstants.scpDeviceBannedUntilDate] as? String {
-            metadata[ErrorConstants.deviceBannedUntilDateKey] = deviceBannedUntilDate
-        }
-        
-        if let prepareFailedReason = nsError.userInfo[ErrorConstants.scpPrepareFailedReason] as? String {
-            metadata[ErrorConstants.prepareFailedReasonKey] = prepareFailedReason
-        }
-        
-        if let httpStatusCode = nsError.userInfo[ErrorConstants.scpHttpStatusCode] as? Int {
-            metadata[ErrorConstants.httpStatusCodeKey] = httpStatusCode
-        }
-        
-        if let readerMessage = nsError.userInfo[ErrorConstants.scpReaderMessage] as? String {
-            metadata[ErrorConstants.readerMessageKey] = readerMessage
-        }
-        
-        if let stripeAPIRequestId = nsError.userInfo[ErrorConstants.scpStripeAPIRequestId] as? String {
-            metadata[ErrorConstants.stripeAPIRequestIdKey] = stripeAPIRequestId
-        }
-        
-        if let stripeAPIFailureReason = nsError.userInfo[ErrorConstants.scpStripeAPIFailureReason] as? String {
-            metadata[ErrorConstants.stripeAPIFailureReasonKey] = stripeAPIFailureReason
-        }
-        
-        if let offlineDeclineReason = nsError.userInfo[ErrorConstants.scpOfflineDeclineReason] as? String {
-            metadata[ErrorConstants.offlineDeclineReasonKey] = offlineDeclineReason
-        }
+        metadata[ErrorConstants.deviceBannedUntilDateKey] = nsError.userInfo[ErrorConstants.scpDeviceBannedUntilDate] as? String
+        metadata[ErrorConstants.prepareFailedReasonKey] = nsError.userInfo[ErrorConstants.scpPrepareFailedReason] as? String
+        metadata[ErrorConstants.httpStatusCodeKey] = nsError.userInfo[ErrorConstants.scpHttpStatusCode] as? Int
+        metadata[ErrorConstants.readerMessageKey] = nsError.userInfo[ErrorConstants.scpReaderMessage] as? String
+        metadata[ErrorConstants.stripeAPIRequestIdKey] = nsError.userInfo[ErrorConstants.scpStripeAPIRequestId] as? String
+        metadata[ErrorConstants.stripeAPIFailureReasonKey] = nsError.userInfo[ErrorConstants.scpStripeAPIFailureReason] as? String
+        metadata[ErrorConstants.offlineDeclineReasonKey] = nsError.userInfo[ErrorConstants.scpOfflineDeclineReason] as? String
         
         return metadata
     }
