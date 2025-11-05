@@ -980,10 +980,11 @@ final class ErrorsTests: XCTestCase {
         XCTAssertFalse(ErrorConstants.scpStripeAPIErrorParameter.isEmpty)
         XCTAssertFalse(ErrorConstants.scpReaderMessage.isEmpty)
         XCTAssertFalse(ErrorConstants.scpOfflineDeclineReason.isEmpty)
+        XCTAssertFalse(ErrorConstants.scpStripeAPIDeclineCode.isEmpty)
         
-        // Verify that scpStripeAPICharge is the only one still using string literal
+        // Verify that scpStripeAPICharge uses the hardcoded value
         // (as it's not yet available in current SDK version)
-        XCTAssertEqual(ErrorConstants.scpStripeAPICharge, "SCPErrorKeyStripeAPICharge")
+        XCTAssertEqual(ErrorConstants.scpStripeAPICharge, "com.stripe-terminal:StripeAPIErrorCharge")
     }
 }
 
@@ -1021,7 +1022,7 @@ private class MockConfirmPaymentIntentError: NSError {
     init(requestError: NSError?, declineCode: String?) {
         self.mockRequestError = requestError
         self.mockDeclineCode = declineCode
-        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: [:])
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: declineCode != nil ? [ErrorConstants.scpStripeAPIDeclineCode: declineCode!] : [:])
     }
     
     required init?(coder: NSCoder) {
@@ -1049,7 +1050,7 @@ private class MockConfirmSetupIntentError: NSError {
     init(requestError: NSError?, declineCode: String?) {
         self.mockRequestError = requestError
         self.mockDeclineCode = declineCode
-        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: [:])
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: declineCode != nil ? [ErrorConstants.scpStripeAPIDeclineCode: declineCode!] : [:])
     }
     
     required init?(coder: NSCoder) {
