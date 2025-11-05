@@ -41,4 +41,8 @@ internal object ErrorConstants {
     // Default messages
     const val UNKNOWN_ERROR_MESSAGE = "Unknown error"
     const val UNKNOWN_CAUSE_MESSAGE = "Unknown cause"
+    
+    // Default values
+    const val API_ERROR_REQUIRED_FIELD_EMPTY = ""
+    const val API_ERROR_UNKNOWN_CODE = "unknown_api_error_code"
 }
