@@ -197,12 +197,12 @@ class Errors {
     class func createErrorFromNSError(nsError: NSError, uuid: String) -> [String: Any] {
         var result = createErrorFromNSError(nsError: nsError)
         
-        if let confirmError = nsError as? ConfirmPaymentIntentError {
-            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(confirmError.paymentIntent, uuid: uuid)
-        } else if let confirmError = nsError as? ConfirmSetupIntentError {
-            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(confirmError.setupIntent, uuid: uuid)
-        } else if let confirmError = nsError as? ConfirmRefundError {
-            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(confirmError.refund)
+        if let confirmError = nsError as? ConfirmPaymentIntentError, let paymentIntent = confirmError.paymentIntent {
+            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+        } else if let confirmError = nsError as? ConfirmSetupIntentError, let setupIntent = confirmError.setupIntent {
+            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+        } else if let confirmError = nsError as? ConfirmRefundError, let refund = confirmError.refund {
+            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
         }
         
         return result
@@ -410,12 +410,12 @@ class Errors {
     ///   - nsError: The NSError that may be a Confirm*Error type
     ///   - result: The result dictionary to populate (modified in place)
     private class func extractResponseObjectFromConfirmError(from nsError: NSError, to result: inout [String: Any]) {
-        if let confirmError = nsError as? ConfirmPaymentIntentError {
-            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(confirmError.paymentIntent, uuid: "")
-        } else if let confirmError = nsError as? ConfirmSetupIntentError {
-            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(confirmError.setupIntent, uuid: "")
-        } else if let confirmError = nsError as? ConfirmRefundError {
-            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(confirmError.refund)
+        if let confirmError = nsError as? ConfirmPaymentIntentError, let paymentIntent = confirmError.paymentIntent {
+            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: "")
+        } else if let confirmError = nsError as? ConfirmSetupIntentError, let setupIntent = confirmError.setupIntent {
+            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(setupIntent, uuid: "")
+        } else if let confirmError = nsError as? ConfirmRefundError, let refund = confirmError.refund {
+            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
         }
     }
     
