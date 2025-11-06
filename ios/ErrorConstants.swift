@@ -55,24 +55,24 @@ struct ErrorConstants {
     // Reference: https://stripe.dev/stripe-terminal-ios/docs/Errors.html#/c:SCPErrors.h@T@SCPErrorKey
     
     // Tap to Pay specific
-    static let scpDeviceBannedUntilDate = ErrorKey.deviceBannedUntilDate.rawValue
-    static let scpPrepareFailedReason = ErrorKey.prepareFailedReason.rawValue
+    static let deviceBannedUntilDate = ErrorKey.deviceBannedUntilDate.rawValue
+    static let prepareFailedReason = ErrorKey.prepareFailedReason.rawValue
     
     // API error related
-    static let scpHttpStatusCode = ErrorKey.httpStatusCode.rawValue
-    static let scpStripeAPIRequestId = ErrorKey.stripeAPIRequestId.rawValue
-    static let scpStripeAPIFailureReason = ErrorKey.stripeAPIFailureReason.rawValue
-    static let scpStripeAPIDeclineCode = ErrorKey.stripeAPIDeclineCode.rawValue
-    static let scpStripeAPIErrorCode = ErrorKey.stripeAPIErrorCode.rawValue
-    static let scpStripeAPIErrorType = ErrorKey.stripeAPIErrorType.rawValue
-    static let scpStripeAPIDocUrl = ErrorKey.stripeAPIDocUrl.rawValue
-    static let scpStripeAPIErrorParameter = ErrorKey.stripeAPIErrorParameter.rawValue
+    static let httpStatusCode = ErrorKey.httpStatusCode.rawValue
+    static let stripeAPIRequestId = ErrorKey.stripeAPIRequestId.rawValue
+    static let stripeAPIFailureReason = ErrorKey.stripeAPIFailureReason.rawValue
+    static let stripeAPIDeclineCode = ErrorKey.stripeAPIDeclineCode.rawValue
+    static let stripeAPIErrorCode = ErrorKey.stripeAPIErrorCode.rawValue
+    static let stripeAPIErrorType = ErrorKey.stripeAPIErrorType.rawValue
+    static let stripeAPIDocUrl = ErrorKey.stripeAPIDocUrl.rawValue
+    static let stripeAPIErrorParameter = ErrorKey.stripeAPIErrorParameter.rawValue
     // TODO: Replace with ErrorKey.stripeAPICharge.rawValue when available in Stripe Terminal iOS SDK v5.1+
-    static let scpStripeAPICharge = "com.stripe-terminal:StripeAPIErrorCharge"
+    static let stripeAPICharge = "com.stripe-terminal:StripeAPIErrorCharge"
     
     // Reader and offline specific
-    static let scpReaderMessage = ErrorKey.readerMessage.rawValue
-    static let scpOfflineDeclineReason = ErrorKey.offlineDeclineReason.rawValue
+    static let readerMessage = ErrorKey.readerMessage.rawValue
+    static let offlineDeclineReason = ErrorKey.offlineDeclineReason.rawValue
     
     // MARK: - Default Messages
     static let unknownErrorMessage = "Unknown error"
