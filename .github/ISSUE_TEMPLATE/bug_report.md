@@ -28,7 +28,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Stripe Terminal React Native SDK version**
 
-- (e.g., `^0.0.1-beta.27`)
+- (e.g., `^0.0.1-beta.28`)
 
 **Point of sale device**
 
