@@ -879,7 +879,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 setupIntent,
                 params,
                 RNSetupIntentCallback(promise, uuid) {
-                    setupIntents[setupIntent.id.orEmpty()] = null
+                    setupIntents[uuid] = null
                 }
             )
         }
@@ -900,7 +900,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             confirmSetupIntentCancelable = terminal.confirmSetupIntent(
                 setupIntent,
                 RNSetupIntentCallback(promise, uuid) {
-                    setupIntents[it.id.orEmpty()] = null
+                    setupIntents.clear()
                 }
             )
         }
