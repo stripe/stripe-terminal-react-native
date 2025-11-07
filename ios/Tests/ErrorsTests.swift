@@ -985,9 +985,9 @@ final class ErrorsTests: XCTestCase {
     }
     
     func testExtractSpecializedErrorFields_ConfirmPaymentIntentError_NoOptionalFields() {
-        // GIVEN a ConfirmPaymentIntentError without optional fields
-        // Note: We cannot test actual PaymentIntent extraction because Stripe SDK objects 
-        // cannot be instantiated (init is marked unavailable)
+        // GIVEN a ConfirmPaymentIntentError without optional fields (no declineCode)
+        // In real scenarios, ConfirmPaymentIntentError without any API error fields
+        // means it's not an API-level error, so apiError should not be present
         let confirmPaymentIntentError = MockConfirmPaymentIntentError(
             requestError: nil,
             declineCode: nil
@@ -996,12 +996,10 @@ final class ErrorsTests: XCTestCase {
         // WHEN mapping to stripe error object
         let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
         
-        // THEN apiError should still exist with empty declineCode
-        guard let apiError = error["apiError"] as? [String: Any] else {
-            return XCTFail("Expected apiError at top-level")
-        }
-        
-        XCTAssertEqual(apiError["declineCode"] as? String, "")
+        // THEN apiError should NOT be present (matching Android behavior when ApiError is null)
+        XCTAssertNil(error["apiError"], "apiError should not be present when no API error information exists")
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        XCTAssertEqual(error["code"] as? String, "DECLINED_BY_STRIPE_API")
     }
     
     func testExtractSpecializedErrorFields_ConfirmSetupIntentError() {
@@ -1238,7 +1236,16 @@ private class MockConfirmPaymentIntentError: NSError {
     init(requestError: NSError?, declineCode: String?, mockPaymentIntent: Any? = nil) {
         self.mockRequestError = requestError
         self.mockDeclineCode = declineCode
-        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: declineCode != nil ? [ErrorConstants.stripeAPIDeclineCode: declineCode!] : [:])
+        
+        // Build userInfo with both declineCode and stripeAPIErrorCode to match real SDK behavior
+        var userInfo: [String: Any] = [:]
+        if let declineCode = declineCode {
+            userInfo[ErrorConstants.stripeAPIDeclineCode] = declineCode
+            // When there's a declineCode, there's always an API error code
+            userInfo[ErrorConstants.stripeAPIErrorCode] = "card_error"
+        }
+        
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: userInfo)
     }
     
     required init?(coder: NSCoder) {
@@ -1265,7 +1272,16 @@ private class MockConfirmSetupIntentError: NSError {
     init(requestError: NSError?, declineCode: String?, mockSetupIntent: Any? = nil) {
         self.mockRequestError = requestError
         self.mockDeclineCode = declineCode
-        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: declineCode != nil ? [ErrorConstants.stripeAPIDeclineCode: declineCode!] : [:])
+        
+        // Build userInfo with both declineCode and stripeAPIErrorCode to match real SDK behavior
+        var userInfo: [String: Any] = [:]
+        if let declineCode = declineCode {
+            userInfo[ErrorConstants.stripeAPIDeclineCode] = declineCode
+            // When there's a declineCode, there's always an API error code
+            userInfo[ErrorConstants.stripeAPIErrorCode] = "card_error"
+        }
+        
+        super.init(domain: "com.stripe-terminal", code: ErrorCode.Code.declinedByStripeAPI.rawValue, userInfo: userInfo)
     }
     
     required init?(coder: NSCoder) {
