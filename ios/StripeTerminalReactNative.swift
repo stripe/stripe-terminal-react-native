@@ -535,10 +535,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let pi = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
-                self.paymentIntents[uuid] = pi
-                resolve(["paymentIntent": paymentIntent])
+            } else if let paymentIntent = pi {
+                self.paymentIntents[uuid] = paymentIntent
+                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+                resolve(["paymentIntent": mappedPaymentIntent])
             }
         }
     }
@@ -632,8 +632,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 // Always store the latest instance of the PaymentIntent so we pass the latest instance back in
                 // to the confirm call.
                 self.paymentIntents[uuid] = paymentIntent
-                let paymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
-                resolve(["paymentIntent": paymentIntent])
+                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+                resolve(["paymentIntent": mappedPaymentIntent])
             }
         }
     }
@@ -649,10 +649,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let pi = pi {
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
-                self.paymentIntents[uuid] = pi
-                resolve(["paymentIntent": paymentIntent])
+            } else if let paymentIntent = pi {
+                self.paymentIntents[uuid] = paymentIntent
+                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+                resolve(["paymentIntent": mappedPaymentIntent])
             }
         }
     }
@@ -731,10 +731,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         self.confirmPaymentIntentCancelable = Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let pi = pi {
+            } else if let paymentIntent = pi {
                 self.paymentIntents = [:]
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
-                resolve(["paymentIntent": paymentIntent])
+                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+                resolve(["paymentIntent": mappedPaymentIntent])
             }
         }
         self.collectPaymentMethodCancelable = nil
@@ -795,10 +795,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let pi = pi {
+            } else if let paymentIntent = pi {
                 self.paymentIntents[uuid] = nil
-                let paymentIntent = Mappers.mapFromPaymentIntent(pi, uuid: uuid)
-                resolve(["paymentIntent": paymentIntent])
+                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+                resolve(["paymentIntent": mappedPaymentIntent])
             }
         }
     }
