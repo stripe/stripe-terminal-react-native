@@ -557,10 +557,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.createSetupIntent(setupIntentParams) { si, error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let si = si {
-                let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
-                self.setupIntents[uuid] = si
-                resolve(["setupIntent": setupIntent])
+            } else if let setupIntent = si {
+                self.setupIntents[uuid] = setupIntent
+                let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+                resolve(["setupIntent": mappedSetupIntent])
             }
         }
     }
@@ -874,10 +874,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
             if let error = collectError as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let si = si {
-                let setupIntent = Mappers.mapFromSetupIntent(si,uuid: uuid)
+            } else if let setupIntent = si {
                 self.setupIntents[uuid] = nil
-                resolve(["setupIntent": setupIntent])
+                let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+                resolve(["setupIntent": mappedSetupIntent])
             }
         }
     }
@@ -903,10 +903,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret) { si, error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
-            } else if let si = si {
-                self.setupIntents[uuid] = si
-                let si = Mappers.mapFromSetupIntent(si,uuid: uuid)
-                resolve(["setupIntent": si])
+            } else if let setupIntent = si {
+                self.setupIntents[uuid] = setupIntent
+                let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+                resolve(["setupIntent": mappedSetupIntent])
             }
         }
     }
@@ -974,9 +974,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             if let error = collectError as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let setupIntent = si {
-                let setupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 self.setupIntents = [:]
-                resolve(["setupIntent": setupIntent])
+                let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+                resolve(["setupIntent": mappedSetupIntent])
             }
         }
         self.collectSetupIntentCancelable = nil
