@@ -68,12 +68,12 @@ tags:
     permissions:
       all: allow
 
-# - runFlow:
-#     file: e2e/connectReader.yaml
-#     env:
-#       discoveryMethod: "bt-scn-btn"
-# - runFlow:
-#    file: e2e/setupIntent.yaml
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "bt-scn-btn"
+- runFlow:
+    file: e2e/setupIntent.yaml
 
 # In-Person Refund failed due to unsupported country
 - launchApp:
