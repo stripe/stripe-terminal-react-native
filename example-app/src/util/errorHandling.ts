@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 import Toast from 'react-native-root-toast';
 import { checkIfObjectIsStripeError } from '../../../src/Errors/StripeErrorHelpers';
+import { ExampleAppError } from '../errors/ExampleAppError';
 
 /**
  * Enhanced error handling utilities for example-app
@@ -78,6 +79,7 @@ export function extractErrorInfo(
   errorCode: string;
   errorMessage: string;
   nativeErrorCode?: string;
+  errorStep?: string;
   context?: string;
 } {
   if (checkIfObjectIsStripeError(error)) {
@@ -86,6 +88,13 @@ export function extractErrorInfo(
       errorMessage: error.message,
       nativeErrorCode: error.nativeErrorCode,
       context,
+    };
+  } else if (error instanceof ExampleAppError) {
+    return {
+      errorCode: 'EXAMPLE_APP_ERROR',
+      errorMessage: error.message,
+      errorStep: error.step,
+      context: error.step || context,
     };
   } else if (error instanceof Error) {
     return {
