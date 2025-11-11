@@ -42,35 +42,31 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should return false for objects missing required properties', () => {
-      // GIVEN objects missing required StripeError properties
+      // GIVEN objects missing required properties
       const missingName = {
         message: 'Error',
         code: 'DECLINED_BY_STRIPE_API',
         nativeErrorCode: '4000',
         metadata: {},
       };
-
       const missingMessage = {
         name: 'StripeError',
         code: 'DECLINED_BY_STRIPE_API',
         nativeErrorCode: '4000',
         metadata: {},
       };
-
       const missingCode = {
         name: 'StripeError',
         message: 'Error',
         nativeErrorCode: '4000',
         metadata: {},
       };
-
       const missingNativeErrorCode = {
         name: 'StripeError',
         message: 'Error',
         code: 'DECLINED_BY_STRIPE_API',
         metadata: {},
       };
-
       const missingMetadata = {
         name: 'StripeError',
         message: 'Error',
@@ -90,43 +86,39 @@ describe('StripeErrorHelpers', () => {
     it('should return false for objects with wrong property types', () => {
       // GIVEN objects with incorrect property types
       const wrongNameType = {
-        name: 123, // should be 'StripeError' string
+        name: 123,
         message: 'Error',
         code: 'DECLINED_BY_STRIPE_API',
         nativeErrorCode: '4000',
         metadata: {},
       };
-
       const wrongMessageType = {
         name: 'StripeError',
-        message: 123, // should be string
+        message: 123,
         code: 'DECLINED_BY_STRIPE_API',
         nativeErrorCode: '4000',
         metadata: {},
       };
-
       const wrongCodeType = {
         name: 'StripeError',
         message: 'Error',
-        code: 123, // should be string
+        code: 123,
         nativeErrorCode: '4000',
         metadata: {},
       };
-
       const wrongNativeErrorCodeType = {
         name: 'StripeError',
         message: 'Error',
         code: 'DECLINED_BY_STRIPE_API',
-        nativeErrorCode: 123, // should be string
+        nativeErrorCode: 123,
         metadata: {},
       };
-
       const wrongMetadataType = {
         name: 'StripeError',
         message: 'Error',
         code: 'DECLINED_BY_STRIPE_API',
         nativeErrorCode: '4000',
-        metadata: 'not-an-object', // should be object
+        metadata: 'not-an-object',
       };
 
       // WHEN checking if they are StripeErrors
@@ -178,8 +170,8 @@ describe('StripeErrorHelpers', () => {
       expect(error).toBeInstanceOf(Error);
     });
 
-    it('should use code as nativeErrorCode when nativeErrorCode is not provided', () => {
-      // GIVEN error creation parameters without nativeErrorCode
+    it('should use code as nativeErrorCode when not provided', () => {
+      // GIVEN parameters without nativeErrorCode
       const init = {
         code: ErrorCode.READER_BUSY,
         message: 'Reader is busy',
@@ -192,8 +184,8 @@ describe('StripeErrorHelpers', () => {
       expect(error.nativeErrorCode).toBe(ErrorCode.READER_BUSY);
     });
 
-    it('should use empty object as metadata when metadata is not provided', () => {
-      // GIVEN error creation parameters without metadata
+    it('should use empty object as metadata when not provided', () => {
+      // GIVEN parameters without metadata
       const init = {
         code: ErrorCode.READER_BUSY,
         message: 'Reader is busy',
@@ -206,30 +198,25 @@ describe('StripeErrorHelpers', () => {
       expect(error.metadata).toEqual({});
     });
 
-    it('should include optional paymentIntent and setupIntent', () => {
-      // GIVEN error creation parameters with optional fields
-      const paymentIntent = { id: 'pi_test' } as any;
-      const setupIntent = { id: 'seti_test' } as any;
-
+    it('should NOT include paymentIntent or setupIntent (security restriction)', () => {
+      // GIVEN basic error parameters
       const init = {
         code: ErrorCode.DECLINED_BY_STRIPE_API,
         message: 'Payment failed',
-        paymentIntent,
-        setupIntent,
       };
 
       // WHEN creating a StripeError
       const error = createStripeError(init);
 
-      // THEN it should include the optional fields
-      expect(error.paymentIntent).toBe(paymentIntent);
-      expect(error.setupIntent).toBe(setupIntent);
+      // THEN sensitive fields should be undefined
+      expect(error.paymentIntent).toBeUndefined();
+      expect(error.setupIntent).toBeUndefined();
     });
   });
 
   describe('convertNativeErrorToStripeError', () => {
     it('should normalize Android error structure', () => {
-      // GIVEN a raw Android error structure (Android doesn't use userInfo)
+      // GIVEN Android error structure
       const rawAndroidError = {
         code: 'DECLINED_BY_STRIPE_API',
         message: 'Payment was declined',
@@ -249,7 +236,6 @@ describe('StripeErrorHelpers', () => {
       expect(normalizedError.name).toBe('StripeError');
       expect(normalizedError.code).toBe('DECLINED_BY_STRIPE_API');
       expect(normalizedError.message).toBe('Payment was declined');
-      // Android structure: nativeErrorCode falls back to code when userInfo.nativeErrorCode is not available
       expect(normalizedError.nativeErrorCode).toBe('DECLINED_BY_STRIPE_API');
       expect(normalizedError.metadata).toEqual({
         declineCode: 'generic_decline',
@@ -261,7 +247,7 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should normalize iOS error structure with userInfo', () => {
-      // GIVEN a raw iOS error structure
+      // GIVEN iOS error structure
       const rawIOSError = {
         userInfo: {
           code: 'BLUETOOTH_ERROR',
@@ -291,10 +277,8 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should handle missing properties with fallbacks', () => {
-      // GIVEN a raw error with missing properties
-      const rawError = {
-        // missing code, message, nativeErrorCode, metadata
-      };
+      // GIVEN error with missing properties
+      const rawError = {};
 
       // WHEN normalizing the error
       const normalizedError = convertNativeErrorToStripeError(rawError);
@@ -309,8 +293,8 @@ describe('StripeErrorHelpers', () => {
       expect(normalizedError.setupIntent).toBeUndefined();
     });
 
-    it('should prioritize direct properties over userInfo properties', () => {
-      // GIVEN a raw error with both direct and userInfo properties
+    it('should prioritize direct properties over userInfo', () => {
+      // GIVEN error with both direct and userInfo properties
       const rawError = {
         code: 'DIRECT_CODE',
         message: 'Direct message',
@@ -329,12 +313,11 @@ describe('StripeErrorHelpers', () => {
       expect(normalizedError.code).toBe('DIRECT_CODE');
       expect(normalizedError.message).toBe('Direct message');
       expect(normalizedError.metadata).toEqual({ direct: true });
-      // But nativeErrorCode should come from userInfo when not available directly
       expect(normalizedError.nativeErrorCode).toBe('userinfo_native');
     });
 
     it('should use code as fallback for nativeErrorCode', () => {
-      // GIVEN a raw error without nativeErrorCode
+      // GIVEN error without nativeErrorCode
       const rawError = {
         code: 'READER_BUSY',
         message: 'Reader is busy',
@@ -348,7 +331,7 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should use code as fallback for message', () => {
-      // GIVEN a raw error without message
+      // GIVEN error without message
       const rawError = {
         code: 'READER_BUSY',
       };
@@ -361,7 +344,7 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should handle setupIntent from userInfo', () => {
-      // GIVEN a raw error with setupIntent in userInfo
+      // GIVEN error with setupIntent in userInfo
       const rawError = {
         code: 'COLLECT_INPUTS_TIMED_OUT',
         message: 'Setup intent collection timed out',
@@ -378,7 +361,7 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should handle null or undefined raw error', () => {
-      // GIVEN null and undefined raw errors
+      // GIVEN null and undefined values
       // WHEN normalizing them
       const nullResult = convertNativeErrorToStripeError(null);
       const undefinedResult = convertNativeErrorToStripeError(undefined);
@@ -396,7 +379,7 @@ describe('StripeErrorHelpers', () => {
     });
 
     it('should handle complex nested metadata', () => {
-      // GIVEN a raw error with complex nested metadata
+      // GIVEN error with complex nested metadata
       const rawError = {
         code: 'STRIPE_API_ERROR',
         message: 'API error occurred',

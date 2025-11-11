@@ -1,11 +1,7 @@
 export * from './types';
 
 export { ErrorCode } from './Errors/ErrorCodes';
-export {
-  checkIfObjectIsStripeError,
-  convertNativeErrorToStripeError,
-  createStripeError,
-} from './Errors/StripeErrorHelpers';
+export { checkIfObjectIsStripeError } from './Errors/StripeErrorHelpers';
 
 export { StripeErrorMetadataKeys } from './types/ErrorMetadataKeys';
 

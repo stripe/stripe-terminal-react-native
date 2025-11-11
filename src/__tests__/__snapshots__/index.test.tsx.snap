@@ -182,8 +182,6 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
   },
   "UPDATE_DISCOVERED_READERS": "UPDATE_DISCOVERED_READERS",
   "checkIfObjectIsStripeError": [Function],
-  "convertNativeErrorToStripeError": [Function],
-  "createStripeError": [Function],
   "getSdkVersion": [Function],
   "requestNeededAndroidPermissions": [Function],
   "useStripeTerminal": [Function],
