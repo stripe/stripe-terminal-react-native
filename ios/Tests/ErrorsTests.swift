@@ -1197,7 +1197,7 @@ final class ErrorsTests: XCTestCase {
         
         // Verify that scpStripeAPICharge uses the hardcoded value
         // (as it's not yet available in current SDK version)
-        XCTAssertEqual(ErrorConstants.stripeAPICharge, "com.stripe-terminal:StripeAPIErrorCharge")
+        XCTAssertEqual(ErrorConstants.stripeAPICharge, "com.stripe-terminal:StripeAPICharge")
     }
 }
 
