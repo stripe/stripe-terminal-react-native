@@ -68,7 +68,7 @@ struct ErrorConstants {
     static let stripeAPIDocUrl = ErrorKey.stripeAPIDocUrl.rawValue
     static let stripeAPIErrorParameter = ErrorKey.stripeAPIErrorParameter.rawValue
     // TODO: Replace with ErrorKey.stripeAPICharge.rawValue when available in Stripe Terminal iOS SDK v5.1+
-    static let stripeAPICharge = "com.stripe-terminal:StripeAPIErrorCharge"
+    static let stripeAPICharge = "com.stripe-terminal:StripeAPICharge"
     
     // Reader and offline specific
     static let readerMessage = ErrorKey.readerMessage.rawValue
