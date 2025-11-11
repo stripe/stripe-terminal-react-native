@@ -24,6 +24,7 @@ import type {
   NavigationProp,
 } from '@react-navigation/native';
 import type { RouteParamList } from '../App';
+import { showErrorAlert } from '../util/errorHandling';
 
 type InputValuesType = {
   registration_code: string;
@@ -90,8 +91,7 @@ export default function RegisterInternetReaderScreen() {
     });
 
     if (discoverReadersError) {
-      const { code, message } = discoverReadersError;
-      Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      showErrorAlert(discoverReadersError, 'Discover readers error');
       if (navigation.canGoBack()) {
         navigation.goBack();
       }
@@ -106,7 +106,7 @@ export default function RegisterInternetReaderScreen() {
 
     if (error) {
       console.log('connectInternetReader error:', error);
-      Alert.alert('Connect reader error: ', `${error.code}, ${error.message}`);
+      showErrorAlert(error, 'Connect reader error');
       if (navigation.canGoBack()) {
         navigation.goBack();
       }
