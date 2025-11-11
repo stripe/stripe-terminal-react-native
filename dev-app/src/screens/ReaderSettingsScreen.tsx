@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
+import { ScrollView, StyleSheet, Switch } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';

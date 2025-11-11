@@ -13,7 +13,6 @@ import {
   Platform,
   StyleSheet,
   View,
-  Alert,
 } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';

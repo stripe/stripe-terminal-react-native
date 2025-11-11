@@ -11,7 +11,6 @@ import {
   type StripeError,
   type AllowRedisplay,
   type CollectionReason,
-  ErrorCode,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';

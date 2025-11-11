@@ -21,7 +21,6 @@ import {
   type PaymentIntent,
   type StripeError,
   type AllowRedisplay,
-  ErrorCode,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
