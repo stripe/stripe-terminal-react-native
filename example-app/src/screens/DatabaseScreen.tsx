@@ -13,18 +13,23 @@ export default function DatabaseScreen() {
     useState<OfflineStatus | null>(null);
   const currencySymbols = [
     { value: 'usd', label: '$' },
+    { value: 'aed', label: 'AED' },
     { value: 'aud', label: 'A$' },
+    { value: 'bgn', label: 'BGN'},
     { value: 'cad', label: 'CA$' },
     { value: 'chf', label: 'CHF' },
     { value: 'czk', label: 'CZK' },
     { value: 'dkk', label: 'DKK' },
     { value: 'eur', label: '€' },
     { value: 'gbp', label: '£' },
+    { value: 'gip', label: 'GIP' },
     { value: 'hkd', label: 'HK$' },
+    { value: 'huf', label: 'HUF' },
     { value: 'myr', label: 'MYR' },
     { value: 'nok', label: 'NOK' },
     { value: 'nzd', label: 'NZ$' },
     { value: 'pln', label: 'PLN' },
+    { value: 'ron', label: 'RON' },
     { value: 'sek', label: 'SEK' },
     { value: 'sgd', label: 'SGD' },
   ];
