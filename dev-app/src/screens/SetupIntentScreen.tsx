@@ -12,11 +12,11 @@ import {
   type AllowRedisplay,
   type CollectionReason,
   ErrorCode,
-  createStripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
+import { DevAppError } from '../errors/DevAppError';
 
 import type { RouteParamList } from '../App';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -227,14 +227,9 @@ export default function SetupIntentScreen() {
 
       if (!resp?.client_secret) {
         console.error('no client secret returned!');
-        const error = createStripeError({
-          code: ErrorCode.INVALID_CLIENT_SECRET,
-          message: 'No client_secret returned from API',
-          nativeErrorCode: 'INVALID_CLIENT_SECRET',
-          metadata: {
-            apiResponse: resp,
-            context: 'createSetupIntent',
-          },
+        const error = new DevAppError('No client_secret returned from API', {
+          step: 'createSetupIntent',
+          context: { apiResponse: resp },
         });
 
         addLogs({
@@ -244,10 +239,9 @@ export default function SetupIntentScreen() {
               name: 'Failed',
               description: 'terminal.createSetupIntent',
               metadata: {
-                errorCode: error.code,
                 errorMessage: error.message,
-                nativeErrorCode: error.nativeErrorCode,
-                errorMetadata: JSON.stringify(error.metadata),
+                errorStep: error.step,
+                errorContext: JSON.stringify(error.context),
               },
             },
           ],

@@ -22,7 +22,6 @@ import {
   type StripeError,
   type AllowRedisplay,
   ErrorCode,
-  createStripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -30,6 +29,7 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
+import { DevAppError } from '../errors/DevAppError';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Modal } from 'react-native';
 import {
@@ -268,14 +268,9 @@ export default function CollectCardPaymentScreen() {
       }
 
       if (!resp.client_secret) {
-        const error = createStripeError({
-          code: ErrorCode.INVALID_CLIENT_SECRET,
-          message: 'No client_secret returned from API',
-          nativeErrorCode: 'INVALID_CLIENT_SECRET',
-          metadata: {
-            apiResponse: resp,
-            context: 'createPaymentIntent',
-          },
+        const error = new DevAppError('No client_secret returned from API', {
+          step: 'createPaymentIntent',
+          context: { apiResponse: resp },
         });
         return Promise.resolve({ error });
       }
@@ -359,12 +354,9 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (!paymentIntent) {
-      const error = createStripeError({
-        code: ErrorCode.MISSING_REQUIRED_PARAMETER,
-        message: 'PaymentIntent is null after creation',
-        nativeErrorCode: 'MISSING_PAYMENT_INTENT',
-        metadata: {
-          context: 'createPaymentIntent',
+      const error = new DevAppError('PaymentIntent is null after creation', {
+        step: 'createPaymentIntent',
+        context: {
           paymentIntentError: paymentIntentError
             ? JSON.stringify(paymentIntentError)
             : null,
@@ -379,10 +371,9 @@ export default function CollectCardPaymentScreen() {
             description: 'terminal.createPaymentIntent',
             onBack: cancelCollectPaymentMethod,
             metadata: {
-              errorCode: error.code,
               errorMessage: error.message,
-              nativeErrorCode: error.nativeErrorCode,
-              errorMetadata: JSON.stringify(error.metadata),
+              errorStep: error.step,
+              errorContext: JSON.stringify(error.context),
             },
           },
         ],
@@ -459,19 +450,19 @@ export default function CollectCardPaymentScreen() {
         let cardBrand = paymentIntent.paymentMethod?.cardPresentDetails?.brand;
 
         if (cardBrand && cardBrand === declineCardBrand) {
-          const integrationError = createStripeError({
-            code: ErrorCode.CANCELED,
-            message: `Card brand '${cardBrand}' rejected by integration logic`,
-            nativeErrorCode: 'INTEGRATION_CANCELED_CARD_BRAND',
-            metadata: {
-              cardBrand,
-              declineCardBrand,
-              paymentIntentId: paymentIntent.id,
-              context: 'collectPaymentMethod',
-              reason: 'card_brand_rejection',
-            },
-            paymentIntent,
-          });
+          const integrationError = new DevAppError(
+            `Card brand '${cardBrand}' rejected by integration logic`,
+            {
+              step: 'collectPaymentMethod',
+              context: {
+                cardBrand,
+                declineCardBrand,
+                paymentIntentId: paymentIntent.id,
+                paymentIntentStatus: paymentIntent.status,
+                reason: 'card_brand_rejection',
+              },
+            }
+          );
 
           addLogs({
             name: 'Collect Payment Method',
@@ -481,10 +472,9 @@ export default function CollectCardPaymentScreen() {
                 description: 'terminal.collectPaymentMethod',
                 onBack: cancelCollectPaymentMethod,
                 metadata: {
-                  errorCode: integrationError.code,
                   errorMessage: integrationError.message,
-                  nativeErrorCode: integrationError.nativeErrorCode,
-                  errorMetadata: JSON.stringify(integrationError.metadata),
+                  errorStep: integrationError.step,
+                  errorContext: JSON.stringify(integrationError.context),
                 },
               },
             ],
@@ -1291,9 +1281,10 @@ export default function CollectCardPaymentScreen() {
         <List
           bolded={false}
           topSpacing={false}
-          title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${
-            inputValues.currency.toUpperCase()
-          }`}
+          title={`${formatAmountForDisplay(
+            inputValues.amount,
+            inputValues.currency
+          )} ${inputValues.currency.toUpperCase()}`}
         >
           <ListItem
             testID="collect-payment-button"
