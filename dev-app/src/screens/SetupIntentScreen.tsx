@@ -102,18 +102,14 @@ export default function SetupIntentScreen() {
         setupIntent: si,
       });
       if (error) {
+        const devError = DevAppError.fromStripeError(error);
         addLogs({
           name: 'Process Payment',
           events: [
             {
               name: 'Failed',
               description: 'terminal.confirmSetupIntent',
-              metadata: {
-                errorCode: error.code,
-                errorMessage: error.message,
-                nativeErrorCode: error.nativeErrorCode,
-                errorMetadata: JSON.stringify(error.metadata),
-              },
+              metadata: devError.toJSON(),
             },
           ],
         });
@@ -156,18 +152,14 @@ export default function SetupIntentScreen() {
       collectionReason: collectReason,
     });
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Setup Intent',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-              nativeErrorCode: error.nativeErrorCode,
-              errorMetadata: JSON.stringify(error.metadata),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -226,10 +218,16 @@ export default function SetupIntentScreen() {
 
       if (!resp?.client_secret) {
         console.error('no client secret returned!');
-        const error = new DevAppError('No client_secret returned from API', {
-          step: 'createSetupIntent',
-          context: { apiResponse: resp },
-        });
+        const error = new DevAppError(
+          'NO_CLIENT_SECRET',
+          'No client_secret returned from API',
+          {
+            context: {
+              step: 'createSetupIntent',
+              apiResponse: resp,
+            },
+          }
+        );
 
         addLogs({
           name: 'Create Setup Intent',
@@ -237,11 +235,7 @@ export default function SetupIntentScreen() {
             {
               name: 'Failed',
               description: 'terminal.createSetupIntent',
-              metadata: {
-                errorMessage: error.message,
-                errorStep: error.step,
-                errorContext: JSON.stringify(error.context),
-              },
+              metadata: error.toJSON(),
             },
           ],
         });
@@ -289,18 +283,14 @@ export default function SetupIntentScreen() {
     }
 
     if (setupIntentError) {
+      const devError = DevAppError.fromStripeError(setupIntentError);
       addLogs({
         name: 'Create Setup Intent',
         events: [
           {
             name: 'Failed',
             description: 'terminal.createSetupIntent',
-            metadata: {
-              errorCode: setupIntentError.code,
-              errorMessage: setupIntentError.message,
-              nativeErrorCode: setupIntentError.nativeErrorCode,
-              errorMetadata: JSON.stringify(setupIntentError.metadata),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });

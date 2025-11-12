@@ -11,6 +11,7 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
+import { DevAppError } from '../errors/DevAppError';
 import {
   useNavigation,
   useRoute,
@@ -67,20 +68,16 @@ export default function CollectInputsScreen() {
         simulatedCollectInputsBehavior
       );
       if (simulateResultResponse.error) {
+        const devError = DevAppError.fromStripeError(
+          simulateResultResponse.error
+        );
         addLogs({
           name: 'Simulate Collect Inputs Result',
           events: [
             {
               name: 'Failed',
               description: 'terminal.simulateCollectInputs',
-              metadata: {
-                errorCode: simulateResultResponse.error?.code,
-                errorMessage: simulateResultResponse.error?.message,
-                nativeErrorCode: simulateResultResponse.error?.nativeErrorCode,
-                errorMetadata: JSON.stringify(
-                  simulateResultResponse.error?.metadata
-                ),
-              },
+              metadata: devError.toJSON(),
             },
           ],
         });
@@ -100,18 +97,14 @@ export default function CollectInputsScreen() {
     const response = await collectInputs(collectInputsParams);
 
     if (response.error) {
+      const devError = DevAppError.fromStripeError(response.error);
       addLogs({
         name: 'Collect Inputs',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectInputs',
-            metadata: {
-              errorCode: response.error?.code,
-              errorMessage: response.error?.message,
-              nativeErrorCode: response.error?.nativeErrorCode,
-              errorMetadata: JSON.stringify(response.error?.metadata),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });

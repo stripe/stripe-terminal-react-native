@@ -32,8 +32,10 @@ export interface ErrorInfo {
   errorCode: string;
   errorMessage: string;
   nativeErrorCode?: string;
-  errorStep?: string;
-  context?: string | Record<string, unknown>;
+  paymentIntent?: string;
+  setupIntent?: string;
+  refund?: string;
+  context?: string;
 }
 
 /**
@@ -64,7 +66,7 @@ export function getErrorCode(
   if (checkIfObjectIsStripeError(error)) {
     return error.code;
   } else if (error instanceof DevAppError) {
-    return 'DEV_APP_ERROR';
+    return error.code;
   } else if (error instanceof Error) {
     return error.name || 'Error';
   } else {
@@ -124,43 +126,73 @@ export function extractErrorInfo(
       errorCode: error.code,
       errorMessage: error.message,
       nativeErrorCode: error.nativeErrorCode,
-      context: additionalContext,
+      paymentIntent: error.paymentIntent
+        ? JSON.stringify(error.paymentIntent, undefined, 2)
+        : undefined,
+      setupIntent: error.setupIntent
+        ? JSON.stringify(error.setupIntent, undefined, 2)
+        : undefined,
+      refund: error.refund
+        ? JSON.stringify(error.refund, undefined, 2)
+        : undefined,
+      context: additionalContext
+        ? typeof additionalContext === 'string'
+          ? additionalContext
+          : JSON.stringify(additionalContext)
+        : undefined,
     };
   } else if (error instanceof DevAppError) {
-    let mergedContext: string | Record<string, unknown> | undefined;
+    let mergedContext: string | undefined;
 
     if (error.context && additionalContext) {
-      if (
-        typeof error.context === 'object' &&
-        typeof additionalContext === 'object'
-      ) {
-        mergedContext = { ...error.context, ...additionalContext };
-      } else if (typeof error.context === 'object') {
-        mergedContext = { ...error.context, additionalContext };
+      if (typeof additionalContext === 'string') {
+        mergedContext = JSON.stringify({
+          errorContext: error.context,
+          additionalContext,
+        });
       } else {
-        mergedContext = { errorContext: error.context, additionalContext };
+        mergedContext = JSON.stringify({
+          errorContext: error.context,
+          ...additionalContext,
+        });
       }
-    } else {
-      mergedContext = error.context || additionalContext;
+    } else if (error.context) {
+      mergedContext = error.context;
+    } else if (additionalContext) {
+      mergedContext =
+        typeof additionalContext === 'string'
+          ? additionalContext
+          : JSON.stringify(additionalContext);
     }
 
     return {
-      errorCode: 'DEV_APP_ERROR',
+      errorCode: error.code,
       errorMessage: error.message,
-      errorStep: error.step,
+      nativeErrorCode: error.nativeErrorCode,
+      paymentIntent: error.paymentIntent,
+      setupIntent: error.setupIntent,
+      refund: error.refund,
       context: mergedContext,
     };
   } else if (error instanceof Error) {
     return {
       errorCode: error.name || 'Error',
       errorMessage: error.message,
-      context: additionalContext,
+      context: additionalContext
+        ? typeof additionalContext === 'string'
+          ? additionalContext
+          : JSON.stringify(additionalContext)
+        : undefined,
     };
   } else {
     return {
       errorCode: 'UNKNOWN_ERROR',
       errorMessage: String(error),
-      context: additionalContext,
+      context: additionalContext
+        ? typeof additionalContext === 'string'
+          ? additionalContext
+          : JSON.stringify(additionalContext)
+        : undefined,
     };
   }
 }

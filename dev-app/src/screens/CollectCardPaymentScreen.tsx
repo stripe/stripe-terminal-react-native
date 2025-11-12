@@ -267,10 +267,16 @@ export default function CollectCardPaymentScreen() {
       }
 
       if (!resp.client_secret) {
-        const error = new DevAppError('No client_secret returned from API', {
-          step: 'createPaymentIntent',
-          context: { apiResponse: resp },
-        });
+        const error = new DevAppError(
+          'NO_CLIENT_SECRET',
+          'No client_secret returned from API',
+          {
+            context: {
+              step: 'createPaymentIntent',
+              apiResponse: resp,
+            },
+          }
+        );
         return Promise.resolve({ error });
       }
 
@@ -333,6 +339,7 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (paymentIntentError) {
+      const devError = DevAppError.fromStripeError(paymentIntentError);
       addLogs({
         name: 'Create Payment Intent',
         events: [
@@ -340,12 +347,7 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
             onBack: cancelCollectPaymentMethod,
-            metadata: {
-              errorCode: paymentIntentError?.code,
-              errorMessage: paymentIntentError?.message,
-              nativeErrorCode: paymentIntentError?.nativeErrorCode,
-              errorMetadata: JSON.stringify(paymentIntentError?.metadata),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -353,14 +355,18 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (!paymentIntent) {
-      const error = new DevAppError('PaymentIntent is null after creation', {
-        step: 'createPaymentIntent',
-        context: {
-          paymentIntentError: paymentIntentError
-            ? JSON.stringify(paymentIntentError)
-            : null,
-        },
-      });
+      const error = new DevAppError(
+        'NO_PAYMENT_INTENT',
+        'PaymentIntent is null after creation',
+        {
+          context: {
+            step: 'createPaymentIntent',
+            paymentIntentError: paymentIntentError
+              ? JSON.stringify(paymentIntentError)
+              : null,
+          },
+        }
+      );
 
       addLogs({
         name: 'Create Payment Intent',
@@ -369,11 +375,7 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
             onBack: cancelCollectPaymentMethod,
-            metadata: {
-              errorMessage: error.message,
-              errorStep: error.step,
-              errorContext: JSON.stringify(error.context),
-            },
+            metadata: error.toJSON(),
           },
         ],
       });
@@ -427,6 +429,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Payment Method',
         events: [
@@ -434,13 +437,7 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.collectPaymentMethod',
             onBack: cancelCollectPaymentMethod,
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-              nativeErrorCode: error.nativeErrorCode,
-              errorMetadata: JSON.stringify(error.metadata),
-              pi: JSON.stringify(paymentIntent, undefined, 2),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -450,10 +447,11 @@ export default function CollectCardPaymentScreen() {
 
         if (cardBrand && cardBrand === declineCardBrand) {
           const integrationError = new DevAppError(
+            'CARD_BRAND_REJECTED',
             `Card brand '${cardBrand}' rejected by integration logic`,
             {
-              step: 'collectPaymentMethod',
               context: {
+                step: 'collectPaymentMethod',
                 cardBrand,
                 declineCardBrand,
                 paymentIntentId: paymentIntent.id,
@@ -471,8 +469,8 @@ export default function CollectCardPaymentScreen() {
                 description: 'terminal.collectPaymentMethod',
                 onBack: cancelCollectPaymentMethod,
                 metadata: {
+                  errorCode: integrationError.code,
                   errorMessage: integrationError.message,
-                  errorStep: integrationError.step,
                   errorContext: JSON.stringify(integrationError.context),
                 },
               },
@@ -558,17 +556,14 @@ export default function CollectCardPaymentScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Confirm Payment Intent',
         events: [
           {
             name: 'Failed',
             description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-              pi: JSON.stringify(paymentIntent, undefined, 2),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
