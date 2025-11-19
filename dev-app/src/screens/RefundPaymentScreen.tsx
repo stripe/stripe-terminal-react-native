@@ -17,6 +17,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
+import { DevAppError } from '../errors/DevAppError';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
@@ -126,16 +127,14 @@ export default function RefundPaymentScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Refund Payment Method',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectRefundPaymentMethod',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -168,16 +167,14 @@ export default function RefundPaymentScreen() {
     });
     const { error, refund } = await confirmRefund();
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Confirm Refund',
         events: [
           {
             name: 'Failed',
             description: 'terminal.confirmRefund',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -386,9 +383,10 @@ export default function RefundPaymentScreen() {
       <List
         bolded={false}
         topSpacing={false}
-        title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${
-          inputValues.currency.toUpperCase()
-        }`}
+        title={`${formatAmountForDisplay(
+          inputValues.amount,
+          inputValues.currency
+        )} ${inputValues.currency.toUpperCase()}`}
       >
         <ListItem
           color={colors.blue}

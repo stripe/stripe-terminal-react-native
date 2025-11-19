@@ -5,6 +5,7 @@ import Canvas from 'react-native-canvas';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
+import { DevAppError } from '../errors/DevAppError';
 
 import List from '../components/List';
 import ListItem from '../components/ListItem';
@@ -58,16 +59,14 @@ export default function PrintContentScreen() {
     const { error } = await print(contentUri);
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Print Content',
         events: [
           {
             name: 'Printing failed',
             description: 'terminal.print',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });

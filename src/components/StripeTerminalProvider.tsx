@@ -2,19 +2,20 @@ import React, { useCallback, useState, useMemo, useRef } from 'react';
 import {
   type Reader,
   type LogLevel,
-  CommonError,
-  type StripeError,
   type EventResult,
   type PaymentStatus,
   type OfflineStatus,
   type PaymentIntent,
   type ReaderEvent,
 } from '../types';
+import type { StripeError } from '../types/StripeError';
 import { StripeTerminalContext } from './StripeTerminalContext';
 import { initialize, setConnectionToken } from '../functions';
 import { useListener } from '../hooks/useListener';
 import { NativeModules } from 'react-native';
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
+import { createStripeError } from '../Errors/StripeErrorHelpers';
+import { ErrorCode } from '../Errors/ErrorCodes';
 
 const {
   FETCH_TOKEN_PROVIDER,
@@ -321,10 +322,10 @@ export function StripeTerminalProvider({
       console.error(error);
 
       return {
-        error: {
-          code: CommonError.Failed,
+        error: createStripeError({
+          code: ErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR,
           message: TOKEN_PROVIDER_ERROR_MESSAGE,
-        },
+        }),
       };
     }
 

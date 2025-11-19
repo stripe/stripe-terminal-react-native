@@ -979,13 +979,8 @@ class Mappers {
             "textToSpeechStatus": mapFromReaderTextToSpeechStatus(readerSettings.accessibility.textToSpeechStatus),
         ]
 
-        let errorDic: NSDictionary
         if let error = readerSettings.accessibility.error as NSError? {
-            errorDic = [
-                "code": ErrorCode.Code.init(rawValue: error.code) ?? ErrorCode.unexpectedSdkError,
-                "message": error.localizedDescription,
-            ]
-            accessibility["error"] = errorDic
+            accessibility["error"] = Errors.mapToStripeErrorObject(nsError: error)
         }
 
         return(["accessibility": accessibility])

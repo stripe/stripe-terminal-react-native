@@ -20,7 +20,6 @@ import {
   useStripeTerminal,
   type PaymentIntent,
   type StripeError,
-  CommonError,
   type AllowRedisplay,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -29,6 +28,7 @@ import ListItem from '../components/ListItem';
 import { LogContext } from '../components/LogContext';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
+import { DevAppError } from '../errors/DevAppError';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Modal } from 'react-native';
 import {
@@ -240,7 +240,7 @@ export default function CollectCardPaymentScreen() {
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
-    let paymentIntentError: StripeError<CommonError> | undefined;
+    let paymentIntentError: StripeError | undefined;
 
     if (deviceType === 'verifoneP400') {
       const resp = await api.createPaymentIntent({
@@ -272,9 +272,17 @@ export default function CollectCardPaymentScreen() {
       }
 
       if (!resp.client_secret) {
-        return Promise.resolve({
-          error: { message: 'no client_secret returned!' },
-        });
+        const error = new DevAppError(
+          'NO_CLIENT_SECRET',
+          'No client_secret returned from API',
+          {
+            context: {
+              step: 'createPaymentIntent',
+              apiResponse: resp,
+            },
+          }
+        );
+        return Promise.resolve({ error });
       }
 
       const response = await retrievePaymentIntent(resp.client_secret);
@@ -336,6 +344,7 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (paymentIntentError) {
+      const devError = DevAppError.fromStripeError(paymentIntentError);
       addLogs({
         name: 'Create Payment Intent',
         events: [
@@ -343,10 +352,7 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
             onBack: cancelCollectPaymentMethod,
-            metadata: {
-              errorCode: paymentIntentError?.code,
-              errorMessage: paymentIntentError?.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -354,6 +360,19 @@ export default function CollectCardPaymentScreen() {
     }
 
     if (!paymentIntent) {
+      const error = new DevAppError(
+        'NO_PAYMENT_INTENT',
+        'PaymentIntent is null after creation',
+        {
+          context: {
+            step: 'createPaymentIntent',
+            paymentIntentError: paymentIntentError
+              ? JSON.stringify(paymentIntentError)
+              : null,
+          },
+        }
+      );
+
       addLogs({
         name: 'Create Payment Intent',
         events: [
@@ -361,10 +380,7 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
             onBack: cancelCollectPaymentMethod,
-            metadata: {
-              errorCode: 'no_code',
-              errorMessage: 'PaymentIntent is null!',
-            },
+            metadata: error.toJSON(),
           },
         ],
       });
@@ -418,6 +434,7 @@ export default function CollectCardPaymentScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Payment Method',
         events: [
@@ -425,11 +442,7 @@ export default function CollectCardPaymentScreen() {
             name: 'Failed',
             description: 'terminal.collectPaymentMethod',
             onBack: cancelCollectPaymentMethod,
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-              pi: JSON.stringify(paymentIntent, undefined, 2),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -437,7 +450,22 @@ export default function CollectCardPaymentScreen() {
       if (enableUpdatePaymentIntent) {
         let cardBrand = paymentIntent.paymentMethod?.cardPresentDetails?.brand;
 
-        if (cardBrand && cardBrand == declineCardBrand) {
+        if (cardBrand && cardBrand === declineCardBrand) {
+          const integrationError = new DevAppError(
+            'CARD_BRAND_REJECTED',
+            `Card brand '${cardBrand}' rejected by integration logic`,
+            {
+              context: {
+                step: 'collectPaymentMethod',
+                cardBrand,
+                declineCardBrand,
+                paymentIntentId: paymentIntent.id,
+                paymentIntentStatus: paymentIntent.status,
+                reason: 'card_brand_rejection',
+              },
+            }
+          );
+
           addLogs({
             name: 'Collect Payment Method',
             events: [
@@ -446,7 +474,9 @@ export default function CollectCardPaymentScreen() {
                 description: 'terminal.collectPaymentMethod',
                 onBack: cancelCollectPaymentMethod,
                 metadata: {
-                  errorMessage: 'Integration rejected card due to card brand',
+                  errorCode: integrationError.code,
+                  errorMessage: integrationError.message,
+                  errorContext: JSON.stringify(integrationError.context),
                 },
               },
             ],
@@ -531,17 +561,14 @@ export default function CollectCardPaymentScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Confirm Payment Intent',
         events: [
           {
             name: 'Failed',
             description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-              pi: JSON.stringify(paymentIntent, undefined, 2),
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -1253,9 +1280,10 @@ export default function CollectCardPaymentScreen() {
         <List
           bolded={false}
           topSpacing={false}
-          title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${
-            inputValues.currency.toUpperCase()
-          }`}
+          title={`${formatAmountForDisplay(
+            inputValues.amount,
+            inputValues.currency
+          )} ${inputValues.currency.toUpperCase()}`}
         >
           <ListItem
             testID="collect-payment-button"

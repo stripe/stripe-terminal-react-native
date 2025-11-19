@@ -23,6 +23,7 @@ import ListItem from '../components/ListItem';
 import List from '../components/List';
 
 import type { RouteParamList } from '../App';
+import { showErrorAlert } from '../util/errorHandling';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -34,7 +35,8 @@ const SIMULATED_UPDATE_PLANS = [
 
 export default function DiscoverReadersScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
-  const { params } = useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
+  const { params } =
+    useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
   const [showPicker, setShowPicker] = useState(false);
@@ -130,8 +132,7 @@ export default function DiscoverReadersScreen() {
     });
 
     if (discoverReadersError) {
-      const { code, message } = discoverReadersError;
-      Alert.alert('Discover readers error: ', `${code}, ${message}`);
+      showErrorAlert(discoverReadersError, 'Discover readers error');
       if (navigation.canGoBack()) {
         navigation.goBack();
       }
@@ -166,7 +167,7 @@ export default function DiscoverReadersScreen() {
     }
     if (error) {
       setConnectingReader(undefined);
-      Alert.alert(error.code, error.message);
+      showErrorAlert(error);
     } else if (selectedUpdatePlan !== 'required' && navigation.canGoBack()) {
       navigation.goBack();
     }

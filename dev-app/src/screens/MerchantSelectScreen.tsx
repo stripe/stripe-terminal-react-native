@@ -21,6 +21,7 @@ import {
   setStoredAccounts,
   setStoredConnectedAccountID,
 } from '../util/merchantStorage';
+import { showErrorAlert } from '../util/errorHandling';
 
 export default function MerchantSelectScreen() {
   const { refreshToken, setRefreshToken } = useContext(AppContext);
@@ -102,7 +103,7 @@ export default function MerchantSelectScreen() {
     setIsAddPending(true);
     const addedAccount = await Api.getAccount(newAccountKey);
     if ('error' in addedAccount) {
-      Alert.alert('Unable to add account', addedAccount.error.message);
+      showErrorAlert(addedAccount.error, 'Unable to add account');
       setIsAddPending(false);
       return;
     }

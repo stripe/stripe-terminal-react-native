@@ -7,6 +7,7 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
+import { DevAppError } from '../errors/DevAppError';
 
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import List from '../components/List';
@@ -50,16 +51,14 @@ export default function CollectDataScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Data',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectData',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -110,16 +109,14 @@ export default function CollectDataScreen() {
     });
 
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Data',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectData',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });

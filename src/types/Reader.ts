@@ -1,4 +1,5 @@
-import type { Location, LocationStatus, StripeError } from './';
+import type { Location, LocationStatus } from './';
+import type { StripeError } from './StripeError';
 
 export namespace Reader {
   export type DiscoveryMethod = IOS.DiscoveryMethod | Android.DiscoveryMethod;

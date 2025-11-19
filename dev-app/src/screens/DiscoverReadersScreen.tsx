@@ -44,6 +44,7 @@ import List from '../components/List';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import type { NavigationProp } from '@react-navigation/native';
+import { showErrorAlert } from '../util/errorHandling';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -176,9 +177,8 @@ export default function DiscoverReadersScreen() {
     });
 
     if (discoverReadersError) {
-      const { code, message } = discoverReadersError;
       if (shouldShowDiscoverError(discoverReadersError)) {
-        Alert.alert('Discover readers error: ', `${code}, ${message}`);
+        showErrorAlert(discoverReadersError, 'Discover readers error');
       }
       if (navigation.canGoBack()) {
         navigation.goBack();
@@ -229,7 +229,7 @@ export default function DiscoverReadersScreen() {
     }
     if (error) {
       setConnectingReader(undefined);
-      Alert.alert(error.code, error.message);
+      showErrorAlert(error);
     } else if (selectedUpdatePlan !== 'required' && navigation.canGoBack()) {
       navigation.goBack();
     }

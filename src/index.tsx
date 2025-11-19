@@ -1,4 +1,10 @@
 export * from './types';
+
+export { ErrorCode } from './Errors/ErrorCodes';
+export { checkIfObjectIsStripeError } from './Errors/StripeErrorHelpers';
+
+export { StripeErrorMetadataKeys } from './types/ErrorMetadataKeys';
+
 export * from './StripeTerminalSdk';
 export { default as StripeTerminalSdk } from './StripeTerminalSdk';
 import * as PackageJson from '../package.json';

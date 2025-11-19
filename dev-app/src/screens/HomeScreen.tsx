@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
+import { showErrorToast } from '../util/errorHandling';
 import icon from '../assets/icon.png';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
@@ -67,31 +68,22 @@ export default function HomeScreen() {
       setOnline(status.sdk.networkStatus === 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
-      console.log('onDidForwardingFailure ' + error?.message);
-      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
-        duration: Toast.durations.LONG,
-        position: Toast.positions.BOTTOM,
-        shadow: true,
-        animation: true,
-        hideOnPress: true,
-        delay: 0,
+      console.log('onDidForwardingFailure', {
+        code: error?.code,
+        message: error?.message,
+        nativeErrorCode: error?.nativeErrorCode,
+        metadata: error?.metadata,
       });
-
-      setTimeout(function () {
-        Toast.hide(toast);
-      }, 3000);
+      showErrorToast(error);
     },
     onDidForwardPaymentIntent(paymentIntent, error) {
       let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
       if (error) {
-        toastMsg +
-          'ErrorCode = ' +
-          error.code +
-          '. ErrorMsg = ' +
-          error.message;
+        toastMsg +=
+          'ErrorCode = ' + error.code + '. ErrorMsg = ' + error.message;
       }
       console.log(toastMsg);
-      let toast = Toast.show(toastMsg, {
+      const toast = Toast.show(toastMsg, {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
         shadow: true,

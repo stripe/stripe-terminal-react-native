@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
+import { ScrollView, StyleSheet, Switch } from 'react-native';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
+import { showErrorAlert } from '../util/errorHandling';
 
 export default function ReaderSettingsScreen() {
   const { setReaderSettings, getReaderSettings } = useStripeTerminal();
@@ -22,16 +23,13 @@ export default function ReaderSettingsScreen() {
 
     if (response.error) {
       console.log('error', response.error.code);
-      Alert.alert('setReaderSettings error', response.error.code);
+      showErrorAlert(response.error, 'setReaderSettings error');
       return;
     }
 
-    if (response.accessibility?.error) {
-      console.log('error', response.accessibility?.error);
-      Alert.alert(
-        'getReaderSettings error',
-        response.accessibility?.error.message
-      );
+    if ('accessibility' in response && response.accessibility?.error) {
+      console.log('error', response.accessibility.error);
+      showErrorAlert(response.accessibility.error, 'setReaderSettings error');
       return;
     }
   };
@@ -47,20 +45,20 @@ export default function ReaderSettingsScreen() {
 
       if (response.error) {
         console.log('error', response.error.code);
-        Alert.alert('getReaderSettings error', response.error.message);
+        showErrorAlert(response.error, 'getReaderSettings error');
         return;
       }
 
-      if (response.accessibility?.error) {
-        console.log('error', response.accessibility?.error);
-        Alert.alert(
-          'getReaderSettings error',
-          response.accessibility?.error.message
-        );
+      if ('accessibility' in response && response.accessibility?.error) {
+        console.log('error', response.accessibility.error);
+        showErrorAlert(response.accessibility.error, 'getReaderSettings error');
         return;
       }
 
-      if (response.accessibility?.textToSpeechStatus === 'speakers') {
+      if (
+        'accessibility' in response &&
+        response.accessibility?.textToSpeechStatus === 'speakers'
+      ) {
         setEnableTextToSpeechViaSpeakers(true);
       } else {
         setEnableTextToSpeechViaSpeakers(false);

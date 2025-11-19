@@ -24,6 +24,6 @@ class RNSetupIntentCallback(
     }
 
     override fun onFailure(e: TerminalException) {
-        promise.resolve(createError(e))
+        promise.resolve(createError(e, uuid))
     }
 }

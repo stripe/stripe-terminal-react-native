@@ -8,7 +8,6 @@ import { StyleSheet, Switch, Platform } from 'react-native';
 import {
   type SetupIntent,
   useStripeTerminal,
-  CommonError,
   type StripeError,
   type AllowRedisplay,
   type CollectionReason,
@@ -16,6 +15,7 @@ import {
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
+import { DevAppError } from '../errors/DevAppError';
 
 import type { RouteParamList } from '../App';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -102,16 +102,14 @@ export default function SetupIntentScreen() {
         setupIntent: si,
       });
       if (error) {
+        const devError = DevAppError.fromStripeError(error);
         addLogs({
           name: 'Process Payment',
           events: [
             {
               name: 'Failed',
               description: 'terminal.confirmSetupIntent',
-              metadata: {
-                errorCode: error.code,
-                errorMessage: error.message,
-              },
+              metadata: devError.toJSON(),
             },
           ],
         });
@@ -154,16 +152,14 @@ export default function SetupIntentScreen() {
       collectionReason: collectReason,
     });
     if (error) {
+      const devError = DevAppError.fromStripeError(error);
       addLogs({
         name: 'Collect Setup Intent',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectSetupIntentPaymentMethod',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });
@@ -197,7 +193,7 @@ export default function SetupIntentScreen() {
     });
 
     let setupIntent: SetupIntent.Type | undefined;
-    let setupIntentError: StripeError<CommonError> | undefined;
+    let setupIntentError: StripeError | undefined;
 
     if (deviceType === 'verifoneP400') {
       const resp = await api.createSetupIntent({});
@@ -222,16 +218,24 @@ export default function SetupIntentScreen() {
 
       if (!resp?.client_secret) {
         console.error('no client secret returned!');
+        const error = new DevAppError(
+          'NO_CLIENT_SECRET',
+          'No client_secret returned from API',
+          {
+            context: {
+              step: 'createSetupIntent',
+              apiResponse: resp,
+            },
+          }
+        );
+
         addLogs({
           name: 'Create Setup Intent',
           events: [
             {
               name: 'Failed',
               description: 'terminal.createSetupIntent',
-              metadata: {
-                errorCode: 'no_code',
-                errorMessage: 'no client secret returned!',
-              },
+              metadata: error.toJSON(),
             },
           ],
         });
@@ -279,16 +283,14 @@ export default function SetupIntentScreen() {
     }
 
     if (setupIntentError) {
+      const devError = DevAppError.fromStripeError(setupIntentError);
       addLogs({
         name: 'Create Setup Intent',
         events: [
           {
             name: 'Failed',
             description: 'terminal.createSetupIntent',
-            metadata: {
-              errorCode: setupIntentError.code,
-              errorMessage: setupIntentError.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });

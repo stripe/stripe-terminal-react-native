@@ -11,6 +11,7 @@ import {
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
+import { DevAppError } from '../errors/DevAppError';
 import {
   useNavigation,
   useRoute,
@@ -41,7 +42,9 @@ export default function CollectInputsScreen() {
   const [simulatedCollectInputsBehavior, setSimulatedCollectInputsBehavior] =
     useState<string>(COLLECT_PAYMENT_INPUT_BEHAVIOR[0].value);
 
-  const _collectInputs = async (params: ICollectInputsParameters) => {
+  const _collectInputs = async (
+    collectInputsParams: ICollectInputsParameters
+  ) => {
     clearLogs();
     setCancel({
       label: 'Cancel CollectInput',
@@ -65,16 +68,16 @@ export default function CollectInputsScreen() {
         simulatedCollectInputsBehavior
       );
       if (simulateResultResponse.error) {
+        const devError = DevAppError.fromStripeError(
+          simulateResultResponse.error
+        );
         addLogs({
           name: 'Simulate Collect Inputs Result',
           events: [
             {
               name: 'Failed',
               description: 'terminal.simulateCollectInputs',
-              metadata: {
-                errorCode: simulateResultResponse.error?.code,
-                errorMessage: simulateResultResponse.error?.message,
-              },
+              metadata: devError.toJSON(),
             },
           ],
         });
@@ -91,19 +94,17 @@ export default function CollectInputsScreen() {
         });
       }
     }
-    const response = await collectInputs(params);
+    const response = await collectInputs(collectInputsParams);
 
     if (response.error) {
+      const devError = DevAppError.fromStripeError(response.error);
       addLogs({
         name: 'Collect Inputs',
         events: [
           {
             name: 'Failed',
             description: 'terminal.collectInputs',
-            metadata: {
-              errorCode: response.error?.code,
-              errorMessage: response.error?.message,
-            },
+            metadata: devError.toJSON(),
           },
         ],
       });

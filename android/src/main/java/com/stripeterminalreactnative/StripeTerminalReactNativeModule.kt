@@ -58,7 +58,6 @@ import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
-import com.stripe.stripeterminal.external.models.SurchargeConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
@@ -268,10 +267,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun discoverReaders(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val discoveryMethodParam = requireParam(params.getString("discoveryMethod")) {
+        val discoveryMethodParam = requireNonNullParameter(params.getString("discoveryMethod")) {
             "You must provide a discoveryMethod"
         }
-        val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
+        val discoveryMethod = requireNonNullParameter(mapToDiscoveryMethod(discoveryMethodParam)) {
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
         val locationId = params.getString("locationId")
@@ -393,13 +392,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             withSuspendExceptionResolver(promise) {
-                val reader = requireParam(params.getMap("reader")) {
+                val reader = requireNonNullParameter(params.getMap("reader")) {
                     "You must provide a reader"
                 }
 
                 val serialNumber = reader.getString("serialNumber")
 
-                val selectedReader = requireParam(
+                val selectedReader = requireNonNullParameter(
                     discoveredReadersList.find {
                         it.serialNumber == serialNumber
                     }
@@ -622,13 +621,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
+            val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
                 "You must provide a paymentIntent"
             }
-            val uuid = requireParam(paymentIntentJson.getString("sdkUuid")) {
+            val uuid = requireNonNullParameter(paymentIntentJson.getString("sdkUuid")) {
                 "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            val paymentIntent = requireParam(paymentIntents[uuid]) {
+            val paymentIntent = requireNonNullParameter(paymentIntents[uuid]) {
                 "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
@@ -697,13 +696,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun confirmPaymentIntent(params: ReadableMap, promise: Promise) = withExceptionResolver(
         promise
     ) {
-        val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
+        val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
             "You must provide a paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
         }
-        val uuid = requireParam(paymentIntentJson.getString("sdkUuid")) {
+        val uuid = requireNonNullParameter(paymentIntentJson.getString("sdkUuid")) {
             "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
         }
-        val paymentIntent = requireParam(paymentIntents[uuid]) {
+        val paymentIntent = requireNonNullParameter(paymentIntents[uuid]) {
             "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
         }
 
@@ -768,13 +767,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelPaymentIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntentJson = requireParam(params.getMap("paymentIntent")) {
+            val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
                 "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            val uuid = requireParam(paymentIntentJson.getString("sdkUuid")) {
+            val uuid = requireNonNullParameter(paymentIntentJson.getString("sdkUuid")) {
                 "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            val paymentIntent = requireParam(paymentIntents[uuid]) {
+            val paymentIntent = requireNonNullParameter(paymentIntents[uuid]) {
                 "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
@@ -791,13 +790,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+            val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
                 "You must provide a setupIntent"
             }
-            val uuid = requireParam(setupIntentJson.getString("sdkUuid")) {
+            val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
                 "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            val setupIntent = requireParam(setupIntents[uuid]) {
+            val setupIntent = requireNonNullParameter(setupIntents[uuid]) {
                 "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
             val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
@@ -835,13 +834,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setReaderDisplay(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val currency = requireParam(params.getString("currency")) {
+        val currency = requireNonNullParameter(params.getString("currency")) {
             "You must provide a currency value"
         }
-        val tax = requireParam(getInt(params, "tax")?.toLong()) {
+        val tax = requireNonNullParameter(getInt(params, "tax")?.toLong()) {
             "You must provide a tax value"
         }
-        val total = requireParam(getInt(params, "total")?.toLong()) {
+        val total = requireNonNullParameter(getInt(params, "total")?.toLong()) {
             "You must provide a total value"
         }
 
@@ -864,13 +863,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelSetupIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+            val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
                 "You must provide a setupIntent."
             }
-            val uuid = requireParam(setupIntentJson.getString("sdkUuid")) {
+            val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
                 "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            val setupIntent = requireParam(setupIntents[uuid]) {
+            val setupIntent = requireNonNullParameter(setupIntents[uuid]) {
                 "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
 
@@ -880,7 +879,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 setupIntent,
                 params,
                 RNSetupIntentCallback(promise, uuid) {
-                    setupIntents[setupIntent.id.orEmpty()] = null
+                    setupIntents[uuid] = null
                 }
             )
         }
@@ -889,19 +888,19 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun confirmSetupIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentJson = requireParam(params.getMap("setupIntent")) {
+            val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
                 "You must provide a setupIntent."
             }
-            val uuid = requireParam(setupIntentJson.getString("sdkUuid")) {
+            val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
                 "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
             }
-            val setupIntent = requireParam(setupIntents[uuid]) {
+            val setupIntent = requireNonNullParameter(setupIntents[uuid]) {
                 "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
             }
             confirmSetupIntentCancelable = terminal.confirmSetupIntent(
                 setupIntent,
                 RNSetupIntentCallback(promise, uuid) {
-                    setupIntents[it.id.orEmpty()] = null
+                    setupIntents.clear()
                 }
             )
         }
@@ -925,10 +924,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     "You must provide either a charge ID or a payment intent ID."
                 )
             }
-            val amount = requireParam(getInt(params, "amount")?.toLong()) {
+            val amount = requireNonNullParameter(getInt(params, "amount")?.toLong()) {
                 "You must provide an amount"
             }
-            val currency = requireParam(params.getString("currency")) {
+            val currency = requireNonNullParameter(params.getString("currency")) {
                 "You must provide a currency value"
             }
             val refundApplicationFee = params.getBoolean("refundApplicationFee")
@@ -967,10 +966,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectData(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val collectDataTypeParam = requireParam(params.getString("collectDataType")) {
+            val collectDataTypeParam = requireNonNullParameter(params.getString("collectDataType")) {
                 "You must provide a collectDataType"
             }
-            val collectDataType = requireParam(mapFromCollectDataType(collectDataTypeParam)) {
+            val collectDataType = requireNonNullParameter(mapFromCollectDataType(collectDataTypeParam)) {
                 "Unknown collectDataType: $collectDataTypeParam"
             }
             val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
@@ -1039,7 +1038,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setReaderSettings(params: ReadableMap, promise: Promise) {
-        val textToSpeechViaSpeakers = requireParam(getBoolean(params, "textToSpeechViaSpeakers")) {
+        val textToSpeechViaSpeakers = requireNonNullParameter(getBoolean(params, "textToSpeechViaSpeakers")) {
             "You must provide textToSpeechViaSpeakers parameters."
         }
         val readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
@@ -1073,7 +1072,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun print(contentUri: String, promise: Promise) = withExceptionResolver(promise) {
-        val bitmap = requireParam(mapToBitmap(contentUri)) {
+        val bitmap = requireNonNullParameter(mapToBitmap(contentUri)) {
             "You must provide a valid base64 string or a 'data:' URI scheme"
         }
         val printContent = PrintContent.Bitmap.create(bitmap)
@@ -1083,7 +1082,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun collectInputs(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
-        val collectInputs = requireParam(params.getArray("inputs")) {
+        val collectInputs = requireNonNullParameter(params.getArray("inputs")) {
             "You must provide an inputs value"
         }
         val listInput = ArrayList<Input>()
@@ -1230,16 +1229,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun supportsReadersOfType(params: ReadableMap, promise: Promise) {
-        val deviceTypeParams = requireParam(params.getString("deviceType")) {
+        val deviceTypeParams = requireNonNullParameter(params.getString("deviceType")) {
             "You must provide a deviceType"
         }
-        val deviceType = requireParam(mapToDeviceType(deviceTypeParams)) {
+        val deviceType = requireNonNullParameter(mapToDeviceType(deviceTypeParams)) {
             "Unknown readerType: $deviceTypeParams"
         }
-        val discoveryMethodParam = requireParam(params.getString("discoveryMethod")) {
+        val discoveryMethodParam = requireNonNullParameter(params.getString("discoveryMethod")) {
             "You must provide a discoveryMethod"
         }
-        val discoveryMethod = requireParam(mapToDiscoveryMethod(discoveryMethodParam)) {
+        val discoveryMethod = requireNonNullParameter(mapToDiscoveryMethod(discoveryMethodParam)) {
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
 
