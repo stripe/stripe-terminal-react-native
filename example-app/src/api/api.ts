@@ -1,5 +1,4 @@
 import type { Stripe } from 'stripe';
-import { ExampleAppError } from '../errors/ExampleAppError';
 
 export class Api {
   headers: Record<string, string>;
@@ -12,12 +11,8 @@ export class Api {
 
     if (!process.env.API_URL) {
       console.error('please set an API_URL for your backend in your .env file');
-      throw new ExampleAppError(
-        'please set an API_URL for your backend in your .env file',
-        {
-          step: 'initialization',
-          context: { envVars: Object.keys(process.env) },
-        }
+      throw new Error(
+        'please set an API_URL for your backend in your .env file'
       );
     }
 

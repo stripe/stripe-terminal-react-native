@@ -4,6 +4,7 @@ import { StyleSheet, Switch } from 'react-native';
 import {
   SetupIntent,
   useStripeTerminal,
+  CommonError,
   StripeError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
@@ -189,7 +190,7 @@ export default function SetupIntentScreen() {
     });
 
     let setupIntent: SetupIntent.Type | undefined;
-    let setupIntentError: StripeError | undefined;
+    let setupIntentError: StripeError<CommonError> | undefined;
 
     if (discoveryMethod === 'internet') {
       const resp = await api.createSetupIntent({});

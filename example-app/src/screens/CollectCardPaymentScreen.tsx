@@ -6,6 +6,7 @@ import {
   useStripeTerminal,
   PaymentIntent,
   StripeError,
+  CommonError,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
@@ -170,7 +171,7 @@ export default function CollectCardPaymentScreen() {
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
-    let paymentIntentError: StripeError | undefined;
+    let paymentIntentError: StripeError<CommonError> | undefined;
     if (discoveryMethod === 'internet') {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
@@ -776,10 +777,9 @@ export default function CollectCardPaymentScreen() {
       <List
         bolded={false}
         topSpacing={false}
-        title={`${formatAmountForDisplay(
-          inputValues.amount,
-          inputValues.currency
-        )} ${inputValues.currency.toUpperCase()}`}
+        title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${
+          inputValues.currency.toUpperCase()
+        }`}
       >
         <ListItem
           color={colors.blue}

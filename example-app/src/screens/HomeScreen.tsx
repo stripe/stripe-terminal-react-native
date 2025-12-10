@@ -17,7 +17,6 @@ import {
   getDiscoveryMethod,
   setDiscoveryMethod as setStoredDiscoveryMethod,
 } from '../util/merchantStorage';
-import { showErrorToast } from '../util/errorHandling';
 import {
   OfflineStatus,
   Reader,
@@ -38,7 +37,18 @@ export default function HomeScreen() {
     },
     onDidForwardingFailure(error) {
       console.log('onDidForwardingFailure ' + error?.message);
-      showErrorToast(error);
+      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
     },
     onDidForwardPaymentIntent(paymentIntent, error) {
       let toastMsg =
@@ -48,7 +58,7 @@ export default function HomeScreen() {
         error?.code +
         '. ErrorMsg = ' +
         error?.message;
-      const toast = Toast.show(toastMsg, {
+      let toast = Toast.show(toastMsg, {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
         shadow: true,
