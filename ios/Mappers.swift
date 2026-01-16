@@ -628,6 +628,7 @@ class Mappers {
             "location": wechatPay.location ?? NSNull(),
             "reader": wechatPay.reader ?? NSNull(),
             "transactionId": wechatPay.transactionId ?? NSNull(),
+            "fingerprint": wechatPay.fingerprint ?? NSNull(),
         ]
         return result
     }

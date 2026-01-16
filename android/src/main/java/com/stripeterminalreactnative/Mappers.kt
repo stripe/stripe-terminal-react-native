@@ -781,6 +781,7 @@ private fun mapFromWechatPayDetails(wechatPayDetails: WechatPayDetails?): Readab
             putString("location", it.location)
             putString("reader", it.reader)
             putString("transactionId", it.transactionId)
+            putString("fingerprint", it.fingerprint)
         }
     }
 

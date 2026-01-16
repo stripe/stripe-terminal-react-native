@@ -330,6 +330,7 @@ export type WechatPayDetails = {
   location?: string;
   reader?: string;
   transactionId?: string;
+  fingerprint?: string;
 };
 
 export type AffirmDetails = {
