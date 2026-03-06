@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useContext } from 'react';
 import { BackHandler, ScrollView, Text, StyleSheet } from 'react-native';
 import { LogContext } from '../components/LogContext';
@@ -7,12 +7,24 @@ import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { HeaderBackButton } from '@react-navigation/elements';
-import type { NavigationProp } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteParamList } from '../App';
 
 const LogListScreen = () => {
   const { logs, cancel, setCancel } = useContext(LogContext);
-  const navigation = useNavigation<NavigationProp<RouteParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RouteParamList>>();
+
+  const onBackPress = useCallback(() => {
+    const latestLog = logs[logs.length - 1];
+    const latestEvent = latestLog?.events[latestLog.events.length - 1];
+
+    if (latestEvent?.onBack) {
+      latestEvent.onBack();
+    }
+    setCancel(null);
+    navigation.popToTop();
+    return true;
+  }, [logs, setCancel, navigation]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -20,21 +32,15 @@ const LogListScreen = () => {
         <HeaderBackButton onPress={onBackPress} tintColor={colors.white} />
       ),
     });
-  });
+  }, [navigation, onBackPress]);
 
-  const onBackPress = () => {
-    const latestLog = logs[logs.length - 1];
-    const latestEvent = latestLog.events[latestLog.events.length - 1];
-
-    if (latestEvent.onBack) {
-      latestEvent.onBack();
-    }
-    setCancel(null);
-    navigation.navigate('HomeScreen', {});
-    return true;
-  };
-
-  BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress
+    );
+    return () => backHandler.remove();
+  }, [onBackPress]);
 
   return (
     <ScrollView contentContainerStyle={styles.container} testID="scroll-view">

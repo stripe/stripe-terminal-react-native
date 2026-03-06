@@ -11,6 +11,7 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import { showErrorToast } from '../util/errorHandling';
@@ -20,6 +21,7 @@ import List from '../components/List';
 import {
   getDiscoveryMethod,
   setDiscoveryMethod as setStoredDiscoveryMethod,
+  setServerlessAoDTestPending,
 } from '../util/merchantStorage';
 import {
   type OfflineStatus,
@@ -28,8 +30,15 @@ import {
   getSdkVersion,
 } from '@stripe/stripe-terminal-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import RNRestart from 'react-native-restart';
 import AlertDialog from '../components/AlertDialog';
 import type { RouteParamList } from '../App';
+
+const DISCOVERY_FILTER = [
+  { value: 'none', label: 'None' },
+  { value: 'readerId', label: 'ByReaderId' },
+  { value: 'serialNumber', label: 'BySerialNumber' },
+];
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
@@ -47,6 +56,9 @@ export default function HomeScreen() {
   const [discoveryMethod, setDiscoveryMethod] =
     useState<Reader.DiscoveryMethod>('bluetoothScan');
   const [discoveryTimeout, setDiscoveryTimeout] = useState<number>(0);
+  const [discoveryFilterType, setDiscoveryFilterType] =
+    useState<string>('none');
+  const [discoveryFilterValue, setDiscoveryFilterValue] = useState<string>('');
   const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
 
   const {
@@ -172,7 +184,27 @@ export default function HomeScreen() {
   }, []);
 
   const validTimeoutMethod = () => {
-    return discoveryMethod === 'bluetoothScan' || discoveryMethod === 'usb';
+    return (
+      discoveryMethod === 'bluetoothScan' ||
+      discoveryMethod === 'usb' ||
+      discoveryMethod === 'internet'
+    );
+  };
+
+  const getDiscoveryFilter = () => {
+    switch (discoveryFilterType) {
+      case 'none':
+        return {};
+      case 'readerId':
+        return {
+          readerId: discoveryFilterValue,
+        };
+      case 'serialNumber':
+        return {
+          serialNumber: discoveryFilterValue,
+        };
+    }
+    return {};
   };
 
   const renderConnectedContent = (
@@ -209,7 +241,6 @@ export default function HomeScreen() {
             navigation.navigate('CollectCardPaymentScreen', {
               simulated,
               discoveryMethod,
-              deviceType: deviceType,
             });
           }}
         />
@@ -245,7 +276,6 @@ export default function HomeScreen() {
           onPress={() => {
             navigation.navigate('SetupIntentScreen', {
               discoveryMethod,
-              deviceType: deviceType,
             });
           }}
         />
@@ -279,6 +309,12 @@ export default function HomeScreen() {
         title="Print Content"
         onPress={() => {
           navigation.navigate('PrintContentScreen', {});
+        }}
+      />
+      <ListItem
+        title="TapToPayUxConfiguration"
+        onPress={() => {
+          navigation.navigate('TapToPayUXScreen', {});
         }}
       />
       <List title="DATABASE">
@@ -351,15 +387,49 @@ export default function HomeScreen() {
                 disabled={!account}
                 onPress={() => {
                   const timeout = validTimeoutMethod() ? discoveryTimeout : 0;
+                  const discoveryFilter = getDiscoveryFilter();
                   navigation.navigate('DiscoverReadersScreen', {
                     simulated,
                     discoveryMethod,
                     discoveryTimeout: timeout,
+                    discoveryFilter: discoveryFilter,
                     setPendingUpdateInfo: (
                       update: Reader.SoftwareUpdate | null
                     ) => {
                       setPendingUpdate(update);
                     },
+                  });
+                }}
+              />
+
+              <ListItem
+                testID="easy-connect-button"
+                title="Easy Connect"
+                color={colors.blue}
+                disabled={!account}
+                onPress={() => {
+                  const timeout = validTimeoutMethod() ? discoveryTimeout : 0;
+                  const discoveryFilter = getDiscoveryFilter();
+
+                  // Check if discovery method is supported by EasyConnect
+                  if (
+                    !['internet', 'tapToPay', 'appsOnDevices'].includes(
+                      discoveryMethod
+                    )
+                  ) {
+                    Alert.alert(
+                      'Unsupported Discovery Method',
+                      `EasyConnect only supports Internet, Tap to Pay, and Apps on Devices. Current method: ${discoveryMethod}`,
+                      [{ text: 'OK' }]
+                    );
+                    return;
+                  }
+
+                  navigation.navigate('EasyConnectScreen', {
+                    simulated,
+                    discoveryMethod,
+                    discoveryTimeout: timeout,
+                    discoveryFilter: discoveryFilter,
                   });
                 }}
               />
@@ -422,7 +492,37 @@ export default function HomeScreen() {
                 }}
               />
             </List>
-
+            <List topSpacing={false} title="DISCOVERY FILTER">
+              <Picker
+                selectedValue={discoveryFilterType}
+                style={styles.picker}
+                itemStyle={styles.pickerItem}
+                testID="select-discovery-filter"
+                onValueChange={(value) => setDiscoveryFilterType(value)}
+              >
+                {DISCOVERY_FILTER.map((a) => (
+                  <Picker.Item
+                    key={a.value}
+                    label={a.label}
+                    testID={a.value}
+                    value={a.value}
+                  />
+                ))}
+              </Picker>
+              <List
+                topSpacing={false}
+                title=""
+                visible={discoveryFilterType != 'none'}
+              >
+                <TextInput
+                  style={styles.input}
+                  value={discoveryFilterValue}
+                  onChangeText={(value) => {
+                    setDiscoveryFilterValue(value);
+                  }}
+                />
+              </List>
+            </List>
             <List>
               <ListItem
                 title="Simulated"
@@ -464,6 +564,24 @@ export default function HomeScreen() {
                 payments.
               </Text>
             </List>
+
+            {Platform.OS === 'android' && discoveryMethod === 'appsOnDevices' && (
+              <List>
+                <ListItem
+                  title="Test AppsOnDevicesConnectionTokenProvider"
+                  color={colors.blue}
+                  onPress={async () => {
+                    await setServerlessAoDTestPending(true);
+                    RNRestart.restart();
+                  }}
+                />
+                <Text style={styles.infoText}>
+                  Tests the serverless Apps-on-Devices mode by restarting the app,
+                  initializing the SDK with AppsOnDevicesConnectionTokenProvider,
+                  and automatically connecting to a reader.
+                </Text>
+              </List>
+            )}
             <List title="Version">
               <ListItem
                 title="SDK Version"
@@ -506,8 +624,8 @@ function mapFromDiscoveryMethod(method: Reader.DiscoveryMethod) {
       return 'Bluetooth Proximity';
     case 'internet':
       return 'Internet';
-    case 'handoff':
-      return 'Handoff';
+    case 'appsOnDevices':
+      return 'Apps On Devices';
     case 'tapToPay':
       return 'Tap To Pay';
     case 'usb':
@@ -595,5 +713,33 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 20,
     backgroundColor: colors.red,
+  },
+  picker: {
+    width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+        fontSize: 13,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.white,
+      },
+    }),
+  },
+  pickerItem: {
+    fontSize: 16,
+    color: colors.slate,
+  },
+  pickerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: colors.white,
+    left: 0,
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        height: 200,
+      },
+    }),
   },
 });

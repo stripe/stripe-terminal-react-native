@@ -20,16 +20,19 @@ import com.stripe.stripeterminal.external.OfflineMode
 import com.stripe.stripeterminal.external.PrintApi
 import com.stripe.stripeterminal.external.Surcharging
 import com.stripe.stripeterminal.external.callable.Cancelable
+import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentCaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.CardPresentRoutingOptionParameters
 import com.stripe.stripeterminal.external.models.Cart
-import com.stripe.stripeterminal.external.models.CollectConfiguration
 import com.stripe.stripeterminal.external.models.CollectDataConfiguration
 import com.stripe.stripeterminal.external.models.CollectInputsParameters
-import com.stripe.stripeterminal.external.models.ConfirmConfiguration
+import com.stripe.stripeterminal.external.models.CollectPaymentIntentConfiguration
+import com.stripe.stripeterminal.external.models.CollectRefundConfiguration
+import com.stripe.stripeterminal.external.models.CollectSetupIntentConfiguration
+import com.stripe.stripeterminal.external.models.ConfirmPaymentIntentConfiguration
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration
 import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
@@ -46,7 +49,6 @@ import com.stripe.stripeterminal.external.models.PhoneInput
 import com.stripe.stripeterminal.external.models.PrintContent
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
-import com.stripe.stripeterminal.external.models.RefundConfiguration
 import com.stripe.stripeterminal.external.models.RefundParameters
 import com.stripe.stripeterminal.external.models.RoutingPriority
 import com.stripe.stripeterminal.external.models.SelectionButton
@@ -54,7 +56,6 @@ import com.stripe.stripeterminal.external.models.SelectionButtonStyle
 import com.stripe.stripeterminal.external.models.SelectionInput
 import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
-import com.stripe.stripeterminal.external.models.SetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
@@ -65,6 +66,10 @@ import com.stripe.stripeterminal.external.models.TextInput
 import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripe.stripeterminal.external.models.Toggle
 import com.stripe.stripeterminal.external.models.ToggleValue
+import com.stripe.stripeterminal.external.models.PaymentOption
+import com.stripe.stripeterminal.external.callable.PaymentMethodSelectionCallback
+import com.stripe.stripeterminal.external.callable.QrCodeDisplayCallback
+import java.util.concurrent.atomic.AtomicReference
 import com.stripeterminalreactnative.callback.NoOpCallback
 import com.stripeterminalreactnative.callback.RNCollectInputResultCallback
 import com.stripeterminalreactnative.callback.RNCollectedDataCallback
@@ -74,8 +79,8 @@ import com.stripeterminalreactnative.callback.RNReadSettingsCallback
 import com.stripeterminalreactnative.callback.RNRefundCallback
 import com.stripeterminalreactnative.callback.RNSetupIntentCallback
 import com.stripeterminalreactnative.ktx.connectReader
+import com.stripeterminalreactnative.listener.RNAppsOnDevicesListener
 import com.stripeterminalreactnative.listener.RNDiscoveryListener
-import com.stripeterminalreactnative.listener.RNHandoffReaderListener
 import com.stripeterminalreactnative.listener.RNInternetReaderListener
 import com.stripeterminalreactnative.listener.RNMobileReaderListener
 import com.stripeterminalreactnative.listener.RNOfflineListener
@@ -83,25 +88,31 @@ import com.stripeterminalreactnative.listener.RNReaderDisconnectListener
 import com.stripeterminalreactnative.listener.RNReaderReconnectionListener
 import com.stripeterminalreactnative.listener.RNTapToPayReaderListener
 import com.stripeterminalreactnative.listener.RNTerminalListener
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
     private var discoveredReadersList: List<Reader> = listOf()
     private var discoverCancelable: Cancelable? = null
+    private var easyConnectCancelable: Cancelable? = null
     private var collectPaymentMethodCancelable: Cancelable? = null
-    private var collectRefundPaymentMethodCancelable: Cancelable? = null
+    private var processRefundCancelable: Cancelable? = null
     private var collectSetupIntentCancelable: Cancelable? = null
     private var installUpdateCancelable: Cancelable? = null
     private var cancelReaderConnectionCancellable: Cancelable? = null
     private var collectInputsCancelable: Cancelable? = null
     private var collectDataCancelable: Cancelable? = null
     private var confirmPaymentIntentCancelable: Cancelable? = null
+    private var processPaymentIntentCancelable: Cancelable? = null
     private var confirmSetupIntentCancelable: Cancelable? = null
-    private var confirmRefundCancelable: Cancelable? = null
+    private var processSetupIntentCancelable: Cancelable? = null
+
+    // Single callback storage for MPOS - only one payment flow at a time
+    private val paymentMethodSelectionCallback = AtomicReference<PaymentMethodSelectionCallback?>(null)
+    private val qrCodeDisplayCallback = AtomicReference<QrCodeDisplayCallback?>(null)
 
     private var paymentIntents: HashMap<String, PaymentIntent?> = HashMap()
     private var setupIntents: HashMap<String, SetupIntent?> = HashMap()
@@ -125,7 +136,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     override fun getConstants(): MutableMap<String, Any> =
-        ReactNativeConstants.values().associate { it.name to it.listenerName }.toMutableMap()
+        ReactNativeConstants.entries.associate { it.name to it.listenerName }.toMutableMap()
 
     override fun getName(): String = "StripeTerminalReactNative"
 
@@ -136,10 +147,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
         val result = if (!Terminal.isInitialized()) {
-            Terminal.initTerminal(
+            val tokenProviderToUse = TokenProviderFactory.createTokenProvider(params, tokenProvider)
+
+            Terminal.init(
                 this.context.applicationContext,
                 mapToLogLevel(params.getString("logLevel")),
-                tokenProvider,
+                tokenProviderToUse,
                 RNTerminalListener(context),
                 RNOfflineListener(context)
             )
@@ -172,13 +185,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun cancelCollectRefundPaymentMethod(promise: Promise) {
+    fun cancelProcessRefund(promise: Promise) {
         cancelOperation(
             promise,
-            collectRefundPaymentMethodCancelable,
-            "collectRefundPaymentMethod"
+            processRefundCancelable,
+            "processRefund"
         ) {
-            collectRefundPaymentMethodCancelable = null
+            processRefundCancelable = null
         }
     }
 
@@ -191,6 +204,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun cancelProcessPaymentIntent(promise: Promise) {
+        cancelOperation(promise, processPaymentIntentCancelable, "processPaymentIntent") {
+            processPaymentIntentCancelable = null
+        }
+    }
+
+    @ReactMethod
     @Suppress("unused")
     fun cancelConfirmSetupIntent(promise: Promise) {
         cancelOperation(promise, confirmSetupIntentCancelable, "confirmSetupIntent") {
@@ -199,10 +219,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    @Suppress("unused")
-    fun cancelConfirmRefund(promise: Promise) {
-        cancelOperation(promise, confirmRefundCancelable, "confirmRefund") {
-            confirmRefundCancelable = null
+    fun cancelProcessSetupIntent(promise: Promise) {
+        cancelOperation(promise, processSetupIntentCancelable, "processSetupIntent") {
+            processSetupIntentCancelable = null
         }
     }
 
@@ -263,6 +282,58 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         promise.resolve(null)
     }
 
+    @ReactMethod
+    @Suppress("unused")
+    fun cancelEasyConnect(params: ReadableMap, promise: Promise) {
+        cancelOperation(promise, easyConnectCancelable, "easyConnect") {
+            easyConnectCancelable = null
+        }
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun easyConnect(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val discoveryMethodParam = requireNonNullParameter(params.getString("discoveryMethod")) {
+            "You must provide a discoveryMethod"
+        }
+        val discoveryMethod = requireNonNullParameter(mapToDiscoveryMethod(discoveryMethodParam)) {
+            "Unknown discoveryMethod: $discoveryMethodParam"
+        }
+        val discoveryConfiguration = getDiscoveryConfiguration(discoveryMethod, params)
+        val locationId = params.getString("locationId")
+        val failIfInUse = getBoolean(params, "failIfInUse")
+
+        val connConfig = getConnectionConfig(
+            discoveryMethod = discoveryMethod,
+            locationId = locationId,
+            failIfInUse = failIfInUse,
+            autoReconnectOnUnexpectedDisconnect = getAutoReconnectOnUnexpectedDisconnect(
+                discoveryMethod,
+                params
+            )
+        )
+        val configuration = getEasyConnectConfiguration(discoveryConfiguration, connConfig)
+        throwIfBusy(easyConnectCancelable) {
+            busyMessage("easyConnect", "easyConnect")
+        }
+        easyConnectCancelable = terminal.easyConnect(configuration, object : ReaderCallback {
+            override fun onFailure(e: TerminalException) {
+                easyConnectCancelable = null
+                promise.resolve(createError(e))
+            }
+
+            override fun onSuccess(reader: Reader) {
+                easyConnectCancelable = null
+                promise.resolve(
+                    nativeMapOf {
+                        putMap("reader", mapFromReader(reader))
+                    }
+                )
+
+            }
+        })
+    }
+
     @SuppressLint("MissingPermission")
     @ReactMethod
     @Suppress("unused")
@@ -273,7 +344,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val discoveryMethod = requireNonNullParameter(mapToDiscoveryMethod(discoveryMethodParam)) {
             "Unknown discoveryMethod: $discoveryMethodParam"
         }
-        val locationId = params.getString("locationId")
 
         val listener = RNDiscoveryListener(
             context,
@@ -287,27 +357,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         discoverCancelable = terminal.discoverReaders(
-            config = when (discoveryMethod) {
-                DiscoveryMethod.BLUETOOTH_SCAN -> DiscoveryConfiguration.BluetoothDiscoveryConfiguration(
-                    getInt(params, "timeout") ?: 0,
-                    getBoolean(params, "simulated")
-                )
-
-                DiscoveryMethod.INTERNET -> DiscoveryConfiguration.InternetDiscoveryConfiguration(
-                    isSimulated = getBoolean(params, "simulated"),
-                    location = locationId
-                )
-
-                DiscoveryMethod.USB -> DiscoveryConfiguration.UsbDiscoveryConfiguration(
-                    getInt(params, "timeout") ?: 0,
-                    getBoolean(params, "simulated")
-                )
-
-                DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
-                DiscoveryMethod.TAP_TO_PAY -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
-                    getBoolean(params, "simulated")
-                )
-            },
+            config = getDiscoveryConfiguration(
+                discoveryMethod = discoveryMethod,
+                params = params
+            ),
             listener,
             listener
         )
@@ -323,63 +376,86 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     private fun getConnectionConfig(
         discoveryMethod: DiscoveryMethod,
-        locationId: String,
-        autoReconnectOnUnexpectedDisconnect: Boolean
+        locationId: String?,
+        failIfInUse: Boolean,
+        autoReconnectOnUnexpectedDisconnect: Boolean,
+        hasPaymentMethodSelectionCallback: Boolean = false,
+        hasQrCodeDisplayCallback: Boolean = false
     ): ConnectionConfiguration {
         val disconnectListener = RNReaderDisconnectListener(context)
         return when (discoveryMethod) {
             DiscoveryMethod.BLUETOOTH_SCAN -> {
+                requireNotNull(locationId) {
+                    "You must provide a locationId"
+                }
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
                 }
-                val listener =
-                    RNMobileReaderListener(context, reconnectionListener, disconnectListener) {
-                        installUpdateCancelable = it
-                    }
+                val listener = RNMobileReaderListener(
+                    context,
+                    reconnectionListener,
+                    disconnectListener,
+                    paymentMethodSelectionCallback,
+                    qrCodeDisplayCallback,
+                    { hasPaymentMethodSelectionCallback },
+                    { hasQrCodeDisplayCallback }
+                ) { installUpdateCancelable = it }
                 ConnectionConfiguration.BluetoothConnectionConfiguration(
-                    locationId,
-                    autoReconnectOnUnexpectedDisconnect,
-                    listener
+                    locationId = locationId,
+                    autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
+                    bluetoothReaderListener = listener
                 )
             }
 
             DiscoveryMethod.TAP_TO_PAY -> {
+                requireNotNull(locationId) {
+                    "You must provide a locationId"
+                }
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
                 }
                 val listener = RNTapToPayReaderListener(disconnectListener, reconnectionListener)
                 ConnectionConfiguration.TapToPayConnectionConfiguration(
-                    locationId,
-                    autoReconnectOnUnexpectedDisconnect,
-                    listener
+                    locationId = locationId,
+                    autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
+                    tapToPayReaderListener = listener
                 )
             }
 
             DiscoveryMethod.INTERNET -> {
                 val listener = RNInternetReaderListener(disconnectListener)
                 ConnectionConfiguration.InternetConnectionConfiguration(
+                    failIfInUse = failIfInUse,
                     internetReaderListener = listener
                 )
             }
 
-            DiscoveryMethod.HANDOFF -> {
-                ConnectionConfiguration.HandoffConnectionConfiguration(
-                    RNHandoffReaderListener(context, disconnectListener)
+            DiscoveryMethod.APPS_ON_DEVICES -> {
+                ConnectionConfiguration.AppsOnDevicesConnectionConfiguration(
+                    appsOnDevicesListener = RNAppsOnDevicesListener(context, disconnectListener)
                 )
             }
 
             DiscoveryMethod.USB -> {
+                requireNotNull(locationId) {
+                    "You must provide a locationId"
+                }
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
                 }
-                val listener =
-                    RNMobileReaderListener(context, reconnectionListener, disconnectListener) {
-                        installUpdateCancelable = it
-                    }
+                val listener = RNMobileReaderListener(
+                    context,
+                    reconnectionListener,
+                    disconnectListener,
+                    paymentMethodSelectionCallback,
+                    qrCodeDisplayCallback,
+                    { hasPaymentMethodSelectionCallback },
+                    { hasQrCodeDisplayCallback }
+                ) { installUpdateCancelable = it }
                 ConnectionConfiguration.UsbConnectionConfiguration(
-                    locationId,
-                    autoReconnectOnUnexpectedDisconnect,
-                    listener
+                    locationId = locationId,
+                    autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
+                    usbReaderListener = listener
                 )
             }
         }
@@ -407,27 +483,20 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 }
 
                 val locationId =
-                    params.getString("locationId") ?: selectedReader.location?.id.orEmpty()
-
+                    params.getString("locationId")
+                val failIfInUse = getBoolean(params, "failIfInUse")
                 val autoReconnectOnUnexpectedDisconnect =
-                    when (discoveryMethod) {
-                        DiscoveryMethod.TAP_TO_PAY -> {
-                            getBoolean(params, "autoReconnectOnUnexpectedDisconnect", true)
-                        }
-
-                        DiscoveryMethod.BLUETOOTH_SCAN, DiscoveryMethod.USB -> {
-                            getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
-                        }
-
-                        else -> {
-                            false
-                        }
-                    }
+                    getAutoReconnectOnUnexpectedDisconnect(discoveryMethod, params)
+                val hasPaymentMethodSelectionCallback = getBoolean(params, "hasPaymentMethodSelectionCallback")
+                val hasQrCodeDisplayCallback = getBoolean(params, "hasQrCodeDisplayCallback")
 
                 val connConfig = getConnectionConfig(
-                    discoveryMethod,
-                    locationId,
-                    autoReconnectOnUnexpectedDisconnect
+                    discoveryMethod = discoveryMethod,
+                    locationId = locationId,
+                    failIfInUse = failIfInUse,
+                    autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
+                    hasPaymentMethodSelectionCallback = hasPaymentMethodSelectionCallback,
+                    hasQrCodeDisplayCallback = hasQrCodeDisplayCallback
                 )
                 val connectedReader = terminal.connectReader(selectedReader, connConfig)
                 promise.resolve(
@@ -439,9 +508,29 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    private fun getAutoReconnectOnUnexpectedDisconnect(
+        discoveryMethod: DiscoveryMethod,
+        params: ReadableMap
+    ): Boolean {
+        return when (discoveryMethod) {
+            DiscoveryMethod.TAP_TO_PAY -> {
+                getBoolean(params, "autoReconnectOnUnexpectedDisconnect", true)
+            }
+
+            DiscoveryMethod.BLUETOOTH_SCAN, DiscoveryMethod.USB -> {
+                getBoolean(params, "autoReconnectOnUnexpectedDisconnect")
+            }
+
+            else -> {
+                false
+            }
+        }
+    }
+
     @ReactMethod
     @Suppress("unused")
-    fun connectReader(params: ReadableMap, discoveryMethod: String, promise: Promise) {
+    fun connectReader(params: ReadableMap, promise: Promise) {
+        val discoveryMethod = params.getString("discoveryMethod")
         mapToDiscoveryMethod(discoveryMethod)?.let {
             innerConnectReader(params, it, promise)
         }
@@ -481,7 +570,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val onBehalfOf = params.getString("onBehalfOf")
         val transferDataDestination = params.getString("transferDataDestination")
         val applicationFeeAmount = getInt(params, "applicationFeeAmount")
-        val stripeDescription = params.getString("stripeDescription")
+        val description = params.getString("description")
         val statementDescriptor = params.getString("statementDescriptor")
         val statementDescriptorSuffix = params.getString("statementDescriptorSuffix")
         val receiptEmail = params.getString("receiptEmail")
@@ -493,7 +582,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val incrementalAuth =
             getBoolean(paymentMethodOptions, "requestIncrementalAuthorizationSupport")
         val requestedPriority = paymentMethodOptions?.getString("requestedPriority")
-        val requestPartialAuthorization = paymentMethodOptions?.getString("requestPartialAuthorization")
+        val requestPartialAuthorization =
+            paymentMethodOptions?.getString("requestPartialAuthorization")
         val cardPresentCaptureMethod = paymentMethodOptions?.getString("captureMethod")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
@@ -516,7 +606,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             PaymentIntentParameters.Builder()
         }
 
-        stripeDescription?.let {
+        description?.let {
             intentParams.setDescription(it)
         }
         statementDescriptor?.let {
@@ -579,7 +669,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             when (it) {
                 "manual" -> cardPresentParams.setCaptureMethod(CardPresentCaptureMethod.Manual)
                 "manual_preferred" -> cardPresentParams.setCaptureMethod(CardPresentCaptureMethod.ManualPreferred)
-                else -> { }
+                else -> {}
             }
         }
 
@@ -621,6 +711,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
+            paymentMethodSelectionCallback.set(null)
+            qrCodeDisplayCallback.set(null)
+
             val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
                 "You must provide a paymentIntent"
             }
@@ -631,42 +724,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
             }
 
-            val configBuilder = CollectConfiguration.Builder()
-            if (params.hasKey("skipTipping")) {
-                configBuilder.skipTipping(getBoolean(params, "skipTipping"))
-            }
-            if (params.hasKey("tipEligibleAmount")) {
-                val tipEligibleAmount = getInt(params, "tipEligibleAmount")?.toLong()
-                configBuilder.setTippingConfiguration(
-                    TippingConfiguration.Builder()
-                        .setEligibleAmount(tipEligibleAmount)
-                        .build()
-                )
-            }
-            if (params.hasKey("updatePaymentIntent")) {
-                configBuilder.updatePaymentIntent(getBoolean(params, "updatePaymentIntent"))
-            }
-            if (params.hasKey("enableCustomerCancellation")) {
-                configBuilder.setEnableCustomerCancellation(
-                    getBoolean(params, "enableCustomerCancellation")
-                )
-            }
-            if (params.hasKey("requestDynamicCurrencyConversion")) {
-                configBuilder.setRequestDynamicCurrencyConversion(
-                    getBoolean(params, "requestDynamicCurrencyConversion")
-                )
-            }
-            if (params.hasKey("surchargeNotice")) {
-                configBuilder.setSurchargeNotice(params.getString("surchargeNotice"))
-            }
-            if (params.hasKey("allowRedisplay")) {
-                configBuilder.setAllowRedisplay(mapToAllowRedisplay(params.getString("allowRedisplay")))
-            }
-            if (params.hasKey("moto")) {
-                configBuilder.setMoto(params.getBoolean("moto"))
-            }
-
-            val config = configBuilder.build()
+            val config = buildCollectPaymentIntentConfiguration(params)
 
             collectPaymentMethodCancelable = terminal.collectPaymentMethod(
                 paymentIntent,
@@ -696,35 +754,118 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun confirmPaymentIntent(params: ReadableMap, promise: Promise) = withExceptionResolver(
         promise
     ) {
-        val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
-            "You must provide a paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-        }
-        val uuid = requireNonNullParameter(paymentIntentJson.getString("sdkUuid")) {
-            "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-        }
-        val paymentIntent = requireNonNullParameter(paymentIntents[uuid]) {
-            "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
-        }
+        val paymentIntent = getPaymentIntentFromParams(params)
+        val uuid = getUuidFromPaymentIntentParams(params)
 
-        val configBuilder = ConfirmConfiguration.Builder()
-
-        val surchargeConfiguration = params.getMap("surcharge")?.let {
-            mapToSurchargeConfiguration(it)
-        }
-        configBuilder.setSurcharge(surchargeConfiguration)
-
-        if (params.hasKey("returnUrl")) {
-            val returnUrl = params.getString("returnUrl")
-            configBuilder.setReturnUrl(returnUrl)
-        }
+        val config = buildConfirmPaymentIntentConfiguration(params)
 
         confirmPaymentIntentCancelable = terminal.confirmPaymentIntent(
             paymentIntent,
             RNPaymentIntentCallback(promise, uuid) {
                 paymentIntents.clear()
             },
-            configBuilder.build()
+            config
         )
+    }
+
+    @OptIn(Surcharging::class, InternalApi::class)
+    @ReactMethod
+    @Suppress("unused")
+    fun processPaymentIntent(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val paymentIntent = getPaymentIntentFromParams(params)
+        val uuid = getUuidFromPaymentIntentParams(params)
+
+        val confirmPaymentIntentConfig = buildConfirmPaymentIntentConfiguration(params)
+        val collectPaymentIntentConfig = buildCollectPaymentIntentConfiguration(params)
+
+        processPaymentIntentCancelable = terminal.processPaymentIntent(
+            intent = paymentIntent,
+            collectConfig = collectPaymentIntentConfig,
+            confirmConfig = confirmPaymentIntentConfig,
+            callback = RNPaymentIntentCallback(promise, uuid) {
+                paymentIntents.clear()
+                processPaymentIntentCancelable = null
+            }
+        )
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun selectPaymentOption(paymentOptionType: String, promise: Promise) = withExceptionResolver(promise) {
+        val callback = paymentMethodSelectionCallback.getAndSet(null)
+        if (callback == null) {
+            // Callback already consumed or doesn't exist, silently succeed
+            // happens when multiple JS hooks try to respond
+            promise.resolve(NativeTypeFactory.writableNativeMap())
+            return@withExceptionResolver
+        }
+
+        val paymentOption = when (paymentOptionType) {
+            "card" -> PaymentOption.CardPayment
+            else -> {
+                val paymentMethodType = mapToPaymentMethodDetailsType(paymentOptionType)
+                if (paymentMethodType == null) {
+                    throw TerminalException(
+                        TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "Invalid payment option type: $paymentOptionType"
+                    )
+                }
+                PaymentOption.NonCardPayment(paymentMethodType)
+            }
+        }
+        callback.onSuccess(paymentOption)
+        promise.resolve(NativeTypeFactory.writableNativeMap())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun failPaymentMethodSelection(errorMessage: String?, promise: Promise) = withExceptionResolver(promise) {
+        val callback = paymentMethodSelectionCallback.getAndSet(null)
+        if (callback == null) {
+            throw TerminalException(
+                TerminalErrorCode.CANCELED,
+                "No payment method selection callback available"
+            )
+        }
+
+        callback.onFailure(TerminalException(
+            TerminalErrorCode.CANCELED,
+            errorMessage ?: "Payment method selection canceled"
+        ))
+        promise.resolve(NativeTypeFactory.writableNativeMap())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun confirmQrCodeDisplayed(promise: Promise) = withExceptionResolver(promise) {
+        val callback = qrCodeDisplayCallback.getAndSet(null)
+        if (callback == null) {
+            throw TerminalException(
+                TerminalErrorCode.CANCELED,
+                "No QR code display callback available"
+            )
+        }
+
+        callback.onSuccess()
+        promise.resolve(NativeTypeFactory.writableNativeMap())
+    }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun failQrCodeDisplay(errorMessage: String?, promise: Promise) = withExceptionResolver(promise) {
+        val callback = qrCodeDisplayCallback.getAndSet(null)
+        if (callback == null) {
+            throw TerminalException(
+                TerminalErrorCode.CANCELED,
+                "No QR code display callback available"
+            )
+        }
+
+        callback.onFailure(TerminalException(
+            TerminalErrorCode.CANCELED,
+            errorMessage ?: "QR code display failed"
+        ))
+        promise.resolve(NativeTypeFactory.writableNativeMap())
     }
 
     @ReactMethod
@@ -767,15 +908,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelPaymentIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
-                "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-            }
-            val uuid = requireNonNullParameter(paymentIntentJson.getString("sdkUuid")) {
-                "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-            }
-            val paymentIntent = requireNonNullParameter(paymentIntents[uuid]) {
-                "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
-            }
+            val paymentIntent = getPaymentIntentFromParams(params)
+            val uuid = getUuidFromPaymentIntentParams(params)
 
             terminal.cancelPaymentIntent(
                 paymentIntent,
@@ -790,28 +924,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun collectSetupIntentPaymentMethod(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
-                "You must provide a setupIntent"
-            }
-            val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
-                "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-            }
-            val setupIntent = requireNonNullParameter(setupIntents[uuid]) {
-                "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
-            }
+            val setupIntent = getSetupIntentFromParams(params)
+            val uuid = getUuidFromSetupIntentParams(params)
             val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
-            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
-            val moto = getBoolean(params, "moto")
-            val collectionReason =
-                mapToSetupIntentCollectionReason(params.getString("collectionReason"))
+
+            val configuration = buildCollectSetupIntentConfiguration(params)
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
                 allowRedisplay,
-                SetupIntentConfiguration.Builder()
-                    .setEnableCustomerCancellation(enableCustomerCancellation)
-                    .setMoto(moto)
-                    .build(),
+                configuration,
                 RNSetupIntentCallback(promise, uuid) { setupIntents[uuid] = it }
             )
         }
@@ -863,15 +985,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun cancelSetupIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
-                "You must provide a setupIntent."
-            }
-            val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
-                "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-            }
-            val setupIntent = requireNonNullParameter(setupIntents[uuid]) {
-                "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
-            }
+            val setupIntent = getSetupIntentFromParams(params)
+            val uuid = getUuidFromSetupIntentParams(params)
 
             val params = SetupIntentCancellationParameters.Builder().build()
 
@@ -888,19 +1003,34 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun confirmSetupIntent(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
-            val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
-                "You must provide a setupIntent."
-            }
-            val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
-                "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
-            }
-            val setupIntent = requireNonNullParameter(setupIntents[uuid]) {
-                "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
-            }
+            val setupIntent = getSetupIntentFromParams(params)
+            val uuid = getUuidFromSetupIntentParams(params)
             confirmSetupIntentCancelable = terminal.confirmSetupIntent(
                 setupIntent,
                 RNSetupIntentCallback(promise, uuid) {
                     setupIntents.clear()
+                }
+            )
+        }
+
+    @ReactMethod
+    @Suppress("unused")
+    fun processSetupIntent(params: ReadableMap, promise: Promise) =
+        withExceptionResolver(promise) {
+            val setupIntent = getSetupIntentFromParams(params)
+            val uuid = getUuidFromSetupIntentParams(params)
+
+            val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
+
+            val collectConfiguration = buildCollectSetupIntentConfiguration(params)
+
+            processSetupIntentCancelable = terminal.processSetupIntent(
+                setupIntent,
+                allowRedisplay,
+                collectConfiguration,
+                RNSetupIntentCallback(promise, uuid) {
+                    setupIntents.clear()
+                    processSetupIntentCancelable = null
                 }
             )
         }
@@ -913,51 +1043,57 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun collectRefundPaymentMethod(params: ReadableMap, promise: Promise) =
+    fun processRefund(params: ReadableMap, promise: Promise) =
         withExceptionResolver(promise) {
             val chargeId = params.getString("chargeId")
             val paymentIntentId = params.getString("paymentIntentId")
-
-            if (chargeId.isNullOrBlank() == paymentIntentId.isNullOrBlank()) {
-                throw TerminalException(
-                    TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
-                    "You must provide either a charge ID or a payment intent ID."
-                )
-            }
+            val clientSecret = params.getString("clientSecret")
             val amount = requireNonNullParameter(getInt(params, "amount")?.toLong()) {
                 "You must provide an amount"
             }
             val currency = requireNonNullParameter(params.getString("currency")) {
                 "You must provide a currency value"
             }
-            val refundApplicationFee = params.getBoolean("refundApplicationFee")
-            val reverseTransfer = params.getBoolean("reverseTransfer")
-            val metadata = params.getMap("metadata")?.toHashMap()?.toMap() as? Map<String, String>
-            val intentParamsBuild = if (!paymentIntentId.isNullOrBlank()) {
-                RefundParameters.Builder(
-                    RefundParameters.Id.PaymentIntent(paymentIntentId),
-                    amount,
-                    currency
-                )
-            } else {
-                RefundParameters.Builder(RefundParameters.Id.Charge(chargeId!!), amount, currency)
-            }
 
-            intentParamsBuild.setRefundApplicationFee(refundApplicationFee)
+            val refundApplicationFee = getBoolean(params, "refundApplicationFee")
+            val reverseTransfer = getBoolean(params, "reverseTransfer")
+
+            val metadata = params.getMap("metadata")?.toHashMap()?.toMap() as? Map<String, String>
+            val intentParamsBuild =
+                if (!paymentIntentId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
+                    RefundParameters.ByPaymentIntentId(
+                        paymentIntentId,
+                        clientSecret,
+                        amount,
+                        currency
+                    )
+                } else if (!chargeId.isNullOrBlank()) {
+                    RefundParameters.ByChargeId(chargeId, amount, currency)
+                } else {
+                    throw TerminalException(
+                        TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                        "You must provide either a charge ID or a payment intent ID."
+                    )
+                }
+
+            intentParamsBuild
+                .setRefundApplicationFee(refundApplicationFee)
                 .setReverseTransfer(reverseTransfer)
             if (metadata != null) {
                 intentParamsBuild.setMetadata(metadata)
             }
             val intentParams = intentParamsBuild.build()
 
-            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
-
-            collectRefundPaymentMethodCancelable = terminal.collectRefundPaymentMethod(
+            val customerCancellation =
+                mapToCustomerCancellation(params.getString("customerCancellation"))
+            val configurationBuilder = CollectRefundConfiguration.Builder()
+            if (customerCancellation != null) {
+                configurationBuilder.setCustomerCancellation(customerCancellation)
+            }
+            processRefundCancelable = terminal.processRefund(
                 intentParams,
-                RefundConfiguration.Builder().setEnableCustomerCancellation(
-                    enableCustomerCancellation
-                ).build(),
-                NoOpCallback(promise)
+                configurationBuilder.build(),
+                RNRefundCallback(promise)
             )
         }
 
@@ -972,11 +1108,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val collectDataType = requireNonNullParameter(mapFromCollectDataType(collectDataTypeParam)) {
                 "Unknown collectDataType: $collectDataTypeParam"
             }
-            val enableCustomerCancellation = getBoolean(params, "enableCustomerCancellation")
+            val customerCancellation =
+                mapToCustomerCancellation(params.getString("customerCancellation"))
 
             val configBuilder = CollectDataConfiguration.Builder()
-                .setEnableCustomerCancellation(enableCustomerCancellation)
                 .setType(collectDataType)
+            if (customerCancellation != null) {
+                configBuilder.setCustomerCancellation(customerCancellation)
+            }
             val config = configBuilder.build()
 
             collectDataCancelable = terminal.collectData(config, RNCollectedDataCallback(promise))
@@ -996,12 +1135,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         terminal.clearCachedCredentials()
         paymentIntents.clear()
         promise.resolve(NativeTypeFactory.writableNativeMap())
-    }
-
-    @ReactMethod
-    @Suppress("unused")
-    fun confirmRefund(promise: Promise) {
-        confirmRefundCancelable = terminal.confirmRefund(RNRefundCallback(promise))
     }
 
     @OptIn(OfflineMode::class)
@@ -1259,7 +1392,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     getBoolean(params, "simulated")
                 )
 
-                DiscoveryMethod.HANDOFF -> DiscoveryConfiguration.HandoffDiscoveryConfiguration()
+                DiscoveryMethod.APPS_ON_DEVICES -> DiscoveryConfiguration.AppsOnDevicesDiscoveryConfiguration()
                 DiscoveryMethod.TAP_TO_PAY -> DiscoveryConfiguration.TapToPayDiscoveryConfiguration(
                     getBoolean(params, "simulated")
                 )
@@ -1276,27 +1409,18 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         withExceptionResolver(promise) {
             val tapToPayUxConfigurationBuilder = TapToPayUxConfiguration.Builder()
 
-            var tapZone: TapToPayUxConfiguration.TapZone? = null
             val tapZoneParam = params.getMap("tapZone")
-            tapZoneParam?.let {
-                val tapZoneIndicator =
-                    mapToTapZoneIndicator(tapZoneParam.getString("tapZoneIndicator"))
-
-                val tapZonePosition = tapZoneParam.getMap("tapZonePosition")?.let {
-                    TapToPayUxConfiguration.TapZonePosition.Manual(
-                        it.getDouble("xBias").toFloat(),
-                        it.getDouble("yBias").toFloat()
-                    )
-                } ?: TapToPayUxConfiguration.TapZonePosition.Default
-
-                tapZone = TapToPayUxConfiguration.TapZone.Manual.Builder()
-                    .indicator(tapZoneIndicator)
-                    .position(tapZonePosition)
-                    .build()
+            val tapZone: TapToPayUxConfiguration.TapZone = if (tapZoneParam != null) {
+                mapToTapZone(
+                    tapZoneParam.getString("indicator"),
+                    tapZoneParam.getDoubleSafely("bias")?.toFloat(),
+                    tapZoneParam.getDoubleSafely("xBias")?.toFloat(),
+                    tapZoneParam.getDoubleSafely("yBias")?.toFloat()
+                )
+            } else {
+                TapToPayUxConfiguration.TapZone.Default
             }
-            tapToPayUxConfigurationBuilder.tapZone(
-                tapZone ?: TapToPayUxConfiguration.TapZone.Default
-            )
+            tapToPayUxConfigurationBuilder.tapZone(tapZone)
 
             val colorsParam = params.getMap("colors")
             colorsParam?.let {
@@ -1352,5 +1476,29 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     private fun busyMessage(command: String, busyBy: String): String {
         return "Could not execute $command because the SDK is busy with another command: $busyBy."
+    }
+
+    private fun getPaymentIntentFromParams(params: ReadableMap): PaymentIntent {
+        val paymentIntentJson = requireNonNullParameter(params.getMap("paymentIntent")) {
+            "You must provide a paymentIntent"
+        }
+        val uuid = requireNonNullParameter(paymentIntentJson.getString("sdkUuid")) {
+            "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."
+        }
+        return requireNonNullParameter(paymentIntents[uuid]) {
+            "No PaymentIntent was found with the sdkUuid $uuid. The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."
+        }
+    }
+
+    private fun getSetupIntentFromParams(params: ReadableMap): SetupIntent {
+        val setupIntentJson = requireNonNullParameter(params.getMap("setupIntent")) {
+            "You must provide a setupIntent"
+        }
+        val uuid = requireNonNullParameter(setupIntentJson.getString("sdkUuid")) {
+            "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createSetupIntent or retrieveSetupIntent."
+        }
+        return requireNonNullParameter(setupIntents[uuid]) {
+            "No SetupIntent was found with the sdkUuid $uuid. The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."
+        }
     }
 }

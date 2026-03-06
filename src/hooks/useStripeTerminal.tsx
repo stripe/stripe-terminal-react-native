@@ -1,6 +1,7 @@
 import { useCallback, useContext } from 'react';
 import type {
   DiscoverReadersParams,
+  EasyConnectParams,
   Reader,
   CreatePaymentIntentParams,
   GetLocationsParams,
@@ -17,22 +18,22 @@ import type {
   ICollectInputsParameters,
   ReaderEvent,
   ConfirmPaymentMethodParams,
+  ProcessPaymentIntentParams,
   ConfirmSetupIntentMethodParams,
+  ProcessSetupIntentParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
   CollectDataParams,
   TapToPayUxConfiguration,
-  ConnectBluetoothReaderParams,
-  ConnectUsbReaderParams,
-  ConnectTapToPayParams,
-  ConnectHandoffParams,
-  ConnectInternetReaderParams,
+  ConnectReaderParams,
   PrintContent,
 } from '../types';
 import type { StripeError } from '../types/StripeError';
 import {
   discoverReaders,
   cancelDiscovering,
+  easyConnect,
+  cancelEasyConnect,
   connectReader,
   disconnectReader,
   rebootReader,
@@ -41,6 +42,7 @@ import {
   retrievePaymentIntent,
   getLocations,
   confirmPaymentIntent,
+  processPaymentIntent,
   createSetupIntent,
   cancelPaymentIntent,
   installAvailableUpdate,
@@ -51,19 +53,20 @@ import {
   collectSetupIntentPaymentMethod,
   cancelSetupIntent,
   confirmSetupIntent,
+  processSetupIntent,
   simulateReaderUpdate,
-  collectRefundPaymentMethod,
-  confirmRefund,
+  processRefund,
   clearCachedCredentials,
   cancelCollectPaymentMethod,
   cancelCollectSetupIntent,
   cancelConfirmPaymentIntent,
+  cancelProcessPaymentIntent,
   cancelConfirmSetupIntent,
-  cancelConfirmRefund,
+  cancelProcessSetupIntent,
+  cancelProcessRefund,
   setSimulatedCard,
   setSimulatedOfflineMode,
   setSimulatedCollectInputsResult,
-  cancelCollectRefundPaymentMethod,
   getOfflineStatus,
   getReaderSettings,
   setReaderSettings,
@@ -431,22 +434,14 @@ export function useStripeTerminal(props?: Props) {
   }, [setLoading, setDiscoveredReaders, _isInitialized]);
 
   const _connectReader = useCallback(
-    async (
-      params:
-        | ConnectBluetoothReaderParams
-        | ConnectUsbReaderParams
-        | ConnectTapToPayParams
-        | ConnectHandoffParams
-        | ConnectInternetReaderParams,
-      discoveryMethod: Reader.DiscoveryMethod
-    ) => {
+    async (params: ConnectReaderParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
         throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
       }
       setLoading(true);
 
-      const response = await connectReader(params, discoveryMethod);
+      const response = await connectReader(params);
 
       if (response.reader && !response.error) {
         setConnectedReader(response.reader);
@@ -568,6 +563,23 @@ export function useStripeTerminal(props?: Props) {
       setLoading(true);
 
       const response = await confirmPaymentIntent(param);
+
+      setLoading(false);
+
+      return response;
+    },
+    [setLoading, _isInitialized]
+  );
+
+  const _processPaymentIntent = useCallback(
+    async (param: ProcessPaymentIntentParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await processPaymentIntent(param);
 
       setLoading(false);
 
@@ -734,6 +746,23 @@ export function useStripeTerminal(props?: Props) {
     [setLoading, _isInitialized]
   );
 
+  const _processSetupIntent = useCallback(
+    async (params: ProcessSetupIntentParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+
+      const response = await processSetupIntent(params);
+
+      setLoading(false);
+
+      return response;
+    },
+    [setLoading, _isInitialized]
+  );
+
   const _setSimulatedCard = useCallback(
     async (cardNumber: string) => {
       if (!_isInitialized()) {
@@ -800,7 +829,7 @@ export function useStripeTerminal(props?: Props) {
     [setLoading, _isInitialized]
   );
 
-  const _collectRefundPaymentMethod = useCallback(
+  const _processRefund = useCallback(
     async (params: RefundParams) => {
       if (!_isInitialized()) {
         console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -808,7 +837,7 @@ export function useStripeTerminal(props?: Props) {
       }
       setLoading(true);
 
-      const response = await collectRefundPaymentMethod(params);
+      const response = await processRefund(params);
 
       setLoading(false);
 
@@ -816,20 +845,6 @@ export function useStripeTerminal(props?: Props) {
     },
     [setLoading, _isInitialized]
   );
-
-  const _confirmRefund = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
-    setLoading(true);
-
-    const response = await confirmRefund();
-
-    setLoading(false);
-
-    return response;
-  }, [setLoading, _isInitialized]);
 
   const _clearCachedCredentials = useCallback(async () => {
     setLoading(true);
@@ -855,14 +870,14 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [setLoading, _isInitialized]);
 
-  const _cancelCollectRefundPaymentMethod = useCallback(async () => {
+  const _cancelProcessRefund = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
       throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
     }
     setLoading(true);
 
-    const response = await cancelCollectRefundPaymentMethod();
+    const response = await cancelProcessRefund();
 
     setLoading(false);
 
@@ -897,6 +912,20 @@ export function useStripeTerminal(props?: Props) {
     return response;
   }, [_isInitialized, setLoading]);
 
+  const _cancelProcessPaymentIntent = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelProcessPaymentIntent();
+
+    setLoading(false);
+
+    return response;
+  }, [_isInitialized, setLoading]);
+
   const _cancelConfirmSetupIntent = useCallback(async () => {
     if (!_isInitialized()) {
       console.error(NOT_INITIALIZED_ERROR_MESSAGE);
@@ -905,20 +934,6 @@ export function useStripeTerminal(props?: Props) {
     setLoading(true);
 
     const response = await cancelConfirmSetupIntent();
-
-    setLoading(false);
-
-    return response;
-  }, [_isInitialized, setLoading]);
-
-  const _cancelConfirmRefund = useCallback(async () => {
-    if (!_isInitialized()) {
-      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-    }
-    setLoading(true);
-
-    const response = await cancelConfirmRefund();
 
     setLoading(false);
 
@@ -1114,6 +1129,40 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setLoading]
   );
 
+  const _easyConnect = useCallback(
+    async (params: EasyConnectParams) => {
+      if (!_isInitialized()) {
+        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+      }
+      setLoading(true);
+      const response = await easyConnect(params);
+
+      if (response.reader) {
+        setConnectedReader(response.reader);
+      }
+
+      setLoading(false);
+
+      return response;
+    },
+    [_isInitialized, setLoading, setConnectedReader]
+  );
+
+  const _cancelEasyConnect = useCallback(async () => {
+    if (!_isInitialized()) {
+      console.error(NOT_INITIALIZED_ERROR_MESSAGE);
+      throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
+    }
+    setLoading(true);
+
+    const response = await cancelEasyConnect();
+
+    setLoading(false);
+
+    return response;
+  }, [setLoading, _isInitialized]);
+
   const _getNativeSdkVersion = useCallback(async () => {
     return await getNativeSdkVersion();
   }, []);
@@ -1122,6 +1171,8 @@ export function useStripeTerminal(props?: Props) {
     initialize: _initialize,
     discoverReaders: _discoverReaders,
     cancelDiscovering: _cancelDiscovering,
+    easyConnect: _easyConnect,
+    cancelEasyConnect: _cancelEasyConnect,
     connectReader: _connectReader,
     disconnectReader: _disconnectReader,
     rebootReader: _rebootReader,
@@ -1130,6 +1181,7 @@ export function useStripeTerminal(props?: Props) {
     retrievePaymentIntent: _retrievePaymentIntent,
     getLocations: _getLocations,
     confirmPaymentIntent: _confirmPaymentIntent,
+    processPaymentIntent: _processPaymentIntent,
     createSetupIntent: _createSetupIntent,
     cancelPaymentIntent: _cancelPaymentIntent,
     installAvailableUpdate: _installAvailableUpdate,
@@ -1140,16 +1192,17 @@ export function useStripeTerminal(props?: Props) {
     collectSetupIntentPaymentMethod: _collectSetupIntentPaymentMethod,
     cancelSetupIntent: _cancelSetupIntent,
     confirmSetupIntent: _confirmSetupIntent,
+    processSetupIntent: _processSetupIntent,
     simulateReaderUpdate: _simulateReaderUpdate,
-    collectRefundPaymentMethod: _collectRefundPaymentMethod,
-    confirmRefund: _confirmRefund,
+    processRefund: _processRefund,
     clearCachedCredentials: _clearCachedCredentials,
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
-    cancelCollectRefundPaymentMethod: _cancelCollectRefundPaymentMethod,
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
     cancelConfirmPaymentIntent: _cancelConfirmPaymentIntent,
+    cancelProcessPaymentIntent: _cancelProcessPaymentIntent,
     cancelConfirmSetupIntent: _cancelConfirmSetupIntent,
-    cancelConfirmRefund: _cancelConfirmRefund,
+    cancelProcessSetupIntent: cancelProcessSetupIntent,
+    cancelProcessRefund: _cancelProcessRefund,
     setSimulatedCard: _setSimulatedCard,
     setSimulatedOfflineMode: _setSimulatedOfflineMode,
     setSimulatedCollectInputsResult: _setSimulatedCollectInputsResult,

@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -43,6 +45,11 @@
 </string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is required in order to accept payments.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app can use images of receipts from your photo library to print
+</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>
@@ -62,8 +69,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-  <key>NSPhotoLibraryUsageDescription</key>
-  <string>This app can use images of receipts from your photo library to print
-</string>
 </dict>
 </plist>

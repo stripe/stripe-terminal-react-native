@@ -2,18 +2,16 @@ package com.stripeterminalreactnative
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.ConnectionTokenCallback
-import com.stripe.stripeterminal.external.models.ConnectionTokenException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants.FETCH_TOKEN_PROVIDER
 import io.mockk.Called
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class TokenProviderTest {

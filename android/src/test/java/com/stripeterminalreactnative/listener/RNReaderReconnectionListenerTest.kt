@@ -12,11 +12,11 @@ import com.stripeterminalreactnative.ReactNativeTypeReplacementRule
 import com.stripeterminalreactnative.hasValue
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class RNReaderReconnectionListenerTest {

@@ -1,157 +1,121 @@
 import { requestNeededAndroidPermissions } from '../androidPermissionsUtils';
+import { PermissionsAndroid, Platform } from 'react-native';
 
-const permissionsConstantsMock = {
-  PERMISSIONS: {
-    ACCESS_FINE_LOCATION: 'ACCESS_FINE_LOCATION',
-    BLUETOOTH_CONNECT: 'BLUETOOTH_CONNECT',
-    BLUETOOTH_SCAN: 'BLUETOOTH_SCAN',
-  },
-  RESULTS: {
-    GRANTED: 'granted',
-  },
-};
+PermissionsAndroid.request = jest.fn();
 
 describe('androidPermissionsUtils.ts', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('access is granted', async () => {
-    const permissionsMock = {
-      ACCESS_FINE_LOCATION: 'granted',
-      BLUETOOTH_CONNECT: 'granted',
-      BLUETOOTH_SCAN: 'granted',
-    };
-    jest.resetModules();
-
-    jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-      OS: 'android',
-      Version: 31,
-    }));
-
-    jest.doMock(
-      'react-native/Libraries/PermissionsAndroid/PermissionsAndroid',
-      () => ({
-        request: (status: keyof typeof permissionsMock) => {
-          return permissionsMock[status];
-        },
-        ...permissionsConstantsMock,
-      })
-    );
-
+    (PermissionsAndroid.request as jest.Mock)
+      .mockResolvedValue(PermissionsAndroid.RESULTS.GRANTED);
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      writable: true,
+    });
+    Object.defineProperty(Platform, 'Version', {
+      value: 31,
+      writable: true,
+    });
     await expect(requestNeededAndroidPermissions()).resolves.toEqual({
       error: null,
     });
   });
 
   it('access fine location is not granted', async () => {
-    const permissionsMock = {
-      ACCESS_FINE_LOCATION: 'denied',
-      BLUETOOTH_CONNECT: 'granted',
-      BLUETOOTH_SCAN: 'granted',
-    };
-    jest.resetModules();
-
-    jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-      OS: 'android',
-      Version: 31,
-    }));
-
-    jest.doMock(
-      'react-native/Libraries/PermissionsAndroid/PermissionsAndroid',
-      () => ({
-        request: (permission: keyof typeof permissionsMock) => {
-          return permissionsMock[permission];
-        },
-        ...permissionsConstantsMock,
+    (PermissionsAndroid.request as jest.Mock)
+      .mockImplementation((permission) => {
+        if (permission === PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION) {
+          return Promise.resolve(PermissionsAndroid.RESULTS.DENIED);
+        }
+        return Promise.resolve(PermissionsAndroid.RESULTS.GRANTED);
       })
-    );
+
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      writable: true,
+    });
+    Object.defineProperty(Platform, 'Version', {
+      value: 31,
+      writable: true,
+    });
 
     await expect(requestNeededAndroidPermissions()).resolves.toEqual({
       error: {
-        ACCESS_FINE_LOCATION: 'denied',
+        'android.permission.ACCESS_FINE_LOCATION': 'denied',
       },
     });
   });
 
   it('bluetooth connect is not granted', async () => {
-    const permissionsMock = {
-      ACCESS_FINE_LOCATION: 'granted',
-      BLUETOOTH_CONNECT: 'denied',
-      BLUETOOTH_SCAN: 'granted',
-    };
-    jest.resetModules();
+    (PermissionsAndroid.request as jest.Mock)
+      .mockImplementation((permission) => {
 
-    jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-      OS: 'android',
-      Version: 31,
-    }));
-
-    jest.doMock(
-      'react-native/Libraries/PermissionsAndroid/PermissionsAndroid',
-      () => ({
-        request: (permission: keyof typeof permissionsMock) => {
-          return permissionsMock[permission];
-        },
-        ...permissionsConstantsMock,
+        if (permission === PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT) {
+          return Promise.resolve(PermissionsAndroid.RESULTS.DENIED);
+        }
+        return Promise.resolve(PermissionsAndroid.RESULTS.GRANTED);
       })
-    );
+
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      writable: true,
+    });
+    Object.defineProperty(Platform, 'Version', {
+      value: 31,
+      writable: true,
+    });
 
     await expect(requestNeededAndroidPermissions()).resolves.toEqual({
       error: {
-        BLUETOOTH_CONNECT: 'denied',
+        'android.permission.BLUETOOTH_CONNECT': 'denied',
       },
     });
   });
 
   it('bluetooth scan is not granted', async () => {
-    const permissionsMock = {
-      ACCESS_FINE_LOCATION: 'granted',
-      BLUETOOTH_CONNECT: 'granted',
-      BLUETOOTH_SCAN: 'denied',
-    };
-    jest.resetModules();
 
-    jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-      OS: 'android',
-      Version: 31,
-    }));
-
-    jest.doMock(
-      'react-native/Libraries/PermissionsAndroid/PermissionsAndroid',
-      () => ({
-        request: (permission: keyof typeof permissionsMock) => {
-          return permissionsMock[permission];
-        },
-        ...permissionsConstantsMock,
+    (PermissionsAndroid.request as jest.Mock)
+      .mockImplementation((permission) => {
+        if (permission === PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN) {
+          return Promise.resolve(PermissionsAndroid.RESULTS.DENIED);
+        }
+        return Promise.resolve(PermissionsAndroid.RESULTS.GRANTED);
       })
-    );
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      writable: true,
+    });
+    Object.defineProperty(Platform, 'Version', {
+      value: 31,
+      writable: true,
+    });
 
     await expect(requestNeededAndroidPermissions()).resolves.toEqual({
       error: {
-        BLUETOOTH_SCAN: 'denied',
+        'android.permission.BLUETOOTH_SCAN': 'denied',
       },
     });
   });
 
   it('grants permissions on android lower api level', async () => {
-    const permissionsMock = {
-      ACCESS_FINE_LOCATION: 'granted',
-      BLUETOOTH_CONNECT: 'denied',
-      BLUETOOTH_SCAN: 'denied',
-    };
-    jest.resetModules();
 
-    jest.mock('react-native/Libraries/Utilities/Platform', () => ({
-      OS: 'android',
-      Version: 29,
-    }));
-
-    jest.doMock(
-      'react-native/Libraries/PermissionsAndroid/PermissionsAndroid',
-      () => ({
-        request: (permission: keyof typeof permissionsMock) => {
-          return permissionsMock[permission];
-        },
-        ...permissionsConstantsMock,
+    (PermissionsAndroid.request as jest.Mock)
+      .mockImplementation((permission) => {
+        if (permission === PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION) {
+          return Promise.resolve(PermissionsAndroid.RESULTS.GRANTED);
+        }
+        return Promise.resolve(PermissionsAndroid.RESULTS.DENIED);
       })
-    );
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      writable: true,
+    });
+    Object.defineProperty(Platform, 'Version', {
+      value: 29,
+      writable: true,
+    });
 
     await expect(requestNeededAndroidPermissions()).resolves.toEqual({
       error: null,

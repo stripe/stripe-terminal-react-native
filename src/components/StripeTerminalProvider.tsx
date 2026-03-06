@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo, useRef } from 'react';
 import {
   type Reader,
   type LogLevel,
+  type InitParams,
   type EventResult,
   type PaymentStatus,
   type OfflineStatus,
@@ -48,6 +49,58 @@ const TOKEN_PROVIDER_ERROR_MESSAGE =
   "Couldn't fetch connection token. Please check your tokenProvider method";
 
 /**
+ * When using the Stripe Terminal SDK to build Apps on Devices that run on Stripe readers,
+ * the AppsOnDevicesConnectionTokenProvider can be used to obtain connection tokens without
+ * contacting your backend server.
+ *
+ * This feature is in private preview and only available on Android.
+ * Contact Stripe support to enable this feature on your account.
+ *
+ * @example
+ * ```ts
+ * import { AppsOnDevicesConnectionTokenProvider } from '@stripe/stripe-terminal-react-native';
+ * <StripeTerminalProvider tokenProvider={AppsOnDevicesConnectionTokenProvider}>
+ *   <App />
+ * </StripeTerminalProvider>
+ * ```
+ */
+export const AppsOnDevicesConnectionTokenProvider = async (): Promise<string> => {
+  throw new Error(
+    'Potential misconfiguration detected. Please check your integration.'
+  );
+};
+
+// Helper: Initialize for serverless Apps-on-Devices mode
+const initializeWithServerlessAppsOnDevices = async (initParams: InitParams) => {
+  return initialize({ initParams, useAppsOnDevicesConnectionTokenProvider: true });
+};
+
+// Helper: Initialize with standard token provider
+const initializeWithTokenProvider = async (
+  initParams: InitParams,
+  tokenProvider: () => Promise<string>
+) => {
+  try {
+    await tokenProvider();
+  } catch (error) {
+    console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
+    console.error(error);
+    return {
+      error: createStripeError({
+        code: ErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR,
+        message: TOKEN_PROVIDER_ERROR_MESSAGE,
+      }),
+    };
+  }
+
+  const result = await initialize({
+    initParams,
+    useAppsOnDevicesConnectionTokenProvider: false,
+  });
+  return result;
+};
+
+/**
  *  StripeTerminalProvider Component Props
  */
 export interface Props {
@@ -69,13 +122,20 @@ export interface Props {
 }
 
 /**
- *  StripeTerminalProvider Component
+ * StripeTerminalProvider Component
  *
  * @example
  * ```ts
- *  <StripeTerminalProvider tokenProvider={tokenProvider}>
- *    <App />
- *  </StripeTerminalProvider>
+ * // Using a custom token provider (standard setup)
+ * <StripeTerminalProvider tokenProvider={fetchTokenProvider}>
+ *   <App />
+ * </StripeTerminalProvider>
+ *
+ * // Using Apps-on-Devices serverless mode (Android only, on Stripe smart readers)
+ * import { AppsOnDevicesConnectionTokenProvider } from '@stripe/stripe-terminal-react-native';
+ * <StripeTerminalProvider tokenProvider={AppsOnDevicesConnectionTokenProvider}>
+ *   <App />
+ * </StripeTerminalProvider>
  * ```
  * @param __namedParameters Props
  * @returns React.JSX.Element
@@ -86,6 +146,8 @@ export function StripeTerminalProvider({
   tokenProvider,
   logLevel,
 }: Props) {
+  // Detect if using Apps-on-Devices mode by checking if the sentinel function was passed
+  const isAppsOnDevicesMode = tokenProvider === AppsOnDevicesConnectionTokenProvider;
   const isInitializedRef = useRef(false);
   const getIsInitialized = useCallback(() => isInitializedRef.current, []);
   const [loading, setLoading] = useState(true);
@@ -312,40 +374,29 @@ export function StripeTerminalProvider({
   useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
   const _initialize = useCallback(async () => {
+    const initParams: InitParams = { logLevel };
+
     setLoading(true);
+    log('initialize', `tokenProvider mode: ${isAppsOnDevicesMode ? 'AppsOnDevicesConnectionTokenProvider' : 'StandardConnectionTokenProvider'}`);
 
-    // test tokenProvider method since native SDK's doesn't fetch it on init
-    try {
-      await tokenProvider();
-    } catch (error) {
-      console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
-      console.error(error);
-
-      return {
-        error: createStripeError({
-          code: ErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR,
-          message: TOKEN_PROVIDER_ERROR_MESSAGE,
-        }),
-      };
-    }
-
-    const response = await initialize({ logLevel });
+    const response = isAppsOnDevicesMode
+      ? await initializeWithServerlessAppsOnDevices(initParams)
+      : await initializeWithTokenProvider(initParams, tokenProvider);
 
     if (response.error) {
       log(response.error.code, response.error.message);
-    } else if (response.reader) {
-      log('Connected to the reader: ', response.reader);
-      setConnectedReader(response.reader);
-    }
-
-    if (!response.error) {
+    } else {
+      if (response.reader) {
+        log('Connected to the reader: ', response.reader);
+        setConnectedReader(response.reader);
+      }
       isInitializedRef.current = true;
     }
 
     setLoading(false);
 
     return response;
-  }, [logLevel, tokenProvider, log]);
+  }, [logLevel, isAppsOnDevicesMode, tokenProvider, log]);
 
   const value = useMemo(
     () => ({

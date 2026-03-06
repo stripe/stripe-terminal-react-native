@@ -39,7 +39,7 @@ project.xcworkspace
 .project
 .settings
 local.properties
-android.iml
+*.iml
 *.hprof
 .cxx/
 *.keystore

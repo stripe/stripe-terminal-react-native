@@ -39,6 +39,7 @@ export {
 // components
 export {
   StripeTerminalProvider,
+  AppsOnDevicesConnectionTokenProvider,
   type Props as StripeTerminalProviderProps,
 } from './components/StripeTerminalProvider';
 

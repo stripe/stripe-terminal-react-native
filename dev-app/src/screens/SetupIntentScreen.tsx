@@ -11,6 +11,8 @@ import {
   type StripeError,
   type AllowRedisplay,
   type CollectionReason,
+  type CustomerCancellation,
+  type MotoConfiguration,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
@@ -31,6 +33,12 @@ const ALLOW_REDISPLAY = [
   { value: 'always', label: 'always' },
 ];
 
+const CUSTOMER_CANCELLATION = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'enableIfAvailable', label: 'enableIfAvailable' },
+  { value: 'disableIfAvailable', label: 'disableIfAvailable' },
+];
+
 const COLLECTION_REASON = [
   { value: 'unspecified', label: 'unspecified' },
   { value: 'saveCard', label: 'saveCard' },
@@ -42,12 +50,14 @@ export default function SetupIntentScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
-  const { deviceType, discoveryMethod } = params;
-  const [enableCustomerCancellation, setEnableCustomerCancellation] =
-    useState(false);
+  const { discoveryMethod } = params;
+  const [customerCancellation, setCustomerCancellation] =
+    useState<CustomerCancellation>('unspecified');
   const [collectReason, setCollectReason] =
     useState<CollectionReason>('unspecified');
-  const [moto, setMoto] = useState(false);
+  const [motoConfiguration, setMotoConfiguration] = useState<
+    MotoConfiguration | undefined
+  >(undefined);
 
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('always');
@@ -56,9 +66,10 @@ export default function SetupIntentScreen() {
     createSetupIntent,
     collectSetupIntentPaymentMethod,
     confirmSetupIntent,
+    processSetupIntent,
     cancelConfirmSetupIntent,
-    retrieveSetupIntent,
     cancelCollectSetupIntent,
+    cancelProcessSetupIntent,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
@@ -147,8 +158,8 @@ export default function SetupIntentScreen() {
     const { setupIntent, error } = await collectSetupIntentPaymentMethod({
       setupIntent: si,
       allowRedisplay: allowRedisplay,
-      enableCustomerCancellation: enableCustomerCancellation,
-      moto: moto,
+      customerCancellation: customerCancellation,
+      motoConfiguration: motoConfiguration,
       collectionReason: collectReason,
     });
     if (error) {
@@ -178,6 +189,133 @@ export default function SetupIntentScreen() {
     }
   };
 
+  const _processSetupIntent = async () => {
+    clearLogs();
+    navigation.navigate('LogListScreen', {});
+
+    addLogs({
+      name: 'Create Setup Intent',
+      events: [
+        {
+          name: 'Create',
+          description: 'terminal.createSetupIntent',
+        },
+      ],
+    });
+
+    let setupIntent: SetupIntent.Type | undefined;
+    let setupIntentError: StripeError | undefined;
+
+    const resp = await api.lookupOrCreateExampleCustomer();
+
+    if ('error' in resp) {
+      console.log(resp.error);
+      addLogs({
+        name: 'Lookup / Create Customer',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.lookupOrCreateExampleCustomer',
+            metadata: {
+              errorCode: resp.error.code,
+              errorMessage: resp.error.message,
+            },
+          },
+        ],
+      });
+      return;
+    }
+    let parameter: CreateSetupIntentParams;
+    if (motoConfiguration != undefined) {
+      parameter = {
+        customer: resp.id,
+        paymentMethodTypes: ['card'],
+      };
+    } else {
+      parameter = {
+        customer: resp.id,
+      };
+    }
+    const createdSetupIntentResponse = await createSetupIntent(parameter);
+    setupIntent = createdSetupIntentResponse.setupIntent;
+    setupIntentError = createdSetupIntentResponse.error;
+
+    if (setupIntentError) {
+      addLogs({
+        name: 'Create Setup Intent',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.createSetupIntent',
+            metadata: {
+              errorCode: setupIntentError.code,
+              errorMessage: setupIntentError.message,
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    if (!setupIntent) {
+      return;
+    }
+
+    addLogs({
+      name: 'Process Setup Intent',
+      events: [
+        {
+          name: 'Process',
+          onBack: cancelProcessSetupIntent,
+          description: 'terminal.processSetupIntent',
+          metadata: { setupIntentId: setupIntent.id },
+        },
+      ],
+    });
+
+    const { setupIntent: processedSetupIntent, error } =
+      await processSetupIntent({
+        setupIntent: setupIntent,
+        allowRedisplay: allowRedisplay,
+        customerCancellation: customerCancellation,
+        motoConfiguration: motoConfiguration,
+        collectionReason: collectReason,
+      });
+
+    if (error) {
+      addLogs({
+        name: 'Process Setup Intent',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.processSetupIntent',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+              si: processedSetupIntent
+                ? JSON.stringify(processedSetupIntent, undefined, 2)
+                : undefined,
+            },
+          },
+        ],
+      });
+    } else if (processedSetupIntent) {
+      addLogs({
+        name: 'Process Setup Intent',
+        events: [
+          {
+            name: 'Finished',
+            description: 'terminal.processSetupIntent',
+            metadata: {
+              setupIntentId: processedSetupIntent.id,
+              si: JSON.stringify(processedSetupIntent, undefined, 2),
+            },
+          },
+        ],
+      });
+    }
+  };
+
   const _createSetupIntent = async () => {
     clearLogs();
     navigation.navigate('LogListScreen', {});
@@ -195,92 +333,39 @@ export default function SetupIntentScreen() {
     let setupIntent: SetupIntent.Type | undefined;
     let setupIntentError: StripeError | undefined;
 
-    if (deviceType === 'verifoneP400') {
-      const resp = await api.createSetupIntent({});
+    const resp = await api.lookupOrCreateExampleCustomer();
 
-      if ('error' in resp) {
-        console.error(resp.error);
-        addLogs({
-          name: 'Create Setup Intent',
-          events: [
-            {
-              name: 'Failed',
-              description: 'terminal.createSetupIntent',
-              metadata: {
-                errorCode: resp.error.code,
-                errorMessage: resp.error.message,
-              },
-            },
-          ],
-        });
-        return;
-      }
-
-      if (!resp?.client_secret) {
-        console.error('no client secret returned!');
-        const error = new DevAppError(
-          'NO_CLIENT_SECRET',
-          'No client_secret returned from API',
+    if ('error' in resp) {
+      console.log(resp.error);
+      addLogs({
+        name: 'Lookup / Create Customer',
+        events: [
           {
-            context: {
-              step: 'createSetupIntent',
-              apiResponse: resp,
+            name: 'Failed',
+            description: 'terminal.lookupOrCreateExampleCustomer',
+            metadata: {
+              errorCode: resp.error.code,
+              errorMessage: resp.error.message,
             },
-          }
-        );
-
-        addLogs({
-          name: 'Create Setup Intent',
-          events: [
-            {
-              name: 'Failed',
-              description: 'terminal.createSetupIntent',
-              metadata: error.toJSON(),
-            },
-          ],
-        });
-        return;
-      }
-
-      const response = await retrieveSetupIntent(resp.client_secret);
-
-      setupIntent = response.setupIntent;
-      setupIntentError = response.error;
-    } else {
-      const resp = await api.lookupOrCreateExampleCustomer();
-
-      if ('error' in resp) {
-        console.log(resp.error);
-        addLogs({
-          name: 'Lookup / Create Customer',
-          events: [
-            {
-              name: 'Failed',
-              description: 'terminal.lookupOrCreateExampleCustomer',
-              metadata: {
-                errorCode: resp.error.code,
-                errorMessage: resp.error.message,
-              },
-            },
-          ],
-        });
-        return;
-      }
-      let parameter: CreateSetupIntentParams;
-      if (moto) {
-        parameter = {
-          customer: resp.id,
-          paymentMethodTypes: ['card'],
-        };
-      } else {
-        parameter = {
-          customer: resp.id,
-        };
-      }
-      const response = await createSetupIntent(parameter);
-      setupIntent = response.setupIntent;
-      setupIntentError = response.error;
+          },
+        ],
+      });
+      return;
     }
+    let parameter: CreateSetupIntentParams;
+    if (motoConfiguration != undefined) {
+      parameter = {
+        customer: resp.id,
+        paymentMethodTypes: ['card'],
+      };
+    } else {
+      parameter = {
+        customer: resp.id,
+      };
+    }
+    const response = await createSetupIntent(parameter);
+    setupIntent = response.setupIntent;
+    setupIntentError = response.error;
 
     if (setupIntentError) {
       const devError = DevAppError.fromStripeError(setupIntentError);
@@ -307,16 +392,26 @@ export default function SetupIntentScreen() {
     >
       {discoveryMethod === 'internet' && (
         <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
-          <ListItem
-            title="Customer cancellation"
-            rightElement={
-              <Switch
-                testID="enable-cancellation"
-                value={enableCustomerCancellation}
-                onValueChange={(value) => setEnableCustomerCancellation(value)}
-              />
-            }
-          />
+          <List bolded={false} topSpacing={false} title="Customer Cancellation">
+            <Picker
+              selectedValue={customerCancellation}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+              testID="select-cancellation"
+              onValueChange={(value) =>
+                setCustomerCancellation(value as CustomerCancellation)
+              }
+            >
+              {CUSTOMER_CANCELLATION.map((a) => (
+                <Picker.Item
+                  key={a.value}
+                  label={a.label}
+                  testID={a.value}
+                  value={a.value}
+                />
+              ))}
+            </Picker>
+          </List>
         </List>
       )}
       <List bolded={false} topSpacing={false} title="Set Allow Redisplay">
@@ -361,8 +456,30 @@ export default function SetupIntentScreen() {
           rightElement={
             <Switch
               testID="moto"
-              value={moto}
-              onValueChange={(value) => setMoto(value)}
+              value={motoConfiguration != undefined}
+              onValueChange={(value) => {
+                if (value) {
+                  setMotoConfiguration({});
+                } else {
+                  setMotoConfiguration(undefined);
+                }
+              }}
+            />
+          }
+        />
+        <ListItem
+          title="Skip Cvc"
+          visible={motoConfiguration != undefined}
+          rightElement={
+            <Switch
+              testID="motoSkipCvc"
+              value={motoConfiguration?.skipCvc == true}
+              onValueChange={(value) =>
+                setMotoConfiguration((state) => ({
+                  ...state,
+                  skipCvc: value,
+                }))
+              }
             />
           }
         />
@@ -372,6 +489,12 @@ export default function SetupIntentScreen() {
         testID="collect-setup-intent-button"
         title="Collect setupIntent"
         onPress={_createSetupIntent}
+      />
+      <ListItem
+        color={colors.blue}
+        testID="process-setup-intent-button"
+        title="Process setupIntent"
+        onPress={_processSetupIntent}
       />
     </KeyboardAwareScrollView>
   );

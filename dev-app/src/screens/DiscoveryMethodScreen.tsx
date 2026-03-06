@@ -58,7 +58,10 @@ export default function DiscoveryMethodScreen() {
       <ListItem onPress={() => onSelect('tapToPay')} title="Tap to Pay" />
 
       {Platform.OS === 'android' && (
-        <ListItem onPress={() => onSelect('handoff')} title="Handoff" />
+        <ListItem
+          onPress={() => onSelect('appsOnDevices')}
+          title="AppsOnDevices"
+        />
       )}
 
       {Platform.OS === 'ios' && (

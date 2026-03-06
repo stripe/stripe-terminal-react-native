@@ -127,32 +127,38 @@ private fun WritableMap.addResponseObjects(throwable: Throwable, uuid: String?) 
 }
 
 /**
- * Adds ApiError information to top-level of error object
+ * Maps an ApiError to a ReadableMap.
  *
- * Maps Android's ApiError to the unified apiError structure.
- *
- * Field handling (matching iOS behavior and TypeScript contract):
+ * Used for both error handling (TerminalException.apiError) and PaymentIntent.lastPaymentError.
+ * Field handling matches ErrorConstants and TypeScript ApiErrorInformation interface:
  * - code: Required field, fallback to "unknown_api_error_code" if null
  * - message: Required field (non-null String in SDK)
  * - declineCode: Required field, fallback to empty string if null
  * - type, charge, docUrl, param: Optional fields, omitted if null
  *
+ * @param apiError The ApiError to map, or null if not available
+ * @return ReadableMap containing the ApiError structure, or null if apiError is null
+ */
+internal fun mapFromApiError(apiError: ApiError?): ReadableMap? = apiError?.let { apiErr ->
+    nativeMapOf {
+        putString(ErrorConstants.API_ERROR_CODE_KEY, apiErr.code ?: ErrorConstants.API_ERROR_UNKNOWN_CODE)
+        putString(ErrorConstants.API_ERROR_MESSAGE_KEY, apiErr.message)
+        putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, apiErr.declineCode ?: ErrorConstants.API_ERROR_REQUIRED_FIELD_EMPTY)
+        apiErr.type?.let { putString(ErrorConstants.API_ERROR_TYPE_KEY, it.toString()) }
+        apiErr.charge?.let { putString(ErrorConstants.API_ERROR_CHARGE_KEY, it) }
+        apiErr.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
+        apiErr.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
+    }
+}
+
+/**
+ * Adds ApiError information to top-level of error object
+ *
  * @param apiError The ApiError from TerminalException, or null if not available
  */
 private fun WritableMap.addTopLevelApiError(apiError: ApiError?) {
-    apiError?.let { apiErr ->
-        putMap(
-            ErrorConstants.API_ERROR_KEY,
-            nativeMapOf {
-                putString(ErrorConstants.API_ERROR_CODE_KEY, apiErr.code ?: ErrorConstants.API_ERROR_UNKNOWN_CODE)
-                putString(ErrorConstants.API_ERROR_MESSAGE_KEY, apiErr.message)
-                putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, apiErr.declineCode ?: ErrorConstants.API_ERROR_REQUIRED_FIELD_EMPTY)
-                apiErr.type?.let { putString(ErrorConstants.API_ERROR_TYPE_KEY, it.toString()) }
-                apiErr.charge?.let { putString(ErrorConstants.API_ERROR_CHARGE_KEY, it) }
-                apiErr.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
-                apiErr.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
-            }
-        )
+    mapFromApiError(apiError)?.let { apiErrorMap ->
+        putMap(ErrorConstants.API_ERROR_KEY, apiErrorMap)
     }
 }
 

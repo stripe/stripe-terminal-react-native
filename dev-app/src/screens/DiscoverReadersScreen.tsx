@@ -20,11 +20,15 @@ import {
   useStripeTerminal,
   type Location,
   type Reader,
+  type PaymentIntent,
+  type PaymentOption,
+  type QrCodeDisplayData,
 } from '@stripe/stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
 import type {
   ConnectBluetoothReaderParams,
-  ConnectHandoffParams,
+  ConnectBluetoothProximityReaderParams,
+  ConnectAppsOnDevicesParams,
   ConnectInternetReaderParams,
   ConnectTapToPayParams,
   ConnectUsbReaderParams,
@@ -45,6 +49,7 @@ import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import type { NavigationProp } from '@react-navigation/native';
 import { showErrorAlert } from '../util/errorHandling';
+import { useQrModal } from '../components/QrModalContext';
 
 const SIMULATED_UPDATE_PLANS = [
   'random',
@@ -52,6 +57,8 @@ const SIMULATED_UPDATE_PLANS = [
   'none',
   'required',
   'lowBattery',
+  'lowBatterySucceedConnect',
+  'requiredForOffline',
 ];
 
 export default function DiscoverReadersScreen() {
@@ -66,8 +73,14 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
   } = useContext(AppContext);
-  const { simulated, discoveryMethod, discoveryTimeout, setPendingUpdateInfo } =
-    params;
+  const { showQrModal } = useQrModal();
+  const {
+    simulated,
+    discoveryMethod,
+    discoveryTimeout,
+    discoveryFilter,
+    setPendingUpdateInfo,
+  } = params;
 
   const {
     cancelDiscovering,
@@ -174,6 +187,7 @@ export default function DiscoverReadersScreen() {
       discoveryMethod,
       simulated,
       timeout: discoveryTimeout,
+      discoveryFilter: discoveryFilter,
     });
 
     if (discoverReadersError) {
@@ -187,6 +201,7 @@ export default function DiscoverReadersScreen() {
   }, [
     navigation,
     discoverReaders,
+    discoveryFilter,
     discoveryMethod,
     discoveryTimeout,
     simulated,
@@ -202,30 +217,17 @@ export default function DiscoverReadersScreen() {
 
     setConnectingReader(reader);
     if (discoveryMethod === 'internet') {
-      error = await connectReaderWrapper(
-        getInternetParams(reader),
-        discoveryMethod
-      );
-    } else if (
-      discoveryMethod === 'bluetoothScan' ||
-      discoveryMethod === 'bluetoothProximity'
-    ) {
-      error = await connectReaderWrapper(
-        getBluetoothParams(reader),
-        discoveryMethod
-      );
+      error = await connectReaderWrapper(getInternetParams(reader));
+    } else if (discoveryMethod === 'bluetoothScan') {
+      error = await connectReaderWrapper(getBluetoothParams(reader));
+    } else if (discoveryMethod === 'bluetoothProximity') {
+      error = await connectReaderWrapper(getBluetoothProximityParams(reader));
     } else if (discoveryMethod === 'tapToPay') {
-      error = await connectReaderWrapper(
-        getTapToPayParams(reader),
-        discoveryMethod
-      );
-    } else if (discoveryMethod === 'handoff') {
-      error = await connectReaderWrapper(
-        getHandoffParams(reader),
-        discoveryMethod
-      );
+      error = await connectReaderWrapper(getTapToPayParams(reader));
+    } else if (discoveryMethod === 'appsOnDevices') {
+      error = await connectReaderWrapper(getAppsOnDevicesParams(reader));
     } else if (discoveryMethod === 'usb') {
-      error = await connectReaderWrapper(getUsbParams(reader), discoveryMethod);
+      error = await connectReaderWrapper(getUsbParams(reader));
     }
     if (error) {
       setConnectingReader(undefined);
@@ -235,42 +237,103 @@ export default function DiscoverReadersScreen() {
     }
   };
 
+  const handlePaymentMethodSelectionRequired = (
+    _paymentIntent: PaymentIntent.Type,
+    availableOptions: PaymentOption[],
+    callback: {
+      selectPaymentOption: (paymentOptionType: string) => Promise<{ error?: StripeError }>;
+      failPaymentMethodSelection: (error?: string) => Promise<{ error?: StripeError }>;
+    }
+  ) => {
+    const buttons = availableOptions.map((option) => ({
+      text: option.label || (option.type === 'card' ? 'Card' : option.paymentMethodType || 'Unknown'),
+      onPress: () => {
+        const optionType = option.type === 'card' ? 'card' : option.paymentMethodType;
+        if (optionType) {
+          callback.selectPaymentOption(optionType);
+        }
+      },
+    }));
+
+    buttons.push({
+      text: 'Cancel',
+      onPress: () => {
+        callback.failPaymentMethodSelection('User cancelled');
+      },
+    });
+
+    Alert.alert(
+      'Select Payment Method',
+      `${availableOptions.length} options available`,
+      buttons
+    );
+  };
+
+  const handleQrCodeDisplayRequired = (
+    _paymentIntent: PaymentIntent.Type,
+    qrDisplayData: QrCodeDisplayData,
+    callback: {
+      confirmQrCodeDisplayed: () => Promise<{ error?: StripeError }>;
+      failQrCodeDisplay: (error?: string) => Promise<{ error?: StripeError }>;
+    }
+  ) => {
+    showQrModal(qrDisplayData, callback);
+  };
+
   const getBluetoothParams = (
     reader: Reader.Type
   ): ConnectBluetoothReaderParams => ({
-    reader,
-    locationId: selectedLocation?.id || reader?.location?.id,
+    discoveryMethod: 'bluetoothScan',
+    reader: reader,
+    locationId: selectedLocation?.id || reader?.location?.id || "",
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+    onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
+    onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
+  });
+
+  const getBluetoothProximityParams = (
+    reader: Reader.Type
+  ): ConnectBluetoothProximityReaderParams => ({
+    discoveryMethod: 'bluetoothProximity',
+    reader: reader,
+    locationId: selectedLocation?.id || reader?.location?.id || "",
+    autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+    onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
+    onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
   });
 
   const getInternetParams = (
     reader: Reader.Type
   ): ConnectInternetReaderParams => ({
-    reader,
+    discoveryMethod: 'internet',
+    reader: reader,
   });
 
   const getUsbParams = (reader: Reader.Type): ConnectUsbReaderParams => ({
-    reader,
-    locationId: selectedLocation?.id || reader?.location?.id,
+    discoveryMethod: 'usb',
+    reader: reader,
+    locationId: selectedLocation?.id || reader?.location?.id || "",
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+    onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
+    onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
   });
 
   const getTapToPayParams = (reader: Reader.Type): ConnectTapToPayParams => ({
-    reader,
-    locationId: selectedLocation?.id || reader?.location?.id,
+    discoveryMethod: 'tapToPay',
+    reader: reader,
+    locationId: selectedLocation?.id || reader?.location?.id || "",
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
   });
 
-  const getHandoffParams = (reader: Reader.Type): ConnectHandoffParams => ({
-    reader,
-    locationId: selectedLocation?.id || reader?.location?.id,
+  const getAppsOnDevicesParams = (
+    reader: Reader.Type
+  ): ConnectAppsOnDevicesParams => ({
+    discoveryMethod: 'appsOnDevices',
+    reader: reader,
   });
 
-  const connectReaderWrapper = async (
-    params: ConnectReaderParams,
-    discoveryMethod: Reader.DiscoveryMethod
-  ) => {
-    const { reader, error } = await connectReader(params, discoveryMethod);
+  const connectReaderWrapper = async (params: ConnectReaderParams) => {
+    const { reader, error } = await connectReader(params);
 
     if (error) {
       console.log('connect Reader error:', error);
@@ -520,6 +583,10 @@ function mapToPlanDisplayName(plan: string) {
       return 'Update required';
     case 'lowBattery':
       return 'Update required; reader has low battery';
+    case 'lowBatterySucceedConnect':
+      return 'Low battery; connection succeeds';
+    case 'requiredForOffline':
+      return 'Update required for offline mode';
     default:
       return '';
   }

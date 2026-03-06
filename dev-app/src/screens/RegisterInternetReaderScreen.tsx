@@ -98,10 +98,10 @@ export default function RegisterInternetReaderScreen() {
   }, [navigation, discoverReaders, handleGoBack]);
 
   const handleConnectInternetReader = async (reader: Reader.Type) => {
-    const { reader: connectedReader, error } = await connectReader(
-      { reader },
-      'internet'
-    );
+    const { reader: connectedReader, error } = await connectReader({
+      discoveryMethod: 'internet',
+      reader: reader,
+    });
 
     if (error) {
       console.log('connectInternetReader error:', error);

@@ -125,7 +125,7 @@ class ErrorsTest {
         // Note: We use relaxed mocking for ApiErrorType to avoid enum complexity
         val mockType = mockk<com.stripe.stripeterminal.external.api.ApiErrorType>(relaxed = true)
         every { mockType.toString() } returns "card_error"
-        
+
         val apiError = mockk<ApiError>(relaxed = true) {
             every { code } returns "card_declined"
             every { message } returns "Card was declined"
@@ -166,7 +166,7 @@ class ErrorsTest {
         // THEN apiError and underlyingError should not be present
         assertFalse(error.hasKey(API_ERROR_KEY), "apiError should not be present")
         assertFalse(error.hasKey(UNDERLYING_ERROR_KEY), "underlyingError should not be present")
-        
+
         // AND metadata should be empty
         val metadata = error.requireMap(METADATA_KEY)
         assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
@@ -192,7 +192,7 @@ class ErrorsTest {
         val underlying = error.requireMap(UNDERLYING_ERROR_KEY)
         assertEquals("IllegalArgumentException", underlying.getString("code"))
         assertEquals("root cause", underlying.getString("message"))
-        
+
         // metadata should be empty
         val metadata = error.requireMap(METADATA_KEY)
         assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
@@ -208,7 +208,7 @@ class ErrorsTest {
 
         // THEN underlyingError should not be present
         assertFalse(error.hasKey(UNDERLYING_ERROR_KEY), "underlyingError should not be present")
-        
+
         // AND metadata should be empty
         val metadata = error.requireMap(METADATA_KEY)
         assertTrue(metadata.toHashMap().isEmpty(), "Android metadata should be empty")
@@ -228,7 +228,7 @@ class ErrorsTest {
 
         // WHEN creating the error wrapper
         val result = createError(terminalException) as JavaOnlyMap
-        
+
         // THEN paymentIntent should be present at top-level (outside error object)
         val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
         assertNotNull(topLevelPaymentIntent)
@@ -255,18 +255,18 @@ class ErrorsTest {
     fun `createError with uuid passes uuid to mapper functions`() {
         // GIVEN a TerminalException with paymentIntent and setupIntent
         val testUuid = "test-uuid-123"
-        val paymentIntentMap = JavaOnlyMap().apply { 
+        val paymentIntentMap = JavaOnlyMap().apply {
             putString("id", "pi_test")
             putString("sdkUuid", testUuid)
         }
-        val setupIntentMap = JavaOnlyMap().apply { 
+        val setupIntentMap = JavaOnlyMap().apply {
             putString("id", "seti_test")
             putString("sdkUuid", testUuid)
         }
-        
+
         val paymentIntentSlot = slot<String>()
         val setupIntentSlot = slot<String>()
-        
+
         every { mapFromPaymentIntent(any(), capture(paymentIntentSlot)) } returns paymentIntentMap
         every { mapFromSetupIntent(any(), capture(setupIntentSlot)) } returns setupIntentMap
 
@@ -279,17 +279,17 @@ class ErrorsTest {
 
         // WHEN creating error with uuid
         val result = createError(terminalException, testUuid) as JavaOnlyMap
-        
+
         // THEN uuid should be passed to both mapper functions
         assertEquals(testUuid, paymentIntentSlot.captured)
         assertEquals(testUuid, setupIntentSlot.captured)
-        
+
         // AND paymentIntent and setupIntent should be at top-level with correct uuid
         val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
         assertNotNull(topLevelPaymentIntent)
         assertEquals("pi_test", topLevelPaymentIntent.getString("id"))
         assertEquals(testUuid, topLevelPaymentIntent.getString("sdkUuid"))
-        
+
         val topLevelSetupIntent = result.getMap(SETUP_INTENT_KEY) as JavaOnlyMap?
         assertNotNull(topLevelSetupIntent)
         assertEquals("seti_test", topLevelSetupIntent.getString("id"))
@@ -299,11 +299,11 @@ class ErrorsTest {
     @Test
     fun `createError without uuid uses empty string as default`() {
         // GIVEN a TerminalException with paymentIntent
-        val paymentIntentMap = JavaOnlyMap().apply { 
+        val paymentIntentMap = JavaOnlyMap().apply {
             putString("id", "pi_test")
             putString("sdkUuid", "")
         }
-        
+
         val uuidSlot = slot<String>()
         every { mapFromPaymentIntent(any(), capture(uuidSlot)) } returns paymentIntentMap
 
@@ -315,10 +315,10 @@ class ErrorsTest {
 
         // WHEN creating error without uuid
         val result = createError(terminalException) as JavaOnlyMap
-        
+
         // THEN empty string should be passed to mapper function
         assertEquals("", uuidSlot.captured)
-        
+
         // AND paymentIntent should be at top-level with empty uuid
         val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
         assertNotNull(topLevelPaymentIntent)
@@ -472,18 +472,17 @@ class ErrorsTest {
         verify(exactly = 0) { promise.resolve(any<ReadableMap>()) }
     }
 
-
     @Test
     fun `TerminalErrorCode mapping completeness test`() {
         // GIVEN all TerminalErrorCode enum values
         val allErrorCodes = TerminalErrorCode.values()
-        
+
         // WHEN mapping each code to RN error code
         // THEN each should have a valid non-empty mapping
         allErrorCodes.forEach { code ->
             val rnCode = code.convertToReactNativeErrorCode()
             assertFalse(rnCode.isEmpty(), "TerminalErrorCode.$code should not map to empty string")
-            assertTrue(rnCode.matches(Regex("^[A-Z][A-Z0-9_]*$")), 
+            assertTrue(rnCode.matches(Regex("^[A-Z][A-Z0-9_]*$")),
                       "TerminalErrorCode.$code should map to UPPER_SNAKE_CASE format, got: $rnCode")
             assertEquals(code.name, rnCode, "TerminalErrorCode.$code should map to its enum name")
         }
@@ -499,25 +498,150 @@ class ErrorsTest {
             "bluetooth failed",
             cause = midCause
         )
-        
+
         // WHEN creating the error map
         val errorWrapper = createError(terminalException) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
-        
+
         // THEN should be StripeError with immediate cause at top-level underlyingError
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals("bluetooth failed", error.getString("message"))
         assertEquals(TerminalErrorCode.BLUETOOTH_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
-        
+
         val underlying = error.requireMap(UNDERLYING_ERROR_KEY)
         assertEquals("RuntimeException", underlying.getString("code"))
         assertEquals("middle cause", underlying.getString("message"))
-        
+
         // NOTE: Only immediate cause is captured, not the full chain
     }
 
+    // ==================== mapFromApiError Tests ====================
+
+    @Test
+    fun `mapFromApiError returns null when apiError is null`() {
+        // GIVEN a null ApiError
+        val apiError: ApiError? = null
+
+        // WHEN mapping
+        val result = mapFromApiError(apiError)
+
+        // THEN should return null
+        assertNull(result)
+    }
+
+    @Test
+    fun `mapFromApiError maps all fields correctly when present`() {
+        // GIVEN an ApiError with all fields populated
+        val mockType = mockk<com.stripe.stripeterminal.external.api.ApiErrorType>(relaxed = true)
+        every { mockType.toString() } returns "card_error"
+
+        val apiError = mockk<ApiError> {
+            every { code } returns "card_declined"
+            every { message } returns "Your card was declined."
+            every { declineCode } returns "generic_decline"
+            every { type } returns mockType
+            every { charge } returns "ch_123"
+            every { docUrl } returns "https://stripe.com/docs/error-codes/card-declined"
+            every { param } returns "card_number"
+        }
+
+        // WHEN mapping
+        val result = mapFromApiError(apiError) as JavaOnlyMap
+
+        // THEN all fields should be mapped correctly
+        assertEquals("card_declined", result.getString("code"))
+        assertEquals("Your card was declined.", result.getString("message"))
+        assertEquals("generic_decline", result.getString("declineCode"))
+        assertEquals("card_error", result.getString("type"))
+        assertEquals("ch_123", result.getString("charge"))
+        assertEquals("https://stripe.com/docs/error-codes/card-declined", result.getString("docUrl"))
+        assertEquals("card_number", result.getString("param"))
+    }
+
+    @Test
+    fun `mapFromApiError uses default values for required fields when null`() {
+        // GIVEN an ApiError with null required fields
+        val apiError = mockk<ApiError> {
+            every { code } returns null
+            every { message } returns "Error message"
+            every { declineCode } returns null
+            every { type } returns null
+            every { charge } returns null
+            every { docUrl } returns null
+            every { param } returns null
+        }
+
+        // WHEN mapping
+        val result = mapFromApiError(apiError) as JavaOnlyMap
+
+        // THEN required fields should use default values
+        assertEquals("unknown_api_error_code", result.getString("code"))
+        assertEquals("Error message", result.getString("message"))
+        assertEquals("", result.getString("declineCode"))
+    }
+
+    @Test
+    fun `mapFromApiError omits optional fields when null`() {
+        // GIVEN an ApiError with only required fields (optional fields are null)
+        val apiError = mockk<ApiError> {
+            every { code } returns "some_error"
+            every { message } returns "Error message"
+            every { declineCode } returns "decline"
+            every { type } returns null
+            every { charge } returns null
+            every { docUrl } returns null
+            every { param } returns null
+        }
+
+        // WHEN mapping
+        val result = mapFromApiError(apiError) as JavaOnlyMap
+
+        // THEN optional fields should not be present
+        assertFalse(result.hasKey("type"), "type should not be present when null")
+        assertFalse(result.hasKey("charge"), "charge should not be present when null")
+        assertFalse(result.hasKey("docUrl"), "docUrl should not be present when null")
+        assertFalse(result.hasKey("param"), "param should not be present when null")
+
+        // AND required fields should be present
+        assertTrue(result.hasKey("code"))
+        assertTrue(result.hasKey("message"))
+        assertTrue(result.hasKey("declineCode"))
+    }
+
+    @Test
+    fun `mapFromApiError is used consistently by addTopLevelApiError in createError`() {
+        // GIVEN an ApiError
+        val apiError = mockk<ApiError> {
+            every { code } returns "test_code"
+            every { message } returns "test_message"
+            every { declineCode } returns "test_decline"
+            every { type } returns null
+            every { charge } returns null
+            every { docUrl } returns null
+            every { param } returns null
+        }
+        val terminalException = mockTerminalException(
+            TerminalErrorCode.STRIPE_API_ERROR,
+            "API Error",
+            apiError
+        )
+
+        // WHEN creating error via createError (which uses addTopLevelApiError internally)
+        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val error = errorWrapper.requireMap("error")
+        val apiErrorFromCreateError = error.requireMap(API_ERROR_KEY)
+
+        // AND mapping directly via mapFromApiError
+        val apiErrorDirect = mapFromApiError(apiError) as JavaOnlyMap
+
+        // THEN both should produce the same result
+        assertEquals(apiErrorDirect.getString("code"), apiErrorFromCreateError.getString("code"))
+        assertEquals(apiErrorDirect.getString("message"), apiErrorFromCreateError.getString("message"))
+        assertEquals(apiErrorDirect.getString("declineCode"), apiErrorFromCreateError.getString("declineCode"))
+    }
+
     companion object {
-        
+
         @ClassRule
         @JvmField
         val reactNativeMocks = ReactNativeTypeReplacementRule()

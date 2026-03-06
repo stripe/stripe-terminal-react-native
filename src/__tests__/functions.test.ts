@@ -20,9 +20,36 @@ const mockPaymentIntent = {
   currency: 'USD',
 };
 
+const mockLastPaymentError = {
+  code: 'card_declined',
+  message: 'Your card was declined.',
+  declineCode: 'generic_decline',
+  type: 'card_error',
+  charge: 'ch_123',
+  docUrl: 'https://stripe.com/docs/error-codes/card-declined',
+  param: 'card_number',
+};
+
+const mockPaymentIntentWithLastPaymentError = {
+  ...mockPaymentIntent,
+  lastPaymentError: mockLastPaymentError,
+};
+
 const mockSetupIntent = {
   id: 2,
   status: 'succeeded',
+};
+
+const mockLastSetupError = {
+  code: 'setup_intent_authentication_failure',
+  message: 'The setup failed because authentication failed.',
+  declineCode: 'authentication_required',
+  type: 'invalid_request_error',
+};
+
+const mockSetupIntentWithLastSetupError = {
+  ...mockSetupIntent,
+  lastSetupError: mockLastSetupError,
 };
 
 const mockRefund = {
@@ -41,16 +68,6 @@ const mockLocations = [
     displayName: 'loc_02',
   },
 ];
-
-const mockCollectInputResults = {
-  collectInputResults: [{ text: 'example input' }],
-};
-
-const mockCollectedData = {
-  collectedData: {
-    stripeId: '_stripe_id',
-  },
-};
 
 describe('functions.test.ts', () => {
   describe('Functions snapshot', () => {
@@ -93,6 +110,9 @@ describe('functions.test.ts', () => {
         confirmPaymentIntent: jest
           .fn()
           .mockImplementation(() => ({ paymentIntent: mockPaymentIntent })),
+        processPaymentIntent: jest
+          .fn()
+          .mockImplementation(() => ({ paymentIntent: mockPaymentIntent })),
         createSetupIntent: jest
           .fn()
           .mockImplementation(() => ({ setupIntent: mockSetupIntent })),
@@ -115,27 +135,25 @@ describe('functions.test.ts', () => {
         confirmSetupIntent: jest
           .fn()
           .mockImplementation(() => ({ setupIntent: mockSetupIntent })),
-        collectRefundPaymentMethod: jest.fn().mockImplementation(() => ({})),
-        confirmRefund: jest
+        processRefund: jest
           .fn()
           .mockImplementation(() => ({ refund: mockRefund })),
         cancelCollectPaymentMethod: jest.fn().mockImplementation(() => ({})),
-        cancelCollectRefundPaymentMethod: jest
-          .fn()
-          .mockImplementation(() => ({})),
+        cancelProcessRefund: jest.fn().mockImplementation(() => ({})),
         cancelCollectSetupIntent: jest.fn().mockImplementation(() => ({})),
         setSimulatedCard: jest.fn().mockImplementation(() => ({})),
         print: jest.fn().mockImplementation(() => ({})),
-        collectInputs: jest
-          .fn()
-          .mockImplementation(() => mockCollectInputResults),
-        collectData: jest.fn().mockImplementation(() => mockCollectedData),
       }));
     });
 
     it('initialize returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(functions.initialize()).resolves.toEqual({
+      await expect(
+        functions.initialize({
+          initParams: { logLevel: 'verbose' },
+          useAppsOnDevicesConnectionTokenProvider: false,
+        })
+      ).resolves.toEqual({
         reader: mockReader,
       });
     });
@@ -161,9 +179,7 @@ describe('functions.test.ts', () => {
 
     it('connectReader returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.connectReader({} as any, 'bluetooth')
-      ).resolves.toEqual({
+      await expect(functions.connectReader({} as any)).resolves.toEqual({
         error: undefined,
         reader: mockReader,
       });
@@ -207,6 +223,14 @@ describe('functions.test.ts', () => {
     it('confirmPaymentIntent returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.confirmPaymentIntent({} as any)).resolves.toEqual({
+        error: undefined,
+        paymentIntent: mockPaymentIntent,
+      });
+    });
+
+    it('processPaymentIntent returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.processPaymentIntent({} as any)).resolves.toEqual({
         error: undefined,
         paymentIntent: mockPaymentIntent,
       });
@@ -293,18 +317,9 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('collectRefundPaymentMethod returns a proper value', async () => {
+    it('processRefund returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.collectRefundPaymentMethod({} as any)
-      ).resolves.toEqual({
-        error: undefined,
-      });
-    });
-
-    it('confirmRefund returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.confirmRefund()).resolves.toEqual({
+      await expect(functions.processRefund({})).resolves.toEqual({
         error: undefined,
         refund: mockRefund,
       });
@@ -320,11 +335,9 @@ describe('functions.test.ts', () => {
       await expect(functions.cancelCollectPaymentMethod()).resolves.toEqual({});
     });
 
-    it('cancelCollectRefundPaymentMethod returns a proper value', async () => {
+    it('cancelProcessRefund returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.cancelCollectRefundPaymentMethod()
-      ).resolves.toEqual({});
+      await expect(functions.cancelProcessRefund()).resolves.toEqual({});
     });
 
     it('cancelCollectSetupIntent returns a proper value', async () => {
@@ -340,20 +353,6 @@ describe('functions.test.ts', () => {
     it('print returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.print({} as any)).resolves.toEqual({});
-    });
-
-    it('collectInputs returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.collectInputs({} as any)).resolves.toEqual(
-        mockCollectInputResults
-      );
-    });
-
-    it('collectData returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.collectData({} as any)).resolves.toEqual(
-        mockCollectedData
-      );
     });
   });
 
@@ -389,6 +388,9 @@ describe('functions.test.ts', () => {
         confirmPaymentIntent: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
+        processPaymentIntent: jest
+          .fn()
+          .mockImplementation(() => ({ error: '_error' })),
         createSetupIntent: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
@@ -414,10 +416,7 @@ describe('functions.test.ts', () => {
         confirmSetupIntent: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
-        collectRefundPaymentMethod: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-        confirmRefund: jest
+        processRefund: jest
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         cancelCollectSetupIntent: jest
@@ -427,14 +426,10 @@ describe('functions.test.ts', () => {
           .fn()
           .mockImplementation(() => ({ error: '_error' })),
         print: jest.fn().mockImplementation(() => ({ error: '_error' })),
-        collectInputs: jest
-          .fn()
-          .mockImplementation(() => ({ error: '_error' })),
-        collectData: jest.fn().mockImplementation(() => ({ error: '_error' })),
 
         simulateReaderUpdate: jest.fn().mockRejectedValue('_error'),
         clearCachedCredentials: jest.fn().mockRejectedValue('_error'),
-        cancelCollectRefundPaymentMethod: jest.fn().mockRejectedValue('_error'),
+        cancelProcessRefund: jest.fn().mockRejectedValue('_error'),
         cancelCollectPaymentMethod: jest.fn().mockRejectedValue('_error'),
         setSimulatedCard: jest.fn().mockRejectedValue('_error'),
         cancelInstallingUpdate: jest.fn().mockRejectedValue('_error'),
@@ -445,7 +440,12 @@ describe('functions.test.ts', () => {
 
     it('initialize returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(functions.initialize()).resolves.toEqual({
+      await expect(
+        functions.initialize({
+          initParams: { logLevel: 'verbose' },
+          useAppsOnDevicesConnectionTokenProvider: false,
+        })
+      ).resolves.toEqual({
         error: '_error',
       });
     });
@@ -466,9 +466,7 @@ describe('functions.test.ts', () => {
 
     it('connectReader returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.connectReader({} as any, 'bluetooth')
-      ).resolves.toEqual({
+      await expect(functions.connectReader({} as any)).resolves.toEqual({
         error: '_error',
       });
     });
@@ -508,6 +506,13 @@ describe('functions.test.ts', () => {
     it('confirmPaymentIntent returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.confirmPaymentIntent({} as any)).resolves.toEqual({
+        error: '_error',
+      });
+    });
+
+    it('processPaymentIntent returns a proper value', async () => {
+      const functions = require('../functions');
+      await expect(functions.processPaymentIntent({} as any)).resolves.toEqual({
         error: '_error',
       });
     });
@@ -574,18 +579,9 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('collectRefundPaymentMethod returns a proper value', async () => {
+    it('processRefund returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.collectRefundPaymentMethod({} as any)
-      ).resolves.toEqual({
-        error: '_error',
-      });
-    });
-
-    it('confirmRefund returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.confirmRefund()).resolves.toEqual({
+      await expect(functions.processRefund()).resolves.toEqual({
         error: '_error',
         refund: undefined,
       });
@@ -605,11 +601,11 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('cancelCollectRefundPaymentMethod returns a proper value', async () => {
+    it('cancelProcessRefund returns a proper value', async () => {
       const functions = require('../functions');
-      await expect(
-        functions.cancelCollectRefundPaymentMethod()
-      ).resolves.toEqual({ error: '_error' });
+      await expect(functions.cancelProcessRefund()).resolves.toEqual({
+        error: '_error',
+      });
     });
 
     it('cancelInstallingUpdate returns a proper value', async () => {
@@ -639,19 +635,201 @@ describe('functions.test.ts', () => {
         error: '_error',
       });
     });
+  });
 
-    it('collectInputs returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.collectInputs({} as any)).resolves.toEqual({
-        error: '_error',
-      });
+  describe('PaymentIntent with lastPaymentError', () => {
+    beforeAll(() => {
+      jest.resetModules();
+      jest.mock('../StripeTerminalSdk', () => ({
+        createPaymentIntent: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntentWithLastPaymentError,
+        })),
+        collectPaymentMethod: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntentWithLastPaymentError,
+        })),
+        retrievePaymentIntent: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntentWithLastPaymentError,
+        })),
+        confirmPaymentIntent: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntentWithLastPaymentError,
+        })),
+        processPaymentIntent: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntentWithLastPaymentError,
+        })),
+        cancelPaymentIntent: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntentWithLastPaymentError,
+        })),
+      }));
     });
 
-    it('collectData returns a proper value', async () => {
+    it('createPaymentIntent includes lastPaymentError when present', async () => {
       const functions = require('../functions');
-      await expect(functions.collectData({} as any)).resolves.toEqual({
-        error: '_error',
-      });
+      const result = await functions.createPaymentIntent({} as any);
+      expect(result.paymentIntent.lastPaymentError).toEqual(
+        mockLastPaymentError
+      );
+    });
+
+    it('collectPaymentMethod includes lastPaymentError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.collectPaymentMethod({} as any);
+      expect(result.paymentIntent.lastPaymentError).toEqual(
+        mockLastPaymentError
+      );
+    });
+
+    it('retrievePaymentIntent includes lastPaymentError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.retrievePaymentIntent('_secret');
+      expect(result.paymentIntent.lastPaymentError).toEqual(
+        mockLastPaymentError
+      );
+    });
+
+    it('confirmPaymentIntent includes lastPaymentError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.confirmPaymentIntent({} as any);
+      expect(result.paymentIntent.lastPaymentError).toEqual(
+        mockLastPaymentError
+      );
+    });
+
+    it('processPaymentIntent includes lastPaymentError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.processPaymentIntent({} as any);
+      expect(result.paymentIntent.lastPaymentError).toEqual(
+        mockLastPaymentError
+      );
+    });
+
+    it('cancelPaymentIntent includes lastPaymentError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.cancelPaymentIntent({} as any);
+      expect(result.paymentIntent.lastPaymentError).toEqual(
+        mockLastPaymentError
+      );
+    });
+
+    it('lastPaymentError contains all expected fields', async () => {
+      const functions = require('../functions');
+      const result = await functions.createPaymentIntent({} as any);
+      const lastPaymentError = result.paymentIntent.lastPaymentError;
+
+      // Required fields
+      expect(lastPaymentError.code).toBe('card_declined');
+      expect(lastPaymentError.message).toBe('Your card was declined.');
+      expect(lastPaymentError.declineCode).toBe('generic_decline');
+
+      // Optional fields
+      expect(lastPaymentError.type).toBe('card_error');
+      expect(lastPaymentError.charge).toBe('ch_123');
+      expect(lastPaymentError.docUrl).toBe(
+        'https://stripe.com/docs/error-codes/card-declined'
+      );
+      expect(lastPaymentError.param).toBe('card_number');
+    });
+  });
+
+  describe('PaymentIntent without lastPaymentError', () => {
+    beforeAll(() => {
+      jest.resetModules();
+      jest.mock('../StripeTerminalSdk', () => ({
+        createPaymentIntent: jest.fn().mockImplementation(() => ({
+          paymentIntent: mockPaymentIntent,
+        })),
+      }));
+    });
+
+    it('createPaymentIntent returns undefined lastPaymentError when not present', async () => {
+      const functions = require('../functions');
+      const result = await functions.createPaymentIntent({} as any);
+      expect(result.paymentIntent.lastPaymentError).toBeUndefined();
+    });
+  });
+
+  describe('SetupIntent with lastSetupError', () => {
+    beforeAll(() => {
+      jest.resetModules();
+      jest.mock('../StripeTerminalSdk', () => ({
+        createSetupIntent: jest.fn().mockImplementation(() => ({
+          setupIntent: mockSetupIntentWithLastSetupError,
+        })),
+        collectSetupIntentPaymentMethod: jest.fn().mockImplementation(() => ({
+          setupIntent: mockSetupIntentWithLastSetupError,
+        })),
+        retrieveSetupIntent: jest.fn().mockImplementation(() => ({
+          setupIntent: mockSetupIntentWithLastSetupError,
+        })),
+        confirmSetupIntent: jest.fn().mockImplementation(() => ({
+          setupIntent: mockSetupIntentWithLastSetupError,
+        })),
+        cancelSetupIntent: jest.fn().mockImplementation(() => ({
+          setupIntent: mockSetupIntentWithLastSetupError,
+        })),
+      }));
+    });
+
+    it('createSetupIntent includes lastSetupError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.createSetupIntent({} as any);
+      expect(result.setupIntent.lastSetupError).toEqual(mockLastSetupError);
+    });
+
+    it('collectSetupIntentPaymentMethod includes lastSetupError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.collectSetupIntentPaymentMethod({} as any);
+      expect(result.setupIntent.lastSetupError).toEqual(mockLastSetupError);
+    });
+
+    it('retrieveSetupIntent includes lastSetupError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.retrieveSetupIntent('_secret');
+      expect(result.setupIntent.lastSetupError).toEqual(mockLastSetupError);
+    });
+
+    it('confirmSetupIntent includes lastSetupError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.confirmSetupIntent({} as any);
+      expect(result.setupIntent.lastSetupError).toEqual(mockLastSetupError);
+    });
+
+    it('cancelSetupIntent includes lastSetupError when present', async () => {
+      const functions = require('../functions');
+      const result = await functions.cancelSetupIntent({} as any);
+      expect(result.setupIntent.lastSetupError).toEqual(mockLastSetupError);
+    });
+
+    it('lastSetupError contains all expected fields', async () => {
+      const functions = require('../functions');
+      const result = await functions.createSetupIntent({} as any);
+      const lastSetupError = result.setupIntent.lastSetupError;
+
+      // Required fields
+      expect(lastSetupError.code).toBe('setup_intent_authentication_failure');
+      expect(lastSetupError.message).toBe(
+        'The setup failed because authentication failed.'
+      );
+      expect(lastSetupError.declineCode).toBe('authentication_required');
+
+      // Optional fields
+      expect(lastSetupError.type).toBe('invalid_request_error');
+    });
+  });
+
+  describe('SetupIntent without lastSetupError', () => {
+    beforeAll(() => {
+      jest.resetModules();
+      jest.mock('../StripeTerminalSdk', () => ({
+        createSetupIntent: jest.fn().mockImplementation(() => ({
+          setupIntent: mockSetupIntent,
+        })),
+      }));
+    });
+
+    it('createSetupIntent returns undefined lastSetupError when not present', async () => {
+      const functions = require('../functions');
+      const result = await functions.createSetupIntent({} as any);
+      expect(result.setupIntent.lastSetupError).toBeUndefined();
     });
   });
 });

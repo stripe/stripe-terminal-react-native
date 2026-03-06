@@ -190,8 +190,8 @@ workflows:
       - script@1:
           inputs:
             - content: |-
-                asdf install nodejs 20.17.0
-                asdf global nodejs 20.17.0
+                asdf install nodejs 20.19.4
+                asdf global nodejs 20.19.4
                 npm install -g yarn
                 echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
                 source $BASH_ENV

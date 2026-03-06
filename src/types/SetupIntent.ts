@@ -1,18 +1,36 @@
-import type { PaymentMethodType } from './';
+import type {
+  NextAction,
+  PaymentMethod,
+  PaymentMethodOptions,
+  PaymentMethodType,
+  ApiErrorInformation,
+} from './';
 
 export namespace SetupIntent {
-  export type Type = Android.Type &
-    IOS.Type & {
-      id: string;
-      created: string;
-      customer?: string;
-      metadata?: Record<string, string>;
-      status: Status;
-      latestAttempt: SetupAttempt;
-      usage: Usage;
-      sdkUuid: string;
-      paymentMethodTypes?: string[];
-    };
+  export type Type = {
+    id: string;
+    sdkUuid: string;
+    application?: string;
+    cancellationReason?: string;
+    clientSecret?: string;
+    created?: string;
+    customer?: string;
+    description?: string;
+    latestAttempt?: SetupAttempt;
+    livemode: boolean;
+    mandate?: string;
+    metadata?: Record<string, string>;
+    nextAction?: NextAction;
+    onBehalfOf?: string;
+    paymentMethodId?: string;
+    paymentMethod?: PaymentMethod.Type;
+    paymentMethodOptions?: PaymentMethodOptions;
+    paymentMethodTypes?: string[];
+    singleUseMandate?: string;
+    status?: Status;
+    usage?: Usage;
+    lastSetupError?: ApiErrorInformation;
+  };
 
   export type Status =
     | 'canceled'
@@ -25,18 +43,19 @@ export namespace SetupIntent {
 
   export type Usage = 'offSession' | 'onSession';
 
-  export type SetupAttempt = IOS.SetupAttempt &
-    Android.SetupAttempt & {
-      id: string;
-      created?: number;
-      status: string;
-      customer?: string;
-      setupIntentId?: string;
-      paymentMethodDetails: SetupAttemptPaymentMethodDetails;
-      onBehalfOfId?: string;
-      applicationId?: string;
-      paymentMethodId?: string;
-    };
+  export type SetupAttempt = {
+    id: string;
+    applicationId?: string;
+    created?: string;
+    customer?: string;
+    livemode: boolean;
+    onBehalfOfId?: string;
+    paymentMethodDetails: SetupAttemptPaymentMethodDetails;
+    paymentMethodId?: string;
+    setupIntentId?: string;
+    status: string;
+    usage?: Usage;
+  };
 
   export interface SetupAttemptPaymentMethodDetails {
     cardPresent: SetupAttemptCardPresentDetails;
@@ -47,28 +66,5 @@ export namespace SetupIntent {
   export interface SetupAttemptCardPresentDetails {
     emvAuthData: string;
     generatedCard: string;
-  }
-
-  export namespace IOS {
-    export type SetupAttempt = {};
-
-    export type Type = {};
-  }
-
-  export namespace Android {
-    export type SetupAttempt = {
-      isLiveMode: boolean;
-      usage?: Usage;
-    };
-
-    export type Type = {
-      applicationId?: string;
-      clientSecret?: string;
-      description?: string;
-      mandateId?: string;
-      onBehalfOfId?: string;
-      paymentMethodId?: string;
-      singleUseMandateId?: string;
-    };
   }
 }

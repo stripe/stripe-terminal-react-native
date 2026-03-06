@@ -22,7 +22,7 @@ appId: ${APP_ID}
 
 - scrollUntilVisible:
     element:
-      id: "Collect"
+      id: "Processing"
 - scrollUntilVisible:
     element:
       id: "Failed"
