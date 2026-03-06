@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, type SetStateAction } from 'react';
 
 export type Event = {
   name: string;
@@ -23,7 +23,7 @@ type ContextType = {
   addLogs: (newLog: Log) => void;
   clearLogs: () => void;
   cancel: CancelType | null;
-  setCancel: (c: CancelType | null) => void | CancelType;
+  setCancel: (c: SetStateAction<CancelType | null>) => void;
 };
 
 export const LogContext = createContext<ContextType>({

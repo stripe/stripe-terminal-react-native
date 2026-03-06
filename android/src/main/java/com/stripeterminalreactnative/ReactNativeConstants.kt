@@ -22,6 +22,8 @@ enum class ReactNativeConstants(val listenerName: String) {
     UPDATE_BATTERY_LEVEL("didUpdateBatteryLevel"),
     REPORT_LOW_BATTERY_WARNING("didReportLowBatteryWarning"),
     REPORT_READER_EVENT("didReportReaderEvent"),
+    PAYMENT_METHOD_SELECTION_REQUIRED("onPaymentMethodSelectionRequired"),
+    QR_CODE_DISPLAY_REQUIRED("onQrCodeDisplayRequired"),
 }
 
 enum class DeviceSerialName(val serialName: String) {
@@ -38,7 +40,6 @@ enum class DeviceSerialName(val serialName: String) {
     STRIPE_T600_DEVKIT("stripeT600Devkit"),
     STRIPE_T610_DEVKIT("stripeT610Devkit"),
     UNKNOWN("unknown"),
-    VERIFONE_P400("verifoneP400"),
     WISECUBE("wiseCube"),
     WISEPAD_3("wisePad3"),
     WISEPAD_3S("wisePad3s"),
@@ -47,11 +48,14 @@ enum class DeviceSerialName(val serialName: String) {
     TAP_TO_PAY_DEVICE("tapToPay"),
     VERIFONE_V660P("verifoneV660P"),
     VERIFONE_V660P_DEVKIT("verifoneV660PDevkit"),
+    VERIFONE_V660PA("verifoneV660PA"),
     VERIFONE_M425("verifoneM425"),
     VERIFONE_M450("verifoneM450"),
     VERIFONE_P630("verifoneP630"),
     VERIFONE_UX700("verifoneUX700"),
-    VERIFONE_UX700_DEVKIT("verifoneUX700Devkit");
+    VERIFONE_UX700_DEVKIT("verifoneUX700Devkit"),
+    VERIFONE_VM100("verifoneVM100"),
+    VERIFONE_VP100("verifoneVP100");
 
     companion object {
         private val serialNames = DeviceSerialName.entries.associateBy(DeviceSerialName::serialName)

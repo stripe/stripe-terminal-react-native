@@ -4,6 +4,6 @@ enum class DiscoveryMethod {
     BLUETOOTH_SCAN,
     INTERNET,
     TAP_TO_PAY,
-    HANDOFF,
+    APPS_ON_DEVICES,
     USB
 }

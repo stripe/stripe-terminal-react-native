@@ -1,24 +1,51 @@
-import type { AmountDetails, Charge, OfflineDetails, PaymentMethod } from './';
+import type {
+  AmountDetails,
+  Charge,
+  OfflineDetails,
+  PaymentMethod,
+  PaymentMethodOptions,
+  NextAction,
+  ApiErrorInformation,
+} from './';
 
 export namespace PaymentIntent {
   export interface Type {
     id: string;
     amount: number;
-    amountDetails: AmountDetails;
-    amountTip: number;
+    amountCapturable?: number;
+    amountDetails?: AmountDetails;
+    amountReceived?: number;
+    amountRequested?: number;
+    amountSurcharge?: number;
+    amountTip?: number;
+    applicationFeeAmount?: number;
+    canceledAt?: string;
+    cancellationReason?: string;
     captureMethod: string;
     charges: Charge[];
-    clientSecret: string;
+    clientSecret?: string;
+    confirmationMethod?: string;
     created: string;
     currency: string;
-    statementDescriptor: string;
-    statementDescriptorSuffix: string;
-    status: Status;
+    customer?: string;
+    description?: string;
+    livemode: boolean;
+    metadata?: Record<string, string>;
+    nextAction?: NextAction;
+    offlineDetails?: OfflineDetails;
+    onBehalfOf?: string;
+    paymentMethod?: PaymentMethod.Type;
+    paymentMethodId?: string;
+    paymentMethodOptions?: PaymentMethodOptions;
+    paymentMethodTypes?: number[];
+    receiptEmail?: string;
+    lastPaymentError?: ApiErrorInformation;
     sdkUuid: string;
-    paymentMethodId: string;
-    paymentMethod: PaymentMethod.Type;
-    offlineDetails: OfflineDetails;
-    metadata: Record<string, string>;
+    setupFutureUsage?: string;
+    statementDescriptor?: string;
+    statementDescriptorSuffix?: string;
+    status?: Status;
+    transferGroup?: string;
   }
 
   export type Status =

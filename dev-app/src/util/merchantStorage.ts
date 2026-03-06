@@ -7,6 +7,7 @@ const SELECTED_ACCOUNT_KEY = '@rn_selected_example_account';
 const ACCOUNTS_KEY = '@rn_example_accounts';
 const DISCOVERY_KEY = '@rn_example_discovery';
 const CONNECTED_ACCOUNT_ID_KEY = '@rn_example_connected_account_key';
+const SERVERLESS_AOD_TEST_PENDING_KEY = '@rn_example_serverless_aod_test_pending';
 
 export const clearMerchantStorage = async () => AsyncStorage.clear();
 
@@ -90,3 +91,14 @@ export const setStoredConnectedAccountID = async (
 
 export const getStoredConnectedAccountID = async (): Promise<string | null> =>
   await AsyncStorage.getItem(CONNECTED_ACCOUNT_ID_KEY);
+
+export const setServerlessAoDTestPending = (pending: boolean) =>
+  AsyncStorage.setItem(SERVERLESS_AOD_TEST_PENDING_KEY, pending ? 'true' : 'false');
+
+export const getServerlessAoDTestPending = async (): Promise<boolean> => {
+  const value = await AsyncStorage.getItem(SERVERLESS_AOD_TEST_PENDING_KEY);
+  return value === 'true';
+};
+
+export const clearServerlessAoDTestPending = () =>
+  AsyncStorage.removeItem(SERVERLESS_AOD_TEST_PENDING_KEY);

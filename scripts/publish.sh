@@ -66,8 +66,8 @@ if [ "$BRANCH_NAME" = "main" ]; then
   exit 1
 fi
 
-# Make sure our working dir is the repo root directory
-cd "$(git rev-parse --show-toplevel)"
+# Make sure our working dir is the public directory
+cd "$(git rev-parse --show-toplevel)/public"
 
 echo "Fetching git remotes"
 git fetch

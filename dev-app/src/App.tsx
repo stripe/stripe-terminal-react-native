@@ -5,7 +5,9 @@ import React, {
   useState,
   useContext,
 } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+} from '@react-navigation/native';
 import {
   createStackNavigator,
   TransitionPresets,
@@ -22,6 +24,7 @@ import {
   type CancelType,
 } from './components/LogContext';
 import DiscoverReadersScreen from './screens/DiscoverReadersScreen';
+import EasyConnectScreen from './screens/EasyConnectScreen';
 import ReaderDisplayScreen from './screens/ReaderDisplayScreen';
 import LocationListScreen from './screens/LocationListScreen';
 import UpdateReaderScreen from './screens/UpdateReaderScreen';
@@ -44,10 +47,14 @@ import {
   type Location,
   useStripeTerminal,
   requestNeededAndroidPermissions,
+  type DiscoveryFilter,
 } from '@stripe/stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
+import TapToPayUXScreen from './screens/TapToPayUXScreen';
+import AppsOnDevicesTestScreen from './screens/AppsOnDevicesTestScreen';
+import { QrModalProvider } from './components/QrModalContext';
 
 export type RouteParamList = {
   UpdateReaderScreen: {
@@ -65,13 +72,19 @@ export type RouteParamList = {
   };
   SetupIntentScreen: {
     discoveryMethod: Reader.DiscoveryMethod;
-    deviceType: Reader.DeviceType | undefined;
   };
   DiscoverReadersScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
     discoveryTimeout: number;
+    discoveryFilter: DiscoveryFilter;
     setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
+  };
+  EasyConnectScreen: {
+    simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+    discoveryTimeout: number;
+    discoveryFilter: DiscoveryFilter;
   };
   MerchantSelectScreen: {
     onSelectMerchant?: ({
@@ -83,7 +96,6 @@ export type RouteParamList = {
   CollectCardPaymentScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
-    deviceType: Reader.DeviceType | undefined;
   };
   RefundPaymentScreen: {
     simulated: boolean;
@@ -109,7 +121,9 @@ export type RouteParamList = {
   ReaderSettingsScreen: {};
   ReaderDisplayScreen: {};
   PrintContentScreen: {};
+  TapToPayUXScreen: {};
   HomeScreen: {};
+  AppsOnDevicesTestScreen: {};
 };
 
 LogBox.ignoreLogs([
@@ -154,7 +168,7 @@ export default function App() {
   const clearLogs = useCallback(() => setlogs([]), []);
   const { initialize: initStripeTerminal, clearCachedCredentials } =
     useStripeTerminal();
-  const { account } = useContext(AppContext);
+  const { account, isServerlessAoDTest } = useContext(AppContext);
   const { refreshToken } = useContext(AppContext);
   useEffect(() => {
     const initAndClear = async () => {
@@ -241,7 +255,7 @@ export default function App() {
 
   return (
     <LogContext.Provider value={value}>
-      <>
+      <QrModalProvider>
         <StatusBar
           backgroundColor={colors.blurple_dark}
           barStyle="light-content"
@@ -249,8 +263,19 @@ export default function App() {
         />
 
         <NavigationContainer>
-          <Stack.Navigator screenOptions={screenOptions}>
+          <Stack.Navigator
+            screenOptions={screenOptions}
+            initialRouteName={isServerlessAoDTest ? 'AppsOnDevicesTestScreen' : 'HomeScreen'}
+          >
             <Stack.Screen name="HomeScreen" component={HomeScreen} />
+            <Stack.Screen
+              name="AppsOnDevicesTestScreen"
+              options={{
+                headerTitle: 'Serverless AoD Test',
+                gestureEnabled: false,
+              }}
+              component={AppsOnDevicesTestScreen}
+            />
             <Stack.Screen
               name="MerchantSelectScreen"
               options={{ headerTitle: 'Merchant Select' }}
@@ -265,6 +290,11 @@ export default function App() {
               name="DiscoverReadersScreen"
               options={{ headerTitle: 'Discovery' }}
               component={DiscoverReadersScreen}
+            />
+            <Stack.Screen
+              name="EasyConnectScreen"
+              options={{ headerTitle: 'Easy Connect' }}
+              component={EasyConnectScreen}
             />
             <Stack.Screen
               name="RegisterInternetReaderScreen"
@@ -343,6 +373,13 @@ export default function App() {
               component={CollectDataScreen}
             />
             <Stack.Screen
+              name="TapToPayUXScreen"
+              options={{
+                headerTitle: 'TapToPayUXScreen',
+              }}
+              component={TapToPayUXScreen}
+            />
+            <Stack.Screen
               name="PrintContentScreen"
               options={{
                 headerTitle: 'Print Content',
@@ -351,7 +388,7 @@ export default function App() {
             />
             <Stack.Screen
               name="LogListScreen"
-              options={({ navigation }) => ({
+              options={({ navigation }: { navigation: any }) => ({
                 headerTitle: 'Logs',
                 headerBackAccessibilityLabel: 'logs-back',
                 headerLeft: () => (
@@ -372,7 +409,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
-      </>
+      </QrModalProvider>
     </LogContext.Provider>
   );
 }

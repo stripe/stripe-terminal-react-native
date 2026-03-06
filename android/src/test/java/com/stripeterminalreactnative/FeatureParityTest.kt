@@ -15,12 +15,15 @@ class FeatureParityTest {
         "setOfflineListener",
         "isInitialized",
         "getInstance",
-        "connectExternalChannel"
+        "connectExternalChannel",
+        "easyConnect", // wait ios implementation
+        "confirmRefund", // been deprecated
+        "collectRefundPaymentMethod", // been deprecated
     )
 
     private val functionMapping = mapOf(
         "listLocations" to "getLocations",
-        "initTerminal" to "initialize"
+        "init" to "initialize"
     )
 
     @Test

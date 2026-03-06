@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 
 import {
   StripeTerminalProvider,
+  AppsOnDevicesConnectionTokenProvider,
   type Location,
 } from '@stripe/stripe-terminal-react-native';
 import App from './App';
@@ -12,6 +13,7 @@ import {
   setSelectedAccount,
   getSelectedAccount,
   clearMerchantStorage,
+  getServerlessAoDTestPending,
 } from './util/merchantStorage';
 
 export default function Root() {
@@ -20,6 +22,8 @@ export default function Root() {
     string | null
   >(null);
   const [lastSuccessfulPaymentIntentId, setLastSuccessfulPaymentIntentId] =
+    useState<string | null>(null);
+  const [lastSuccessfulPaymentClientSecret, setLastSuccessfulPaymentClientSecret] =
     useState<string | null>(null);
   const [lastSuccessfulAmount, setLastSuccessfulAmount] = useState<
     string | null
@@ -32,11 +36,22 @@ export default function Root() {
 
   const [cachedLocations, setCachedLocations] = useState<Location[]>([]);
 
+  type ServerlessAoDTestState = 'loading' | 'enabled' | 'disabled';
+  const [serverlessAoDTestState, setServerlessAoDTestState] = useState<ServerlessAoDTestState>('loading');
+
   useEffect(() => {
     // var is a string in CI
     if (process.env.IS_CI === 'true') {
       clearMerchantStorage();
     }
+  }, []);
+
+  useEffect(() => {
+    const loadServerlessAoDTestPending = async () => {
+      const pending = await getServerlessAoDTestPending();
+      setServerlessAoDTestState(pending ? 'enabled' : 'disabled');
+    };
+    loadServerlessAoDTestPending();
   }, []);
 
   const onSelectAccount = useCallback(
@@ -89,6 +104,11 @@ export default function Root() {
     return resp?.secret || '';
   }, []);
 
+  // Wait for serverless AoD test setting to load before rendering StripeTerminalProvider
+  if (serverlessAoDTestState === 'loading') {
+    return null;
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -101,6 +121,8 @@ export default function Root() {
           setLastSuccessfulPaymentIntentId(id),
         lastSuccessfulPaymentIntentId,
         setLastSuccessfulAmount: (a) => setLastSuccessfulAmount(a),
+        lastSuccessfulPaymentClientSecret,
+        setLastSuccessfulPaymentClientSecret: (a) => setLastSuccessfulPaymentClientSecret(a),
         lastSuccessfulAmount,
         autoReconnectOnUnexpectedDisconnect,
         setAutoReconnectOnUnexpectedDisconnect: (b) =>
@@ -109,11 +131,12 @@ export default function Root() {
         setCachedLocations: (locations) => setCachedLocations(locations),
         refreshToken,
         setRefreshToken: (b) => setRefreshToken(b),
+        isServerlessAoDTest: serverlessAoDTestState === 'enabled',
       }}
     >
       <StripeTerminalProvider
         logLevel="verbose"
-        tokenProvider={fetchTokenProvider}
+        tokenProvider={serverlessAoDTestState === 'enabled' ? AppsOnDevicesConnectionTokenProvider : fetchTokenProvider}
       >
         <App />
       </StripeTerminalProvider>

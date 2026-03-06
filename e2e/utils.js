@@ -135,7 +135,7 @@ const createInteracPayment = async (reader = 'wisePad3') => {
   await navigateTo('Set Merchant');
   await setSelectedMerchant('CI CA TEST ACCT (acct_5555)');
 
-  if (['verifoneP400', 'wisePosE'].includes(reader)) {
+  if (['wisePosE'].includes(reader)) {
     await changeDiscoveryMethod('Internet');
   } else {
     await changeDiscoveryMethod('Bluetooth Scan');
@@ -169,7 +169,7 @@ const createInteracPayment = async (reader = 'wisePad3') => {
 
   if (
     device.getPlatform() === 'ios' &&
-    ['verifoneP400', 'wisePosE'].includes(reader)
+    ['wisePosE'].includes(reader)
   ) {
     await element(by.id('collect-scroll-view')).scroll(1000, 'down');
   }

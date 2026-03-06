@@ -2,8 +2,9 @@
 
 exports[`index.ts Public API snapshot ensure there are no unexpected changes to our public exports 1`] = `
 {
+  "AppsOnDevicesConnectionTokenProvider": [Function],
   "CHANGE_CONNECTION_STATUS": "CHANGE_CONNECTION_STATUS",
-  "CHANGE_OFFLINE_STATUS": undefined,
+  "CHANGE_OFFLINE_STATUS": "CHANGE_OFFLINE_STATUS",
   "CHANGE_PAYMENT_STATUS": "CHANGE_PAYMENT_STATUS",
   "CollectDataType": {
     "MAGSTRIPE": "magstripe",
@@ -32,6 +33,7 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "CANCEL_FAILED": "CANCEL_FAILED",
     "CARD_INSERT_NOT_READ": "CARD_INSERT_NOT_READ",
     "CARD_LEFT_IN_READER": "CARD_LEFT_IN_READER",
+    "CARD_NOT_SUPPORTED": "CARD_NOT_SUPPORTED",
     "CARD_READ_TIMED_OUT": "CARD_READ_TIMED_OUT",
     "CARD_REMOVED": "CARD_REMOVED",
     "CARD_SWIPE_NOT_AVAILABLE": "CARD_SWIPE_NOT_AVAILABLE",
@@ -107,6 +109,8 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "TAP_TO_PAY_INSECURE_ENVIRONMENT": "TAP_TO_PAY_INSECURE_ENVIRONMENT",
     "TAP_TO_PAY_LIBRARY_NOT_INCLUDED": "TAP_TO_PAY_LIBRARY_NOT_INCLUDED",
     "TAP_TO_PAY_NFC_DISABLED": "TAP_TO_PAY_NFC_DISABLED",
+    "TAP_TO_PAY_READER_MERCHANT_BLOCKED": "TAP_TO_PAY_READER_MERCHANT_BLOCKED",
+    "TAP_TO_PAY_READER_REQUEST_INTERRUPTED": "TAP_TO_PAY_READER_REQUEST_INTERRUPTED",
     "TAP_TO_PAY_UNSUPPORTED_ANDROID_VERSION": "TAP_TO_PAY_UNSUPPORTED_ANDROID_VERSION",
     "TAP_TO_PAY_UNSUPPORTED_DEVICE": "TAP_TO_PAY_UNSUPPORTED_DEVICE",
     "TAP_TO_PAY_UNSUPPORTED_PROCESSOR": "TAP_TO_PAY_UNSUPPORTED_PROCESSOR",
@@ -124,7 +128,7 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
   "FETCH_TOKEN_PROVIDER": "FETCH_TOKEN_PROVIDER",
   "FINISH_DISCOVERING_READERS": "FINISH_DISCOVERING_READERS",
   "FINISH_INSTALLING_UPDATE": "FINISH_INSTALLING_UPDATE",
-  "FORWARD_PAYMENT_INTENT": undefined,
+  "FORWARD_PAYMENT_INTENT": "FORWARD_PAYMENT_INTENT",
   "FormType": {
     "EMAIL": "email",
     "NUMERIC": "numeric",
@@ -135,17 +139,17 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
   },
   "PaymentIntent": undefined,
   "PaymentMethod": undefined,
-  "READER_RECONNECT_FAIL": undefined,
-  "READER_RECONNECT_SUCCEED": undefined,
+  "READER_RECONNECT_FAIL": "READER_RECONNECT_FAIL",
+  "READER_RECONNECT_SUCCEED": "READER_RECONNECT_SUCCEED",
   "REPORT_AVAILABLE_UPDATE": "REPORT_AVAILABLE_UPDATE",
-  "REPORT_FORWARDING_ERROR": undefined,
+  "REPORT_FORWARDING_ERROR": "REPORT_FORWARDING_ERROR",
   "REPORT_UPDATE_PROGRESS": "REPORT_UPDATE_PROGRESS",
   "REQUEST_READER_DISPLAY_MESSAGE": "REQUEST_READER_DISPLAY_MESSAGE",
   "REQUEST_READER_INPUT": "REQUEST_READER_INPUT",
   "Reader": undefined,
   "Refund": undefined,
   "START_INSTALLING_UPDATE": "START_INSTALLING_UPDATE",
-  "START_READER_RECONNECT": undefined,
+  "START_READER_RECONNECT": "START_READER_RECONNECT",
   "SelectionButtonStyle": {
     "PRIMARY": "primary",
     "SECONDARY": "secondary",
@@ -162,14 +166,9 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
   },
   "StripeTerminalProvider": [Function],
   "StripeTerminalSdk": {
+    "addListener": [MockFunction],
     "getConstants": [Function],
-  },
-  "TapZoneIndicator": {
-    "ABOVE": "above",
-    "BEHIND": "behind",
-    "BELOW": "below",
-    "DEFAULT": "default",
-    "FRONT": "front",
+    "removeListeners": [MockFunction],
   },
   "ToggleResult": {
     "DISABLED": "disabled",

@@ -15,6 +15,7 @@ export namespace Reader {
       simulated?: boolean;
       availableUpdate?: SoftwareUpdate;
       ipAddress?: string;
+      livemode?: boolean;
       locationStatus: LocationStatus;
       location?: Location;
       deviceType: DeviceType;
@@ -60,7 +61,7 @@ export namespace Reader {
       | 'bluetoothScan'
       | 'internet'
       | 'tapToPay'
-      | 'handoff'
+      | 'appsOnDevices'
       | 'usb';
   }
 
@@ -91,13 +92,14 @@ export namespace Reader {
     | 'available'
     | 'none'
     | 'required'
-    | 'lowBattery';
+    | 'lowBattery'
+    | 'lowBatterySucceedConnect'
+    | 'requiredForOffline';
 
   export type DeviceType =
     | 'chipper1X'
     | 'chipper2X'
     | 'stripeM2'
-    | 'verifoneP400'
     | 'wiseCube'
     | 'wisePad3'
     | 'wisePosE'
@@ -129,7 +131,8 @@ export namespace Reader {
     | 'connected'
     | 'connecting'
     | 'notConnected'
-    | 'discovering';
+    | 'discovering'
+    | 'reconnecting';
 
   export type DisconnectReason =
     | 'disconnectRequested'

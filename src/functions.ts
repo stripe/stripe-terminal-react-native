@@ -6,6 +6,7 @@ import type {
   InitializeResultType,
   DiscoverReadersParams,
   DiscoverReadersResultType,
+  EasyConnectParams,
   CancelDiscoveringResultType,
   DisconnectReaderResultType,
   RebootReaderResultType,
@@ -20,7 +21,7 @@ import type {
   SetupIntentResultType,
   Reader,
   RefundParams,
-  ConfirmRefundResultType,
+  ProcessRefundResultType,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
   OfflineStatus,
@@ -29,7 +30,9 @@ import type {
   PaymentStatus,
   ConnectionStatus,
   ConfirmPaymentMethodParams,
+  ProcessPaymentIntentParams,
   ConfirmSetupIntentMethodParams,
+  ProcessSetupIntentParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
   CollectDataParams,
@@ -37,11 +40,71 @@ import type {
   TapToPayUxConfiguration,
   ConnectReaderParams,
   PrintContent,
+  PaymentMethodSelectionHandler,
+  QrCodeDisplayHandler,
+  PaymentIntent,
+  QrCodeDisplayData,
+  PaymentOption,
 } from './types';
 import type { StripeError } from './types/StripeError';
 import { createStripeError } from './Errors/StripeErrorHelpers';
 import { ErrorCode } from './Errors/ErrorCodes';
-import { Platform } from 'react-native';
+import { Platform, NativeModules, NativeEventEmitter } from 'react-native';
+
+const { StripeTerminalReactNative } = NativeModules;
+
+let eventEmitter: NativeEventEmitter | null = null;
+function getEventEmitter() {
+  if (!eventEmitter) {
+    eventEmitter = new NativeEventEmitter(StripeTerminalReactNative);
+  }
+  return eventEmitter;
+}
+
+let storedOnPaymentMethodSelectionRequired: PaymentMethodSelectionHandler | null = null;
+let storedOnQrCodeDisplayRequired: QrCodeDisplayHandler | null = null;
+let paymentMethodSelectionSubscription: { remove: () => void } | null = null;
+let qrCodeDisplaySubscription: { remove: () => void } | null = null;
+
+function setupPaymentMethodSelectionListener() {
+  if (paymentMethodSelectionSubscription) {
+    paymentMethodSelectionSubscription.remove();
+  }
+
+  if (storedOnPaymentMethodSelectionRequired) {
+    paymentMethodSelectionSubscription = getEventEmitter().addListener(
+      'onPaymentMethodSelectionRequired',
+      ({ paymentIntent, availablePaymentOptions }: { paymentIntent: PaymentIntent.Type; availablePaymentOptions: PaymentOption[] }) => {
+        if (storedOnPaymentMethodSelectionRequired) {
+          storedOnPaymentMethodSelectionRequired(paymentIntent, availablePaymentOptions, {
+            selectPaymentOption: (optionType: string) => selectPaymentOption(optionType),
+            failPaymentMethodSelection: (error?: string) => failPaymentMethodSelection(error),
+          });
+        }
+      }
+    );
+  }
+}
+
+function setupQrCodeDisplayListener() {
+  if (qrCodeDisplaySubscription) {
+    qrCodeDisplaySubscription.remove();
+  }
+
+  if (storedOnQrCodeDisplayRequired) {
+    qrCodeDisplaySubscription = getEventEmitter().addListener(
+      'onQrCodeDisplayRequired',
+      ({ paymentIntent, qrData }: { paymentIntent: PaymentIntent.Type; qrData: QrCodeDisplayData }) => {
+        if (storedOnQrCodeDisplayRequired) {
+          storedOnQrCodeDisplayRequired(paymentIntent, qrData, {
+            confirmQrCodeDisplayed: () => confirmQrCodeDisplayed(),
+            failQrCodeDisplay: (error?: string) => failQrCodeDisplay(error),
+          });
+        }
+      }
+    );
+  }
+}
 
 function hasError<T extends object>(
   response: T
@@ -49,14 +112,19 @@ function hasError<T extends object>(
   return 'error' in response && !!(response as any).error;
 }
 
-export async function initialize(
-  params: InitParams
-): Promise<InitializeResultType> {
+export async function initialize(params: {
+  initParams: InitParams;
+  useAppsOnDevicesConnectionTokenProvider: boolean;
+}): Promise<InitializeResultType> {
   try {
-    const { error, reader } = await StripeTerminalSdk.initialize({
+    const internalInitParams = {
       reactNativeVersion: PackageJson.version,
-      ...params,
-    });
+      logLevel: params.initParams.logLevel,
+      useAppsOnDevicesConnectionTokenProvider: params.useAppsOnDevicesConnectionTokenProvider,
+    };
+
+    const { error, reader } =
+      await StripeTerminalSdk.initialize(internalInitParams);
 
     if (error) {
       return {
@@ -105,6 +173,43 @@ export async function discoverReaders(
   }, 'discoverReaders')(params);
 }
 
+export async function easyConnect(
+  params: EasyConnectParams
+): Promise<ConnectReaderResultType> {
+  return Logger.traceSdkMethod(async (innerParams) => {
+    try {
+      const { error, reader } = await StripeTerminalSdk.easyConnect(
+        innerParams
+      );
+
+      return {
+        error: error,
+        reader,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'easyConnect')(params);
+}
+
+export async function cancelEasyConnect(): Promise<CancelDiscoveringResultType> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      const { error } = await StripeTerminalSdk.cancelEasyConnect();
+
+      return {
+        error: error,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelEasyConnect')();
+}
+
 export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> {
   return Logger.traceSdkMethod(async () => {
     try {
@@ -122,14 +227,26 @@ export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> 
 }
 
 export async function connectReader(
-  params: ConnectReaderParams,
-  discoveryMethod: Reader.DiscoveryMethod
+  params: ConnectReaderParams
 ): Promise<ConnectReaderResultType> {
-  return Logger.traceSdkMethod(async (innerParams, discoveryMethod) => {
+  return Logger.traceSdkMethod(async (innerParams) => {
     try {
+      const { onPaymentMethodSelectionRequired, onQrCodeDisplayRequired, ...restParams } = innerParams as any;
+
+      storedOnPaymentMethodSelectionRequired = onPaymentMethodSelectionRequired || null;
+      storedOnQrCodeDisplayRequired = onQrCodeDisplayRequired || null;
+
+      setupPaymentMethodSelectionListener();
+      setupQrCodeDisplayListener();
+
+      const nativeParams = {
+        ...restParams,
+        hasPaymentMethodSelectionCallback: !!onPaymentMethodSelectionRequired,
+        hasQrCodeDisplayCallback: !!onQrCodeDisplayRequired,
+      };
+
       const { error, reader } = await StripeTerminalSdk.connectReader(
-        innerParams,
-        discoveryMethod
+        nativeParams
       );
 
       if (error) {
@@ -147,7 +264,7 @@ export async function connectReader(
         error: error as any,
       };
     }
-  }, 'connectReader')(params, discoveryMethod);
+  }, 'connectReader')(params);
 }
 
 export async function disconnectReader(): Promise<DisconnectReaderResultType> {
@@ -359,6 +476,38 @@ export async function confirmPaymentIntent(
   }, 'confirmPaymentIntent')(params);
 }
 
+export async function processPaymentIntent(
+  params: ProcessPaymentIntentParams
+): Promise<PaymentIntentResultType> {
+  return Logger.traceSdkMethod(async (innerparams) => {
+    try {
+      const { error, paymentIntent: processedPaymentIntent } =
+        await StripeTerminalSdk.processPaymentIntent(innerparams);
+
+      if (error) {
+        if (processedPaymentIntent) {
+          return {
+            error,
+            paymentIntent: processedPaymentIntent,
+          };
+        }
+        return {
+          error,
+          paymentIntent: undefined,
+        };
+      }
+      return {
+        paymentIntent: processedPaymentIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'processPaymentIntent')(params);
+}
+
 export async function cancelPaymentIntent(
   params: CancelPaymentMethodParams
 ): Promise<PaymentIntentResultType> {
@@ -383,6 +532,66 @@ export async function cancelPaymentIntent(
       };
     }
   }, 'cancelPaymentIntent')(params);
+}
+
+export async function selectPaymentOption(paymentOptionType: string): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.selectPaymentOption(paymentOptionType);
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'selectPaymentOption')();
+}
+
+export async function failPaymentMethodSelection(errorMessage?: string): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.failPaymentMethodSelection(errorMessage);
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'failPaymentMethodSelection')();
+}
+
+export async function confirmQrCodeDisplayed(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.confirmQrCodeDisplayed();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'confirmQrCodeDisplayed')();
+}
+
+export async function failQrCodeDisplay(errorMessage?: string): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.failQrCodeDisplay(errorMessage);
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'failQrCodeDisplay')();
 }
 
 export async function installAvailableUpdate(): Promise<{
@@ -426,8 +635,7 @@ export async function cancelInstallingUpdate(): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const result = (await StripeTerminalSdk.cancelInstallingUpdate()) as any;
-      const error = (result as any)?.error as StripeError | undefined;
+      const { error } = await StripeTerminalSdk.cancelInstallingUpdate();
       return error ? { error } : {};
     } catch (error) {
       return {
@@ -555,6 +763,32 @@ export async function confirmSetupIntent(
   }, 'confirmSetupIntent')(params);
 }
 
+export async function processSetupIntent(
+  params: ProcessSetupIntentParams
+): Promise<SetupIntentResultType> {
+  return Logger.traceSdkMethod(async (innerparams) => {
+    try {
+      const { setupIntent: processedSetupIntent, error } =
+        await StripeTerminalSdk.processSetupIntent(innerparams);
+
+      if (error) {
+        return {
+          error,
+          setupIntent: processedSetupIntent,
+        };
+      }
+      return {
+        setupIntent: processedSetupIntent!,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'processSetupIntent')(params);
+}
+
 export async function simulateReaderUpdate(
   update: Reader.SimulateUpdateType
 ): Promise<{ error?: StripeError }> {
@@ -620,17 +854,16 @@ export async function setSimulatedCollectInputsResult(
   }, 'setSimulatedCollectInputsResult')(simulatedCollectInputsBehavior);
 }
 
-export async function collectRefundPaymentMethod(
+export async function processRefund(
   params: RefundParams
-): Promise<{
-  error?: StripeError;
-}> {
+): Promise<ProcessRefundResultType> {
   return Logger.traceSdkMethod(async (innerParams) => {
     try {
-      const { error } = await StripeTerminalSdk.collectRefundPaymentMethod(
+      const { refund, error } = await StripeTerminalSdk.processRefund(
         innerParams
       );
       return {
+        refund,
         error,
       };
     } catch (error) {
@@ -638,29 +871,7 @@ export async function collectRefundPaymentMethod(
         error: error as any,
       };
     }
-  }, 'collectRefundPaymentMethod')(params);
-}
-
-export async function confirmRefund(): Promise<ConfirmRefundResultType> {
-  return Logger.traceSdkMethod(async () => {
-    try {
-      const { error, refund } = await StripeTerminalSdk.confirmRefund();
-      if (error) {
-        return {
-          error,
-          refund: undefined,
-        };
-      }
-      return {
-        refund: refund,
-        error: undefined,
-      };
-    } catch (error) {
-      return {
-        error: error as any,
-      };
-    }
-  }, 'confirmRefund')();
+  }, 'processRefund')(params);
 }
 
 export async function clearCachedCredentials(): Promise<{
@@ -693,20 +904,19 @@ export async function cancelCollectPaymentMethod(): Promise<{
   }, 'cancelCollectPaymentMethod')();
 }
 
-export async function cancelCollectRefundPaymentMethod(): Promise<{
+export async function cancelProcessRefund(): Promise<{
   error?: StripeError;
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const { error } =
-        await StripeTerminalSdk.cancelCollectRefundPaymentMethod();
+      const { error } = await StripeTerminalSdk.cancelProcessRefund();
       return error ? { error } : {};
     } catch (error) {
       return {
         error: error as any,
       };
     }
-  }, 'cancelCollectRefundPaymentMethod')();
+  }, 'cancelProcessRefund')();
 }
 
 export async function cancelCollectSetupIntent(): Promise<{
@@ -739,6 +949,21 @@ export async function cancelConfirmPaymentIntent(): Promise<{
   }, 'cancelConfirmPaymentIntent')();
 }
 
+export async function cancelProcessPaymentIntent(): Promise<{
+  error?: StripeError;
+}> {
+  return Logger.traceSdkMethod(async () => {
+    try {
+      await StripeTerminalSdk.cancelProcessPaymentIntent();
+      return {};
+    } catch (error) {
+      return {
+        error: error as any,
+      };
+    }
+  }, 'cancelProcessPaymentIntent')();
+}
+
 export async function cancelConfirmSetupIntent(): Promise<{
   error?: StripeError;
 }> {
@@ -754,19 +979,19 @@ export async function cancelConfirmSetupIntent(): Promise<{
   }, 'cancelConfirmSetupIntent')();
 }
 
-export async function cancelConfirmRefund(): Promise<{
+export async function cancelProcessSetupIntent(): Promise<{
   error?: StripeError;
 }> {
   return Logger.traceSdkMethod(async () => {
     try {
-      const { error } = await StripeTerminalSdk.cancelConfirmRefund();
-      return error ? { error } : {};
+      await StripeTerminalSdk.cancelProcessSetupIntent();
+      return {};
     } catch (error) {
       return {
         error: error as any,
       };
     }
-  }, 'cancelConfirmRefund')();
+  }, 'cancelProcessSetupIntent')();
 }
 
 export async function getOfflineStatus(): Promise<OfflineStatus> {
@@ -1003,7 +1228,7 @@ export async function getNativeSdkVersion(): Promise<string> {
   return Logger.traceSdkMethod(async () => {
     try {
       return await StripeTerminalSdk.getNativeSdkVersion();
-    } catch (error) {
+    } catch {
       return '';
     }
   }, 'getNativeSdkVersion')();

@@ -10,6 +10,66 @@ export * from './SetupIntent';
 export * from './PaymentIntent';
 export * from './Refund';
 
+/**
+ * Represents a payment option
+ * Used when a reader supports multiple payment methods (e.g., card + QR code).
+ *
+ * @see onPaymentMethodSelectionRequired
+ */
+export type PaymentOption = {
+  /** Index of the payment option, used when calling selectPaymentOption() */
+  index: number;
+  /** Type of payment: 'card' for card-present, 'nonCard' for QR-based payments */
+  type: 'card' | 'nonCard' | 'unknown';
+  /** Human-readable label for the payment option */
+  label?: string;
+  /** The underlying payment method type */
+  paymentMethodType?: string;
+};
+
+/**
+ * Data required to display a QR code
+ * The customer scans this QR code with their mobile payment app to complete the transaction.
+ *
+ * @see onQrCodeDisplayRequired
+ */
+export type QrCodeDisplayData = {
+  /** URL to a PNG image of the QR code */
+  imageUrlPng: string;
+  /** URL to an SVG image of the QR code */
+  imageUrlSvg: string;
+  /** Unix timestamp (in milliseconds) when the QR code expires */
+  expiresAtMs: number;
+  /** The payment method type this QR code is for */
+  paymentMethodType: string;
+};
+
+/**
+ * Handler for payment method selection events.
+ * Called when a mobile Bluetooth reader supports multiple payment options.
+ */
+export type PaymentMethodSelectionHandler = (
+  paymentIntent: PaymentIntent.Type,
+  availablePaymentOptions: PaymentOption[],
+  callback: {
+    selectPaymentOption: (paymentOptionType: string) => Promise<{ error?: StripeError }>;
+    failPaymentMethodSelection: (error?: string) => Promise<{ error?: StripeError }>;
+  }
+) => void;
+
+/**
+ * Handler for QR code display events.
+ * Called when the SDK needs to display a QR code for payment.
+ */
+export type QrCodeDisplayHandler = (
+  paymentIntent: PaymentIntent.Type,
+  qrData: QrCodeDisplayData,
+  callback: {
+    confirmQrCodeDisplayed: () => Promise<{ error?: StripeError }>;
+    failQrCodeDisplay: (error?: string) => Promise<{ error?: StripeError }>;
+  }
+) => void;
+
 export type InitParams = {
   logLevel?: LogLevel;
 };
@@ -23,11 +83,58 @@ export type LogLevel = LogLevelIOS | LogLevelAndroid;
 export type LogLevelIOS = 'none' | 'verbose';
 export type LogLevelAndroid = 'none' | 'verbose' | 'error' | 'warning';
 
-export type DiscoverReadersParams = {
-  locationId?: string;
+export type DiscoverReadersParams =
+  | DiscoverBluetoothScanParams
+  | DiscoverBluetoothProximityParams
+  | DiscoverInternetParams
+  | DiscoverUsbParams
+  | DiscoverAppsOnDevicesParams
+  | DiscoverTapToPayParams;
+
+export type DiscoverBluetoothScanParams = {
+  discoveryMethod: 'bluetoothScan';
   timeout?: number;
   simulated?: boolean;
-  discoveryMethod: Reader.DiscoveryMethod;
+};
+
+export type DiscoverBluetoothProximityParams = {
+  discoveryMethod: 'bluetoothProximity';
+  simulated?: boolean;
+};
+
+export type DiscoverInternetParams = {
+  discoveryMethod: 'internet';
+  timeout?: number;
+  simulated?: boolean;
+  locationId?: string;
+  discoveryFilter?: DiscoveryFilter;
+};
+
+export type DiscoverUsbParams = {
+  discoveryMethod: 'usb';
+  timeout?: number;
+  simulated?: boolean;
+};
+
+export type DiscoverAppsOnDevicesParams = {
+  discoveryMethod: 'appsOnDevices';
+};
+
+export type DiscoverTapToPayParams = {
+  discoveryMethod: 'tapToPay';
+  simulated?: boolean;
+};
+
+export type DiscoveryFilter =
+  | DiscoveryFilterNone
+  | DiscoveryFilterReaderId
+  | DiscoveryFilterSerialNumber;
+export type DiscoveryFilterNone = {};
+export type DiscoveryFilterReaderId = {
+  readerId: string;
+};
+export type DiscoveryFilterSerialNumber = {
+  serialNumber: string;
 };
 
 export type GetLocationsParams = {
@@ -36,35 +143,89 @@ export type GetLocationsParams = {
   startingAfter?: string;
 };
 
-export interface ConnectReaderParams {
+export type EasyConnectParams =
+  | EasyConnectInternetParams
+  | EasyConnectTapToPayParams
+  | EasyConnectAppsOnDevicesParams;
+
+export type EasyConnectInternetParams = {
+  discoveryMethod: 'internet';
+  timeout?: number;
+  simulated?: boolean;
+  locationId?: string;
+  discoveryFilter?: DiscoveryFilter;
+  failIfInUse?: boolean;
+};
+
+export type EasyConnectTapToPayParams = {
+  discoveryMethod: 'tapToPay';
+  simulated?: boolean;
+  locationId: string;
+  autoReconnectOnUnexpectedDisconnect?: boolean;
+  merchantDisplayName?: string;
+  onBehalfOf?: string;
+  tosAcceptancePermitted?: boolean;
+};
+
+export type EasyConnectAppsOnDevicesParams = {
+  discoveryMethod: 'appsOnDevices';
+};
+
+export type ConnectReaderParams =
+  | ConnectBluetoothReaderParams
+  | ConnectBluetoothProximityReaderParams
+  | ConnectUsbReaderParams
+  | ConnectTapToPayParams
+  | ConnectAppsOnDevicesParams
+  | ConnectInternetReaderParams;
+
+export type ConnectBluetoothReaderParams = {
+  discoveryMethod: 'bluetoothScan';
   reader: Reader.Type;
-}
-
-export interface ConnectBluetoothReaderParams extends ConnectReaderParams {
-  locationId?: string;
+  locationId: string;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-}
+  onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
+  onQrCodeDisplayRequired?: QrCodeDisplayHandler;
+};
 
-export interface ConnectUsbReaderParams extends ConnectReaderParams {
-  locationId?: string;
+export type ConnectBluetoothProximityReaderParams = {
+  discoveryMethod: 'bluetoothProximity';
+  reader: Reader.Type;
+  locationId: string;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-}
+  onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
+  onQrCodeDisplayRequired?: QrCodeDisplayHandler;
+};
 
-export interface ConnectTapToPayParams extends ConnectReaderParams {
-  locationId?: string;
+export type ConnectUsbReaderParams = {
+  discoveryMethod: 'usb';
+  reader: Reader.Type;
+  locationId: string;
+  autoReconnectOnUnexpectedDisconnect?: boolean;
+  onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
+  onQrCodeDisplayRequired?: QrCodeDisplayHandler;
+};
+
+export type ConnectTapToPayParams = {
+  discoveryMethod: 'tapToPay';
+  reader: Reader.Type;
+  locationId: string;
   onBehalfOf?: string;
   merchantDisplayName?: string;
   tosAcceptancePermitted?: boolean;
   autoReconnectOnUnexpectedDisconnect?: boolean;
-}
+};
 
-export interface ConnectHandoffParams extends ConnectReaderParams {
-  locationId?: string;
-}
+export type ConnectAppsOnDevicesParams = {
+  discoveryMethod: 'appsOnDevices';
+  reader: Reader.Type;
+};
 
-export interface ConnectInternetReaderParams extends ConnectReaderParams {
+export type ConnectInternetReaderParams = {
+  discoveryMethod: 'internet';
+  reader: Reader.Type;
   failIfInUse?: boolean;
-}
+};
 
 export type LineItem = {
   displayName: string;
@@ -81,11 +242,35 @@ export type Cart = {
 
 export type LocationStatus = 'notSet' | 'set' | 'unknown';
 
+export type NextAction = {
+  type?: string;
+  wechatPayDisplayQrCode?: WechatPayDisplayQrCode;
+  redirectToUrl?: RedirectToUrl;
+  useStripeSdk?: UseStripeSdk;
+};
+
+export type RedirectToUrl = {
+  url?: string;
+  returnUrl?: string;
+};
+
+export type WechatPayDisplayQrCode = {
+  data?: string;
+  hostedInstructionsUrl?: string;
+  imageDataUrl?: string;
+  imageUrlPng?: string;
+  imageUrlSvg?: string;
+};
+
+export type UseStripeSdk = {
+  type?: string;
+};
+
 export type InitializeResultType =
   | {
-      reader?: Reader.Type;
-      error?: undefined;
-    }
+    reader?: Reader.Type;
+    error?: undefined;
+  }
   | { error: StripeError; reader?: undefined };
 
 export type DiscoverReadersResultType = Promise<{
@@ -98,9 +283,9 @@ export type CancelDiscoveringResultType = Promise<{
 
 export type ConnectReaderResultType =
   | {
-      reader: Reader.Type;
-      error?: undefined;
-    }
+    reader: Reader.Type;
+    error?: undefined;
+  }
   | { reader?: undefined; error: StripeError };
 
 export type DisconnectReaderResultType = {
@@ -150,11 +335,37 @@ export type PaymentMethodType =
 export interface Charge {
   id: string;
   amount: number;
-  description: string;
+  amountRefunded: number;
+  applicationFee?: string;
+  applicationFeeAmount?: number;
+  authorizationCode?: string;
+  balanceTransaction?: string;
+  captured: boolean;
+  calculatedStatementDescriptor?: string;
+  created?: string;
   currency: string;
-  status: string;
-  paymentMethodDetails: PaymentMethodDetails;
+  customer?: string;
+  description?: string;
+  generatedFrom?: GeneratedFrom;
+  livemode: boolean;
+  metadata?: Record<string, string>;
+  onBehalfOf?: string;
+  paid: boolean;
+  paymentIntentId?: string;
+  paymentMethodDetails?: PaymentMethodDetails;
+  receiptEmail?: string;
+  receiptNumber?: string;
+  receiptUrl?: string;
+  refunded: boolean;
+  statementDescriptorSuffix?: string;
+  status?: string;
 }
+
+export type GeneratedFrom = {
+  charge?: string;
+  paymentMethodDetails?: PaymentMethodDetails;
+  setupAttempt?: string;
+};
 
 export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   amount: number;
@@ -163,7 +374,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   onBehalfOf?: string;
   transferDataDestination?: string;
   applicationFeeAmount?: number;
-  stripeDescription?: string;
+  description?: string;
   statementDescriptor?: string;
   statementDescriptorSuffix?: string;
   receiptEmail?: string;
@@ -187,20 +398,38 @@ export type PaymentMethodOptions = {
   captureMethod?: 'manual' | 'manual_preferred';
 };
 
+export type MotoConfiguration = {
+  skipCvc?: boolean;
+};
+
 export type CollectPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
   skipTipping?: boolean;
   tipEligibleAmount?: number;
   updatePaymentIntent?: boolean;
-  enableCustomerCancellation?: boolean;
+  customerCancellation?: CustomerCancellation;
   requestDynamicCurrencyConversion?: boolean;
   surchargeNotice?: string;
   allowRedisplay?: AllowRedisplay;
-  moto?: boolean;
+  motoConfiguration?: MotoConfiguration;
 };
 
 export type ConfirmPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
+  surcharge?: Surcharge;
+  returnUrl?: string;
+};
+
+export type ProcessPaymentIntentParams = {
+  paymentIntent: PaymentIntent.Type;
+  skipTipping?: boolean;
+  tipEligibleAmount?: number;
+  updatePaymentIntent?: boolean;
+  customerCancellation?: CustomerCancellation;
+  requestDynamicCurrencyConversion?: boolean;
+  surchargeNotice?: string;
+  allowRedisplay?: AllowRedisplay;
+  motoConfiguration?: MotoConfiguration;
   surcharge?: Surcharge;
   returnUrl?: string;
 };
@@ -231,10 +460,18 @@ export type CancelSetupIntentMethodParams = {
 
 export type CollectSetupIntentPaymentMethodParams = {
   allowRedisplay?: AllowRedisplay;
-  enableCustomerCancellation?: boolean;
+  customerCancellation?: CustomerCancellation;
   setupIntent: SetupIntent.Type;
-  moto?: boolean;
-  collectionReason?: CollectionReason; // only for ios now
+  motoConfiguration?: MotoConfiguration;
+  collectionReason?: CollectionReason;
+};
+
+export type ProcessSetupIntentParams = {
+  setupIntent: SetupIntent.Type;
+  allowRedisplay?: AllowRedisplay;
+  customerCancellation?: CustomerCancellation;
+  motoConfiguration?: MotoConfiguration;
+  collectionReason?: CollectionReason;
 };
 
 export type AllowRedisplay = 'always' | 'limited' | 'unspecified';
@@ -252,58 +489,68 @@ export type CreateSetupIntentParams = {
 
 export type PaymentIntentResultType =
   | {
-      paymentIntent: PaymentIntent.Type;
-      error?: undefined;
-    }
+    paymentIntent: PaymentIntent.Type;
+    error?: undefined;
+  }
   | {
-      paymentIntent?: undefined;
-      error: StripeError;
-    }
+    paymentIntent?: undefined;
+    error: StripeError;
+  }
   | {
-      paymentIntent: PaymentIntent.Type;
-      error: StripeError;
-    };
+    paymentIntent: PaymentIntent.Type;
+    error: StripeError;
+  };
 
 export type SetupIntentResultType =
   | {
-      setupIntent: SetupIntent.Type;
-      error?: undefined;
-    }
+    setupIntent: SetupIntent.Type;
+    error?: undefined;
+  }
   | {
-      setupIntent?: undefined;
-      error: StripeError;
-    };
+    setupIntent?: undefined;
+    error: StripeError;
+  };
 
 export type GetLocationsResultType =
   | {
-      locations: Location[];
-      hasMore: boolean;
-      error?: undefined;
-    }
+    locations: Location[];
+    hasMore: boolean;
+    error?: undefined;
+  }
   | {
-      locations?: undefined;
-      hasMore?: undefined;
-      error: StripeError;
-    };
+    locations?: undefined;
+    hasMore?: undefined;
+    error: StripeError;
+  };
 
 export type ClearReaderDisplayResultType = {
   error: StripeError;
 };
 
-export type CollectRefundPaymentMethodType = {
-  error?: StripeError;
-};
-
-export type RefundParams = {
-  chargeId: string;
+export type RefundParamsWithPaymentIntentId = {
   paymentIntentId: string;
+  clientSecret: string;
   amount: number;
   currency: string;
   refundApplicationFee?: boolean;
   reverseTransfer?: boolean;
-  enableCustomerCancellation?: boolean;
+  customerCancellation?: CustomerCancellation;
   metadata?: Record<string, string>;
 };
+
+export type RefundParamsWithChargeId = {
+  chargeId: string;
+  amount: number;
+  currency: string;
+  refundApplicationFee?: boolean;
+  reverseTransfer?: boolean;
+  customerCancellation?: CustomerCancellation;
+  metadata?: Record<string, string>;
+};
+
+export type RefundParams =
+  | RefundParamsWithPaymentIntentId
+  | RefundParamsWithChargeId;
 
 export type CardPresentDetails = {
   last4: string;
@@ -383,18 +630,14 @@ export type CardDetails = {
   expMonth?: number;
   expYear?: number;
   funding?: string;
+  generatedFrom?: GeneratedFrom;
   last4?: string;
 };
 
-export type ConfirmRefundResultType =
-  | {
-      refund: Refund.Props;
-      error?: undefined;
-    }
-  | {
-      refund?: undefined;
-      error: StripeError;
-    };
+export type ProcessRefundResultType = {
+  refund?: Refund.Props;
+  error?: StripeError;
+};
 
 export type OfflineStatusDetails = {
   networkStatus: 'online' | 'offline' | 'unknown';
@@ -413,7 +656,8 @@ export type ConnectionStatus =
   | 'notConnected'
   | 'connecting'
   | 'connected'
-  | 'discovering';
+  | 'discovering'
+  | 'reconnecting';
 
 /**
  * @ignore
@@ -470,19 +714,21 @@ export namespace PaymentMethod {
     affirmDetails: AffirmDetails;
     paynowDetails?: PaynowDetails;
     paypayDetails?: PaypayDetails;
+    cardDetails?: CardDetails;
+    livemode: boolean;
     metadata?: Record<string, string>;
   };
 }
 
 export type PaymentMethodResultType =
   | {
-      paymentMethod?: PaymentMethod.Type;
-      error: undefined;
-    }
+    paymentMethod?: PaymentMethod.Type;
+    error: undefined;
+  }
   | {
-      paymentMethod: undefined;
-      error: StripeError;
-    };
+    paymentMethod: undefined;
+    error: StripeError;
+  };
 
 export interface ICollectInputsParameters {
   inputs: Array<IInput>;
@@ -510,13 +756,13 @@ export interface IInput {
 
 export type ICollectInputsResults =
   | {
-      collectInputResults?: ICollectInputsResult[];
-      error?: undefined;
-    }
+    collectInputResults?: ICollectInputsResult[];
+    error?: undefined;
+  }
   | {
-      collectInputResults?: undefined;
-      error: StripeError;
-    };
+    collectInputResults?: undefined;
+    error: StripeError;
+  };
 
 export interface ICollectInputsResult {
   skipped: boolean;
@@ -607,11 +853,13 @@ export type OfflineCardPresentDetails = {
 };
 
 export type AmountDetails = {
-  tip: Amount;
+  tip?: Amount;
+  donation?: Amount;
+  surcharge?: Amount;
 };
 
 export type Amount = {
-  amount: number;
+  amount?: number;
 };
 
 export type CollectedData = {
@@ -623,7 +871,7 @@ export type CollectedData = {
 
 export interface CollectDataParams {
   collectDataType: CollectDataType;
-  enableCustomerCancellation: boolean;
+  customerCancellation: CustomerCancellation;
 }
 
 export enum CollectDataType {
@@ -634,13 +882,18 @@ export enum CollectDataType {
 
 export type CollectDataResultType =
   | {
-      collectedData?: CollectedData;
-      error?: undefined;
-    }
+    collectedData?: CollectedData;
+    error?: undefined;
+  }
   | {
-      collectedData?: undefined;
-      error: StripeError;
-    };
+    collectedData?: undefined;
+    error: StripeError;
+  };
+
+export type CustomerCancellation =
+  | 'enableIfAvailable'
+  | 'disableIfAvailable'
+  | 'unspecified';
 
 export type TapToPayUxConfiguration = {
   tapZone?: TapZone;
@@ -648,23 +901,50 @@ export type TapToPayUxConfiguration = {
   colors?: Colors;
 };
 
-export type TapZone = {
-  tapZoneIndicator?: TapZoneIndicator;
-  tapZonePosition?: TapZonePosition;
+export type TapZone =
+  | TapZoneDefault
+  | TapZoneAbove
+  | TapZoneBelow
+  | TapZoneFront
+  | TapZoneBehind
+  | TapZoneLeft
+  | TapZoneRight;
+
+export type TapZoneDefault = {
+  indicator: 'default';
 };
 
-export type TapZonePosition = {
-  xBias: number;
-  yBias: number;
+export type TapZoneAbove = {
+  indicator: 'above';
+  bias?: number;
 };
 
-export enum TapZoneIndicator {
-  DEFAULT = 'default',
-  ABOVE = 'above',
-  BELOW = 'below',
-  FRONT = 'front',
-  BEHIND = 'behind',
-}
+export type TapZoneBelow = {
+  indicator: 'below';
+  bias?: number;
+};
+
+export type TapZoneFront = {
+  indicator: 'front';
+  xBias?: number;
+  yBias?: number;
+};
+
+export type TapZoneBehind = {
+  indicator: 'behind';
+  xBias?: number;
+  yBias?: number;
+};
+
+export type TapZoneLeft = {
+  indicator: 'left';
+  bias?: number;
+};
+
+export type TapZoneRight = {
+  indicator: 'right';
+  bias?: number;
+};
 
 export type Colors = {
   primary?: string;

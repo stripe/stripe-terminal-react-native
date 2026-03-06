@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.android.tools.build:gradle:8.8.2'
         // noinspection DifferentKotlinGradleVersion
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.codehaus.groovy:groovy-json:3.0.10'
@@ -151,7 +151,7 @@ dependencies {
     if (taptopayEnabled) {
       implementation("com.stripe:stripeterminal-taptopay:$terminalAndroidSdkVersion")
     }
-    implementation "com.stripe:stripeterminal-handoffclient:$terminalAndroidSdkVersion"
+    implementation "com.stripe:stripeterminal-appsondevices:$terminalAndroidSdkVersion"
 
     implementation 'com.google.code.gson:gson:2.12.1'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'

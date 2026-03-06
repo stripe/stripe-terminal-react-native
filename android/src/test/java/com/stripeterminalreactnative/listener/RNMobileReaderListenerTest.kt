@@ -2,6 +2,8 @@ package com.stripeterminalreactnative.listener
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.stripeterminal.external.callable.Cancelable
+import com.stripe.stripeterminal.external.callable.PaymentMethodSelectionCallback
+import com.stripe.stripeterminal.external.callable.QrCodeDisplayCallback
 import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
 import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
 import com.stripe.stripeterminal.external.models.DisconnectReason
@@ -24,10 +26,13 @@ import com.stripeterminalreactnative.hasResult
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -55,9 +60,29 @@ class RNMobileReaderListenerTest {
         } returns 0
     }
 
+    // Helper to create listener with default test mocks
+    private fun createListener(
+        onStartInstallingUpdate: (Cancelable?) -> Unit = mockk(relaxed = true),
+        readerReconnectionListener: ReaderReconnectionListener = mockk(relaxed = true),
+        readerDisconnectListener: ReaderDisconnectListener = mockk(relaxed = true),
+        paymentMethodSelectionCallback: AtomicReference<PaymentMethodSelectionCallback?> = AtomicReference(null),
+        qrCodeDisplayCallback: AtomicReference<QrCodeDisplayCallback?> = AtomicReference(null),
+        isPaymentMethodSelectionHandlerRegistered: () -> Boolean = { false },
+        isQrCodeDisplayHandlerRegistered: () -> Boolean = { false }
+    ) = RNMobileReaderListener(
+        context,
+        readerReconnectionListener,
+        readerDisconnectListener,
+        paymentMethodSelectionCallback,
+        qrCodeDisplayCallback,
+        isPaymentMethodSelectionHandlerRegistered,
+        isQrCodeDisplayHandlerRegistered,
+        onStartInstallingUpdate
+    )
+
     @Test
     fun `should send onReportAvailableUpdate event`() {
-        val listener = RNMobileReaderListener(context, mockk(), mockk(), mockk())
+        val listener = createListener()
         listener.onReportAvailableUpdate(update)
 
         verify(exactly = 1) { context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName, any()) }
@@ -69,8 +94,7 @@ class RNMobileReaderListenerTest {
     fun `should send onStartInstallingUpdate event`() {
         val mockOnStartInstallingUpdate = mockk<(Cancelable?) -> Unit>(relaxed = true)
         val mockCancelable = mockk<Cancelable>()
-        val listener =
-            RNMobileReaderListener(context, mockk(), mockk(), mockOnStartInstallingUpdate)
+        val listener = createListener(onStartInstallingUpdate = mockOnStartInstallingUpdate)
         listener.onStartInstallingUpdate(update, mockCancelable)
 
         verify(exactly = 1) { mockOnStartInstallingUpdate.invoke(mockCancelable) }
@@ -81,7 +105,7 @@ class RNMobileReaderListenerTest {
 
     @Test
     fun `should send onReportReaderSoftwareUpdateProgress event`() {
-        val listener = RNMobileReaderListener(context, mockk(), mockk(), mockk())
+        val listener = createListener()
         listener.onReportReaderSoftwareUpdateProgress(1.0f)
 
         verify(exactly = 1) { context.sendEvent(REPORT_UPDATE_PROGRESS.listenerName, any()) }
@@ -91,7 +115,7 @@ class RNMobileReaderListenerTest {
 
     @Test
     fun `should send onFinishInstallingUpdate event`() {
-        val listener = RNMobileReaderListener(context, mockk(), mockk(), mockk())
+        val listener = createListener()
         listener.onFinishInstallingUpdate(null)
 
         verify(exactly = 1) { context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName, any()) }
@@ -109,7 +133,7 @@ class RNMobileReaderListenerTest {
 
     @Test
     fun `should send onFinishInstallingUpdate error`() {
-        val listener = RNMobileReaderListener(context, mockk(), mockk(), mockk())
+        val listener = createListener()
         listener.onFinishInstallingUpdate(update, EXCEPTION)
 
         verify(exactly = 1) { context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName, any()) }
@@ -120,7 +144,7 @@ class RNMobileReaderListenerTest {
 
     @Test
     fun `should send onRequestReaderInput event`() {
-        val listener = RNMobileReaderListener(context, mockk(), mockk(), mockk())
+        val listener = createListener()
         listener.onRequestReaderInput(ReaderInputOptions(listOf(ReaderInputOption.INSERT)))
 
         verify(exactly = 1) { context.sendEvent(REQUEST_READER_INPUT.listenerName, any()) }
@@ -130,7 +154,7 @@ class RNMobileReaderListenerTest {
 
     @Test
     fun `should send onRequestReaderDisplayMessage event`() {
-        val listener = RNMobileReaderListener(context, mockk(), mockk(), mockk())
+        val listener = createListener()
         listener.onRequestReaderDisplayMessage(ReaderDisplayMessage.INSERT_OR_SWIPE_CARD)
 
         verify(exactly = 1) {
@@ -145,7 +169,7 @@ class RNMobileReaderListenerTest {
         val readerDisconnectListener = mockk<ReaderDisconnectListener> {
             every { onDisconnect(any()) } returns Unit
         }
-        val listener = RNMobileReaderListener(context, mockk(), readerDisconnectListener, mockk())
+        val listener = createListener(readerDisconnectListener = readerDisconnectListener)
         listener.onDisconnect(DisconnectReason.DISCONNECT_REQUESTED)
         verify(exactly = 1) { readerDisconnectListener.onDisconnect(DisconnectReason.DISCONNECT_REQUESTED) }
     }
@@ -153,7 +177,7 @@ class RNMobileReaderListenerTest {
     @Test
     fun `should call inner reconnectionListener`() {
         val readerReconnectionListener = mockk<ReaderReconnectionListener>(relaxed = true)
-        val listener = RNMobileReaderListener(context, readerReconnectionListener, mockk(), mockk())
+        val listener = createListener(readerReconnectionListener = readerReconnectionListener)
         listener.onReaderReconnectStarted(mockk(), mockk(), mockk())
         verify(exactly = 1) {
             readerReconnectionListener.onReaderReconnectStarted(

@@ -161,5 +161,7 @@
 			<integer>5538</integer>
 		</dict>
 	</dict>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 </dict>
 </plist>

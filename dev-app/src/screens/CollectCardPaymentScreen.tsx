@@ -21,11 +21,13 @@ import {
   type PaymentIntent,
   type StripeError,
   type AllowRedisplay,
+  type CustomerCancellation,
+  type MotoConfiguration,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
-import { LogContext } from '../components/LogContext';
+import { LogContext, type CancelType } from '../components/LogContext';
 import type { RouteParamList } from '../App';
 import { AppContext } from '../AppContext';
 import { DevAppError } from '../errors/DevAppError';
@@ -41,7 +43,7 @@ const CURRENCIES = [
   { value: 'usd', label: 'USD' },
   { value: 'aed', label: 'AED' },
   { value: 'aud', label: 'AUD' },
-  { value: 'bgn', label: 'BGN'},
+  { value: 'bgn', label: 'BGN' },
   { value: 'cad', label: 'CAD' },
   { value: 'chf', label: 'CHF' },
   { value: 'czk', label: 'CZK' },
@@ -64,6 +66,12 @@ const CURRENCIES = [
 const CAPTURE_METHODS = [
   { value: 'automatic', label: 'automatic' },
   { value: 'manual', label: 'manual' },
+];
+
+const CUSTOMER_CANCELLATION = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'enableIfAvailable', label: 'enableIfAvailable' },
+  { value: 'disableIfAvailable', label: 'disableIfAvailable' },
 ];
 
 const CARD_PRESENT_CAPTURE_METHODS = [
@@ -101,6 +109,7 @@ export default function CollectCardPaymentScreen() {
     api,
     setLastSuccessfulChargeId,
     setLastSuccessfulPaymentIntentId,
+    setLastSuccessfulPaymentClientSecret,
     setLastSuccessfulAmount,
     account,
   } = useContext(AppContext);
@@ -136,8 +145,8 @@ export default function CollectCardPaymentScreen() {
     useState(false);
   const [recollectAfterCardBrandDecline, setRecollectAfterCardBrandDecline] =
     useState(false);
-  const [enableCustomerCancellation, setEnableCustomerCancellation] =
-    useState(false);
+  const [customerCancellation, setCustomerCancellation] =
+    useState<CustomerCancellation>('unspecified');
   const [requestDcc, setRequestDcc] = useState(false);
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');
@@ -151,17 +160,19 @@ export default function CollectCardPaymentScreen() {
     amount: '',
     consent: null,
   });
-  const [returnUrl, setReturnUrl] = useState('');
+  const [returnUrl, setReturnUrl] = useState('https://stripe.com');
   const paymentMethodTypes = PAYMENT_METHOD_TYPES;
   const [enabledPaymentMethodTypes, setEnabledPaymentMethodTypes] = useState(
     DEFAULT_ENABLED_PAYMENT_METHOD_TYPES
   );
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('unspecified');
-  const [moto, setMoto] = useState(false);
+  const [motoConfiguration, setMotoConfiguration] = useState<
+    MotoConfiguration | undefined
+  >();
   const { params } =
     useRoute<RouteProp<RouteParamList, 'CollectCardPaymentScreen'>>();
-  const { simulated, discoveryMethod, deviceType } = params;
+  const { simulated, discoveryMethod } = params;
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
 
@@ -169,15 +180,15 @@ export default function CollectCardPaymentScreen() {
     createPaymentIntent,
     collectPaymentMethod,
     confirmPaymentIntent,
-    retrievePaymentIntent,
+    processPaymentIntent,
     cancelCollectPaymentMethod,
     cancelConfirmPaymentIntent,
+    cancelProcessPaymentIntent,
     setSimulatedCard,
     getOfflineStatus,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
-      // @ts-ignore
-      setCancel((prev) => ({ ...prev, isDisabled: false }));
+      setCancel((prev: CancelType | null) => (prev ? { ...prev, isDisabled: false } : null));
       addLogs({
         name: 'Collect Payment Method',
         events: [
@@ -226,122 +237,60 @@ export default function CollectCardPaymentScreen() {
       ],
     });
 
-    const routingPriority = {
-      requested_priority: inputValues.requestedPriority,
-    };
-    const paymentMethodOptions = {
-      card_present: {
-        request_extended_authorization:
-          inputValues.requestExtendedAuthorization,
-        request_incremental_authorization_support:
-          inputValues.requestIncrementalAuthorizationSupport,
-        routing: routingPriority,
-        capture_method: inputValues?.cardPresentCaptureMethod,
-      },
-    };
     let paymentIntent: PaymentIntent.Type | undefined;
     let paymentIntentError: StripeError | undefined;
 
-    if (deviceType === 'verifoneP400') {
-      const resp = await api.createPaymentIntent({
-        amount: Number(inputValues.amount),
-        currency: inputValues.currency,
-        payment_method_types: enabledPaymentMethodTypes,
-        payment_method_options: paymentMethodOptions,
-        capture_method: inputValues?.captureMethod,
-        on_behalf_of: inputValues?.connectedAccountId,
-        application_fee_amount: Number(inputValues.applicationFeeAmount),
-      });
-
-      if ('error' in resp) {
-        addLogs({
-          name: 'Create Payment Intent',
-          events: [
-            {
-              name: 'Failed',
-              description: 'terminal.createPaymentIntent',
-              onBack: cancelCollectPaymentMethod,
-              metadata: {
-                errorCode: resp.error?.code,
-                errorMessage: resp.error?.message,
-              },
-            },
-          ],
-        });
-        return;
+    const offlineStatus = await getOfflineStatus();
+    let sdkStoredPaymentAmount = 0;
+    for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
+      if (currency === inputValues.currency) {
+        sdkStoredPaymentAmount =
+          offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
       }
-
-      if (!resp.client_secret) {
-        const error = new DevAppError(
-          'NO_CLIENT_SECRET',
-          'No client_secret returned from API',
-          {
-            context: {
-              step: 'createPaymentIntent',
-              apiResponse: resp,
-            },
-          }
-        );
-        return Promise.resolve({ error });
-      }
-
-      const response = await retrievePaymentIntent(resp.client_secret);
-      paymentIntent = response.paymentIntent;
-      paymentIntentError = response.error;
-    } else {
-      const offlineStatus = await getOfflineStatus();
-      let sdkStoredPaymentAmount = 0;
-      for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
-        if (currency === inputValues.currency) {
-          sdkStoredPaymentAmount =
-            offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
-        }
-      }
-      let readerStoredPaymentAmount = 0;
-      if (offlineStatus.reader) {
-        for (let currency in offlineStatus.reader
-          .offlinePaymentAmountsByCurrency) {
-          if (currency === inputValues.currency) {
-            readerStoredPaymentAmount =
-              offlineStatus.reader.offlinePaymentAmountsByCurrency[currency];
-          }
-        }
-      }
-      if (
-        Number(inputValues.amount) >
-          Number(inputValues.offlineModeTransactionLimit) ||
-        sdkStoredPaymentAmount >
-          Number(inputValues.offlineModeStoredTransactionLimit) ||
-        readerStoredPaymentAmount >
-          Number(inputValues.offlineModeStoredTransactionLimit)
-      ) {
-        inputValues.offlineBehavior = 'require_online';
-      }
-
-      const response = await createPaymentIntent({
-        amount: Number(inputValues.amount),
-        currency: inputValues.currency,
-        paymentMethodTypes: enabledPaymentMethodTypes,
-        onBehalfOf: inputValues.connectedAccountId,
-        transferDataDestination: inputValues.connectedAccountId,
-        applicationFeeAmount: inputValues.applicationFeeAmount
-          ? Number(inputValues.applicationFeeAmount)
-          : undefined,
-        paymentMethodOptions: {
-          requestExtendedAuthorization:
-            inputValues.requestExtendedAuthorization,
-          requestIncrementalAuthorizationSupport:
-            inputValues.requestIncrementalAuthorizationSupport,
-          requestedPriority: inputValues.requestedPriority,
-          requestPartialAuthorization: inputValues.requestPartialAuthorization,
-          captureMethod: inputValues?.cardPresentCaptureMethod,
-        },
-        captureMethod: inputValues?.captureMethod,
-        offlineBehavior: inputValues?.offlineBehavior,
-      });
-      paymentIntent = response.paymentIntent;
-      paymentIntentError = response.error;
     }
+    let readerStoredPaymentAmount = 0;
+    if (offlineStatus.reader) {
+      for (let currency in offlineStatus.reader
+        .offlinePaymentAmountsByCurrency) {
+        if (currency === inputValues.currency) {
+          readerStoredPaymentAmount =
+            offlineStatus.reader.offlinePaymentAmountsByCurrency[currency];
+        }
+      }
+    }
+    if (
+      Number(inputValues.amount) >
+        Number(inputValues.offlineModeTransactionLimit) ||
+      sdkStoredPaymentAmount >
+        Number(inputValues.offlineModeStoredTransactionLimit) ||
+      readerStoredPaymentAmount >
+        Number(inputValues.offlineModeStoredTransactionLimit)
+    ) {
+      inputValues.offlineBehavior = 'require_online';
+    }
+
+    const response = await createPaymentIntent({
+      amount: Number(inputValues.amount),
+      currency: inputValues.currency,
+      paymentMethodTypes: enabledPaymentMethodTypes,
+      onBehalfOf: inputValues.connectedAccountId,
+      transferDataDestination: inputValues.connectedAccountId,
+      applicationFeeAmount: inputValues.applicationFeeAmount
+        ? Number(inputValues.applicationFeeAmount)
+        : undefined,
+      paymentMethodOptions: {
+        requestExtendedAuthorization: inputValues.requestExtendedAuthorization,
+        requestIncrementalAuthorizationSupport:
+          inputValues.requestIncrementalAuthorizationSupport,
+        requestedPriority: inputValues.requestedPriority,
+        requestPartialAuthorization: inputValues.requestPartialAuthorization,
+        captureMethod: inputValues?.cardPresentCaptureMethod,
+      },
+      captureMethod: inputValues?.captureMethod,
+      offlineBehavior: inputValues?.offlineBehavior,
+    });
+    paymentIntent = response.paymentIntent;
+    paymentIntentError = response.error;
 
     if (paymentIntentError) {
       const devError = DevAppError.fromStripeError(paymentIntentError);
@@ -405,9 +354,140 @@ export default function CollectCardPaymentScreen() {
     return await _collectPaymentMethod(paymentIntent);
   };
 
+  const _createAndProcessPaymentIntent = async () => {
+    if (simulated) {
+      await setSimulatedCard(testCardNumber);
+    }
+
+    clearLogs();
+    setCancel({
+      label: 'Cancel Payment',
+      isDisabled: false,
+      action: cancelProcessPaymentIntent,
+    });
+    navigation.navigate('LogListScreen', {});
+    addLogs({
+      name: 'Create Payment Intent',
+      events: [
+        {
+          name: 'Create',
+          description: 'terminal.createPaymentIntent',
+          onBack: cancelProcessPaymentIntent,
+        },
+      ],
+    });
+
+    let paymentIntent: PaymentIntent.Type | undefined;
+    let paymentIntentError: StripeError | undefined;
+
+    const offlineStatus = await getOfflineStatus();
+    let sdkStoredPaymentAmount = 0;
+    for (let currency in offlineStatus.sdk.offlinePaymentAmountsByCurrency) {
+      if (currency === inputValues.currency) {
+        sdkStoredPaymentAmount =
+          offlineStatus.sdk.offlinePaymentAmountsByCurrency[currency];
+      }
+    }
+    let readerStoredPaymentAmount = 0;
+    if (offlineStatus.reader) {
+      for (let currency in offlineStatus.reader
+        .offlinePaymentAmountsByCurrency) {
+        if (currency === inputValues.currency) {
+          readerStoredPaymentAmount =
+            offlineStatus.reader.offlinePaymentAmountsByCurrency[currency];
+        }
+      }
+    }
+    if (
+      Number(inputValues.amount) >
+        Number(inputValues.offlineModeTransactionLimit) ||
+      sdkStoredPaymentAmount >
+        Number(inputValues.offlineModeStoredTransactionLimit) ||
+      readerStoredPaymentAmount >
+        Number(inputValues.offlineModeStoredTransactionLimit)
+    ) {
+      inputValues.offlineBehavior = 'require_online';
+    }
+
+    const response = await createPaymentIntent({
+      amount: Number(inputValues.amount),
+      currency: inputValues.currency,
+      paymentMethodTypes: enabledPaymentMethodTypes,
+      onBehalfOf: inputValues.connectedAccountId,
+      transferDataDestination: inputValues.connectedAccountId,
+      applicationFeeAmount: inputValues.applicationFeeAmount
+        ? Number(inputValues.applicationFeeAmount)
+        : undefined,
+      paymentMethodOptions: {
+        requestExtendedAuthorization: inputValues.requestExtendedAuthorization,
+        requestIncrementalAuthorizationSupport:
+          inputValues.requestIncrementalAuthorizationSupport,
+        requestedPriority: inputValues.requestedPriority,
+        requestPartialAuthorization: inputValues.requestPartialAuthorization,
+        captureMethod: inputValues?.cardPresentCaptureMethod,
+      },
+      captureMethod: inputValues?.captureMethod,
+      offlineBehavior: inputValues?.offlineBehavior,
+    });
+    paymentIntent = response.paymentIntent;
+    paymentIntentError = response.error;
+
+    if (paymentIntentError) {
+      addLogs({
+        name: 'Create Payment Intent',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.createPaymentIntent',
+            onBack: cancelProcessPaymentIntent,
+            metadata: {
+              errorCode: paymentIntentError?.code,
+              errorMessage: paymentIntentError?.message,
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    if (!paymentIntent) {
+      addLogs({
+        name: 'Create Payment Intent',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.createPaymentIntent',
+            onBack: cancelProcessPaymentIntent,
+            metadata: {
+              errorCode: 'no_code',
+              errorMessage: 'PaymentIntent is null!',
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    addLogs({
+      name: 'Create Payment Intent',
+      events: [
+        {
+          name: 'Created',
+          description: 'terminal.createPaymentIntent',
+          onBack: cancelProcessPaymentIntent,
+          metadata: {
+            paymentIntentId: paymentIntent.id,
+            paymentIntent: JSON.stringify(paymentIntent, null, 2),
+          },
+        },
+      ],
+    });
+
+    return await _processPaymentIntent(paymentIntent);
+  };
+
   const _collectPaymentMethod = async (pi: PaymentIntent.Type) => {
-    // @ts-ignore
-    setCancel((prev) => ({ ...prev, isDisabled: false }));
+    setCancel((prev: CancelType | null) => (prev ? { ...prev, isDisabled: false } : null));
     addLogs({
       name: 'Collect Payment Method',
       events: [
@@ -426,11 +506,11 @@ export default function CollectCardPaymentScreen() {
         ? Number(tipEligibleAmount)
         : undefined,
       updatePaymentIntent: enableUpdatePaymentIntent,
-      enableCustomerCancellation: enableCustomerCancellation,
+      customerCancellation: customerCancellation,
       requestDynamicCurrencyConversion: requestDcc,
       surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
       allowRedisplay: allowRedisplay,
-      moto: moto,
+      motoConfiguration: motoConfiguration,
     });
 
     if (error) {
@@ -525,8 +605,7 @@ export default function CollectCardPaymentScreen() {
   const _confirmPaymentIntent = async (
     collectedPaymentIntent: PaymentIntent.Type
   ) => {
-    // @ts-ignore
-    setCancel((prev) => ({ ...prev, isDisabled: true }));
+    setCancel((prev: CancelType | null) => (prev ? { ...prev, isDisabled: true } : null));
     addLogs({
       name: 'Confirm Payment Intent',
       events: [
@@ -546,16 +625,16 @@ export default function CollectCardPaymentScreen() {
       paymentIntent: collectedPaymentIntent,
       surcharge: surcharge.amount
         ? {
-            amount: Number(surcharge.amount),
-            consent:
-              surcharge?.consent?.notice ||
+          amount: Number(surcharge.amount),
+          consent:
+            surcharge?.consent?.notice ||
               surcharge?.consent?.collection != null
-                ? {
-                    notice: surcharge.consent.notice || '',
-                    collection: surcharge.consent.collection ?? 'disabled',
-                  }
-                : null,
-          }
+              ? {
+                notice: surcharge.consent.notice || '',
+                collection: surcharge.consent.collection ?? 'disabled',
+              }
+              : null,
+        }
         : undefined,
       returnUrl: returnUrl.trim() ? returnUrl : undefined,
     });
@@ -596,6 +675,109 @@ export default function CollectCardPaymentScreen() {
     if (paymentIntent?.charges[0]?.id) {
       setLastSuccessfulChargeId(paymentIntent.charges[0].id);
       setLastSuccessfulPaymentIntentId(paymentIntent.id);
+      setLastSuccessfulPaymentClientSecret(paymentIntent.clientSecret || '');
+      setLastSuccessfulAmount(paymentIntent.amount.toString());
+    }
+
+    if (paymentIntent?.status === 'succeeded') {
+      return;
+    }
+
+    if (paymentIntent.id) {
+      _capturePayment(paymentIntent.id);
+    }
+  };
+
+  const _processPaymentIntent = async (
+    createdPaymentIntent: PaymentIntent.Type
+  ) => {
+    setCancel((prev: CancelType | null) => (prev ? { ...prev, isDisabled: true } : null));
+    addLogs({
+      name: 'Process Payment Intent',
+      events: [
+        {
+          name: 'Processing',
+          onBack: cancelProcessPaymentIntent,
+          description: 'terminal.processPaymentIntent',
+          metadata: {
+            paymentIntentId: createdPaymentIntent.id,
+            skipTipping: skipTipping.toString(),
+            surcharge: JSON.stringify(surcharge, undefined, 2),
+          },
+        },
+      ],
+    });
+
+    const { paymentIntent, error } = await processPaymentIntent({
+      paymentIntent: createdPaymentIntent,
+      // Collect configuration
+      skipTipping: skipTipping,
+      tipEligibleAmount: tipEligibleAmount
+        ? Number(tipEligibleAmount)
+        : undefined,
+      updatePaymentIntent: enableUpdatePaymentIntent,
+      customerCancellation: customerCancellation,
+      requestDynamicCurrencyConversion: requestDcc,
+      surchargeNotice: surchargeNotice ? surchargeNotice : undefined,
+      allowRedisplay: allowRedisplay,
+      motoConfiguration: motoConfiguration,
+      // Confirm configuration
+      surcharge: surcharge.amount
+        ? {
+            amount: Number(surcharge.amount),
+            consent:
+              surcharge?.consent?.notice ||
+              surcharge?.consent?.collection != null
+                ? {
+                    notice: surcharge.consent.notice || '',
+                    collection: surcharge.consent.collection ?? 'disabled',
+                  }
+                : null,
+          }
+        : undefined,
+      returnUrl: returnUrl.trim() ? returnUrl : undefined,
+    });
+
+    if (error) {
+      addLogs({
+        name: 'Process Payment Intent',
+        events: [
+          {
+            name: 'Failed',
+            description: 'terminal.processPaymentIntent',
+            metadata: {
+              errorCode: error.code,
+              errorMessage: error.message,
+              pi: JSON.stringify(paymentIntent, undefined, 2),
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    addLogs({
+      name: 'Process Payment Intent',
+      events: [
+        {
+          name: 'Processed',
+          description: 'terminal.processPaymentIntent',
+          metadata: {
+            paymententIntentId: paymentIntent.id ? paymentIntent.id : 'null',
+            chargeId: paymentIntent?.charges[0]?.id
+              ? paymentIntent.charges[0].id
+              : 'null',
+            pi: JSON.stringify(paymentIntent, undefined, 2),
+          },
+        },
+      ],
+    });
+
+    // Set last successful charge Id in context for refunding later
+    if (paymentIntent?.charges[0]?.id) {
+      setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+      setLastSuccessfulPaymentIntentId(paymentIntent.id);
+      setLastSuccessfulPaymentClientSecret(paymentIntent.clientSecret || '');
       setLastSuccessfulAmount(paymentIntent.amount.toString());
     }
 
@@ -849,8 +1031,29 @@ export default function CollectCardPaymentScreen() {
             rightElement={
               <Switch
                 testID="moto"
-                value={moto}
-                onValueChange={(value) => setMoto(value)}
+                value={motoConfiguration !== undefined}
+                onValueChange={(value) => {
+                  if (value) {
+                    setMotoConfiguration({});
+                  } else {
+                    setMotoConfiguration(undefined);
+                  }
+                }}
+              />
+            }
+          />
+          <ListItem
+            title="Skip Cvc"
+            visible={motoConfiguration !== undefined}
+            rightElement={
+              <Switch
+                testID="skipCvc"
+                value={motoConfiguration?.skipCvc === true}
+                onValueChange={(value) =>
+                  setMotoConfiguration((state) => ({
+                    ...state,
+                    skipCvc: value,
+                  }))}
               />
             }
           />
@@ -1155,18 +1358,30 @@ export default function CollectCardPaymentScreen() {
 
         {discoveryMethod === 'internet' && (
           <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
-            <ListItem
-              title="Customer cancellation"
-              rightElement={
-                <Switch
-                  testID="enable-cancellation"
-                  value={enableCustomerCancellation}
-                  onValueChange={(value) =>
-                    setEnableCustomerCancellation(value)
-                  }
-                />
-              }
-            />
+            <List
+              bolded={false}
+              topSpacing={false}
+              title="Customer Cancellation"
+            >
+              <Picker
+                selectedValue={customerCancellation}
+                style={styles.picker}
+                itemStyle={styles.pickerItem}
+                testID="select-cancellation"
+                onValueChange={(value) =>
+                  setCustomerCancellation(value as CustomerCancellation)
+                }
+              >
+                {CUSTOMER_CANCELLATION.map((a) => (
+                  <Picker.Item
+                    key={a.value}
+                    label={a.label}
+                    testID={a.value}
+                    value={a.value}
+                  />
+                ))}
+              </Picker>
+            </List>
             <ListItem
               title="Request DCC (requires Update PaymentIntent)"
               rightElement={
@@ -1290,6 +1505,12 @@ export default function CollectCardPaymentScreen() {
             color={colors.blue}
             title="Collect payment"
             onPress={_createPaymentIntent}
+          />
+          <ListItem
+            testID="process-payment-button"
+            color={colors.blurple}
+            title="Process payment (Collect + Confirm)"
+            onPress={_createAndProcessPaymentIntent}
           />
           {simulated ? (
             <Text style={styles.info}>

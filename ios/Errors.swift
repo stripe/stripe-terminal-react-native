@@ -117,8 +117,14 @@ class Errors {
         case USB_PERMISSION_DENIED = "USB_PERMISSION_DENIED"
         case USB_RECONNECT_STARTED = "USB_RECONNECT_STARTED"
         case CANCELED_DUE_TO_INTEGRATION_ERROR = "CANCELED_DUE_TO_INTEGRATION_ERROR"
+
+        case TAP_TO_PAY_READER_REQUEST_INTERRUPTED = "TAP_TO_PAY_READER_REQUEST_INTERRUPTED"
+        case CARD_NOT_SUPPORTED = "CARD_NOT_SUPPORTED"
+
+        // IOS TTP Only.
+        case TAP_TO_PAY_READER_MERCHANT_BLOCKED = "TAP_TO_PAY_READER_MERCHANT_BLOCKED"
     }
-    
+
     // MARK: - Utilities
 
     /// Rejects a React Native promise with an error code and message.
@@ -130,7 +136,7 @@ class Errors {
     class func rejectPromise(_ reject: RCTPromiseRejectBlock, rnCode: String, message: String) {
         reject(rnCode, message.isEmpty ? rnCode : message, nil)
     }
-    
+
     /// Validates that all required parameters are present in the provided dictionary.
     ///
     /// - Parameters:
@@ -142,6 +148,21 @@ class Errors {
         return missing.isEmpty ? nil : missing.joined(separator: ", ")
     }
 
+    /// Validates that AppsOnDevicesConnectionTokenProvider is not being used on iOS.
+    /// Returns an error dictionary if the flag is true, nil otherwise.
+    ///
+    /// - Parameter params: The initialization parameters dictionary
+    /// - Returns: An error dictionary if useAppsOnDevicesConnectionTokenProvider is true, nil otherwise
+    class func validateAppsOnDevicesConnectionTokenProviderNotUsed(_ params: NSDictionary) -> [String: Any]? {
+        if let useAppsOnDevices = params["useAppsOnDevicesConnectionTokenProvider"] as? Bool, useAppsOnDevices {
+            return createErrorFromRnCodeEnum(
+                rnCode: RNErrorCode.UNSUPPORTED_SDK,
+                message: "AppsOnDevicesConnectionTokenProvider is not supported on iOS."
+            )
+        }
+        return nil
+    }
+
     /// Creates a busy error message indicating the SDK is already executing another command.
     ///
     /// - Parameters:
@@ -151,9 +172,9 @@ class Errors {
     class func createBusyMessage(command: String, by busyCommand: String) -> String {
         return "Could not execute \(command) because the SDK is busy with another command: \(busyCommand)."
     }
-    
+
     // MARK: - Internal: Error Object Building
-    
+
     /// Creates a base error object dictionary with standard fields.
     ///
     /// - Parameters:
@@ -178,7 +199,7 @@ class Errors {
             ErrorConstants.metadataKey: metadata
         ]
     }
-    
+
     /// Wraps an error object in the standard error response structure.
     ///
     /// - Parameters:
@@ -195,9 +216,9 @@ class Errors {
         )
         return [ErrorConstants.errorKey: error]
     }
-    
+
     // MARK: - Error Creation
-    
+
     /// Creates an error response from a Stripe Terminal SDK error code.
     ///
     /// - Parameters:
@@ -229,7 +250,7 @@ class Errors {
     class func createErrorFromNSError(nsError: NSError) -> [String: Any] {
         return createErrorFromNSError(nsError: nsError, uuid: nil)
     }
-    
+
     /// Converts an iOS NSError into the unified error structure with UUID for response objects.
     ///
     /// This overload is used when the error may contain PaymentIntent, SetupIntent, or Refund
@@ -251,14 +272,14 @@ class Errors {
     /// - Returns: A dictionary containing the wrapped error structure with response objects at top level
     class func createErrorFromNSError(nsError: NSError, uuid: String?) -> [String: Any] {
         var result: [String: Any] = [ErrorConstants.errorKey: mapToStripeErrorObject(nsError: nsError)]
-        
+
         addResponseObjectsToTopLevel(from: nsError, to: &result, uuid: uuid ?? "")
-        
+
         return result
     }
-    
+
     // MARK: - Error Mapping
-    
+
     /// Maps an NSError to the unified StripeError object structure.
     ///
     /// Extracts error information, API error details, response objects, underlying error,
@@ -269,7 +290,7 @@ class Errors {
     class func mapToStripeErrorObject(nsError: NSError) -> [String: Any] {
         return mapToStripeErrorObject(nsError: nsError, uuid: nil)
     }
-    
+
     /// Maps an NSError to the unified StripeError object structure with optional UUID for response objects.
     ///
     /// Returns only the error object itself (without PI/SI/Refund). Response objects should be added
@@ -281,7 +302,7 @@ class Errors {
     /// - Returns: A dictionary containing the complete StripeError structure (without top-level "error" key or response objects)
     class func mapToStripeErrorObject(nsError: NSError, uuid: String?) -> [String: Any] {
         let errorInfo = extractErrorInformation(from: nsError)
-        
+
         var result = stripeErrorObject(
             name: errorInfo.errorName,
             code: errorInfo.code,
@@ -289,15 +310,15 @@ class Errors {
             message: nsError.localizedDescription,
             metadata: [:]
         )
-        
+
         if errorInfo.isStripeError {
             extractApiErrorToTopLevel(from: nsError, to: &result)
         }
-        
+
         extractUnderlyingErrorToTopLevel(from: nsError, to: &result)
-        
+
         result[ErrorConstants.metadataKey] = addPlatformMetadata(from: nsError)
-        
+
         return result
     }
 
@@ -308,7 +329,7 @@ class Errors {
         let nativeErrorCode: String
         let errorName: String
     }
-    
+
     /// Extracts and classifies error information from an NSError.
     ///
     /// Determines if the error is from Stripe Terminal SDK and maps it to the appropriate
@@ -319,10 +340,10 @@ class Errors {
     private class func extractErrorInformation(from nsError: NSError) -> ErrorInformation {
         let stripeDomain = ErrorConstants.stripeTerminalDomain
         let isStripeError = (nsError.domain == stripeDomain)
-        
+
         let code: String
         let nativeErrorCode: String
-        
+
         if isStripeError {
             let codeEnum = ErrorCode.Code(rawValue: nsError.code)
             if let ce = codeEnum {
@@ -337,7 +358,7 @@ class Errors {
             code = nonStripeErrorMapping.code
             nativeErrorCode = nonStripeErrorMapping.nativeErrorCode
         }
-        
+
         return ErrorInformation(
             isStripeError: isStripeError,
             code: code,
@@ -345,7 +366,7 @@ class Errors {
             errorName: isStripeError ? ErrorConstants.stripeErrorName : ErrorConstants.nonStripeErrorName
         )
     }
-    
+
     /// Maps non-Stripe errors to the unified error structure.
     ///
     /// Handles errors that don't originate from the Stripe Terminal SDK by creating a generic
@@ -359,7 +380,7 @@ class Errors {
             nativeErrorCode: "\(nsError.domain):\(nsError.code)"
         )
     }
-    
+
     /// Extracts API error information from NSError and adds it to the result dictionary.
     ///
     /// Maps iOS NSError data to the unified apiError structure.
@@ -371,15 +392,15 @@ class Errors {
         guard hasApiErrorInformation(nsError) else {
             return
         }
-        
+
         var apiError: [String: Any] = [:]
-        
+
         addRequiredApiErrorFields(from: nsError, to: &apiError)
         addOptionalApiErrorFields(from: nsError, to: &apiError)
-        
+
         result[ErrorConstants.apiErrorKey] = apiError
     }
-    
+
     /// Checks if the NSError contains API-level error information.
     ///
     /// Matches Android's behavior: only add apiError when TerminalException.apiError != null.
@@ -401,16 +422,16 @@ class Errors {
     ///   - apiError: The dictionary to add fields to (modified in place)
     private class func addRequiredApiErrorFields(from nsError: NSError, to apiError: inout [String: Any]) {
         apiError[ErrorConstants.apiErrorCodeKey] = nsError.userInfo[ErrorConstants.stripeAPIErrorCode] as? String ?? ErrorConstants.apiErrorUnknownCode
-        
+
         if let failureReason = nsError.userInfo[ErrorConstants.stripeAPIFailureReason] as? String {
             apiError[ErrorConstants.apiErrorMessageKey] = failureReason
         } else {
             apiError[ErrorConstants.apiErrorMessageKey] = nsError.localizedDescription
         }
-        
+
         apiError[ErrorConstants.apiErrorDeclineCodeKey] = nsError.userInfo[ErrorConstants.stripeAPIDeclineCode] as? String ?? ErrorConstants.apiErrorRequiredFieldEmpty
     }
-    
+
     /// Adds optional ApiError fields from NSError userInfo.
     ///
     /// These fields (type, docUrl, param, charge) are optional in the TypeScript ApiErrorInformation interface
@@ -425,7 +446,43 @@ class Errors {
         apiError[ErrorConstants.apiErrorParamKey] = nsError.userInfo[ErrorConstants.stripeAPIErrorParameter] as? String
         apiError[ErrorConstants.apiErrorChargeKey] = nsError.userInfo[ErrorConstants.stripeAPICharge] as? String
     }
-    
+
+    // MARK: - ApiError Object Mapping
+
+    /// Maps an ApiError object to an NSDictionary.
+    ///
+    /// Used for PaymentIntent.lastPaymentError which returns an ApiError object directly
+    /// (as opposed to NSError.userInfo which is handled by extractApiErrorToTopLevel).
+    ///
+    /// Field handling matches ErrorConstants and TypeScript ApiErrorInformation interface:
+    /// - code: Required field, fallback to "unknown_api_error_code" if nil
+    /// - message: Required field
+    /// - declineCode: Required field, fallback to empty string if nil
+    /// - type, charge, docUrl, param: Optional fields, omitted if nil
+    ///
+    /// - Parameter apiError: The ApiError object, or nil if not available
+    /// - Returns: NSDictionary containing the ApiError structure, or nil if apiError is nil
+    class func mapFromApiError(_ apiError: ApiError?) -> NSDictionary? {
+        guard let apiError = apiError else {
+            return nil
+        }
+
+        var result: [String: Any] = [:]
+
+        result[ErrorConstants.apiErrorCodeKey] = apiError.code ?? ErrorConstants.apiErrorUnknownCode
+        result[ErrorConstants.apiErrorMessageKey] = apiError.message
+        result[ErrorConstants.apiErrorDeclineCodeKey] = apiError.declineCode ?? ErrorConstants.apiErrorRequiredFieldEmpty
+
+        result[ErrorConstants.apiErrorTypeKey] = apiError.type
+        result[ErrorConstants.apiErrorChargeKey] = apiError.charge
+        result[ErrorConstants.apiErrorDocUrlKey] = apiError.docUrl
+        result[ErrorConstants.apiErrorParamKey] = apiError.param
+
+        return NSDictionary(dictionary: result)
+    }
+
+    // MARK: - Response Objects
+
     /// Adds response objects to the top level of the error response (matching Android structure).
     ///
     /// These objects are placed at the top-level alongside the error object.
@@ -447,7 +504,7 @@ class Errors {
             result[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
         }
     }
-    
+
     /// Extracts underlying error information from NSError and adds it to the result dictionary.
     ///
     /// Maps iOS NSError underlying error + localized information to the unified underlyingError structure.
@@ -458,7 +515,7 @@ class Errors {
     ///   - result: The result dictionary to populate (modified in place)
     private class func extractUnderlyingErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
         var underlyingError: [String: Any] = [:]
-        
+
         if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
             underlyingError[ErrorConstants.underlyingErrorCodeKey] = String(underlying.code)
             underlyingError[ErrorConstants.underlyingErrorMessageKey] = underlying.localizedDescription
@@ -468,17 +525,17 @@ class Errors {
             underlyingError[ErrorConstants.underlyingErrorMessageKey] = nsError.localizedDescription
             underlyingError[ErrorConstants.underlyingErrorIosDomainKey] = nsError.domain
         }
-        
+
         if let failure = nsError.localizedFailureReason, !failure.isEmpty {
             underlyingError[ErrorConstants.underlyingErrorIosLocalizedFailureReasonKey] = failure
         }
         if let suggestion = nsError.localizedRecoverySuggestion, !suggestion.isEmpty {
             underlyingError[ErrorConstants.underlyingErrorIosLocalizedRecoverySuggestionKey] = suggestion
         }
-        
+
         result[ErrorConstants.underlyingErrorKey] = underlyingError
     }
-    
+
     /// Adds platform-specific metadata fields extracted from NSError.userInfo.
     ///
     /// **Platform differences:**
@@ -489,7 +546,7 @@ class Errors {
     /// - Returns: A dictionary of platform-specific metadata fields
     private class func addPlatformMetadata(from nsError: NSError) -> [String: Any] {
         var metadata: [String: Any] = [:]
-        
+
         metadata[ErrorConstants.deviceBannedUntilDateKey] = nsError.userInfo[ErrorConstants.deviceBannedUntilDate] as? String
         metadata[ErrorConstants.prepareFailedReasonKey] = nsError.userInfo[ErrorConstants.prepareFailedReason] as? String
         metadata[ErrorConstants.httpStatusCodeKey] = nsError.userInfo[ErrorConstants.httpStatusCode] as? Int
@@ -497,7 +554,7 @@ class Errors {
         metadata[ErrorConstants.stripeAPIRequestIdKey] = nsError.userInfo[ErrorConstants.stripeAPIRequestId] as? String
         metadata[ErrorConstants.stripeAPIFailureReasonKey] = nsError.userInfo[ErrorConstants.stripeAPIFailureReason] as? String
         metadata[ErrorConstants.offlineDeclineReasonKey] = nsError.userInfo[ErrorConstants.offlineDeclineReason] as? String
-        
+
         return metadata
     }
 
@@ -626,7 +683,7 @@ class Errors {
         case .surchargingNotAvailable: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .usbDiscoveryTimedOut: return RNErrorCode.USB_DISCOVERY_TIMED_OUT.rawValue
         case .usbDisconnected: return RNErrorCode.USB_DISCONNECTED.rawValue
-        
+
         case .cancelFailedUnavailable: return RNErrorCode.CANCEL_FAILED.rawValue
         case .nilPaymentIntent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
         case .nilSetupIntent: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
@@ -644,7 +701,7 @@ class Errors {
         case .tapToPayReaderDeviceBanned: return RNErrorCode.UNSUPPORTED_READER_VERSION.rawValue
         case .tapToPayReaderTOSNotYetAccepted: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
         case .tapToPayReaderTOSAcceptanceFailed: return RNErrorCode.READER_SOFTWARE_UPDATE_FAILED.rawValue
-        case .tapToPayReaderMerchantBlocked: return RNErrorCode.DECLINED_BY_STRIPE_API.rawValue
+        case .tapToPayReaderMerchantBlocked: return RNErrorCode.TAP_TO_PAY_READER_MERCHANT_BLOCKED.rawValue
         case .tapToPayReaderInvalidMerchant: return RNErrorCode.INVALID_REQUIRED_PARAMETER.rawValue
         case .tapToPayReaderAccountDeactivated: return RNErrorCode.DECLINED_BY_STRIPE_API.rawValue
         case .printerBusy: return RNErrorCode.PRINTER_BUSY.rawValue
@@ -661,9 +718,12 @@ class Errors {
         case .displaySurchargeConsentApplicationError: return RNErrorCode.COLLECT_INPUTS_APPLICATION_ERROR.rawValue
         case .commandInvalidAllowRedisplay: return RNErrorCode.ALLOW_REDISPLAY_INVALID.rawValue
         case .tapToPayInternalNetworkError: return RNErrorCode.STRIPE_API_CONNECTION_ERROR.rawValue
+        case .tapToPayReaderRequestInterrupted: return RNErrorCode.TAP_TO_PAY_READER_REQUEST_INTERRUPTED.rawValue
+        case .unexpectedOperationError: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
+        case .cardNotSupported: return RNErrorCode.CARD_NOT_SUPPORTED.rawValue
 
-        
-        // NOTE: No default case - this ensures that any new ErrorCode cases 
+
+        // NOTE: No default case - this ensures that any new ErrorCode cases
         // added to the Stripe Terminal SDK will cause a COMPILER ERROR,
         // forcing us to explicitly handle new cases and preventing silent mapping failures.
         }

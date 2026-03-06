@@ -22,9 +22,9 @@ export const StripeTerminalContext = createContext<ContextType>({
   loading: false,
   isInitialized: false,
   getIsInitialized: () => false,
-  log: () => {},
-  setLoading: () => {},
-  setConnectedReader: () => {},
+  log: () => { },
+  setLoading: () => { },
+  setConnectedReader: () => { },
   initialize: undefined,
-  setDiscoveredReaders: () => {},
+  setDiscoveredReaders: () => { },
 });

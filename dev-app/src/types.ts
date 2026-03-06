@@ -16,6 +16,8 @@ export type IAppContext = {
   setLastSuccessfulChargeId: (id: string) => void;
   lastSuccessfulPaymentIntentId: string | null;
   setLastSuccessfulPaymentIntentId: (id: string) => void;
+  lastSuccessfulPaymentClientSecret: string | null;
+  setLastSuccessfulPaymentClientSecret: (id: string) => void;
   lastSuccessfulAmount: string | null;
   setLastSuccessfulAmount: (amount: string) => void;
   autoReconnectOnUnexpectedDisconnect: boolean | false;
@@ -24,6 +26,7 @@ export type IAppContext = {
   setCachedLocations: (locations: Array<Location>) => void;
   refreshToken: boolean;
   setRefreshToken: (b: boolean) => void;
+  isServerlessAoDTest: boolean;
 };
 
 export type IShortAccount = {

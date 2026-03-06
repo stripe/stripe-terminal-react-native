@@ -4,8 +4,22 @@ import { renderHook } from '@testing-library/react-native';
 import { StripeTerminalContext } from '../../components/StripeTerminalContext';
 import * as functions from '../../functions';
 
+// Mock NativeEventEmitter properly
 jest.mock(
-  '../../../node_modules/react-native/Libraries/EventEmitter/NativeEventEmitter'
+  '../../../node_modules/react-native/Libraries/EventEmitter/NativeEventEmitter',
+  () => {
+    class MockNativeEventEmitter {
+      addListener = jest.fn(() => ({
+        remove: jest.fn(),
+      }));
+      removeAllListeners = jest.fn();
+      removeSubscription = jest.fn();
+    }
+    return {
+      __esModule: true,
+      default: MockNativeEventEmitter,
+    };
+  }
 );
 
 function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
@@ -113,14 +127,10 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .mockImplementation(simulateReaderUpdate);
 
   //
-  const collectRefundPaymentMethod = jest.fn(() => returnWith);
+  const processRefund = jest.fn(() => returnWith);
   jest
-    .spyOn(functions, 'collectRefundPaymentMethod')
-    .mockImplementation(collectRefundPaymentMethod);
-
-  //
-  const confirmRefund = jest.fn(() => returnWith);
-  jest.spyOn(functions, 'confirmRefund').mockImplementation(confirmRefund);
+    .spyOn(functions, 'processRefund')
+    .mockImplementation(processRefund);
 
   //
   const cancelCollectPaymentMethod = jest.fn(() => returnWith);
@@ -129,10 +139,10 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     .mockImplementation(cancelCollectPaymentMethod);
 
   //
-  const cancelCollectRefundPaymentMethod = jest.fn(() => returnWith);
+  const cancelProcessRefund = jest.fn(() => returnWith);
   jest
-    .spyOn(functions, 'cancelCollectRefundPaymentMethod')
-    .mockImplementation(cancelCollectRefundPaymentMethod);
+    .spyOn(functions, 'cancelProcessRefund')
+    .mockImplementation(cancelProcessRefund);
 
   //
   const cancelCollectSetupIntent = jest.fn(() => returnWith);
@@ -172,39 +182,41 @@ function spyAllFunctions({ returnWith = null }: { returnWith?: any } = {}) {
     cancelSetupIntent,
     confirmSetupIntent,
     simulateReaderUpdate,
-    collectRefundPaymentMethod,
-    confirmRefund,
+    processRefund,
     cancelCollectPaymentMethod,
-    cancelCollectRefundPaymentMethod,
+    cancelProcessRefund,
     cancelCollectSetupIntent,
     setSimulatedCard,
     print,
   };
 }
 
-const createContextWrapper =
-  (providerProps: any): React.FC<{ children: React.ReactNode }> =>
-  ({ children }) =>
-    (
-      <StripeTerminalContext.Provider
-        value={{
-          isInitialized: false,
-          getIsInitialized: () => false,
-          loading: false,
-          discoveredReaders: [],
-          setConnectedReader: jest.fn(),
-          log: jest.fn(),
-          setDiscoveredReaders: jest.fn(),
-          setLoading: jest.fn(),
-          connectedReader: null,
-          emitter: undefined,
-          initialize: jest.fn(),
-          ...providerProps,
-        }}
-      >
+function createContextWrapper(providerProps: any) {
+  // Create stable mock functions outside of the component
+  const contextValue = {
+    isInitialized: false,
+    getIsInitialized: () => false,
+    loading: false,
+    discoveredReaders: [],
+    setConnectedReader: jest.fn(),
+    log: jest.fn(),
+    setDiscoveredReaders: jest.fn(),
+    setLoading: jest.fn(),
+    connectedReader: null,
+    emitter: undefined,
+    initialize: jest.fn(),
+    ...providerProps,
+  };
+
+  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    return (
+      <StripeTerminalContext.Provider value={contextValue}>
         {children}
       </StripeTerminalContext.Provider>
     );
+  };
+  return Wrapper;
+}
 
 describe('useStripeTerminal.test.tsx', () => {
   describe('Public API snapshot', () => {
@@ -333,17 +345,17 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.discoverReaders({} as any);
         result.current.cancelCollectPaymentMethod();
         result.current.cancelDiscovering();
-        result.current.cancelCollectRefundPaymentMethod();
+        result.current.cancelProcessRefund();
         result.current.cancelInstallingUpdate();
         result.current.cancelPaymentIntent({} as any);
         result.current.cancelSetupIntent({} as any);
         result.current.clearCachedCredentials();
         result.current.clearReaderDisplay();
         result.current.collectPaymentMethod({} as any);
-        result.current.collectRefundPaymentMethod({} as any);
+        result.current.processRefund({} as any);
         result.current.collectSetupIntentPaymentMethod({} as any);
         result.current.confirmSetupIntent({} as any);
-        result.current.connectReader({} as any, {} as any);
+        result.current.connectReader({} as any);
         result.current.createPaymentIntent({} as any);
         result.current.createSetupIntent({} as any);
         result.current.disconnectReader();
@@ -357,7 +369,6 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.installAvailableUpdate();
         result.current.setReaderDisplay({} as any);
         result.current.print({} as any);
-        result.current.confirmRefund();
         result.current.cancelCollectSetupIntent();
       } catch (error) {
         console.error(error);
@@ -381,20 +392,20 @@ describe('useStripeTerminal.test.tsx', () => {
       });
 
       try {
-        await result.current.connectReader({} as any, {} as any);
+        await result.current.connectReader({} as any);
         await result.current.discoverReaders({} as any);
         await result.current.cancelCollectPaymentMethod();
         await result.current.cancelDiscovering();
-        await result.current.cancelCollectRefundPaymentMethod();
+        await result.current.cancelProcessRefund();
         await result.current.cancelInstallingUpdate();
         await result.current.cancelPaymentIntent({} as any);
         await result.current.cancelSetupIntent({} as any);
         await result.current.clearReaderDisplay();
         await result.current.collectPaymentMethod({} as any);
-        await result.current.collectRefundPaymentMethod({} as any);
+        await result.current.processRefund({} as any);
         await result.current.collectSetupIntentPaymentMethod({} as any);
         await result.current.confirmSetupIntent({} as any);
-        await result.current.connectReader({} as any, {} as any);
+        await result.current.connectReader({} as any);
         await result.current.createPaymentIntent({} as any);
         await result.current.createSetupIntent({} as any);
         await result.current.disconnectReader();
@@ -408,7 +419,6 @@ describe('useStripeTerminal.test.tsx', () => {
         await result.current.installAvailableUpdate();
         await result.current.setReaderDisplay({} as any);
         await result.current.print({} as any);
-        await result.current.confirmRefund();
         await result.current.cancelCollectSetupIntent();
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
@@ -440,7 +450,7 @@ describe('useStripeTerminal.test.tsx', () => {
       });
 
       await expect(
-        result.current.connectReader({} as any, {} as any)
+        result.current.connectReader({} as any)
       ).resolves.toEqual('_value');
       await expect(result.current.discoverReaders({} as any)).resolves.toEqual(
         '_value'
@@ -452,7 +462,7 @@ describe('useStripeTerminal.test.tsx', () => {
         '_value'
       );
       await expect(
-        result.current.cancelCollectRefundPaymentMethod()
+        result.current.cancelProcessRefund()
       ).resolves.toEqual('_value');
       await expect(result.current.cancelInstallingUpdate()).resolves.toEqual(
         '_value'
@@ -470,7 +480,7 @@ describe('useStripeTerminal.test.tsx', () => {
         result.current.collectPaymentMethod({} as any)
       ).resolves.toEqual('_value');
       await expect(
-        result.current.collectRefundPaymentMethod({} as any)
+        result.current.processRefund({} as any)
       ).resolves.toEqual('_value');
       await expect(
         result.current.collectSetupIntentPaymentMethod({} as any)
@@ -513,10 +523,10 @@ describe('useStripeTerminal.test.tsx', () => {
         '_value'
       );
       await expect(result.current.print({} as any)).resolves.toEqual('_value');
-      await expect(result.current.confirmRefund()).resolves.toEqual('_value');
       await expect(result.current.cancelCollectSetupIntent()).resolves.toEqual(
         '_value'
       );
     });
   });
+
 });

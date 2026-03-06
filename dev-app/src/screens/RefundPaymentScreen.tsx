@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
+import { useStripeTerminal, type CustomerCancellation } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { DevAppError } from '../errors/DevAppError';
 import List from '../components/List';
@@ -27,29 +27,35 @@ import { formatAmountForDisplay } from '../util/currencyUtils';
 import { Picker } from '@react-native-picker/picker';
 import type { NavigationProp } from '@react-navigation/native';
 
+const CUSTOMER_CANCELLATION = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'enableIfAvailable', label: 'enableIfAvailable' },
+  { value: 'disableIfAvailable', label: 'disableIfAvailable' },
+];
+
 export default function RefundPaymentScreen() {
   const {
     lastSuccessfulAmount,
     lastSuccessfulChargeId,
     lastSuccessfulPaymentIntentId,
+    lastSuccessfulPaymentClientSecret,
   } = useContext(AppContext);
   const [inputValues, setInputValues] = useState<{
     chargeId: string;
     paymentIntentId: string;
     amount: string;
+    clientSecret?: string;
     currency: string;
     refundApplicationFee?: boolean;
     reverseTransfer?: boolean;
-    enableCustomerCancellation?: boolean;
+    customerCancellation?: CustomerCancellation;
     addMetadata: boolean;
   }>({
     chargeId: lastSuccessfulChargeId || '',
     paymentIntentId: lastSuccessfulPaymentIntentId || '',
     amount: lastSuccessfulAmount || '',
+    clientSecret: lastSuccessfulPaymentClientSecret || '',
     currency: 'CAD',
-    refundApplicationFee: false,
-    reverseTransfer: false,
-    enableCustomerCancellation: false,
     addMetadata: false,
   });
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
@@ -61,10 +67,8 @@ export default function RefundPaymentScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
 
   const {
-    collectRefundPaymentMethod,
-    cancelCollectRefundPaymentMethod,
-    confirmRefund,
-    cancelConfirmRefund,
+    processRefund,
+    cancelProcessRefund,
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
@@ -74,7 +78,7 @@ export default function RefundPaymentScreen() {
           {
             name: input.join(' / '),
             description: 'terminal.didRequestReaderInput',
-            onBack: cancelCollectRefundPaymentMethod,
+            onBack: cancelProcessRefund,
           },
         ],
       });
@@ -93,7 +97,7 @@ export default function RefundPaymentScreen() {
     },
   });
 
-  const _collectRefundPaymentMethod = async () => {
+  const _processRefund = async () => {
     clearLogs();
 
     if (simulated) {
@@ -102,70 +106,30 @@ export default function RefundPaymentScreen() {
 
     navigation.navigate('LogListScreen', {});
     addLogs({
-      name: 'Collect Refund Payment Method',
+      name: 'Process Refund',
       events: [
         {
-          name: 'Collect',
-          description: 'terminal.collectRefundPaymentMethod',
+          name: 'Processing',
+          onBack: cancelProcessRefund,
+          description: 'terminal.processRefund',
           metadata: _refundMetadata,
-          onBack: cancelCollectRefundPaymentMethod,
         },
       ],
     });
-    const { error } = await collectRefundPaymentMethod({
+    const { error, refund } = await processRefund({
       ...inputValues,
       amount: parseInt(inputValues.amount || '0', 10),
       chargeId: selectedRefundIdType === 'chargeId' ? inputValues.chargeId : '',
+      clientSecret: inputValues.clientSecret, //TODO how to get it
       paymentIntentId:
         selectedRefundIdType === 'chargeId' ? '' : inputValues.paymentIntentId,
       metadata: inputValues.addMetadata
         ? {
-            meta_key1: 'meta_value1',
-            meta_key2: 'meta_value2',
-          }
+          meta_key1: 'meta_value1',
+          meta_key2: 'meta_value2',
+        }
         : undefined,
     });
-
-    if (error) {
-      const devError = DevAppError.fromStripeError(error);
-      addLogs({
-        name: 'Collect Refund Payment Method',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.collectRefundPaymentMethod',
-            metadata: devError.toJSON(),
-          },
-        ],
-      });
-    } else {
-      addLogs({
-        name: 'Collect Refund Payment Method',
-        events: [
-          {
-            name: 'Collected',
-            description: 'terminal.collectRefundPaymentMethod',
-            metadata: _refundMetadata,
-          },
-        ],
-      });
-      _confirmRefund();
-    }
-  };
-
-  const _confirmRefund = async () => {
-    addLogs({
-      name: 'Confirm Refund',
-      events: [
-        {
-          name: 'Processing',
-          onBack: cancelConfirmRefund,
-          description: 'terminal.confirmRefund',
-          metadata: _refundMetadata,
-        },
-      ],
-    });
-    const { error, refund } = await confirmRefund();
     if (error) {
       const devError = DevAppError.fromStripeError(error);
       addLogs({
@@ -184,7 +148,7 @@ export default function RefundPaymentScreen() {
         events: [
           {
             name: 'Succeeded',
-            description: 'terminal.confirmRefund',
+            description: 'terminal.processRefund',
             metadata: { ..._refundMetadata, raw: JSON.stringify(refund) },
           },
         ],
@@ -195,7 +159,7 @@ export default function RefundPaymentScreen() {
         events: [
           {
             name: 'Pending or unsuccessful',
-            description: 'terminal.confirmRefund',
+            description: 'terminal.processRefund',
             metadata: { ..._refundMetadata, raw: JSON.stringify(refund) },
           },
         ],
@@ -283,6 +247,17 @@ export default function RefundPaymentScreen() {
           }
         />
       </List>
+      {(selectedRefundIdType === 'paymentIntentId') ?
+        <List bolded={false} topSpacing={false} title="CLIENT SECRET">
+          <TextInput
+            style={styles.input}
+            value={inputValues.clientSecret}
+            onChangeText={(value: string) =>
+              setInputValues((state) => ({ ...state, clientSecret: value }))
+            }
+          />
+        </List>
+        : <></>}
       <List bolded={false} topSpacing={false} title="AMOUNT">
         <TextInput
           style={styles.input}
@@ -345,21 +320,29 @@ export default function RefundPaymentScreen() {
 
       {discoveryMethod === 'internet' && (
         <List bolded={false} topSpacing={false} title="TRANSACTION FEATURES">
-          <ListItem
-            title="Customer cancellation"
-            rightElement={
-              <Switch
-                testID="enable-cancellation"
-                value={inputValues.enableCustomerCancellation}
-                onValueChange={(value) =>
-                  setInputValues((state) => ({
-                    ...state,
-                    enableCustomerCancellation: value,
-                  }))
-                }
-              />
-            }
-          />
+          <List bolded={false} topSpacing={false} title="Customer Cancellation">
+            <Picker
+              selectedValue={inputValues.customerCancellation}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+              testID="select-cancellation"
+              onValueChange={(value) =>
+                setInputValues((state) => ({
+                  ...state,
+                  customerCancellation: value,
+                }))
+              }
+            >
+              {CUSTOMER_CANCELLATION.map((a) => (
+                <Picker.Item
+                  key={a.value}
+                  label={a.label}
+                  testID={a.value}
+                  value={a.value}
+                />
+              ))}
+            </Picker>
+          </List>
         </List>
       )}
 
@@ -383,16 +366,14 @@ export default function RefundPaymentScreen() {
       <List
         bolded={false}
         topSpacing={false}
-        title={`${formatAmountForDisplay(
-          inputValues.amount,
-          inputValues.currency
-        )} ${inputValues.currency.toUpperCase()}`}
+        title={`${formatAmountForDisplay(inputValues.amount, inputValues.currency)} ${inputValues.currency.toUpperCase()
+          }`}
       >
         <ListItem
           color={colors.blue}
           testID="collect-refund-button"
           title="Collect refund"
-          onPress={_collectRefundPaymentMethod}
+          onPress={_processRefund}
         />
 
         <Text style={styles.info}>

@@ -27,7 +27,7 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(1), "never")
     }
 
-    func testMapToSetupIntent() {
+    func testMapToSetupIntent() throws {
         let params: NSDictionary = [
             "customer" : "fakeCustomer",
             "description" : "fakeDescription",
@@ -35,14 +35,14 @@ final class MappersTests: XCTestCase {
             "paymentMethodTypes" : ["card", "cardPresent"],
             "usage" : "onSession"
         ]
-        let setupIntent = try? Mappers.mapToSetupIntent(params).build()
+        let setupIntent = try Mappers.mapToSetupIntent(params).build()
 
-        XCTAssertEqual(setupIntent?.customer, "fakeCustomer")
-        XCTAssertEqual(setupIntent?.stripeDescription, "fakeDescription")
-        XCTAssertEqual(setupIntent?.onBehalfOf, "fakeOnBehalfOf")
-        XCTAssertEqual(setupIntent?.customer, "fakeCustomer")
-        XCTAssertEqual(setupIntent?.paymentMethodTypes, [PaymentMethodType.card, PaymentMethodType.cardPresent])
-        XCTAssertEqual(setupIntent?.usage, SetupIntentUsage.onSession)
+        XCTAssertEqual(setupIntent.customer, "fakeCustomer")
+        XCTAssertEqual(setupIntent.stripeDescription, "fakeDescription")
+        XCTAssertEqual(setupIntent.onBehalfOf, "fakeOnBehalfOf")
+        XCTAssertEqual(setupIntent.customer, "fakeCustomer")
+        XCTAssertEqual(setupIntent.paymentMethodTypes, [PaymentMethodType.card, PaymentMethodType.cardPresent])
+        XCTAssertEqual(setupIntent.usage, SetupIntentUsage.onSession)
     }
 
     func testMapToSetupIntentUsage() {
@@ -275,6 +275,345 @@ final class MappersTests: XCTestCase {
         // Test empty string
         let emptyString = ""
         XCTAssertNil(Mappers.mapToUIImage(emptyString), "Should return nil for empty string")
+    }
+
+    func testMapToCustomerCancellation() {
+        let enable = Mappers.mapToCustomerCancellation("enableIfAvailable")
+        XCTAssertEqual(enable, .enableIfAvailable)
+        let disable = Mappers.mapToCustomerCancellation("disableIfAvailable")
+        XCTAssertEqual(disable, .disableIfAvailable)
+    }
+
+    func testMapToMotoConfiguration() {
+        let nilConfiguration = Mappers.mapToMotoConfiguration(nil)
+        XCTAssertEqual(nilConfiguration, nil)
+        let emptyConfiguration = Mappers.mapToMotoConfiguration([:])
+        XCTAssertEqual(emptyConfiguration?.skipCvc, false)
+        let skipCvcConfiguration = Mappers.mapToMotoConfiguration(["skipCvc": true])
+        XCTAssertEqual(skipCvcConfiguration?.skipCvc, true)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithAllParameters() throws {
+        // GIVEN params with all configuration parameters
+        let params: NSDictionary = [
+            "skipTipping": true,
+            "tipEligibleAmount": 1000,
+            "updatePaymentIntent": true,
+            "customerCancellation": "enableIfAvailable",
+            "requestDynamicCurrencyConversion": true,
+            "surchargeNotice": "Test surcharge notice",
+            "allowRedisplay": "always",
+            "motoConfiguration": [
+                "skipCvc": true
+            ]
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with all parameters
+        XCTAssertEqual(config.skipTipping, true)
+        XCTAssertEqual(config.updatePaymentIntent, true)
+        XCTAssertEqual(config.requestDynamicCurrencyConversion, true)
+        XCTAssertEqual(config.customerCancellation, .enableIfAvailable)
+        XCTAssertEqual(config.allowRedisplay, .always)
+        XCTAssertEqual(config.surchargeNotice, "Test surcharge notice")
+        XCTAssertEqual(config.tippingConfiguration?.eligibleAmount, 1000)
+        XCTAssertEqual(config.motoConfiguration?.skipCvc, true)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithSkipTipping() throws {
+        // GIVEN params with skipTipping only
+        let params: NSDictionary = [
+            "skipTipping": true
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with skipTipping enabled
+        XCTAssertEqual(config.skipTipping, true)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithTipEligibleAmount() throws {
+        // GIVEN params with tipEligibleAmount only
+        let params: NSDictionary = [
+            "tipEligibleAmount": 1000
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with tipping configuration
+        XCTAssertEqual(config.tippingConfiguration?.eligibleAmount, 1000)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithCustomerCancellation() throws {
+        // GIVEN params with customerCancellation only
+        let params: NSDictionary = [
+            "customerCancellation": "enableIfAvailable"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with customerCancellation
+        XCTAssertEqual(config.customerCancellation, .enableIfAvailable)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithAllowRedisplay() throws {
+        // GIVEN params with allowRedisplay set to limited
+        let params: NSDictionary = [
+            "allowRedisplay": "limited"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with allowRedisplay
+        XCTAssertEqual(config.allowRedisplay, .limited)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithMotoConfiguration() throws {
+        // GIVEN params with motoConfiguration only
+        let params: NSDictionary = [
+            "motoConfiguration": [
+                "skipCvc": false
+            ]
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with motoConfiguration
+        XCTAssertEqual(config.motoConfiguration?.skipCvc, false)
+    }
+
+    func testBuildCollectPaymentIntentConfigurationWithEmptyParams() throws {
+        // GIVEN empty params
+        let params: NSDictionary = [:]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with defaults
+        XCTAssertEqual(config.skipTipping, false)
+        XCTAssertEqual(config.updatePaymentIntent, false)
+        XCTAssertEqual(config.requestDynamicCurrencyConversion, false)
+        XCTAssertNil(config.tippingConfiguration)
+        XCTAssertNil(config.motoConfiguration)
+    }
+
+    func testBuildConfirmPaymentIntentConfigurationWithSurchargeAndReturnUrl() throws {
+        // GIVEN params with surcharge configuration and returnUrl
+        let params: NSDictionary = [
+            "surcharge": [
+                "amount": 100,
+                "consent": [
+                    "collection": "enabled",
+                    "notice": "Test surcharge notice"
+                ]
+            ] as [String: Any],
+            "returnUrl": "https://example.com/return"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildConfirmPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with returnUrl
+        XCTAssertEqual(config.returnUrl, "https://example.com/return")
+    }
+
+    func testBuildConfirmPaymentIntentConfigurationWithOnlyReturnUrl() throws {
+        // GIVEN params with only returnUrl
+        let params: NSDictionary = [
+            "returnUrl": "https://example.com/return"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildConfirmPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with returnUrl
+        XCTAssertEqual(config.returnUrl, "https://example.com/return")
+    }
+
+    func testBuildConfirmPaymentIntentConfigurationWithEmptyParams() throws {
+        // GIVEN empty params
+        let params: NSDictionary = [:]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildConfirmPaymentIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with defaults
+        XCTAssertNil(config.returnUrl)
+    }
+
+    // MARK: - Discovery Configuration Tests
+    
+    func testMapToDiscoveryConfigurationForBluetoothScan() throws {
+        let config = try Mappers.mapToDiscoveryConfiguration(
+            "bluetoothScan",
+            simulated: true,
+            locationId: nil,
+            discoveryFilter: nil,
+            timeout: 30
+        )
+        
+        XCTAssertTrue(config is BluetoothScanDiscoveryConfiguration)
+        let bluetoothConfig = config as! BluetoothScanDiscoveryConfiguration
+        XCTAssertEqual(bluetoothConfig.timeout, 30)
+        XCTAssertEqual(bluetoothConfig.simulated, true)
+    }
+    
+    func testMapToDiscoveryConfigurationForBluetoothProximity() throws {
+        let config = try Mappers.mapToDiscoveryConfiguration(
+            "bluetoothProximity",
+            simulated: false,
+            locationId: nil,
+            discoveryFilter: nil,
+            timeout: 0
+        )
+        
+        XCTAssertTrue(config is BluetoothProximityDiscoveryConfiguration)
+        let bluetoothConfig = config as! BluetoothProximityDiscoveryConfiguration
+        XCTAssertEqual(bluetoothConfig.simulated, false)
+    }
+    
+    func testMapToDiscoveryConfigurationForInternetWithAllParams() throws {
+        let filter = DiscoveryFilter.byReaderId("tmr_123")
+        
+        let config = try Mappers.mapToDiscoveryConfiguration(
+            "internet",
+            simulated: false,
+            locationId: "1234",
+            discoveryFilter: filter,
+            timeout: 60
+        )
+        
+        XCTAssertTrue(config is InternetDiscoveryConfiguration)
+        let internetConfig = config as! InternetDiscoveryConfiguration
+        XCTAssertEqual(internetConfig.timeout, 60)
+        XCTAssertEqual(internetConfig.simulated, false)
+        XCTAssertEqual(internetConfig.locationId, "1234")
+    }
+    
+    func testMapToDiscoveryConfigurationForUsb() throws {
+        let config = try Mappers.mapToDiscoveryConfiguration(
+            "usb",
+            simulated: true,
+            locationId: nil,
+            discoveryFilter: nil,
+            timeout: 15
+        )
+        
+        XCTAssertTrue(config is UsbDiscoveryConfiguration)
+        let usbConfig = config as! UsbDiscoveryConfiguration
+        XCTAssertEqual(usbConfig.timeout, 15)
+        XCTAssertEqual(usbConfig.simulated, true)
+    }
+    
+    func testMapToDiscoveryConfigurationForTapToPay() throws {
+        let config = try Mappers.mapToDiscoveryConfiguration(
+            "tapToPay",
+            simulated: false,
+            locationId: nil,
+            discoveryFilter: nil,
+            timeout: 0
+        )
+        
+        XCTAssertTrue(config is TapToPayDiscoveryConfiguration)
+        let tapToPayConfig = config as! TapToPayDiscoveryConfiguration
+        XCTAssertEqual(tapToPayConfig.simulated, false)
+    }
+
+    //TODO: defer when iOS support
+    // func testMapToDiscoveryFilter() {
+    //   let emptyFilter: [String: String] = [:]
+    //   let filterReader: [String: String] = ["readerId": "1234"]
+    //   let filterSerial: [String: String] = ["serialNumber": "5678"]
+    //   XCTAssertEqual(Mappers.mapToDiscoveryFilter(nil), nil)
+    //   XCTAssertEqual(Mappers.mapToDiscoveryFilter(emptyFilter), DiscoveryFilter.none())
+    //   XCTAssertEqual(Mappers.mapToDiscoveryFilter(filterReader), DiscoveryFilter.byReaderId("1234"))
+    //   XCTAssertEqual(Mappers.mapToDiscoveryFilter(filterSerial), DiscoveryFilter.bySerialNumber("5678"))
+    // }
+
+    func testBuildCollectSetupIntentConfigurationWithAllParameters() throws {
+        // GIVEN params with all configuration parameters
+        let params: NSDictionary = [
+            "customerCancellation": "enableIfAvailable",
+            "motoConfiguration": [
+                "skipCvc": true
+            ],
+            "collectionReason": "saveCard"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectSetupIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with all parameters
+        XCTAssertEqual(config.customerCancellation, .enableIfAvailable)
+        XCTAssertEqual(config.motoConfiguration?.skipCvc, true)
+        XCTAssertEqual(config.collectionReason, .saveCard)
+    }
+
+    func testBuildCollectSetupIntentConfigurationWithCustomerCancellation() throws {
+        // GIVEN params with customerCancellation only
+        let params: NSDictionary = [
+            "customerCancellation": "disableIfAvailable"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectSetupIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with customerCancellation
+        XCTAssertEqual(config.customerCancellation, .disableIfAvailable)
+    }
+
+    func testBuildCollectSetupIntentConfigurationWithMotoConfiguration() throws {
+        // GIVEN params with motoConfiguration only
+        let params: NSDictionary = [
+            "motoConfiguration": [
+                "skipCvc": false
+            ]
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectSetupIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with motoConfiguration
+        XCTAssertEqual(config.motoConfiguration?.skipCvc, false)
+    }
+
+    func testBuildCollectSetupIntentConfigurationWithCollectionReason() throws {
+        // GIVEN params with collectionReason only
+        let params: NSDictionary = [
+            "collectionReason": "verify"
+        ]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectSetupIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with collectionReason
+        XCTAssertEqual(config.collectionReason, .verify)
+    }
+
+    func testBuildCollectSetupIntentConfigurationWithEmptyParams() throws {
+        // GIVEN empty params
+        let params: NSDictionary = [:]
+
+        // WHEN building the configuration
+        let config = try Mappers.buildCollectSetupIntentConfiguration(from: params)
+
+        // THEN configuration should be built successfully with defaults
+        XCTAssertNil(config.motoConfiguration)
+        // Note: collectionReason may have a default value set by the SDK
+    }
+
+    func testMapToSetupIntentCollectionReason() {
+        XCTAssertEqual(Mappers.mapToSetupIntentCollectionReason("saveCard"), .saveCard)
+        XCTAssertEqual(Mappers.mapToSetupIntentCollectionReason("verify"), .verify)
+        XCTAssertNil(Mappers.mapToSetupIntentCollectionReason("invalid"))
+        XCTAssertNil(Mappers.mapToSetupIntentCollectionReason(nil))
     }
 }
 

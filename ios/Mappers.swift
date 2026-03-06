@@ -24,6 +24,7 @@ class Mappers {
             "id": reader.stripeId ?? NSNull(),
             "availableUpdate": mapFromReaderSoftwareUpdate(reader.availableUpdate) ?? NSNull(),
             "locationId": reader.locationId ?? NSNull(),
+            "livemode": reader.livemode,
             "ipAddress": reader.ipAddress ?? NSNull(),
             "status": mapFromReaderNetworkStatus(reader.status),
             "location": mapFromLocation(reader.location) ?? NSNull(),
@@ -63,36 +64,58 @@ class Mappers {
 
     class func mapFromDeviceType(_ type: DeviceType) -> String {
         switch type {
-        case DeviceType.tapToPay: return "tapToPay"
-        case DeviceType.chipper1X: return "chipper1X"
-        case DeviceType.chipper2X: return "chipper2X"
-        case DeviceType.etna: return "etna"
-        case DeviceType.stripeM2: return "stripeM2"
-        case DeviceType.stripeS700: return "stripeS700"
-        case DeviceType.stripeS700DevKit: return "stripeS700Devkit"
-        case DeviceType.verifoneP400: return "verifoneP400"
-        case DeviceType.wiseCube: return "wiseCube"
-        case DeviceType.wisePad3: return "wisePad3"
-        case DeviceType.wisePosE: return "wisePosE"
-        case DeviceType.wisePosEDevKit: return "wisePosEDevkit"
+        case .tapToPay: return "tapToPay"
+        case .chipper1X: return "chipper1X"
+        case .chipper2X: return "chipper2X"
+        case .etna: return "etna"
+        case .stripeM2: return "stripeM2"
+        case .stripeS700: return "stripeS700"
+        case .stripeS700DevKit: return "stripeS700Devkit"
+        case .stripeS710: return "stripeS710"
+        case .stripeS710DevKit: return "stripeS710Devkit"
+        case .stripeT600: return "stripeT600"
+        case .stripeT600DevKit: return "stripeT600DevKit"
+        case .wiseCube: return "wiseCube"
+        case .wisePad3: return "wisePad3"
+        case .wisePosE: return "wisePosE"
+        case .wisePosEDevKit: return "wisePosEDevkit"
+        case .verifoneV660p: return "verifoneV660p"
+        case .verifoneV660pDevKit: return "verifoneV660pDevkit"
+        case .verifoneM425: return "verifoneM425"
+        case .verifoneM450: return "verifoneM450"
+        case .verifoneP630: return "verifoneP630"
+        case .verifoneUX700: return "verifoneUX700"
+        case .verifoneUX700DevKit: return "verifoneUX700Devkit"
+        case .verifoneVM100: return "verifoneVM100"
+        case .verifoneVP100: return "verifoneVP100"
         @unknown default: return "unknown"
         }
     }
 
     class func mapToDeviceType(_ type: String) -> DeviceType? {
         switch type {
-        case "tapToPay": return DeviceType.tapToPay
-        case "chipper1X": return DeviceType.chipper1X
-        case "chipper2X": return DeviceType.chipper2X
-        case "etna": return DeviceType.etna
-        case "stripeM2": return DeviceType.stripeM2
-        case "stripeS700": return DeviceType.stripeS700
-        case "stripeS700Devkit": return DeviceType.stripeS700DevKit
-        case "verifoneP400": return DeviceType.verifoneP400
-        case "wiseCube": return DeviceType.wiseCube
-        case "wisePad3": return DeviceType.wisePad3
-        case "wisePosE": return DeviceType.wisePosE
-        case "wisePosEDevkit": return DeviceType.wisePosEDevKit
+        case "tapToPay": return .tapToPay
+        case "chipper1X": return .chipper1X
+        case "chipper2X": return .chipper2X
+        case "etna": return .etna
+        case "stripeM2": return .stripeM2
+        case "stripeS700": return .stripeS700
+        case "stripeS700Devkit": return .stripeS700DevKit
+        case "stripeS710": return .stripeS710
+        case "stripeS710Devkit": return .stripeS710DevKit
+        case "wiseCube": return .wiseCube
+        case "wisePad3": return .wisePad3
+        case "wisePosE": return .wisePosE
+        case "wisePosEDevkit": return .wisePosEDevKit
+        case "verifoneV660p": return .verifoneV660p
+        case "verifoneV660pDevkit": return .verifoneV660pDevKit
+        case "verifoneM425": return .verifoneM425
+        case "verifoneM450": return .verifoneM450
+        case "verifoneP630": return .verifoneP630
+        case "verifoneUX700": return .verifoneUX700
+        case "verifoneUX700Devkit": return .verifoneUX700DevKit
+        case "verifoneVM100": return .verifoneVM100
+        case "verifoneVP100": return .verifoneVP100
         default: return nil
         }
     }
@@ -142,14 +165,40 @@ class Mappers {
         return DiscoveryMethod.internet
     }
 
-    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool, locationId: String?, timeout: UInt) throws-> DiscoveryConfiguration {
+    class func mapToDiscoveryFilter(_ params: NSDictionary?) -> DiscoveryFilter? {
+        guard let params = params else {
+            return nil
+        }
+
+        // Check for readerId
+        if let readerId = params["readerId"] as? String, !readerId.isEmpty {
+            return DiscoveryFilter.byReaderId(readerId)
+        }
+
+        // Check for serialNumber
+        if let serialNumber = params["serialNumber"] as? String, !serialNumber.isEmpty {
+            return DiscoveryFilter.bySerialNumber(serialNumber)
+        }
+
+        // If params exist but no valid filter found, return none filter
+        return DiscoveryFilter.none()
+    }
+
+    class func mapToDiscoveryConfiguration(_ discoveryMethod: String?, simulated: Bool, locationId: String?, discoveryFilter: DiscoveryFilter?, timeout: UInt) throws-> DiscoveryConfiguration {
         switch discoveryMethod {
         case "bluetoothScan":
             return try BluetoothScanDiscoveryConfigurationBuilder().setSimulated(simulated).setTimeout(timeout).build()
         case "bluetoothProximity":
             return try BluetoothProximityDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "internet":
-            return try InternetDiscoveryConfigurationBuilder().setSimulated(simulated).setLocationId(locationId).build()
+            let internetDiscoveryConfiguration = InternetDiscoveryConfigurationBuilder()
+                .setSimulated(simulated)
+                .setLocationId(locationId)
+                .setTimeout(timeout)
+            if let discoveryFilter {
+                internetDiscoveryConfiguration.setDiscoveryFilter(discoveryFilter)
+            }
+            return try internetDiscoveryConfiguration.build()
         case "tapToPay":
             return try TapToPayDiscoveryConfigurationBuilder().setSimulated(simulated).build()
         case "usb":
@@ -168,6 +217,41 @@ class Mappers {
         }
     }
 
+    class func mapFromNextAction(_ nextAction: NextAction?) -> NSDictionary {
+        guard let nextAction = nextAction else { return [:] }
+        return [
+            "type": nextAction.type ?? NSNull(),
+            "wechatPayDisplayQrCode": mapFromWechatPayDisplayQrCode(nextAction.wechatPayDisplayQrCode),
+            "redirectToUrl": mapFromRedirectToUrl(nextAction.redirectToUrl),
+            "useStripeSdk": mapFromUseStripeSdk(nextAction.useStripeSdk),
+        ]
+    }
+
+    class func mapFromUseStripeSdk(_ useStripeSdk: UseStripeSdk?) -> NSDictionary {
+        guard let useStripeSdk = useStripeSdk else { return [:] }
+        return [
+            "type": useStripeSdk.type ?? NSNull(),
+        ]
+    }
+
+    class func mapFromWechatPayDisplayQrCode(_ wechatPayDisplayQrCode: WechatPayDisplayQrCode?) -> NSDictionary {
+        guard let wechatPayDisplayQrCode = wechatPayDisplayQrCode else { return [:] }
+        return [
+            "data": wechatPayDisplayQrCode.data ?? NSNull(),
+            "hostedInstructionsUrl": wechatPayDisplayQrCode.hostedInstructionsUrl ?? NSNull(),
+            "imageDataUrl": wechatPayDisplayQrCode.imageDataUrl ?? NSNull(),
+            "imageUrlPng": wechatPayDisplayQrCode.imageUrlPng ?? NSNull(),
+            "imageUrlSvg": wechatPayDisplayQrCode.imageUrlSvg ?? NSNull(),
+        ]
+    }
+
+    class func mapFromRedirectToUrl(_ redirectToUrl: RedirectToUrl?) -> NSDictionary {
+        guard let redirectToUrl = redirectToUrl else { return [:] }
+        return [
+            "url": redirectToUrl.url ?? NSNull(),
+            "returnUrl": redirectToUrl.returnUrl ?? NSNull(),
+        ]
+    }
     class func mapFromPaymentIntent(_ paymentIntent: PaymentIntent, uuid: String) -> NSDictionary {
         var offlineDetailsMap: NSDictionary?
         if let offlineDetails = paymentIntent.offlineDetails {
@@ -181,24 +265,47 @@ class Mappers {
         if let paymentMethod = paymentIntent.paymentMethod {
             paymentMethodMap = mapFromPaymentMethod(paymentMethod)
         }
+        var lastPaymentErrorMap: NSDictionary?
+        if let lastPaymentError = paymentIntent.lastPaymentError {
+            lastPaymentErrorMap = Errors.mapFromApiError(lastPaymentError)
+        }
         let result: NSDictionary = [
             "id": paymentIntent.stripeId ?? NSNull(),
             "amount": paymentIntent.amount,
+            "amountCapturable": paymentIntent.amountCapturable ?? NSNull(),
+            "amountDetails": mapFromAmountDetails(paymentIntent.amountDetails),
+            "amountReceived": paymentIntent.amountReceived ?? NSNull(),
+            "amountRequested": paymentIntent.amountRequested ?? NSNull(),
+            "amountSurcharge": paymentIntent.amountSurcharge ?? NSNull(),
+            "amountTip": paymentIntent.amountTip ?? 0,
+            "applicationFeeAmount": paymentIntent.applicationFeeAmount ?? NSNull(),
+            "canceledAt": convertDateToUnixTimestamp(date: paymentIntent.canceledAt) ?? NSNull(),
+            "cancellationReason": paymentIntent.cancellationReason ?? NSNull(),
             "captureMethod": mapFromCaptureMethod(paymentIntent.captureMethod),
             "charges": mapFromCharges(paymentIntent.charges),
+            "clientSecret": paymentIntent.clientSecret ?? NSNull(),
+            "confirmationMethod": paymentIntent.confirmationMethod ?? NSNull(),
             "created": convertDateToUnixTimestamp(date: paymentIntent.created) ?? NSNull(),
             "currency": paymentIntent.currency,
+            "customer": paymentIntent.customer ?? NSNull(),
+            "description": paymentIntent.stripeDescription ?? NSNull(),
+            "lastPaymentError": lastPaymentErrorMap ?? NSNull(),
+            "livemode": paymentIntent.livemode,
             "metadata": metadataMap ?? NSNull(),
-            "statementDescriptor": paymentIntent.statementDescriptor ?? NSNull(),
-            "status": mapFromPaymentIntentStatus(paymentIntent.status),
-            "amountDetails": mapFromAmountDetails(paymentIntent.amountDetails),
-            "amountTip": paymentIntent.amountTip ?? 0,
-            "statementDescriptorSuffix": paymentIntent.statementDescriptorSuffix ?? NSNull(),
-            "sdkUuid": uuid,
-            "paymentMethodId": paymentIntent.paymentMethodId ?? NSNull(),
-            "paymentMethod": paymentMethodMap ?? NSNull(),
+            "nextAction": mapFromNextAction(paymentIntent.nextAction),
             "offlineDetails": offlineDetailsMap ?? NSNull(),
+            "onBehalfOf": paymentIntent.onBehalfOf ?? NSNull(),
+            "paymentMethod": paymentMethodMap ?? NSNull(),
+            "paymentMethodId": paymentIntent.paymentMethodId ?? NSNull(),
             "paymentMethodOptions":mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions) ?? NSNull(),
+            "paymentMethodTypes": paymentIntent.paymentMethodTypes ?? NSNull(),
+            "receiptEmail": paymentIntent.receiptEmail ?? NSNull(),
+            "sdkUuid": uuid,
+            "setupFutureUsage": paymentIntent.setupFutureUsage ?? NSNull(),
+            "statementDescriptor": paymentIntent.statementDescriptor ?? NSNull(),
+            "statementDescriptorSuffix": paymentIntent.statementDescriptorSuffix ?? NSNull(),
+            "status": mapFromPaymentIntentStatus(paymentIntent.status),
+            "transferGroup": paymentIntent.transferGroup ?? NSNull(),
         ]
         return result
     }
@@ -317,13 +424,25 @@ class Mappers {
         let result: NSDictionary = [
             "id": setupIntent.stripeId ?? NSNull(),
             "sdkUuid": uuid,
+            "application": setupIntent.application ?? NSNull(),
+            "cancellationReason": setupIntent.cancellationReason ?? NSNull(),
+            "clientSecret": setupIntent.clientSecret ?? NSNull(),
             "created": convertDateToUnixTimestamp(date: setupIntent.created) ?? NSNull(),
             "customer": setupIntent.customer ?? NSNull(),
-            "metadata": metadataMap ?? NSNull(),
-            "status": mapFromSetupIntentStatus(setupIntent.status),
+            "description": setupIntent.stripeDescription ?? NSNull(),
             "latestAttempt": mapFromSetupAttempt(setupIntent.latestAttempt) ?? NSNull(),
-            "usage": mapFromSetupIntentUsage(setupIntent.usage),
+            "livemode": setupIntent.livemode,
+            "mandate": setupIntent.mandate ?? NSNull(),
+            "metadata": metadataMap ?? NSNull(),
+            "nextAction": mapFromNextAction(setupIntent.nextAction),
+            "onBehalfOf": setupIntent.onBehalfOf ?? NSNull(),
+            "paymentMethodId": setupIntent.paymentMethod ?? NSNull(),
+            "paymentMethodOptions": mapFromPaymentMethodOptions(setupIntent.paymentMethodOptions) ?? NSNull(),
             "paymentMethodTypes": setupIntent.paymentMethodTypes,
+            "singleUseMandate": setupIntent.singleUseMandate ?? NSNull(),
+            "status": mapFromSetupIntentStatus(setupIntent.status),
+            "usage": mapFromSetupIntentUsage(setupIntent.usage),
+            // TODO: Add lastSetupError when iOS SDK supports it (Android already has it)
         ]
         return result
     }
@@ -349,7 +468,9 @@ class Mappers {
             "onBehalfOfId": unwrappedAttempt.onBehalfOf ?? NSNull(),
             "applicationId": unwrappedAttempt.application ?? NSNull(),
             "paymentMethodId": unwrappedAttempt.paymentMethod ?? NSNull(),
-            "paymentMethodDetails": mapFromSetupAttemptPaymentMethodDetails(unwrappedAttempt.paymentMethodDetails) ?? NSNull()
+            "paymentMethodDetails": mapFromSetupAttemptPaymentMethodDetails(unwrappedAttempt.paymentMethodDetails) ?? NSNull(),
+            "livemode": unwrappedAttempt.livemode,
+            "usage": mapFromSetupIntentUsage(unwrappedAttempt.usage),
         ]
         return result
     }
@@ -483,7 +604,7 @@ class Mappers {
 
         for location in locations {
             let result = mapFromLocation(location)
-            if let result = result {
+            if let result {
                 list.append(result)
             }
         }
@@ -510,7 +631,7 @@ class Mappers {
     }
 
     class func mapFromAddress(_ address: Address?) -> NSDictionary? {
-        if let address = address {
+        if let address {
             let result: NSDictionary = [
                 "city": address.city ?? NSNull(),
                 "country": address.country ?? NSNull(),
@@ -533,19 +654,38 @@ class Mappers {
         }
 
         let result: NSDictionary = [
-            "amount": charge.amount,
-            "description": charge.stripeDescription ?? NSNull(),
-            "currency": charge.currency,
-            "status": mapFromChargeStatus(charge.status),
             "id": charge.stripeId,
-            "authorizationCode": charge.authorizationCode,
-            "paymentMethodDetails": paymentMethodDetailsMap,
+            "amount": charge.amount,
+            "amountRefunded": charge.amountRefunded,
+            "applicationFee": charge.applicationFee ?? NSNull(),
+            "applicationFeeAmount": charge.applicationFeeAmount ?? NSNull(),
+            "authorizationCode": charge.authorizationCode ?? NSNull(),
+            "balanceTransaction": charge.balanceTransaction ?? NSNull(),
+            "captured": charge.captured,
+            "calculatedStatementDescriptor": charge.calculatedStatementDescriptor ?? NSNull(),
+            "created": convertDateToUnixTimestamp(date: charge.created) ?? NSNull(),
+            "currency": charge.currency,
+            "customer": charge.customer ?? NSNull(),
+            "description": charge.stripeDescription ?? NSNull(),
+            "gernatedFrom": mapFromGeneratedFrom(charge.generatedFrom),
+            "livemode": charge.livemode,
+            "metadata": NSDictionary(dictionary: charge.metadata),
+            "onBehalfOf": charge.onBehalfOf ?? NSNull(),
+            "paid": charge.paid,
+            "paymentIntentId": charge.paymentIntentId ?? NSNull(),
+            "paymentMethodDetails": paymentMethodDetailsMap ?? NSNull(),
+            "receiptEmail": charge.receiptEmail ?? NSNull(),
+            "receiptNumber": charge.receiptNumber ?? NSNull(),
+            "receiptUrl": charge.receiptUrl ?? NSNull(),
+            "refunded": charge.refunded,
+            "statementDescriptorSuffix": charge.statementDescriptorSuffix ?? NSNull(),
+            "status": mapFromChargeStatus(charge.status),
         ]
         return result
     }
 
     class func convertDateToUnixTimestamp(date: Date?) -> String? {
-        if let date = date {
+        if let date {
             let value = date.timeIntervalSince1970 * 1000.0
             return String(format: "%.0f", value)
         }
@@ -568,6 +708,7 @@ class Mappers {
         case "random": return SimulateReaderUpdate.random
         case "required": return SimulateReaderUpdate.required
         case "lowBatterySucceedConnect": return SimulateReaderUpdate.lowBatterySucceedConnect
+        case "requiredForOffline": return SimulateReaderUpdate.requiredForOffline
         default: return SimulateReaderUpdate.none
         }
     }
@@ -679,13 +820,13 @@ class Mappers {
         return result
     }
 
-    class func mapFromAmountDetails(_ amountDetails: SCPAmountDetails?) -> NSDictionary {
-        let amount: NSDictionary = [
+    class func mapFromAmountDetails(_ amountDetails: AmountDetails?) -> NSDictionary {
+        let tipAmount: NSDictionary = [
             "amount": amountDetails?.tip?.amount ?? NSNull(),
         ]
 
         let result: NSDictionary = [
-            "tip": amount
+            "tip": tipAmount
         ]
         return result
     }
@@ -736,6 +877,8 @@ class Mappers {
         case CardBrand.interac: return "interac"
         case CardBrand.unionPay: return "unionPay"
         case CardBrand.eftposAu: return "eftposAu"
+        case CardBrand.cartesBancaires: return "cartesBancaires"
+        case CardBrand.girocard: return "girocard"
         @unknown default: return "unknown"
         }
     }
@@ -783,7 +926,8 @@ class Mappers {
         }
     }
 
-    class func mapFromPaymentMethodDetails(_ paymentMethodDetails: PaymentMethodDetails) -> NSDictionary {
+    class func mapFromPaymentMethodDetails(_ paymentMethodDetails: PaymentMethodDetails?) -> NSDictionary {
+        guard let paymentMethodDetails = paymentMethodDetails else { return [:] }
         var cardPresentMapped: NSDictionary?
         if let cardPresent = paymentMethodDetails.cardPresent{
             cardPresentMapped = mapFromCardPresent(cardPresent)
@@ -831,17 +975,23 @@ class Mappers {
             paymentMethodDetailsMapped = mapFromPaymentMethodDetails(paymentMethodDetails)
         }
         let result: NSDictionary = [
-            "amount": refund.amount,
-            "created": convertDateToUnixTimestamp(date: refund.created) ?? NSNull(),
-            "chargeId": refund.charge,
             "id": refund.stripeId,
+            "amount": refund.amount,
+            "balanceTransaction": refund.balanceTransaction ?? NSNull(),
+            "chargeId": refund.chargeId ?? NSNull(),
+            "created": convertDateToUnixTimestamp(date: refund.created) ?? NSNull(),
             "currency": refund.currency,
-            "description": refund.description,
+            "description": refund.stripeDescription ?? NSNull(),
+            "failureBalanceTransaction": refund.failureBalanceTransaction ?? NSNull(),
             "failureReason": refund.failureReason ?? NSNull(),
             "metadata": NSDictionary(dictionary: refund.metadata),
-            "reason": refund.reason ?? NSNull(),
-            "status": mapFromRefundStatus(refund.status),
+            "paymentIntentId": refund.paymentIntentId ?? NSNull(),
             "paymentMethodDetails": paymentMethodDetailsMapped ?? NSNull(),
+            "reason": refund.reason ?? NSNull(),
+            "receiptNumber": refund.receiptNumber ?? NSNull(),
+            "sourceTransferReversal": refund.sourceTransferReversal ?? NSNull(),
+            "status": mapFromRefundStatus(refund.status),
+            "transferReversal": refund.transferReversal ?? NSNull(),
         ]
         return result
     }
@@ -863,9 +1013,48 @@ class Mappers {
             "expMonth": cardDetails.expMonth,
             "expYear": cardDetails.expYear,
             "funding": cardDetails.funding,
+            "generatedFrom": mapFromGeneratedFrom(cardDetails.generatedFrom),
             "last4": cardDetails.last4 ?? NSNull(),
         ]
         return result
+    }
+
+    class func mapFromGeneratedFrom(_ from: GeneratedFrom?) -> NSDictionary {
+        guard let from = from else {
+            return [:]
+        }
+        let result: NSDictionary = [
+            "charge": from.charge ?? NSNull(),
+            "paymentMethodDetails": mapFromPaymentMethodDetails(from.paymentMethodDetails),
+            "setupAttempt": from.setupAttempt ?? NSNull(),
+        ]
+        return result
+    }
+
+    class func mapToCustomerCancellation(_ cancellation: String?) -> CustomerCancellation? {
+        switch cancellation {
+        case "enableIfAvailable":
+            return .enableIfAvailable
+        case "disableIfAvailable":
+            return .disableIfAvailable
+        default:
+          return nil
+        }
+    }
+
+    class func mapToMotoConfiguration(_ configuration: NSDictionary?) -> MotoConfiguration? {
+        guard let configuration = configuration else {
+           return nil
+        }
+        let builder = MotoConfigurationBuilder()
+        if let skipCvc = configuration["skipCvc"] as? Bool {
+            builder.setSkipCvc(skipCvc)
+        }
+        do {
+            return try builder.build()
+        } catch (_) {
+            return nil
+        }
     }
 
     class func mapFromPaymentMethod(_ paymentMethod: PaymentMethod) -> NSDictionary {
@@ -893,9 +1082,14 @@ class Mappers {
         if let paypay = paymentMethod.paypay{
             paypayMapped = mapFromPaypay(paypay)
         }
+        var cardDetailsMapped: NSDictionary?
+        if let cardDetails = paymentMethod.card{
+            cardDetailsMapped = mapFromCardDetails(cardDetails)
+        }
 
         let result: NSDictionary = [
             "cardPresentDetails": cardPresentMapped ?? NSNull(),
+            "cardDetails": cardDetailsMapped ?? NSNull(),
             "interacPresentDetails": interacPresentMapped ?? NSNull(),
             "wechatPayDetails": wechatPayMapped ?? NSNull(),
             "affirmDetails": affirmMapped ?? NSNull(),
@@ -904,6 +1098,7 @@ class Mappers {
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
+            "livemode": paymentMethod.livemode,
             "metadata": NSDictionary(dictionary: paymentMethod.metadata),
         ]
         return result
@@ -921,10 +1116,11 @@ class Mappers {
 
     class func mapFromConnectionStatus(_ connectionStatus: ConnectionStatus) -> String {
         switch connectionStatus {
-        case ConnectionStatus.connected: return "connected"
-        case ConnectionStatus.connecting: return "connecting"
-        case ConnectionStatus.notConnected: return "notConnected"
-        case ConnectionStatus.discovering: return "discovering"
+        case .connected: return "connected"
+        case .connecting: return "connecting"
+        case .notConnected: return "notConnected"
+        case .discovering: return "discovering"
+        case .reconnecting: return "reconnecting"
         @unknown default: return "unknown"
         }
     }
@@ -1002,13 +1198,13 @@ class Mappers {
         }
     }
 
-    class func mapFromReadMethod(_ readMethod: SCPReadMethod) -> String {
+    class func mapFromReadMethod(_ readMethod: ReadMethod) -> String {
         switch readMethod {
-        case SCPReadMethod.contactEMV: return "contactEMV"
-        case SCPReadMethod.contactlessEMV: return "contactlessEMV"
-        case SCPReadMethod.contactlessMagstripeMode: return "contactlessMagstripeMode"
-        case SCPReadMethod.magneticStripeFallback: return "magneticStripeFallback"
-        case SCPReadMethod.magneticStripeTrack2: return "magneticStripeTrack2"
+        case ReadMethod.contactEMV: return "contactEMV"
+        case ReadMethod.contactlessEMV: return "contactlessEMV"
+        case ReadMethod.contactlessMagstripeMode: return "contactlessMagstripeMode"
+        case ReadMethod.magneticStripeFallback: return "magneticStripeFallback"
+        case ReadMethod.magneticStripeTrack2: return "magneticStripeTrack2"
         @unknown default: return "unknown"
         }
     }
@@ -1102,13 +1298,24 @@ class Mappers {
     }
 
     class func mapFromCollectedData(_ collectData: CollectedData) -> NSDictionary {
-        let result: NSDictionary = [
-            "stripeId": collectData.stripeId ?? NSNull(),
-            "nfcUid": collectData.nfcUid ?? NSNull(),
-            "created": convertDateToUnixTimestamp(date: collectData.created),
-            "livemode": collectData.livemode,
-        ]
-        return result
+        if let collectData = collectData as? MagstripeCollectedData {
+            return [
+              "stripeId": collectData.stripeId ?? NSNull(),
+              "created": convertDateToUnixTimestamp(date: collectData.created) ?? NSNull(),
+              "livemode": collectData.livemode,
+            ]
+        } else if let collectData = collectData as? NfcUidCollectedData {
+            return [
+              "nfcUid": collectData.uid,
+              "created": convertDateToUnixTimestamp(date: collectData.created) ?? NSNull(),
+              "livemode": collectData.livemode,
+            ]
+        } else {
+            return [
+              "created": convertDateToUnixTimestamp(date: collectData.created) ?? NSNull(),
+              "livemode": collectData.livemode,
+            ]
+        }
     }
 
     class func mapPaymentMethodType(_ type: String) -> PaymentMethodType {
@@ -1176,6 +1383,116 @@ class Mappers {
         }
 
         return Data(base64Encoded: imageBase64).flatMap { UIImage(data: $0) }
+    }
+
+    // MARK: - MPOS QR Mappers
+
+    class func mapFromQrCodeDisplayData(_ qrData: QrCodeDisplayData) -> NSDictionary {
+        return [
+            "imageUrlPng": qrData.qrCodeImageUrlPng,
+            "imageUrlSvg": qrData.qrCodeImageUrlSvg,
+            "expiresAtMs": qrData.expiresAtMs,
+            "paymentMethodType": mapFromPaymentMethodDetailsType(qrData.paymentMethodType)
+        ]
+    }
+
+    class func mapFromPaymentOption(_ paymentOption: PaymentOption, index: Int) -> [String: Any] {
+        var mapped: [String: Any] = ["index": index]
+        switch paymentOption.type {
+        case .card:
+            mapped["type"] = "card"
+            mapped["label"] = "Card Payment"
+            mapped["paymentMethodType"] = "card"
+        case .nonCard:
+            let methodType = paymentOption.paymentMethodType
+            mapped["type"] = "nonCard"
+            mapped["label"] = mapFromPaymentMethodDetailsType(methodType).capitalized
+            mapped["paymentMethodType"] = mapFromPaymentMethodDetailsType(methodType)
+        @unknown default:
+            mapped["type"] = "unknown"
+            mapped["label"] = "Unknown"
+            mapped["paymentMethodType"] = "unknown"
+        }
+        return mapped
+    }
+
+    class func mapFromPaymentOptions(_ paymentOptions: [PaymentOption]) -> [[String: Any]] {
+        return paymentOptions.enumerated().map { (index, option) in
+            return mapFromPaymentOption(option, index: index)
+        }
+    }
+
+    // MARK: - Configuration Builders
+
+    class func buildCollectPaymentIntentConfiguration(from params: NSDictionary) throws -> CollectPaymentIntentConfiguration {
+        let skipTipping = params["skipTipping"] as? Bool ?? false
+        let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
+        let customerCancellation = mapToCustomerCancellation(params["customerCancellation"] as? String)
+        let requestDynamicCurrencyConversion = params["requestDynamicCurrencyConversion"] as? Bool ?? false
+        let surchargeNotice = params["surchargeNotice"] as? String
+        let motoConfiguration = params["motoConfiguration"] as? NSDictionary
+
+        let collectConfigBuilder = CollectPaymentIntentConfigurationBuilder()
+            .setSkipTipping(skipTipping)
+            .setUpdatePaymentIntent(updatePaymentIntent)
+            .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
+
+        if let customerCancellation {
+            collectConfigBuilder.setCustomerCancellation(customerCancellation)
+        }
+
+        collectConfigBuilder.setMotoConfiguration(mapToMotoConfiguration(motoConfiguration))
+
+        if let allowRedisplay = params["allowRedisplay"] as? String {
+            collectConfigBuilder.setAllowRedisplay(mapToAllowRedisplay(allowToredisplay: allowRedisplay))
+        }
+
+        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
+            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
+        }
+
+        if let eligibleAmount = params["tipEligibleAmount"] as? Int {
+            let tippingConfig = try TippingConfigurationBuilder()
+                .setEligibleAmount(eligibleAmount)
+                .build()
+            collectConfigBuilder.setTippingConfiguration(tippingConfig)
+        }
+
+        return try collectConfigBuilder.build()
+    }
+
+    class func buildConfirmPaymentIntentConfiguration(from params: NSDictionary) throws -> ConfirmPaymentIntentConfiguration {
+        let confirmConfigBuilder = ConfirmPaymentIntentConfigurationBuilder()
+
+        if let surchargeDict = params["surcharge"] as? [String: Any],
+           let surchargeConfiguration = try mapToSurchargeConfiguration(from: surchargeDict) {
+            confirmConfigBuilder.setSurchargeConfiguration(surchargeConfiguration)
+        }
+
+        if let returnUrl = params["returnUrl"] as? String {
+            confirmConfigBuilder.setReturnUrl(returnUrl)
+        }
+
+        return try confirmConfigBuilder.build()
+    }
+
+    class func buildCollectSetupIntentConfiguration(from params: NSDictionary) throws -> CollectSetupIntentConfiguration {
+        let customerCancellation = mapToCustomerCancellation(params["customerCancellation"] as? String)
+        let motoConfiguration = params["motoConfiguration"] as? NSDictionary
+
+        let builder = CollectSetupIntentConfigurationBuilder()
+
+        if let customerCancellation {
+            builder.setCustomerCancellation(customerCancellation)
+        }
+
+        builder.setMotoConfiguration(mapToMotoConfiguration(motoConfiguration))
+
+        if let collectionReason = mapToSetupIntentCollectionReason(params["collectionReason"] as? String) {
+            builder.setCollectionReason(collectionReason)
+        }
+
+        return try builder.build()
     }
 }
 

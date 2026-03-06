@@ -17,8 +17,7 @@ import type {
   GetLocationsParams,
   GetLocationsResultType,
   RefundParams,
-  CollectRefundPaymentMethodType,
-  ConfirmRefundResultType,
+  ProcessRefundResultType,
   SetConnectionTokenParams,
   ConnectReaderResultType,
   CollectPaymentMethodParams,
@@ -28,13 +27,16 @@ import type {
   PaymentStatus,
   ConnectionStatus,
   ConfirmPaymentMethodParams,
+  ProcessPaymentIntentParams,
   ConfirmSetupIntentMethodParams,
+  ProcessSetupIntentParams,
   CancelSetupIntentMethodParams,
   CancelPaymentMethodParams,
   CollectDataParams,
   CollectDataResultType,
   TapToPayUxConfiguration,
   ConnectReaderParams,
+  EasyConnectParams,
   PrintContent,
 } from './types';
 import type { StripeError } from './types/StripeError';
@@ -48,6 +50,12 @@ type InitializeResultNativeType = Promise<{
 
 interface InternalInitParams extends InitParams {
   reactNativeVersion: string;
+  /**
+   * When true, uses Android's AppsOnDevicesConnectionTokenProvider for serverless
+   * Apps-on-Devices mode. This eliminates the need for a backend server to provide
+   * connection tokens.
+   */
+  useAppsOnDevicesConnectionTokenProvider: boolean;
 }
 
 export interface StripeTerminalSdkType {
@@ -59,11 +67,14 @@ export interface StripeTerminalSdkType {
   discoverReaders(params: DiscoverReadersParams): DiscoverReadersResultType;
   // Cancel discovering readers
   cancelDiscovering(): CancelDiscoveringResultType;
-  // Connect to reader via bluetooth
-  connectReader(
-    params: ConnectReaderParams,
-    discoveryMethod: Reader.DiscoveryMethod
-  ): Promise<ConnectReaderResultType>;
+  // Easy connect to reader
+  easyConnect(param: EasyConnectParams): Promise<ConnectReaderResultType>;
+  // Cancel easy connect
+  cancelEasyConnect(): Promise<{
+    error?: StripeError;
+  }>;
+  // Connect to reader
+  connectReader(params: ConnectReaderParams): Promise<ConnectReaderResultType>;
   // Disconnect reader
   disconnectReader(): Promise<DisconnectReaderResultType>;
   // Reboot reader
@@ -82,6 +93,10 @@ export interface StripeTerminalSdkType {
   confirmPaymentIntent(
     params: ConfirmPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
+  // Process Payment Intent (combines collect and confirm)
+  processPaymentIntent(
+    params: ProcessPaymentIntentParams
+  ): Promise<PaymentIntentResultType>;
   // Create Setup Intent
   createSetupIntent(
     params: CreateSetupIntentParams
@@ -90,6 +105,14 @@ export interface StripeTerminalSdkType {
   cancelPaymentIntent(
     params: CancelPaymentMethodParams
   ): Promise<PaymentIntentResultType>;
+  // Select payment option
+  selectPaymentOption(paymentOptionType: string): Promise<void>;
+  // Fail payment method selection
+  failPaymentMethodSelection(error?: string): Promise<void>;
+  // Confirm QR code displayed
+  confirmQrCodeDisplayed(): Promise<void>;
+  // Fail QR code display
+  failQrCodeDisplay(error?: string): Promise<void>;
   // Collect Setup Intent payment method
   collectSetupIntentPaymentMethod(
     params: CollectSetupIntentPaymentMethodParams
@@ -117,14 +140,11 @@ export interface StripeTerminalSdkType {
   confirmSetupIntent(
     params: ConfirmSetupIntentMethodParams
   ): Promise<SetupIntentResultType>;
+  processSetupIntent(
+    params: ProcessSetupIntentParams
+  ): Promise<SetupIntentResultType>;
   simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
-  collectRefundPaymentMethod(
-    params: RefundParams
-  ): Promise<CollectRefundPaymentMethodType>;
-  cancelCollectRefundPaymentMethod(): Promise<{
-    error?: StripeError;
-  }>;
-  confirmRefund(): Promise<ConfirmRefundResultType>;
+  processRefund(params: RefundParams): Promise<ProcessRefundResultType>;
   clearCachedCredentials(): Promise<{
     error?: StripeError;
   }>;
@@ -137,10 +157,16 @@ export interface StripeTerminalSdkType {
   cancelConfirmPaymentIntent(): Promise<{
     error?: StripeError;
   }>;
+  cancelProcessPaymentIntent(): Promise<{
+    error?: StripeError;
+  }>;
   cancelConfirmSetupIntent(): Promise<{
     error?: StripeError;
   }>;
-  cancelConfirmRefund(): Promise<{
+  cancelProcessSetupIntent(): Promise<{
+    error?: StripeError;
+  }>;
+  cancelProcessRefund(): Promise<{
     error?: StripeError;
   }>;
   setSimulatedCard(cardNumber: string): Promise<{

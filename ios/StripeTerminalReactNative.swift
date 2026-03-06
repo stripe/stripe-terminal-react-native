@@ -24,6 +24,8 @@ enum ReactNativeConstants: String, CaseIterable {
     case REPORT_LOW_BATTERY_WARNING = "didReportLowBatteryWarning"
     case REPORT_READER_EVENT = "didReportReaderEvent"
     case ACCEPT_TERMS_OF_SERVICE = "didAcceptTermsOfService"
+    case PAYMENT_METHOD_SELECTION_REQUIRED = "onPaymentMethodSelectionRequired"
+    case QR_CODE_DISPLAY_REQUIRED = "onQrCodeDisplayRequired"
 }
 
 @objc(StripeTerminalReactNative)
@@ -50,8 +52,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     }
 
     var discoverCancelable: Cancelable? = nil
+    var easyConnectCancelable: Cancelable? = nil
     var collectPaymentMethodCancelable: Cancelable? = nil
-    var collectRefundPaymentMethodCancelable: Cancelable? = nil
+    var processRefundCancelable: Cancelable? = nil
     var collectSetupIntentCancelable: Cancelable? = nil
     var installUpdateCancelable: Cancelable? = nil
     var readReusableCardCancelable: Cancelable? = nil
@@ -59,9 +62,22 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     var collectDataCancellable: Cancelable? = nil
     var collectInputsCancellable: Cancelable? = nil
     var confirmPaymentIntentCancelable: Cancelable? = nil
+    var processPaymentIntentCancelable: Cancelable? = nil
     var confirmSetupIntentCancelable: Cancelable? = nil
-    var confirmRefundCancelable: Cancelable? = nil
+    var processSetupIntentCancelable: Cancelable? = nil
     var loggingToken: String? = nil
+
+    // Single callback storage for MPOS - only one payment flow at a time
+    var paymentMethodSelectionCallback: PaymentMethodSelectionCompletionBlock?
+    var qrCodeDisplayCallback: QrCodeDisplayCompletionBlock?
+
+    // Registration flags - JS tells native whether it will handle callbacks
+    var paymentMethodSelectionHandlerRegistered = false
+    var qrCodeDisplayHandlerRegistered = false
+
+    // Store available payment options to select from later
+    var availablePaymentOptions: [PaymentOption] = []
+
 
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         discoveredReadersList = readers
@@ -72,19 +88,25 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(initialize:resolver:rejecter:)
     func initialize(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        // iOS SDK doesn't support Apps On Devices
+        if let error = Errors.validateAppsOnDevicesConnectionTokenProviderNotUsed(params) {
+            resolve(error)
+            return
+        }
+
         var connectedReader: NSDictionary? = nil
 
         TokenProvider.delegate = self
 
         let logLevel = Mappers.mapToLogLevel(params["logLevel"] as? String)
 
-        if (Terminal.hasTokenProvider()) {
+        if (Terminal.isInitialized()) {
             if let reader = Terminal.shared.connectedReader {
                 connectedReader = Mappers.mapFromReader(reader)
             }
             Terminal.shared.logLevel = logLevel
         } else {
-            Terminal.setTokenProvider(TokenProvider.shared)
+            Terminal.initWithTokenProvider(TokenProvider.shared)
             Terminal.shared.logLevel = logLevel
         }
 
@@ -108,31 +130,31 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectPaymentMethod could not be canceled because the command has already been canceled or has completed."))
             return
         }
-        cancelable.cancel() { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+        DispatchQueue.main.async {
+            cancelable.cancel() { error in
+                if let error = error as NSError? {
+                    resolve(Errors.createErrorFromNSError(nsError: error))
+                } else {
+                    resolve([:])
+                }
             }
-            else {
-                resolve([:])
-            }
-            self.collectPaymentMethodCancelable = nil
         }
     }
 
-    @objc(cancelCollectRefundPaymentMethod:rejecter:)
-    func cancelCollectRefundPaymentMethod(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let cancelable = collectRefundPaymentMethodCancelable else {
-            resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectRefundPaymentMethod could not be canceled because the command has already been canceled or has completed."))
+    @objc(cancelProcessRefund:rejecter:)
+    func cancelProcessRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = processRefundCancelable else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "processRefund could not be canceled because the command has already been canceled or has completed."))
             return
         }
-        cancelable.cancel() { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+        DispatchQueue.main.async {
+            cancelable.cancel() { error in
+                if let error = error as NSError? {
+                    resolve(Errors.createErrorFromNSError(nsError: error))
+                } else {
+                    resolve([:])
+                }
             }
-            else {
-                resolve([:])
-            }
-            self.collectRefundPaymentMethodCancelable = nil
         }
     }
 
@@ -145,11 +167,24 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         cancelable.cancel() { error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error))
-            }
-            else {
+            } else {
                 resolve([:])
             }
-            self.confirmPaymentIntentCancelable = nil
+        }
+    }
+
+    @objc(cancelProcessPaymentIntent:rejecter:)
+    func cancelProcessPaymentIntent(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = processPaymentIntentCancelable else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "processPaymentIntent could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createErrorFromNSError(nsError: error))
+            } else {
+                resolve([:])
+            }
         }
     }
 
@@ -162,28 +197,24 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         cancelable.cancel() { error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error))
-            }
-            else {
+            } else {
                 resolve([:])
             }
-            self.confirmSetupIntentCancelable = nil
         }
     }
 
-    @objc(cancelConfirmRefund:rejecter:)
-    func cancelConfirmRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let cancelable = confirmRefundCancelable else {
-            resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "cancelConfirmRefund could not be canceled because the command has already been canceled or has completed."))
+    @objc(cancelProcessSetupIntent:rejecter:)
+    func cancelProcessSetupIntent(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = processSetupIntentCancelable else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "cancelProcessSetupIntent could not be canceled because the command has already been canceled or has completed."))
             return
         }
         cancelable.cancel() { error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error))
-            }
-            else {
+            } else {
                 resolve([:])
             }
-            self.confirmRefundCancelable = nil
         }
     }
 
@@ -193,14 +224,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "collectSetupIntent could not be canceled because the command has already been canceled or has completed."))
             return
         }
-        cancelable.cancel() { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
+        DispatchQueue.main.async {
+            cancelable.cancel() { error in
+                if let error = error as NSError? {
+                    resolve(Errors.createErrorFromNSError(nsError: error))
+                } else {
+                    resolve([:])
+                }
             }
-            else {
-                resolve([:])
-            }
-            self.collectSetupIntentCancelable = nil
         }
     }
 
@@ -221,7 +252,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         Terminal.shared.simulatorConfiguration.offlineEnabled = simulatedOffline;
         resolve([:])
     }
-
 
     @objc(setSimulatedCollectInputsResult:resolver:rejecter:)
     func setSimulatedCollectInputsResult(
@@ -255,10 +285,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let discoveryMethod = params["discoveryMethod"] as? String
         let timeout = params["timeout"] as? UInt ?? 0
         let locationId = params["locationId"] as? String
-
+        let discoveryFilter = Mappers.mapToDiscoveryFilter(params["discoveryFilter"] as? NSDictionary)
         let config: DiscoveryConfiguration
         do {
-            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false,  locationId: locationId ?? nil, timeout: timeout)
+            config = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated ?? false,  locationId: locationId, discoveryFilter: discoveryFilter, timeout: timeout)
         } catch {
             resolve(Errors.createErrorFromNSError(nsError: error as NSError))
           return
@@ -271,16 +301,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
+            self.discoverCancelable = nil
             if let error = error as NSError? {
                 let _error = Errors.createErrorFromNSError(nsError: error)
 
                 resolve(_error)
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": _error])
-                self.discoverCancelable = nil
             } else {
                 resolve([:])
                 self.sendEvent(withName: ReactNativeConstants.FINISH_DISCOVERING_READERS.rawValue, body: ["result": ["error": nil]])
-                self.discoverCancelable = nil
             }
         }
     }
@@ -294,19 +323,104 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         cancelable.cancel() { error in
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error))
-                self.discoverCancelable = nil
             } else {
                 resolve([:])
-                self.discoverCancelable = nil
             }
         }
     }
 
+    @objc(easyConnect:resolver:rejecter:)
+    func easyConnect(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let discoveryMethod = params["discoveryMethod"] as? String else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide a discoveryMethod"))
+            return
+        }
 
-    @objc(connectReader:discoveryMethod:resolver:rejecter:)
-    func connectReader(params: NSDictionary, discoveryMethod: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let simulated = params["simulated"] as? Bool ?? false
+        let timeout = params["timeout"] as? UInt ?? 0
+        let locationId = params["locationId"] as? String
+        let discoveryFilter = Mappers.mapToDiscoveryFilter(params["discoveryFilter"] as? NSDictionary)
+
+        let autoReconnectOnUnexpectedDisconnect = params["autoReconnectOnUnexpectedDisconnect"] as? Bool ?? true
+        let failIfInUse = params["failIfInUse"] as? Bool ?? false
+        let merchantDisplayName = params["merchantDisplayName"] as? String
+        let onBehalfOf = params["onBehalfOf"] as? String
+        let tosAcceptancePermitted = params["tosAcceptancePermitted"] as? Bool ?? true
+
+        let discoveryConfig: DiscoveryConfiguration
+        do {
+            discoveryConfig = try Mappers.mapToDiscoveryConfiguration(discoveryMethod, simulated: simulated, locationId: locationId, discoveryFilter: discoveryFilter, timeout: timeout)
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return
+        }
+        let connectionConfig: ConnectionConfiguration
+        do {
+            connectionConfig = try getConnectionConfig(
+              locationId: locationId,
+              autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+              failIfInUse: failIfInUse,
+              merchantDisplayName: merchantDisplayName,
+              onBehalfOf: onBehalfOf,
+              tosAcceptancePermitted: tosAcceptancePermitted,
+              discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod))!
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return
+        }
+
+        let easyConnectConfig: EasyConnectConfiguration
+        do {
+            easyConnectConfig = try getEasyConnectConfiguration(
+                discoveryConfig: discoveryConfig,
+                connectionConfig: connectionConfig
+            )
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return
+        }
+
+        guard easyConnectCancelable == nil else {
+            let message = Errors.createBusyMessage(command: "easyConnect", by: "easyConnect")
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.READER_BUSY, message: message))
+            return
+        }
+        self.easyConnectCancelable = Terminal.shared.easyConnect(easyConnectConfig) { reader, error in
+            self.easyConnectCancelable = nil
+            if let reader {
+                resolve(["reader": Mappers.mapFromReader(reader)])
+            } else if let error = error as NSError? {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            } else {
+                resolve([:])
+            }
+        }
+    }
+
+    @objc(cancelEasyConnect:rejecter:)
+    func cancelEasyConnect(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cancelable = easyConnectCancelable else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.cancelFailedAlreadyCompleted, message: "easyConnect could not be canceled because the command has already been canceled or has completed."))
+            return
+        }
+        cancelable.cancel() { error in
+            if let error = error as NSError? {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            } else {
+                resolve([:])
+                self.easyConnectCancelable = nil
+            }
+        }
+    }
+
+    @objc(connectReader:resolver:rejecter:)
+    func connectReader(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let reader = params["reader"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.MISSING_REQUIRED_PARAMETER, message: "You must provide a reader object"))
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide a reader object"))
+            return
+        }
+        guard let discoveryMethod = params["discoveryMethod"] as? String else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide a discoveryMethod"))
             return
         }
 
@@ -326,10 +440,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let merchantDisplayName: String? = params["merchantDisplayName"] as? String
         let tosAcceptancePermitted: Bool = params["tosAcceptancePermitted"] as? Bool ?? true
 
+        self.paymentMethodSelectionHandlerRegistered = params["hasPaymentMethodSelectionCallback"] as? Bool ?? false
+        self.qrCodeDisplayHandlerRegistered = params["hasQrCodeDisplayCallback"] as? Bool ?? false
+
         let connectionConfig: ConnectionConfiguration
         do {
             connectionConfig = try getConnectionConfig(
-                selectedReader: selectedReader,
                 locationId: locationId,
                 autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
                 failIfInUse: failIfInUse,
@@ -343,7 +459,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
-            if let reader = reader {
+            if let reader {
                 resolve(["reader": Mappers.mapFromReader(reader)])
             } else if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error))
@@ -354,7 +470,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     }
 
     private func getConnectionConfig(
-        selectedReader: Reader,
         locationId: String?,
         autoReconnectOnUnexpectedDisconnect: Bool,
         failIfInUse: Bool,
@@ -364,7 +479,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         discoveryMethod: DiscoveryMethod) throws -> ConnectionConfiguration? {
         switch discoveryMethod {
         case .bluetoothScan, .bluetoothProximity:
-            return try BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+            guard let locationId else {
+                throw NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location ID is required for Bluetooth connection"])
+            }
+            return try BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId)
                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                .build()
         case .internet:
@@ -373,18 +491,54 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 .setAllowCustomerCancel(true)
                 .build()
         case .tapToPay:
-            return try TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
-                .setMerchantDisplayName(merchantDisplayName ?? nil)
-                .setOnBehalfOf(onBehalfOf ?? nil)
-                .setTosAcceptancePermitted(tosAcceptancePermitted)
+            guard let locationId else {
+                throw NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location ID is required for Tap to Pay connection"])
+            }
+            let builder = TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId)
+                .setMerchantDisplayName(merchantDisplayName)
+                .setOnBehalfOf(onBehalfOf)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
-                .build()
+                .setTosAcceptancePermitted(tosAcceptancePermitted)
+
+            return try builder.build()
         case .usb:
-            return try UsbConnectionConfigurationBuilder(delegate: self, locationId: locationId ?? selectedReader.locationId ?? "")
+            guard let locationId else {
+                throw NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location ID is required for USB connection"])
+            }
+            return try UsbConnectionConfigurationBuilder(delegate: self, locationId: locationId)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                 .build()
         @unknown default:
             return nil
+        }
+    }
+
+    private func getEasyConnectConfiguration(
+        discoveryConfig: DiscoveryConfiguration,
+        connectionConfig: ConnectionConfiguration
+    ) throws -> EasyConnectConfiguration {
+        switch discoveryConfig {
+        case let internetDiscoveryConfig as InternetDiscoveryConfiguration:
+            guard let internetConnectionConfig = connectionConfig as? InternetConnectionConfiguration else {
+                throw NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Internet easyConnect requires Internet connection configuration"])
+            }
+            return InternetEasyConnectConfiguration(
+                discoveryConfiguration: internetDiscoveryConfig,
+                connectionConfiguration: internetConnectionConfig
+            )
+
+        case let tapToPayDiscoveryConfig as TapToPayDiscoveryConfiguration:
+            guard let tapToPayConnectionConfig = connectionConfig as? TapToPayConnectionConfiguration else {
+                throw NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "TapToPay easyConnect requires TapToPay connection configuration"])
+            }
+            return TapToPayEasyConnectConfiguration(
+                discoveryConfiguration: tapToPayDiscoveryConfig,
+                connectionConfiguration: tapToPayConnectionConfig
+            )
+
+        default:
+            let configType = String(describing: type(of: discoveryConfig))
+            throw NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Easy connect is not supported for \(configType)"])
         }
     }
 
@@ -426,7 +580,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let transferDataDestination = params["transferDataDestination"] as? String
         let applicationFeeAmount = params["applicationFeeAmount"] as? NSNumber
 
-        let stripeDescription = params["stripeDescription"] as? String
+        let description = params["description"] as? String
         let statementDescriptor = params["statementDescriptor"] as? String
         let statementDescriptorSuffix = params["statementDescriptorSuffix"] as? String
         let receiptEmail = params["receiptEmail"] as? String
@@ -447,7 +601,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             .setOnBehalfOf(onBehalfOf)
             .setTransferDataDestination(transferDataDestination)
             .setApplicationFeeAmount(applicationFeeAmount)
-            .setStripeDescription(stripeDescription)
+            .setStripeDescription(description)
             .setStatementDescriptor(statementDescriptor)
             .setStatementDescriptorSuffix(statementDescriptorSuffix)
             .setReceiptEmail(receiptEmail)
@@ -456,7 +610,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             .setMetadata(metadata)
 
         if !paymentMethodTypes.isEmpty {
-            paymentParamsBuilder.setPaymentMethodTypes(paymentMethodTypes.map(Mappers.mapPaymentMethodType))
+            let mappedTypes = paymentMethodTypes.map(Mappers.mapPaymentMethodType)
+            paymentParamsBuilder.setPaymentMethodTypes(mappedTypes)
         }
 
         let cardPresentParamsBuilder = CardPresentParametersBuilder()
@@ -567,58 +722,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(collectPaymentMethod:resolver:rejecter:)
     func collectPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let paymentIntentJSON = params["paymentIntent"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent."))
-            return
-        }
-        guard let uuid = paymentIntentJSON["sdkUuid"] as? String else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let paymentIntent = self.paymentIntents[uuid] else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+        self.paymentMethodSelectionCallback = nil
+        self.qrCodeDisplayCallback = nil
+
+        guard let (paymentIntent, uuid) = getPaymentIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
 
-        let skipTipping = params["skipTipping"] as? Bool ?? false
-        let updatePaymentIntent = params["updatePaymentIntent"] as? Bool ?? false
-        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
-        let requestDynamicCurrencyConversion = params["requestDynamicCurrencyConversion"] as? Bool ?? false
-        let surchargeNotice = params["surchargeNotice"] as? String
-        let moto = params["moto"] as? Bool ?? false
-
-        let collectConfigBuilder = CollectConfigurationBuilder()
-            .setSkipTipping(skipTipping)
-            .setUpdatePaymentIntent(updatePaymentIntent)
-            .setEnableCustomerCancellation(enableCustomerCancellation)
-            .setRequestDynamicCurrencyConversion(requestDynamicCurrencyConversion)
-            .setSurchargeNotice(surchargeNotice)
-            .setMoto(moto)
-
-        if let allowRedisplay = params["allowRedisplay"] as? String {
-            collectConfigBuilder.setAllowRedisplay(Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay))
-        }
-        if updatePaymentIntent, let surchargeNoticeValue = surchargeNotice {
-            collectConfigBuilder.setSurchargeNotice(surchargeNoticeValue)
-        }
-
-        if let eligibleAmount = params["tipEligibleAmount"] as? Int {
-            do {
-                let tippingConfig = try TippingConfigurationBuilder()
-                    .setEligibleAmount(eligibleAmount)
-                    .build()
-                collectConfigBuilder.setTippingConfiguration(tippingConfig)
-            } catch {
-                resolve(Errors.createErrorFromNSError(nsError: error as NSError))
-                return
-            }
-        }
-
-        let collectConfig: CollectConfiguration
-        do {
-             collectConfig = try collectConfigBuilder.build()
-        } catch {
-            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+        guard let collectConfig = buildCollectPaymentIntentConfiguration(from: params, resolve: resolve) else {
             return
         }
 
@@ -627,6 +738,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             collectConfig: collectConfig
         ) { pi, collectError  in
             if let error = collectError as NSError? {
+                self.collectPaymentMethodCancelable = nil
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let paymentIntent = pi {
                 // Always store the latest instance of the PaymentIntent so we pass the latest instance back in
@@ -653,6 +765,33 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 self.paymentIntents[uuid] = paymentIntent
                 let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": mappedPaymentIntent])
+            }
+        }
+    }
+
+    @objc(processPaymentIntent:resolver:rejecter:)
+    func processPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let (paymentIntent, uuid) = getPaymentIntentAndUuid(from: params, resolve: resolve) else {
+            return
+        }
+
+        guard let collectConfig = buildCollectPaymentIntentConfiguration(from: params, resolve: resolve) else {
+            return
+        }
+
+        guard let confirmConfig = buildConfirmPaymentIntentConfiguration(from: params, resolve: resolve) else {
+            return
+        }
+
+        self.processPaymentIntentCancelable = Terminal.shared.processPaymentIntent(paymentIntent, collectConfig: collectConfig, confirmConfig: confirmConfig) { processedPaymentIntent, processError in
+            self.processPaymentIntentCancelable = nil
+            if let error = processError as NSError? {
+                let result = Errors.createErrorFromNSError(nsError: error)
+                resolve(result)
+            } else if let processedPaymentIntent {
+                self.paymentIntents = [:]
+                let pi = Mappers.mapFromPaymentIntent(processedPaymentIntent, uuid: uuid)
+                resolve(["paymentIntent": pi])
             }
         }
     }
@@ -695,40 +834,16 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(confirmPaymentIntent:resolver:rejecter:)
     func confirmPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let paymentIntent = self.paymentIntents[uuid] else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+        guard let (paymentIntent, uuid) = getPaymentIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
 
-        let confirmConfigBuilder = ConfirmConfigurationBuilder()
-        let confirmConfig: ConfirmConfiguration
-        do {
-            if let surchargeDict = params["surcharge"] as? [String: Any] {
-                if let surchargeConfiguration = try Mappers.mapToSurchargeConfiguration(from: surchargeDict) {
-                  confirmConfigBuilder.setSurchargeConfiguration(surchargeConfiguration)
-                }
-            }
-
-            let returnUrl = params["returnUrl"] as? String
-            if let returnUrlValue = returnUrl {
-                confirmConfigBuilder.setReturnUrl(returnUrlValue)
-            }
-
-            confirmConfig = try confirmConfigBuilder.build()
-        } catch {
-            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+        guard let confirmConfig = buildConfirmPaymentIntentConfiguration(from: params, resolve: resolve) else {
             return
         }
 
         self.confirmPaymentIntentCancelable = Terminal.shared.confirmPaymentIntent(paymentIntent,confirmConfig: confirmConfig) { pi, error in
+            self.confirmPaymentIntentCancelable = nil
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let paymentIntent = pi {
@@ -780,16 +895,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(cancelPaymentIntent:resolver:rejecter:)
     func cancelPaymentIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let paymentIntentJson = params["paymentIntent"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let uuid = paymentIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let paymentIntent = self.paymentIntents[uuid] else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+        guard let (paymentIntent, uuid) = getPaymentIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
         Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
@@ -859,16 +965,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(cancelSetupIntent:resolver:rejecter:)
     func cancelSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
-            return
-        }
-        guard let uuid = setupIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let setupIntent = self.setupIntents[uuid] else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
+        guard let (setupIntent, uuid) = getSetupIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
         Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
@@ -913,39 +1010,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(collectSetupIntentPaymentMethod:resolver:rejecter:)
     func collectSetupIntentPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
+        guard let (setupIntent, uuid) = getSetupIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
 
-        guard let uuid = setupIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let setupIntent = self.setupIntents[uuid] else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
-            return
-        }
-
-        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
-        let moto = params["moto"] as? Bool ?? false
         let allowRedisplay = params["allowRedisplay"] as? String ?? "unspecified"
-        let setupIntentConfiguration: SetupIntentConfiguration
-        do {
-            let builder = SetupIntentConfigurationBuilder()
-                .setEnableCustomerCancellation(enableCustomerCancellation)
-                .setMoto(moto)
-            if let collectionReason = Mappers.mapToSetupIntentCollectionReason(params["collectionReason"] as? String) {
-                builder.setCollectionReason(collectionReason)
-            }
-            setupIntentConfiguration = try builder.build()
-        } catch {
-            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+
+        guard let setupIntentConfiguration = buildCollectSetupIntentConfiguration(from: params, resolve: resolve) else {
             return
         }
 
         self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, allowRedisplay: Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay), setupConfig: setupIntentConfiguration) { si, collectError  in
             if let error = collectError as NSError? {
+                self.collectSetupIntentCancelable = nil
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let setupIntent = si {
                 self.setupIntents[uuid] = setupIntent
@@ -957,20 +1034,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(confirmSetupIntent:resolver:rejecter:)
     func confirmSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
-            return
-        }
-        guard let uuid = setupIntentJson["sdkUuid"] as? String else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
-            return
-        }
-        guard let setupIntent = self.setupIntents[uuid] else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
+        guard let (setupIntent, uuid) = getSetupIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
 
         self.confirmSetupIntentCancelable = Terminal.shared.confirmSetupIntent(setupIntent) { si, collectError  in
+            self.confirmSetupIntentCancelable = nil
             if let error = collectError as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
             } else if let setupIntent = si {
@@ -982,8 +1051,32 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         self.collectSetupIntentCancelable = nil
     }
 
-    @objc(collectRefundPaymentMethod:resolver:rejecter:)
-    func collectRefundPaymentMethod(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(processSetupIntent:resolver:rejecter:)
+    func processSetupIntent(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let (setupIntent, uuid) = getSetupIntentAndUuid(from: params, resolve: resolve) else {
+            return
+        }
+
+        let allowRedisplay = params["allowRedisplay"] as? String ?? "unspecified"
+
+        guard let collectConfig = buildCollectSetupIntentConfiguration(from: params, resolve: resolve) else {
+            return
+        }
+
+        self.processSetupIntentCancelable = Terminal.shared.processSetupIntent(setupIntent, allowRedisplay: Mappers.mapToAllowRedisplay(allowToredisplay: allowRedisplay), collectConfig: collectConfig) { processedSetupIntent, processError in
+            self.processSetupIntentCancelable = nil
+            if let error = processError as NSError? {
+                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid))
+            } else if let processedSetupIntent {
+                self.setupIntents = [:]
+                let mappedSetupIntent = Mappers.mapFromSetupIntent(processedSetupIntent, uuid: uuid)
+                resolve(["setupIntent": mappedSetupIntent])
+            }
+        }
+    }
+
+    @objc(processRefund:resolver:rejecter:)
+    func processRefund(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["amount", "currency"])
 
         guard invalidParams == nil else {
@@ -992,67 +1085,61 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
         let chargeId = params["chargeId"] as? String
         let paymentIntentId = params["paymentIntentId"] as? String
-        if ((chargeId==nil||chargeId!.isEmpty) == (paymentIntentId==nil||paymentIntentId!.isEmpty)) {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide either a charge ID or a payment intent ID."))
-            return
-        }
+        let clientSecret = params["clientSecret"] as? String
         let amount = params["amount"] as? NSNumber
         let currency = params["currency"] as? String
         let intAmount = UInt(truncating: amount!);
         let refundApplicationFee = params["refundApplicationFee"] as? NSNumber
         let reverseTransfer = params["reverseTransfer"] as? NSNumber
-        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        let customerCancellation = Mappers.mapToCustomerCancellation(params["customerCancellation"] as? String)
         let metadata = params["metadata"] as? [String : String]
 
         let refundParams: RefundParameters
         do {
-            if (!paymentIntentId!.isEmpty) {
-                refundParams = try RefundParametersBuilder(paymentIntentId: paymentIntentId!,amount: intAmount, currency: currency!)
+            if let paymentIntentId = paymentIntentId, let clientSecret = clientSecret, !paymentIntentId.isEmpty, !clientSecret.isEmpty {
+                refundParams = try RefundParametersBuilder(paymentIntentId: paymentIntentId, clientSecret: clientSecret, amount: intAmount, currency: currency!)
+                    .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
+                    .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
+                    .setMetadata(metadata)
+                    .build()
+            } else if let chargeId = chargeId, !chargeId.isEmpty {
+                refundParams = try RefundParametersBuilder(chargeId: chargeId,amount: intAmount, currency: currency!)
                     .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
                     .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
                     .setMetadata(metadata)
                     .build()
             } else {
-                refundParams = try RefundParametersBuilder(chargeId: chargeId!,amount: intAmount, currency: currency!)
-                    .setReverseTransfer(reverseTransfer?.intValue == 1 ? true : false)
-                    .setRefundApplicationFee(refundApplicationFee?.intValue == 1 ? true : false)
-                    .setMetadata(metadata)
-                    .build()
+                resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide either a charge ID or a payment intent ID with clientSecret."))
+                return
             }
         } catch {
             resolve(Errors.createErrorFromNSError(nsError: error as NSError))
             return
         }
 
-        let refundConfiguration: RefundConfiguration
+        let refundConfiguration: CollectRefundConfiguration
+        let configurationBuilder = CollectRefundConfigurationBuilder()
         do {
-            refundConfiguration = try RefundConfigurationBuilder().setEnableCustomerCancellation(enableCustomerCancellation)
-                .build()
+            if let customerCancellation = customerCancellation {
+                configurationBuilder.setCustomerCancellation(customerCancellation)
+            }
+            refundConfiguration = try configurationBuilder.build()
         } catch {
             resolve(Errors.createErrorFromNSError(nsError: error as NSError))
             return
         }
 
-        self.collectRefundPaymentMethodCancelable = Terminal.shared.collectRefundPaymentMethod(refundParams, refundConfig: refundConfiguration) { error in
+        self.processRefundCancelable = Terminal.shared.processRefund(refundParams, collectConfig: refundConfiguration) { refund, error in
             if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
-            } else {
-                resolve([:])
-            }
+                self.processRefundCancelable = nil
+              resolve(Errors.createErrorFromNSError(nsError: error))
+          } else if let refund = refund {
+              let refund = Mappers.mapFromRefund(refund)
+              resolve(["refund": refund])
+          } else {
+              resolve([:])
+          }
         }
-    }
-
-    @objc(confirmRefund:rejecter:)
-    func confirmRefund(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.confirmRefundCancelable = Terminal.shared.confirmRefund() { rf, error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error))
-            } else {
-                let refund = Mappers.mapFromRefund(rf!)
-                resolve(["refund": refund])
-            }
-        }
-        self.collectRefundPaymentMethodCancelable = nil
     }
 
     @objc(collectData:resolver:rejecter:)
@@ -1065,11 +1152,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        let enableCustomerCancellation = params["enableCustomerCancellation"] as? Bool ?? false
+        let customerCancellation = Mappers.mapToCustomerCancellation(params["customerCancellation"] as? String)
         let collectDataConfig: CollectDataConfiguration
+        let configurationBuilder = CollectDataConfigurationBuilder()
         do {
-            collectDataConfig = try CollectDataConfigurationBuilder().setCollectDataType(collectDataType)
-                .setEnableCustomerCancellation(enableCustomerCancellation)
+            if let customcustomerCancellation = customerCancellation {
+                configurationBuilder.setCustomerCancellation(customcustomerCancellation)
+            }
+            collectDataConfig = try configurationBuilder.setCollectDataType(collectDataType)
                 .build()
         } catch {
             resolve(Errors.createErrorFromNSError(nsError: error as NSError))
@@ -1077,6 +1167,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         self.collectDataCancellable = Terminal.shared.collectData(collectDataConfig) { collectedData, error in
+            self.collectDataCancellable = nil
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error))
             } else if let collectedData {
@@ -1100,7 +1191,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             else {
                 resolve([:])
             }
-            self.collectDataCancellable = nil
         }
     }
 
@@ -1406,6 +1496,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
         DispatchQueue.main.async {
             self.collectInputsCancellable = Terminal.shared.collectInputs(collectInputsParameters) { collectInputResults, error in
+                self.collectInputsCancellable = nil
                 if let error = error as NSError? {
                     resolve(Errors.createErrorFromNSError(nsError: error))
                 } else {
@@ -1428,7 +1519,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             else {
                 resolve([:])
             }
-            self.collectInputsCancellable = nil
         }
     }
 
@@ -1620,5 +1710,213 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     func readerDidReportLowBatteryWarning(_ reader: Reader) {
         let result = "LOW BATTERY"
         sendEvent(withName: ReactNativeConstants.REPORT_LOW_BATTERY_WARNING.rawValue, body: ["result": result])
+    }
+
+    // MARK: - MPOS Callback Implementations
+
+    /**
+     * Called when payment method selection is required (e.g., card vs WeChat Pay).
+     * If JS has registered a handler, emit event. Otherwise, default to card.
+     * Note: Changes to MPOS callbacks require reader reconnect to take effect during development.
+     */
+    @objc func reader(
+        _ reader: Reader,
+        didRequestPaymentMethodSelection paymentIntent: PaymentIntent,
+        availablePaymentOptions: [PaymentOption],
+        completion: @escaping PaymentMethodSelectionCompletionBlock
+    ) {
+        self.availablePaymentOptions = availablePaymentOptions
+        if self.paymentMethodSelectionHandlerRegistered {
+            self.paymentMethodSelectionCallback = completion
+            sendEvent(withName: ReactNativeConstants.PAYMENT_METHOD_SELECTION_REQUIRED.rawValue, body: [
+                "paymentIntent": Mappers.mapFromPaymentIntent(paymentIntent, uuid: ""),
+                "availablePaymentOptions": Mappers.mapFromPaymentOptions(availablePaymentOptions)
+            ])
+        } else {
+            // Default to card payment
+            if let cardOption = availablePaymentOptions.first(where: { $0.type == .card }) {
+                completion(cardOption, nil)
+            } else if let firstOption = availablePaymentOptions.first {
+                completion(firstOption, nil)
+            } else {
+                completion(nil, NSError(domain: "StripeTerminalReactNative", code: 0, userInfo: [NSLocalizedDescriptionKey: "No payment options available"]))
+            }
+        }
+    }
+
+    /**
+     * Called when a QR code needs to be displayed to the customer.
+     * If JS has registered a handler, emit event. Otherwise, fail with error.
+     * Note: Changes to MPOS callbacks require reader reconnect to take effect during development.
+     */
+    @objc func reader(
+        _ reader: Reader,
+        didRequestQrCodeDisplay paymentIntent: PaymentIntent,
+        qrData: QrCodeDisplayData,
+        completion: @escaping QrCodeDisplayCompletionBlock
+    ) {
+        if self.qrCodeDisplayHandlerRegistered {
+            self.qrCodeDisplayCallback = completion
+            sendEvent(withName: ReactNativeConstants.QR_CODE_DISPLAY_REQUIRED.rawValue, body: [
+                "paymentIntent": Mappers.mapFromPaymentIntent(paymentIntent, uuid: ""),
+                "qrData": Mappers.mapFromQrCodeDisplayData(qrData)
+            ])
+        } else {
+            // Fail - QR display requires a handler
+            completion(NSError(domain: "StripeTerminalReactNative", code: 0, userInfo: [NSLocalizedDescriptionKey: "QR code display requires implementing onQrCodeDisplayRequired callback"]))
+        }
+    }
+
+    // MARK: - MPOS Handler Registration Methods
+
+
+    // MARK: - MPOS Callback Response Methods
+
+    @objc(selectPaymentOption:resolver:rejecter:)
+    func selectPaymentOption(
+        paymentOptionType: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let completion = self.paymentMethodSelectionCallback else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.canceled, message: "No payment method selection callback available"))
+            return
+        }
+        self.paymentMethodSelectionCallback = nil
+
+        // Find the payment option by type
+        let paymentOption: PaymentOption?
+        if paymentOptionType == "card" {
+            paymentOption = self.availablePaymentOptions.first(where: { $0.type == .card })
+        } else {
+            // For non-card options, match by paymentMethodType
+            let targetType = Mappers.mapToPaymentMethodType(paymentOptionType)
+            paymentOption = self.availablePaymentOptions.first(where: {
+                $0.type == .nonCard && $0.paymentMethodType == targetType
+            })
+        }
+
+        guard let selectedOption = paymentOption else {
+            completion(nil, NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Payment option not found: \(paymentOptionType)"]))
+            resolve(Errors.createErrorFromCode(code: ErrorCode.canceled, message: "Payment option not found: \(paymentOptionType)"))
+            return
+        }
+
+        completion(selectedOption, nil)
+        resolve([:])
+    }
+
+    @objc(failPaymentMethodSelection:resolver:rejecter:)
+    func failPaymentMethodSelection(
+        errorMessage: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let completion = self.paymentMethodSelectionCallback else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.canceled, message: "No payment method selection callback available"))
+            return
+        }
+        self.paymentMethodSelectionCallback = nil
+
+        let error = NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage ?? "Payment method selection failed"])
+        completion(nil, error)
+        resolve([:])
+    }
+
+    @objc(confirmQrCodeDisplayed:rejecter:)
+    func confirmQrCodeDisplayed(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let completion = self.qrCodeDisplayCallback else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.canceled, message: "No QR code display callback available"))
+            return
+        }
+        self.qrCodeDisplayCallback = nil
+
+        completion(nil)  // nil error means success
+        resolve([:])
+    }
+
+    @objc(failQrCodeDisplay:resolver:rejecter:)
+    func failQrCodeDisplay(
+        errorMessage: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let completion = self.qrCodeDisplayCallback else {
+            resolve(Errors.createErrorFromCode(code: ErrorCode.canceled, message: "No QR code display callback available"))
+            return
+        }
+        self.qrCodeDisplayCallback = nil
+
+        let error = NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage ?? "QR code display failed"])
+        completion(error)
+        resolve([:])
+    }
+
+    // MARK: - Helper Functions
+
+    private func getPaymentIntentAndUuid(from params: NSDictionary, resolve: @escaping RCTPromiseResolveBlock) -> (PaymentIntent, String)? {
+        guard let paymentIntentJSON = params["paymentIntent"] as? NSDictionary else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide paymentIntent."))
+            return nil
+        }
+        guard let uuid = paymentIntentJSON["sdkUuid"] as? String else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The PaymentIntent is missing sdkUuid field. This method requires you to use the PaymentIntent that was returned from either createPaymentIntent or retrievePaymentIntent."))
+            return nil
+        }
+        guard let paymentIntent = self.paymentIntents[uuid] else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No PaymentIntent was found with the sdkUuid \(uuid). The PaymentIntent provided must be re-retrieved with retrievePaymentIntent or a new PaymentIntent must be created with createPaymentIntent."))
+            return nil
+        }
+        return (paymentIntent, uuid)
+    }
+
+    private func getSetupIntentAndUuid(from params: NSDictionary, resolve: @escaping RCTPromiseResolveBlock) -> (SetupIntent, String)? {
+        guard let setupIntentJson = params["setupIntent"] as? NSDictionary else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide setupIntent."))
+            return nil
+        }
+        guard let uuid = setupIntentJson["sdkUuid"] as? String else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "The SetupIntent is missing sdkUuid field. This method requires you to use the SetupIntent that was returned from either createSetupIntent or retrieveSetupIntent."))
+            return nil
+        }
+        guard let setupIntent = self.setupIntents[uuid] else {
+            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "No SetupIntent was found with the sdkUuid \(uuid). The SetupIntent provided must be re-retrieved with retrieveSetupIntent or a new SetupIntent must be created with createSetupIntent."))
+            return nil
+        }
+        return (setupIntent, uuid)
+    }
+
+    private func busyMessage(command: String, by busyBy: String) -> String {
+        return "Could not execute \(command) because the SDK is busy with another command: \(busyBy)."
+    }
+
+    private func buildCollectPaymentIntentConfiguration(from params: NSDictionary, resolve: @escaping RCTPromiseResolveBlock) -> CollectPaymentIntentConfiguration? {
+        do {
+            return try Mappers.buildCollectPaymentIntentConfiguration(from: params)
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return nil
+        }
+    }
+
+    private func buildConfirmPaymentIntentConfiguration(from params: NSDictionary, resolve: @escaping RCTPromiseResolveBlock) -> ConfirmPaymentIntentConfiguration? {
+        do {
+            return try Mappers.buildConfirmPaymentIntentConfiguration(from: params)
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return nil
+        }
+    }
+
+    private func buildCollectSetupIntentConfiguration(from params: NSDictionary, resolve: @escaping RCTPromiseResolveBlock) -> CollectSetupIntentConfiguration? {
+        do {
+            return try Mappers.buildCollectSetupIntentConfiguration(from: params)
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return nil
+        }
     }
 }

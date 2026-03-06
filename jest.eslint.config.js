@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/indent: 0 */
-
 module.exports = {
   runner: 'jest-runner-eslint',
   displayName: 'eslint',

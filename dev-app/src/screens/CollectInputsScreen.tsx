@@ -42,9 +42,7 @@ export default function CollectInputsScreen() {
   const [simulatedCollectInputsBehavior, setSimulatedCollectInputsBehavior] =
     useState<string>(COLLECT_PAYMENT_INPUT_BEHAVIOR[0].value);
 
-  const _collectInputs = async (
-    collectInputsParams: ICollectInputsParameters
-  ) => {
+  const _collectInputs = async (params: ICollectInputsParameters) => {
     clearLogs();
     setCancel({
       label: 'Cancel CollectInput',
@@ -94,7 +92,7 @@ export default function CollectInputsScreen() {
         });
       }
     }
-    const response = await collectInputs(collectInputsParams);
+    const response = await collectInputs(params);
 
     if (response.error) {
       const devError = DevAppError.fromStripeError(response.error);
