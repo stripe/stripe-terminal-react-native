@@ -1,5 +1,6 @@
 # Stripe Terminal React Native SDK (Public preview)
 
+
 Stripe Terminal enables you to build your own in-person checkout to accept payments in the physical world. Built on Stripe's payments network, Terminal helps you unify your online and offline payment channels. With the Stripe Terminal React Native SDK, you can connect to pre-certified card readers from your React Native app and drive a customized in-store checkout flow.
 
 - [Getting started](#getting-started)
