@@ -55,7 +55,11 @@ enum class DeviceSerialName(val serialName: String) {
     VERIFONE_UX700("verifoneUX700"),
     VERIFONE_UX700_DEVKIT("verifoneUX700Devkit"),
     VERIFONE_VM100("verifoneVM100"),
-    VERIFONE_VP100("verifoneVP100");
+    VERIFONE_VM110("verifoneVM110"),
+    VERIFONE_VP100("verifoneVP100"),
+    VERIFONE_VP110("verifoneVP110"),
+    VERIFONE_VL110("verifoneVL110"),
+    STRIPE_U200("stripeU200");
 
     companion object {
         private val serialNames = DeviceSerialName.entries.associateBy(DeviceSerialName::serialName)

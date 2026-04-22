@@ -17,6 +17,8 @@ class FeatureParityTest {
         "getInstance",
         "connectExternalChannel",
         "easyConnect", // wait ios implementation
+        "scanBarcode", // TODO: implement barcode scanning support
+        "discoverScanners", // TODO: implement barcode scanner discovery
         "confirmRefund", // been deprecated
         "collectRefundPaymentMethod", // been deprecated
     )
