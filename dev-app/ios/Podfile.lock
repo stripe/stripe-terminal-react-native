@@ -2610,7 +2610,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stripe-terminal-react-native (0.0.1-beta.29):
+  - stripe-terminal-react-native (0.0.1-beta.30):
     - boost
     - DoubleConversion
     - fast_float
@@ -2639,7 +2639,7 @@ PODS:
     - SocketRocket
     - StripeTerminal (~> 5.1.1)
     - Yoga
-  - stripe-terminal-react-native/Tests (0.0.1-beta.29):
+  - stripe-terminal-react-native/Tests (0.0.1-beta.30):
     - boost
     - DoubleConversion
     - fast_float
@@ -3012,7 +3012,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 927ba2c590c8973f24624f1c1279be08a22ec58d
   RNScreens: 3693ec4bbc0065151b843269e50e9807644e9918
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: 63292141323949465f3ebe8556f385de070023b9
+  stripe-terminal-react-native: 415091de23173785e53cc5603d2c865885a4d8f8
   StripeTerminal: abece5648834aedf1724c021e13589e38cb65378
   Yoga: 689c8e04277f3ad631e60fe2a08e41d411daf8eb
 

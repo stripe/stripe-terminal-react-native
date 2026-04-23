@@ -55,6 +55,7 @@ export namespace PaymentIntent {
     | 'requiresCapture'
     | 'requiresConfirmation'
     | 'requiresPaymentMethod'
+    | 'requiresReauthorization'
     | 'succeeded'
     | 'unknown';
 }

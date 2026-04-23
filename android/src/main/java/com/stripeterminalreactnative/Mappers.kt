@@ -273,7 +273,11 @@ internal fun mapFromDeviceType(type: DeviceType): String {
         DeviceType.VERIFONE_V660P_DEVKIT -> DeviceSerialName.VERIFONE_V660P_DEVKIT.serialName
         DeviceType.VERIFONE_UX700_DEVKIT -> DeviceSerialName.VERIFONE_UX700_DEVKIT.serialName
         DeviceType.VERIFONE_VM100 -> DeviceSerialName.VERIFONE_VM100.serialName
+        DeviceType.VERIFONE_VM110 -> DeviceSerialName.VERIFONE_VM110.serialName
         DeviceType.VERIFONE_VP100 -> DeviceSerialName.VERIFONE_VP100.serialName
+        DeviceType.VERIFONE_VP110 -> DeviceSerialName.VERIFONE_VP110.serialName
+        DeviceType.VERIFONE_VL110 -> DeviceSerialName.VERIFONE_VL110.serialName
+        DeviceType.STRIPE_U200 -> DeviceSerialName.STRIPE_U200.serialName
     }
 }
 
@@ -303,7 +307,11 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         DeviceSerialName.VERIFONE_UX700 -> DeviceType.VERIFONE_UX700
         DeviceSerialName.VERIFONE_UX700_DEVKIT -> DeviceType.VERIFONE_UX700_DEVKIT
         DeviceSerialName.VERIFONE_VM100 -> DeviceType.VERIFONE_VM100
+        DeviceSerialName.VERIFONE_VM110 -> DeviceType.VERIFONE_VM110
         DeviceSerialName.VERIFONE_VP100 -> DeviceType.VERIFONE_VP100
+        DeviceSerialName.VERIFONE_VP110 -> DeviceType.VERIFONE_VP110
+        DeviceSerialName.VERIFONE_VL110 -> DeviceType.VERIFONE_VL110
+        DeviceSerialName.STRIPE_U200 -> DeviceType.STRIPE_U200
         else -> null
     }
 }
@@ -675,6 +683,7 @@ internal fun mapFromPaymentIntentStatus(status: PaymentIntentStatus?): String {
         PaymentIntentStatus.REQUIRES_CAPTURE -> "requiresCapture"
         PaymentIntentStatus.REQUIRES_CONFIRMATION -> "requiresConfirmation"
         PaymentIntentStatus.REQUIRES_PAYMENT_METHOD -> "requiresPaymentMethod"
+        PaymentIntentStatus.REQUIRES_REAUTHORIZATION -> "requiresReauthorization"
         PaymentIntentStatus.SUCCEEDED -> "succeeded"
         PaymentIntentStatus.REQUIRES_ACTION -> "requiresAction"
         PaymentIntentStatus.PROCESSING -> "processing"

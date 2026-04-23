@@ -100,6 +100,7 @@ export namespace Reader {
     | 'chipper1X'
     | 'chipper2X'
     | 'stripeM2'
+    | 'stripeU200'
     | 'wiseCube'
     | 'wisePad3'
     | 'wisePosE'
@@ -111,7 +112,10 @@ export namespace Reader {
     | 'stripeS710'
     | 'cotsDevice'
     | 'tapToPay'
-    | 'etna';
+    | 'etna'
+    | 'verifoneVM110'
+    | 'verifoneVP110'
+    | 'verifoneVL110';
 
   export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
 
