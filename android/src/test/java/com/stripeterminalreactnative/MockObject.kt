@@ -13,7 +13,6 @@ import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthor
 import com.stripe.stripeterminal.external.models.Charge
 import com.stripe.stripeterminal.external.models.Donation
 import com.stripe.stripeterminal.external.models.GeneratedFrom
-import com.stripe.stripeterminal.external.models.KlarnaDetails
 import com.stripe.stripeterminal.external.models.NextAction
 import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
 import com.stripe.stripeterminal.external.models.OfflineDetails
@@ -173,7 +172,6 @@ fun mockPaymentMethod() = mockk<PaymentMethod>(relaxed = true) {
     every { affirmDetails } returns mockAffirmDetails()
     every { paynowDetails } returns mockPaynowDetails()
     every { paypayDetails } returns mockPaypayDetails()
-    every { klarnaDetails } returns mockKlarnaDetails()
     every { cardDetails } returns mockCardDetails()
     every { customer } returns "myCustomer"
     every { id } returns "myId"
@@ -189,7 +187,6 @@ fun expectedPaymentMethod() = JavaOnlyMap().apply {
     putMap("affirmDetails", expectedAffirmDetails())
     putMap("paynowDetails", expectedPaynowDetails())
     putMap("paypayDetails", expectedPaypayDetails())
-    putMap("klarnaDetails", expectedKlarnaDetails())
     putMap("cardDetails", expectedCardDetails())
     putString("customer", "myCustomer")
     putString("id", "myId")
@@ -412,7 +409,6 @@ fun mockPaymentMethodDetails() =
         every { affirmDetails } returns mockAffirmDetails()
         every { paynowDetails } returns mockPaynowDetails()
         every { paypayDetails } returns mockPaypayDetails()
-        every { klarnaDetails } returns mockKlarnaDetails()
         every { cardDetails } returns mockCardDetails()
         every { type } returns PaymentMethodType.CARD
     }
@@ -424,7 +420,6 @@ fun expectedPaymentMethodDetails() = JavaOnlyMap().apply {
     putMap("affirmDetails", expectedAffirmDetails())
     putMap("paynowDetails", expectedPaynowDetails())
     putMap("paypayDetails", expectedPaypayDetails())
-    putMap("klarnaDetails", expectedKlarnaDetails())
     putMap("cardDetails", expectedCardDetails())
     putString("type", "card")
 }
@@ -583,16 +578,6 @@ fun mockPaypayDetails() = mockk<PaypayDetails>(relaxed = true) {
 }
 
 fun expectedPaypayDetails() = JavaOnlyMap().apply {
-    putString("location", "location")
-    putString("reader", "reader")
-}
-
-fun mockKlarnaDetails() = mockk<KlarnaDetails>(relaxed = true) {
-    every { location } returns "location"
-    every { reader } returns "reader"
-}
-
-fun expectedKlarnaDetails() = JavaOnlyMap().apply {
     putString("location", "location")
     putString("reader", "reader")
 }

@@ -39,7 +39,6 @@ import com.stripe.stripeterminal.external.models.EasyConnectConfiguration
 import com.stripe.stripeterminal.external.models.EasyConnectConfiguration.*
 import com.stripe.stripeterminal.external.models.EmailResult
 import com.stripe.stripeterminal.external.models.GeneratedFrom
-import com.stripe.stripeterminal.external.models.KlarnaDetails
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.MotoConfiguration
@@ -882,10 +881,6 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "paypayDetails",
                 mapFromPaypayDetails(it.paypayDetails)
             )
-            putMap(
-                "klarnaDetails",
-                mapFromKlarnaDetails(it.klarnaDetails)
-            )
             putMap("cardDetails", mapFromCardDetails(it.cardDetails))
             putString("customer", it.customer)
             putString("id", it.id)
@@ -936,10 +931,6 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
                 "paypayDetails",
                 mapFromPaypayDetails(paymentMethodDetails.paypayDetails)
             )
-            putMap(
-                "klarnaDetails",
-                mapFromKlarnaDetails(paymentMethodDetails.klarnaDetails)
-            )
             if (paymentMethodDetails.cardDetails != null) {
                 putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
             }
@@ -957,7 +948,6 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.AFFIRM -> "affirm"
         PaymentMethodType.PAYNOW -> "paynow"
         PaymentMethodType.PAYPAY -> "paypay"
-        PaymentMethodType.KLARNA -> "klarna"
         else -> "unknown"
     }
 }
@@ -993,7 +983,6 @@ internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
         "affirm" -> PaymentMethodType.AFFIRM
         "paynow" -> PaymentMethodType.PAYNOW
         "paypay" -> PaymentMethodType.PAYPAY
-        "klarna" -> PaymentMethodType.KLARNA
         else -> null
     }
 }
@@ -1055,14 +1044,6 @@ private fun mapFromPaynowDetails(paynowDetails: PaynowDetails?): ReadableMap? =
 
 private fun mapFromPaypayDetails(paypayDetails: PaypayDetails?): ReadableMap? =
     paypayDetails?.let {
-        nativeMapOf {
-            putString("location", it.location)
-            putString("reader", it.reader)
-        }
-    }
-
-private fun mapFromKlarnaDetails(klarnaDetails: KlarnaDetails?): ReadableMap? =
-    klarnaDetails?.let {
         nativeMapOf {
             putString("location", it.location)
             putString("reader", it.reader)

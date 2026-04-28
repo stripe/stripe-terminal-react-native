@@ -411,8 +411,6 @@ class Mappers {
             return PaymentMethodType.paynow
         case "paypay":
             return PaymentMethodType.paypay
-        case "klarna":
-            return PaymentMethodType.klarna
         default:
             return PaymentMethodType.unknown
         }
@@ -801,14 +799,6 @@ class Mappers {
         return result
     }
 
-    class func mapFromKlarna(_ klarna: KlarnaDetails) -> NSDictionary {
-        let result: NSDictionary = [
-            "location": klarna.location ?? NSNull(),
-            "reader": klarna.reader ?? NSNull(),
-        ]
-        return result
-    }
-
     class func mapFromOfflineDetails(_ offlineDetails: OfflineDetails) -> NSDictionary {
         var offlineCardPresentDetails: NSDictionary?
         if let cardPresentDetails = offlineDetails.cardPresentDetails {
@@ -932,7 +922,6 @@ class Mappers {
         case PaymentMethodType.affirm: return "affirm"
         case PaymentMethodType.paynow: return "paynow"
         case PaymentMethodType.paypay: return "paypay"
-        case PaymentMethodType.klarna: return "klarna"
         @unknown default: return "unknown"
         }
     }
@@ -963,10 +952,6 @@ class Mappers {
         if let paypay = paymentMethodDetails.paypay{
             paypayMapped = mapFromPaypay(paypay)
         }
-        var klarnaMapped: NSDictionary?
-        if let klarna = paymentMethodDetails.klarna{
-            klarnaMapped = mapFromKlarna(klarna)
-        }
         var cardDetailsMapped: NSDictionary?
         if let cardDetails = paymentMethodDetails.card {
             cardDetailsMapped = mapFromCardDetails(cardDetails)
@@ -979,7 +964,6 @@ class Mappers {
             "affirmDetails": affirmMapped ?? NSNull(),
             "paynowDetails": paynowMapped ?? NSNull(),
             "paypayDetails": paypayMapped ?? NSNull(),
-            "klarnaDetails": klarnaMapped ?? NSNull(),
             "cardDetails": cardDetailsMapped ?? NSNull(),
         ]
         return result
@@ -1098,10 +1082,6 @@ class Mappers {
         if let paypay = paymentMethod.paypay{
             paypayMapped = mapFromPaypay(paypay)
         }
-        var klarnaMapped: NSDictionary?
-        if let klarna = paymentMethod.klarna{
-            klarnaMapped = mapFromKlarna(klarna)
-        }
         var cardDetailsMapped: NSDictionary?
         if let cardDetails = paymentMethod.card{
             cardDetailsMapped = mapFromCardDetails(cardDetails)
@@ -1115,7 +1095,6 @@ class Mappers {
             "affirmDetails": affirmMapped ?? NSNull(),
             "paynowDetails": paynowMapped ?? NSNull(),
             "paypayDetails": paypayMapped ?? NSNull(),
-            "klarnaDetails": klarnaMapped ?? NSNull(),
             "customer": paymentMethod.customer ?? NSNull(),
             "id": paymentMethod.stripeId,
             "type": mapFromPaymentMethodDetailsType(paymentMethod.type),
@@ -1348,7 +1327,6 @@ class Mappers {
         case "affirm": return .affirm
         case "paynow": return .paynow
         case "paypay": return .paypay
-        case "klarna": return .klarna
         default: return .unknown
         }
     }
