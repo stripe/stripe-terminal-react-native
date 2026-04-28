@@ -330,7 +330,8 @@ export type PaymentMethodType =
   | 'wechatPay'
   | 'affirm'
   | 'paynow'
-  | 'paypay';
+  | 'paypay'
+  | 'klarna';
 
 export interface Charge {
   id: string;
@@ -597,6 +598,11 @@ export type PaypayDetails = {
   reference?: string;
 };
 
+export type KlarnaDetails = {
+  location?: string;
+  reader?: string;
+};
+
 export type ReceiptDetails = {
   accountType: string;
   applicationCryptogram: string;
@@ -621,6 +627,7 @@ export type PaymentMethodDetails = {
   affirmDetails?: AffirmDetails;
   paynowDetails?: PaynowDetails;
   paypayDetails?: PaypayDetails;
+  klarnaDetails?: KlarnaDetails;
   cardDetails?: CardDetails;
 };
 
@@ -714,6 +721,7 @@ export namespace PaymentMethod {
     affirmDetails: AffirmDetails;
     paynowDetails?: PaynowDetails;
     paypayDetails?: PaypayDetails;
+    klarnaDetails?: KlarnaDetails;
     cardDetails?: CardDetails;
     livemode: boolean;
     metadata?: Record<string, string>;
