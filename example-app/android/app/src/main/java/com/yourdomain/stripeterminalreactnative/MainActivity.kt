@@ -1,4 +1,4 @@
-package com.example.stripeterminalreactnative
+package com.yourdomain.stripeterminalreactnative
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

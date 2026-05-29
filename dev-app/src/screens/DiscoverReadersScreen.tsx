@@ -2,7 +2,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -10,14 +9,12 @@ import {
   Text,
   ScrollView,
   Alert,
-  Modal,
-  View,
-  TouchableWithoutFeedback,
   Platform,
   Switch,
 } from 'react-native';
 import {
   useStripeTerminal,
+  UpdateComponent,
   type Location,
   type Reader,
   type PaymentIntent,
@@ -41,7 +38,6 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/core';
-import { Picker } from '@react-native-picker/picker';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
 
@@ -50,16 +46,11 @@ import { AppContext } from '../AppContext';
 import type { NavigationProp } from '@react-navigation/native';
 import { showErrorAlert } from '../util/errorHandling';
 import { useQrModal } from '../components/QrModalContext';
-
-const SIMULATED_UPDATE_PLANS = [
-  'random',
-  'available',
-  'none',
-  'required',
-  'lowBattery',
-  'lowBatterySucceedConnect',
-  'requiredForOffline',
-];
+import {
+  buildTestReaderUpdate,
+  getUpdateDisplayName,
+  type TestReaderUpdateTypeName,
+} from './TestReaderUpdateScreen';
 
 export default function DiscoverReadersScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
@@ -67,8 +58,6 @@ export default function DiscoverReadersScreen() {
     useRoute<RouteProp<RouteParamList, 'DiscoverReadersScreen'>>();
   const [discoveringLoading, setDiscoveringLoading] = useState(true);
   const [connectingReader, setConnectingReader] = useState<Reader.Type>();
-  const [showPicker, setShowPicker] = useState(false);
-  const pickerRef = useRef<Picker<string>>(null);
   const {
     autoReconnectOnUnexpectedDisconnect,
     setAutoReconnectOnUnexpectedDisconnect,
@@ -80,14 +69,21 @@ export default function DiscoverReadersScreen() {
     discoveryTimeout,
     discoveryFilter,
     setPendingUpdateInfo,
+    appTransitionAnimation,
   } = params;
+
+  const [selectedLocation, setSelectedLocation] = useState<Location>();
+  const [selectedUpdateType, setSelectedUpdateType] =
+    useState<TestReaderUpdateTypeName>('none');
+  const [selectedComponents, setSelectedComponents] = useState<
+    UpdateComponent[]
+  >([UpdateComponent.CONFIG]);
 
   const {
     cancelDiscovering,
     discoverReaders,
     connectReader,
     discoveredReaders,
-    simulateReaderUpdate,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
       if (finishError) {
@@ -141,10 +137,6 @@ export default function DiscoverReadersScreen() {
 
     return `${reader?.label || reader?.serialNumber} - ${reader.deviceType}`;
   };
-
-  const [selectedLocation, setSelectedLocation] = useState<Location>();
-  const [selectedUpdatePlan, setSelectedUpdatePlan] =
-    useState<Reader.SimulateUpdateType>('none');
 
   const handleGoBack = useCallback(
     async (action: NavigationAction) => {
@@ -208,9 +200,8 @@ export default function DiscoverReadersScreen() {
   ]);
 
   useEffect(() => {
-    simulateReaderUpdate('none');
     handleDiscoverReaders();
-  }, [handleDiscoverReaders, simulateReaderUpdate]);
+  }, [handleDiscoverReaders]);
 
   const handleConnectReader = async (reader: Reader.Type) => {
     let error: StripeError | undefined;
@@ -232,7 +223,7 @@ export default function DiscoverReadersScreen() {
     if (error) {
       setConnectingReader(undefined);
       showErrorAlert(error);
-    } else if (selectedUpdatePlan !== 'required' && navigation.canGoBack()) {
+    } else if (selectedUpdateType !== 'required' && navigation.canGoBack()) {
       navigation.goBack();
     }
   };
@@ -280,6 +271,11 @@ export default function DiscoverReadersScreen() {
     showQrModal(qrDisplayData, callback);
   };
 
+  const currentTestReaderUpdate = buildTestReaderUpdate(
+    selectedUpdateType,
+    selectedComponents
+  );
+
   const getBluetoothParams = (
     reader: Reader.Type
   ): ConnectBluetoothReaderParams => ({
@@ -289,6 +285,7 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
     onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
+    testReaderUpdate: currentTestReaderUpdate,
   });
 
   const getBluetoothProximityParams = (
@@ -300,6 +297,7 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
     onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
+    testReaderUpdate: currentTestReaderUpdate,
   });
 
   const getInternetParams = (
@@ -316,6 +314,7 @@ export default function DiscoverReadersScreen() {
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
     onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
     onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
+    testReaderUpdate: currentTestReaderUpdate,
   });
 
   const getTapToPayParams = (reader: Reader.Type): ConnectTapToPayParams => ({
@@ -323,6 +322,7 @@ export default function DiscoverReadersScreen() {
     reader: reader,
     locationId: selectedLocation?.id || reader?.location?.id || "",
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+    ...(Platform.OS === 'ios' ? { testReaderUpdate: currentTestReaderUpdate } : {}),
   });
 
   const getAppsOnDevicesParams = (
@@ -330,23 +330,18 @@ export default function DiscoverReadersScreen() {
   ): ConnectAppsOnDevicesParams => ({
     discoveryMethod: 'appsOnDevices',
     reader: reader,
+    appTransitionAnimation,
   });
 
   const connectReaderWrapper = async (params: ConnectReaderParams) => {
-    const { reader, error } = await connectReader(params);
-
-    if (error) {
-      console.log('connect Reader error:', error);
-    } else {
-      console.log('Reader connected successfully', reader);
-    }
+    const { error } = await connectReader(params);
     return error;
   };
 
-  const handleChangeUpdatePlan = async (plan: Reader.SimulateUpdateType) => {
-    await simulateReaderUpdate(plan);
-    setSelectedUpdatePlan(plan);
-  };
+  const supportsTestReaderUpdate =
+    discoveryMethod !== 'internet' &&
+    discoveryMethod !== 'appsOnDevices' &&
+    !(discoveryMethod === 'tapToPay' && Platform.OS === 'android');
 
   return (
     <ScrollView
@@ -389,19 +384,25 @@ export default function DiscoverReadersScreen() {
         </List>
       )}
 
-      {simulated && discoveryMethod !== 'internet' && (
-        <List title="SIMULATED UPDATE PLAN">
+      {supportsTestReaderUpdate && (
+        <List title="TEST READER UPDATE">
           <ListItem
-            testID="update-plan-picker"
+            testID="test-reader-update-button"
             onPress={() => {
-              setShowPicker(true);
-
-              // Android workaround for instant diplaying options list
-              setTimeout(() => {
-                pickerRef.current?.focus();
-              }, 100);
+              navigation.navigate('TestReaderUpdateScreen', {
+                currentType: selectedUpdateType,
+                currentComponents: selectedComponents,
+                discoveryMethod: discoveryMethod,
+                onSelect: (type: TestReaderUpdateTypeName, components: UpdateComponent[]) => {
+                  setSelectedUpdateType(type);
+                  setSelectedComponents(components);
+                },
+              });
             }}
-            title={mapToPlanDisplayName(selectedUpdatePlan)}
+            title={getUpdateDisplayName(
+              selectedUpdateType,
+              selectedComponents
+            )}
           />
         </List>
       )}
@@ -452,41 +453,6 @@ export default function DiscoverReadersScreen() {
           />
         ))}
       </List>
-
-      <Modal visible={showPicker} transparent>
-        <TouchableWithoutFeedback
-          testID="close-picker"
-          onPress={() => {
-            setShowPicker(false);
-          }}
-        >
-          <View style={styles.modalOverlay} />
-        </TouchableWithoutFeedback>
-
-        <View style={styles.pickerContainer} testID="picker-container">
-          <Picker
-            selectedValue={selectedUpdatePlan}
-            ref={pickerRef as any}
-            style={styles.picker}
-            itemStyle={styles.pickerItem}
-            onValueChange={(itemValue) => {
-              handleChangeUpdatePlan(itemValue);
-              if (Platform.OS === 'android') {
-                setShowPicker(false);
-              }
-            }}
-          >
-            {SIMULATED_UPDATE_PLANS.map((plan) => (
-              <Picker.Item
-                key={plan}
-                label={mapToPlanDisplayName(plan)}
-                testID={plan}
-                value={plan}
-              />
-            ))}
-          </Picker>
-        </View>
-      </Modal>
     </ScrollView>
   );
 }
@@ -496,101 +462,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light_gray,
     alignSelf: 'stretch',
   },
-  pickerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    backgroundColor: colors.white,
-    left: 0,
-    width: '100%',
-    ...Platform.select({
-      ios: {
-        height: 200,
-      },
-    }),
-  },
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  discoveredWrapper: {
-    height: 50,
-  },
-  buttonWrapper: {
-    marginBottom: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 22,
-    width: '100%',
-  },
-  locationListTitle: {
-    fontWeight: '700',
-  },
-  picker: {
-    width: '100%',
-    ...Platform.select({
-      android: {
-        color: colors.slate,
-        fontSize: 13,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: colors.white,
-      },
-    }),
-  },
-  pickerItem: {
-    fontSize: 16,
-    color: colors.slate,
-  },
-  text: {
-    paddingHorizontal: 12,
-    color: colors.white,
-  },
-  info: {
-    fontWeight: '700',
-    marginVertical: 10,
-  },
-  serialNumber: {
-    maxWidth: '70%',
-  },
-  cancelButton: {
-    color: colors.white,
-    marginLeft: 22,
-    fontSize: 16,
-    textDecorationLine: 'underline',
-  },
   infoText: {
     paddingHorizontal: 16,
     color: colors.dark_gray,
     marginVertical: 16,
   },
 });
-
-function mapToPlanDisplayName(plan: string) {
-  switch (plan) {
-    case 'random':
-      return 'Random';
-    case 'available':
-      return 'Update Available';
-    case 'none':
-      return 'No Update';
-    case 'required':
-      return 'Update required';
-    case 'lowBattery':
-      return 'Update required; reader has low battery';
-    case 'lowBatterySucceedConnect':
-      return 'Low battery; connection succeeds';
-    case 'requiredForOffline':
-      return 'Update required for offline mode';
-    default:
-      return '';
-  }
-}
 
 function shouldShowDiscoverError(error: StripeError) {
   if (Platform.OS === 'android') {

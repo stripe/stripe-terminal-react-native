@@ -54,7 +54,6 @@ import {
   cancelSetupIntent,
   confirmSetupIntent,
   processSetupIntent,
-  simulateReaderUpdate,
   processRefund,
   clearCachedCredentials,
   cancelCollectPaymentMethod,
@@ -334,8 +333,8 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const didReportForwardingError = useCallback(
-    ({ error }: { error?: StripeError }) => {
-      onDidForwardingFailure?.(error);
+    ({ result }: { result?: { error?: StripeError } }) => {
+      onDidForwardingFailure?.(result?.error);
     },
     [onDidForwardingFailure]
   );
@@ -813,22 +812,6 @@ export function useStripeTerminal(props?: Props) {
     [_isInitialized, setLoading]
   );
 
-  const _simulateReaderUpdate = useCallback(
-    async (update: Reader.SimulateUpdateType) => {
-      if (!_isInitialized()) {
-        console.error(NOT_INITIALIZED_ERROR_MESSAGE);
-        throw Error(NOT_INITIALIZED_ERROR_MESSAGE);
-      }
-      setLoading(true);
-
-      const response = await simulateReaderUpdate(update);
-      setLoading(false);
-
-      return response;
-    },
-    [setLoading, _isInitialized]
-  );
-
   const _processRefund = useCallback(
     async (params: RefundParams) => {
       if (!_isInitialized()) {
@@ -1193,7 +1176,6 @@ export function useStripeTerminal(props?: Props) {
     cancelSetupIntent: _cancelSetupIntent,
     confirmSetupIntent: _confirmSetupIntent,
     processSetupIntent: _processSetupIntent,
-    simulateReaderUpdate: _simulateReaderUpdate,
     processRefund: _processRefund,
     clearCachedCredentials: _clearCachedCredentials,
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,

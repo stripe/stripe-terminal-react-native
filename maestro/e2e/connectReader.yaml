@@ -13,12 +13,25 @@ appId: ${APP_ID}
         id: "discovery-readers-screen"
     timeout: 20000
 
+# Select test reader update type (when set)
 - runFlow:
     when:
-        true: ${updateRequired == true}
+        true: ${updateType == "available" || updateType == "required" || updateType == "lowBattery" || updateType == "lowBatterySucceedConnect" || updateType == "random"}
     commands:
         - tapOn:
-            id: "update-plan-picker"
+            id: "test-reader-update-button"
+        - extendedWaitUntil:
+            visible:
+                id: "test-reader-update-screen"
+            timeout: 10000
+        - tapOn:
+            id: "update-type-${updateType}"
+        - tapOn:
+            id: "test-reader-update-back"
+        - extendedWaitUntil:
+            visible:
+                id: "discovery-readers-screen"
+            timeout: 10000
 
 - extendedWaitUntil:
     visible:
@@ -29,7 +42,7 @@ appId: ${APP_ID}
     id: "reader-0"
 - runFlow:
     when:
-        true: ${updateRequired == true}
+        true: ${updateType == "required"}
     commands:
         - extendedWaitUntil:
             visible:

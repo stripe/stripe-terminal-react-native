@@ -1,12 +1,20 @@
-import * as packageJson from '../package.json';
-import { Platform } from 'react-native';
-import { b64EncodeUnicode } from './utils/b64EncodeDecode';
+import * as packageJson from '../../package.json';
+import { stringifyRedacted } from '../utils/redact';
+import type { LogLevel } from '../types';
+import { InMemoryCollector } from './inMemoryCollector';
+import {
+  BatchUploader,
+  ConsoleWriter,
+  RealScheduler,
+  RealUploader,
+  realClock,
+} from './batchUploader';
 
 interface ObjectWithError {
   error: any;
 }
 
-interface Trace {
+export interface Trace {
   origin_role: string;
   origin_id: string;
   trace: {
@@ -34,73 +42,33 @@ interface Trace {
   };
 }
 
-const getDeviceInfo = () => {
-  return {
-    device_class: 'POS',
-    // device_uuid: '',
-    host_os_version: Platform.Version.toString(),
-    // host_hw_version: '', // ex: 'iPad4,1' or 'SM-N960U'
-    hardware_model: {
-      pos_info: {
-        description: Platform.select({
-          ios: 'iOS',
-          android: 'Android',
-        })?.toString(),
-      },
-    },
-    // app_model: {
-    //   app_id: '',
-    //   app_version: '',
-    // },
+export interface ProxyEvent {
+  origin_role: string;
+  origin_id: string;
+  event: {
+    domain: string;
+    scope: string;
+    event: string;
+    result: 'OK' | 'ERROR';
   };
-};
-
-const buildGatorRequest = (
-  method: string,
-  requestPayload: object,
-  sessionToken: string | null
-) => {
-  return {
-    id: Date.now(),
-    service: 'GatorService',
-    method,
-    content: b64EncodeUnicode(JSON.stringify(requestPayload)),
-    session_token: sessionToken || '',
-    version_info: {
-      client_type: 'RN_SDK',
-      client_version: packageJson.version,
-    },
-
-    parent_trace_id: '',
-    device_info: getDeviceInfo(),
-  };
-};
-
-const sendGatorRequest = async (request: object) => {
-  const url = 'https://gator.stripe.com:443/protojsonservice/GatorService';
-
-  return fetch(url, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-};
+}
 
 /**
  * A singleton class whose instance exists for the lifetime of the RN SDK.
  * This class batches traces and sends them to Client-Logger, a Stripe-internal
  * analytics service.
- *
- * The instance holds onto traces, and holds a timer that flushes the collected
- * traces (currently every 10 seconds).
  */
 export default class Logger {
   static instance: Logger | null = null;
   static posId: string = `pos-${Math.random().toString(36).substring(2)}`;
-  _traces: Array<Trace> = [];
+  static logLevel: LogLevel | undefined = undefined;
+
+  _collector: InMemoryCollector;
+  _uploader: BatchUploader;
+
+  static setLogLevel(level: LogLevel | undefined): void {
+    Logger.logLevel = level;
+  }
 
   static getInstance() {
     if (Logger.instance === null) {
@@ -111,7 +79,15 @@ export default class Logger {
   }
 
   constructor() {
-    setInterval(Logger.flushTraces, 10 * 1000);
+    this._collector = new InMemoryCollector();
+    this._uploader = new BatchUploader({
+      collector: this._collector,
+      uploader: new RealUploader(),
+      clock: realClock,
+      scheduler: new RealScheduler(),
+      writer: new ConsoleWriter(() => Logger.logLevel === 'verbose'),
+      deviceUuid: Logger.posId,
+    });
   }
 
   /**
@@ -145,7 +121,7 @@ export default class Logger {
           total_time_ms: 0,
           service: 'StripeTerminalReactNative',
           method,
-          request: JSON.stringify({ args }),
+          request: stringifyRedacted({ args }),
           version_info: {
             client_type: 'RN_SDK',
             client_version: packageJson.version,
@@ -166,46 +142,21 @@ export default class Logger {
         return response;
       }
 
-      if ('error' in response) {
+      if (response?.error) {
         Logger.traceError(baseTraceObject, response);
         return response;
       }
 
-      Logger.traceSuccess(baseTraceObject, JSON.stringify(response));
+      Logger.traceSuccess(
+        baseTraceObject,
+        stringifyRedacted(response)
+      );
       return response;
     };
   }
 
-  private static flushTraces() {
-    if (Logger.getInstance()._traces.length === 0) {
-      return;
-    }
-
-    // reportTrace
-    const req = buildGatorRequest(
-      'reportTrace',
-      { proxy_traces: [...Logger.getInstance()._traces] },
-      ''
-    );
-    sendGatorRequest(req).then((_resp) => {
-      Logger.getInstance()._traces = [];
-    });
-
-    // reportEvent
-    const eventRequest = buildGatorRequest(
-      'reportEvent',
-      {
-        proxy_events: Logger.getEventPayload(),
-      },
-      ''
-    );
-    sendGatorRequest(eventRequest).then((_resp) => {
-      Logger.getInstance()._traces = [];
-    });
-  }
-
-  private static getEventPayload() {
-    return Logger.getInstance()._traces.map((trace) => ({
+  private static makeProxyEventFromTrace(trace: Trace): ProxyEvent {
+    return {
       origin_role: 'pos-rn',
       origin_id: Logger.posId,
       event: {
@@ -214,7 +165,7 @@ export default class Logger {
         event: trace?.trace?.method,
         result: trace?.trace?.exception ? 'ERROR' : 'OK',
       },
-    }));
+    };
   }
 
   private static tracePromise(
@@ -224,12 +175,12 @@ export default class Logger {
     const clonedTraceBase = { ...baseTraceObject };
     response
       .then((resp) => {
-        if ('error' in resp && resp.error) {
+        if (resp?.error) {
           Logger.traceError(clonedTraceBase, resp);
           return;
         }
 
-        const responseString = JSON.stringify(resp);
+        const responseString = stringifyRedacted(resp);
         Logger.traceSuccess(clonedTraceBase, responseString);
       })
       .catch((e) => {
@@ -243,10 +194,13 @@ export default class Logger {
       trace: {
         ...baseTraceObject.trace,
         response,
+        total_time_ms: Date.now() - baseTraceObject.trace.start_time_ms,
       },
     };
-
-    Logger.getInstance()._traces.push(trace);
+    Logger.getInstance()._collector.pushTrace(trace);
+    Logger.getInstance()._collector.pushProxyEvent(
+      Logger.makeProxyEventFromTrace(trace)
+    );
   }
 
   private static traceError(
@@ -257,11 +211,15 @@ export default class Logger {
       ...baseTraceObject,
       trace: {
         ...baseTraceObject.trace,
-        exception: JSON.stringify(response.error),
-        response: JSON.stringify(response),
+        exception: stringifyRedacted(response.error),
+        response: stringifyRedacted(response),
+        total_time_ms: Date.now() - baseTraceObject.trace.start_time_ms,
       },
     };
-    Logger.getInstance()._traces.push(trace);
+    Logger.getInstance()._collector.pushTrace(trace);
+    Logger.getInstance()._collector.pushProxyEvent(
+      Logger.makeProxyEventFromTrace(trace)
+    );
   }
 
   private static traceException(
@@ -274,9 +232,13 @@ export default class Logger {
         ...baseTraceObject.trace,
         exception: exception.message,
         status_code: exception.cause,
-        response: JSON.stringify(exception),
+        response: stringifyRedacted(exception),
+        total_time_ms: Date.now() - baseTraceObject.trace.start_time_ms,
       },
     };
-    Logger.getInstance()._traces.push(trace);
+    Logger.getInstance()._collector.pushTrace(trace);
+    Logger.getInstance()._collector.pushProxyEvent(
+      Logger.makeProxyEventFromTrace(trace)
+    );
   }
 }

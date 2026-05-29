@@ -4,10 +4,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "preandroid": "cd .. && yarn lint:android:null-check",
     "android": "react-native run-android",
+    "android:release": "react-native run-android --mode=release",
     "android:all": "concurrently \"yarn start\" \"yarn android\"",
     "bootstrap": "cd .. && yarn bootstrap",
+    "preios": "cd .. && yarn lint:swift",
     "ios": "react-native run-ios",
+    "ios:release": "react-native run-ios --mode Release",
     "ios:all": "concurrently \"yarn start\" \"yarn ios\"",
     "postinstall": "scripts/fixRN.sh",
     "start": "react-native start"

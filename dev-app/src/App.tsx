@@ -42,9 +42,13 @@ import CollectDataScreen from './screens/CollectDataScreen';
 import CollectInputsScreen from './screens/CollectInputsScreen';
 import PaymentMethodSelectScreen from './screens/PaymentMethodSelectScreen';
 import PrintContentScreen from './screens/PrintContentScreen';
+import TestReaderUpdateScreen from './screens/TestReaderUpdateScreen';
+import type { TestReaderUpdateTypeName } from './screens/TestReaderUpdateScreen';
 import {
   type Reader,
   type Location,
+  type UpdateComponent,
+  type AppTransitionAnimation,
   useStripeTerminal,
   requestNeededAndroidPermissions,
   type DiscoveryFilter,
@@ -79,12 +83,14 @@ export type RouteParamList = {
     discoveryTimeout: number;
     discoveryFilter: DiscoveryFilter;
     setPendingUpdateInfo: (update: Reader.SoftwareUpdate | null) => void;
+    appTransitionAnimation?: AppTransitionAnimation;
   };
   EasyConnectScreen: {
     simulated: boolean;
     discoveryMethod: Reader.DiscoveryMethod;
     discoveryTimeout: number;
     discoveryFilter: DiscoveryFilter;
+    appTransitionAnimation?: AppTransitionAnimation;
   };
   MerchantSelectScreen: {
     onSelectMerchant?: ({
@@ -112,6 +118,12 @@ export type RouteParamList = {
   };
   CollectInputsScreen: {
     simulated: boolean;
+    discoveryMethod: Reader.DiscoveryMethod;
+  };
+  TestReaderUpdateScreen: {
+    onSelect: (type: TestReaderUpdateTypeName, components: UpdateComponent[]) => void;
+    currentType: TestReaderUpdateTypeName;
+    currentComponents: UpdateComponent[];
     discoveryMethod: Reader.DiscoveryMethod;
   };
   LogListScreen: {};
@@ -385,6 +397,21 @@ export default function App() {
                 headerTitle: 'Print Content',
               }}
               component={PrintContentScreen}
+            />
+            <Stack.Screen
+              name="TestReaderUpdateScreen"
+              options={({ navigation }: { navigation: any }) => ({
+                headerTitle: 'Test Reader Update',
+                headerLeft: (props: any) => (
+                  <HeaderBackButton
+                    {...props}
+                    testID="test-reader-update-back"
+                    accessibilityLabel="test-reader-update-back"
+                    onPress={() => navigation.goBack()}
+                  />
+                ),
+              })}
+              component={TestReaderUpdateScreen}
             />
             <Stack.Screen
               name="LogListScreen"

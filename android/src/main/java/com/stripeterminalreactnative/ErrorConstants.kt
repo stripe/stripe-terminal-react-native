@@ -33,6 +33,13 @@ internal object ErrorConstants {
     const val API_ERROR_DOC_URL_KEY = "docUrl"
     const val API_ERROR_PARAM_KEY = "param"
     const val API_ERROR_TYPE_KEY = "type"
+    const val API_ERROR_REQUEST_LOG_URL_KEY = "requestLogUrl"
+    const val API_ERROR_ADVICE_CODE_KEY = "adviceCode"
+    const val API_ERROR_NETWORK_ADVICE_CODE_KEY = "networkAdviceCode"
+    const val API_ERROR_NETWORK_DECLINE_CODE_KEY = "networkDeclineCode"
+    // SetupError-only fields (Android SetupAttempt.setupError)
+    const val API_ERROR_PAYMENT_METHOD_KEY = "paymentMethod"
+    const val API_ERROR_PAYMENT_METHOD_TYPE_KEY = "paymentMethodType"
 
     // UnderlyingError keys
     const val UNDERLYING_ERROR_CODE_KEY = "code"

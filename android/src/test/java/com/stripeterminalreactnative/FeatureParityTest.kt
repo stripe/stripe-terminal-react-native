@@ -11,14 +11,15 @@ class FeatureParityTest {
     private val ignoreList = listOf(
         "setSimulatorConfiguration",
         "getSimulatorConfiguration",
+        "setSimulatedOfflineModeConfiguration", // new in 5.5.0, pending RN implementation
+        "getSimulatedOfflineModeConfiguration", // new in 5.5.0, pending RN implementation
         "setTerminalListener",
         "setOfflineListener",
         "isInitialized",
         "getInstance",
         "connectExternalChannel",
-        "easyConnect", // wait ios implementation
-        "scanBarcode", // TODO: implement barcode scanning support
-        "discoverScanners", // TODO: implement barcode scanner discovery
+        "scanBarcode", // new in 5.4.0, pending RN implementation
+        "discoverScanners", // new in 5.4.0, pending RN implementation
         "confirmRefund", // been deprecated
         "collectRefundPaymentMethod", // been deprecated
     )

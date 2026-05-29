@@ -1,0 +1,20 @@
+# SwiftLint configuration for stripe-terminal-react-native iOS module
+# Focused on project-specific conventions only
+
+included:
+  - .
+
+excluded:
+  - Tests
+
+# Only enable custom_rules - disable all other default rules
+only_rules:
+  - custom_rules
+
+# Custom rules to enforce project conventions
+custom_rules:
+  no_nsnull_fallback:
+    name: "No NSNull Fallback"
+    regex: '\?\?\s*NSNull\(\)'
+    message: "Assign optional directly to dictionary to omit key when nil (aligns with Android behavior)"
+    severity: warning

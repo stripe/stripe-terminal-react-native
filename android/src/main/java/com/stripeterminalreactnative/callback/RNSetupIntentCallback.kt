@@ -11,7 +11,8 @@ import com.stripeterminalreactnative.nativeMapOf
 class RNSetupIntentCallback(
     private val promise: Promise,
     private val uuid: String,
-    private val onSetupIntentSuccess: (SetupIntent) -> Unit = {}
+    private val onSetupIntentSuccess: (SetupIntent) -> Unit = {},
+    private val onSetupIntentFailure: (SetupIntent) -> Unit = {},
 ) : SetupIntentCallback {
 
     override fun onSuccess(setupIntent: SetupIntent) {
@@ -24,6 +25,7 @@ class RNSetupIntentCallback(
     }
 
     override fun onFailure(e: TerminalException) {
+        e.setupIntent?.let { onSetupIntentFailure(it) }
         promise.resolve(createError(e, uuid))
     }
 }

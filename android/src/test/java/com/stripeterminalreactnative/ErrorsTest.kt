@@ -4,6 +4,8 @@ import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.stripeterminal.external.api.ApiError
+import com.stripe.stripeterminal.external.models.SetupError
+import com.stripe.stripeterminal.external.models.SetupErrorType
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.TestConstants.API_ERROR_KEY
@@ -55,6 +57,7 @@ class ErrorsTest {
         every { this@mockk.cause } returns cause
         every { paymentIntent } returns null
         every { setupIntent } returns null
+        every { refund } returns null
     }
 
     @Test
@@ -79,6 +82,10 @@ class ErrorsTest {
             every { charge } returns "ch_123"
             every { docUrl } returns "https://stripe.com/docs/error"
             every { param } returns "amount"
+            every { requestLogUrl } returns null
+            every { adviceCode } returns null
+            every { networkAdviceCode } returns null
+            every { networkDeclineCode } returns null
         }
         val cause = IllegalStateException("cause message")
         val terminalException = mockTerminalException(
@@ -543,6 +550,10 @@ class ErrorsTest {
             every { charge } returns "ch_123"
             every { docUrl } returns "https://stripe.com/docs/error-codes/card-declined"
             every { param } returns "card_number"
+            every { requestLogUrl } returns "https://dashboard.stripe.com/logs/req_123"
+            every { adviceCode } returns "01"
+            every { networkAdviceCode } returns "Z1"
+            every { networkDeclineCode } returns "05"
         }
 
         // WHEN mapping
@@ -556,6 +567,10 @@ class ErrorsTest {
         assertEquals("ch_123", result.getString("charge"))
         assertEquals("https://stripe.com/docs/error-codes/card-declined", result.getString("docUrl"))
         assertEquals("card_number", result.getString("param"))
+        assertEquals("https://dashboard.stripe.com/logs/req_123", result.getString("requestLogUrl"))
+        assertEquals("01", result.getString("adviceCode"))
+        assertEquals("Z1", result.getString("networkAdviceCode"))
+        assertEquals("05", result.getString("networkDeclineCode"))
     }
 
     @Test
@@ -569,6 +584,10 @@ class ErrorsTest {
             every { charge } returns null
             every { docUrl } returns null
             every { param } returns null
+            every { requestLogUrl } returns null
+            every { adviceCode } returns null
+            every { networkAdviceCode } returns null
+            every { networkDeclineCode } returns null
         }
 
         // WHEN mapping
@@ -591,6 +610,10 @@ class ErrorsTest {
             every { charge } returns null
             every { docUrl } returns null
             every { param } returns null
+            every { requestLogUrl } returns null
+            every { adviceCode } returns null
+            every { networkAdviceCode } returns null
+            every { networkDeclineCode } returns null
         }
 
         // WHEN mapping
@@ -601,6 +624,10 @@ class ErrorsTest {
         assertFalse(result.hasKey("charge"), "charge should not be present when null")
         assertFalse(result.hasKey("docUrl"), "docUrl should not be present when null")
         assertFalse(result.hasKey("param"), "param should not be present when null")
+        assertFalse(result.hasKey("requestLogUrl"), "requestLogUrl should not be present when null")
+        assertFalse(result.hasKey("adviceCode"), "adviceCode should not be present when null")
+        assertFalse(result.hasKey("networkAdviceCode"), "networkAdviceCode should not be present when null")
+        assertFalse(result.hasKey("networkDeclineCode"), "networkDeclineCode should not be present when null")
 
         // AND required fields should be present
         assertTrue(result.hasKey("code"))
@@ -619,6 +646,10 @@ class ErrorsTest {
             every { charge } returns null
             every { docUrl } returns null
             every { param } returns null
+            every { requestLogUrl } returns null
+            every { adviceCode } returns null
+            every { networkAdviceCode } returns null
+            every { networkDeclineCode } returns null
         }
         val terminalException = mockTerminalException(
             TerminalErrorCode.STRIPE_API_ERROR,
@@ -638,6 +669,81 @@ class ErrorsTest {
         assertEquals(apiErrorDirect.getString("code"), apiErrorFromCreateError.getString("code"))
         assertEquals(apiErrorDirect.getString("message"), apiErrorFromCreateError.getString("message"))
         assertEquals(apiErrorDirect.getString("declineCode"), apiErrorFromCreateError.getString("declineCode"))
+    }
+
+    // ==================== mapFromSetupError Tests ====================
+
+    @Test
+    fun `mapFromSetupError returns null when setupError is null`() {
+        val setupError: SetupError? = null
+        val result = mapFromSetupError(setupError)
+        assertNull(result)
+    }
+
+    @Test
+    fun `mapFromSetupError maps all fields correctly when present`() {
+        val mockType = mockk<SetupErrorType>(relaxed = true)
+        every { mockType.toString() } returns "invalid_request_error"
+
+        val setupError = mockk<SetupError> {
+            every { code } returns "setup_intent_authentication_failure"
+            every { message } returns "Setup authentication failed."
+            every { declineCode } returns "generic_decline"
+            every { type } returns mockType
+            every { docUrl } returns "https://stripe.com/docs/error-codes"
+            every { param } returns "payment_method"
+            every { adviceCode } returns "01"
+            every { networkAdviceCode } returns "Z1"
+            every { networkDeclineCode } returns "05"
+            every { paymentMethod } returns mockPaymentMethod()
+            every { paymentMethodType } returns "card_present"
+        }
+
+        val result = mapFromSetupError(setupError) as JavaOnlyMap
+
+        assertEquals("setup_intent_authentication_failure", result.getString("code"))
+        assertEquals("Setup authentication failed.", result.getString("message"))
+        assertEquals("generic_decline", result.getString("declineCode"))
+        assertEquals("invalid_request_error", result.getString("type"))
+        assertEquals("https://stripe.com/docs/error-codes", result.getString("docUrl"))
+        assertEquals("payment_method", result.getString("param"))
+        assertEquals("01", result.getString("adviceCode"))
+        assertEquals("Z1", result.getString("networkAdviceCode"))
+        assertEquals("05", result.getString("networkDeclineCode"))
+        assertTrue(result.hasKey("paymentMethod"))
+        assertEquals("card_present", result.getString("paymentMethodType"))
+    }
+
+    @Test
+    fun `mapFromSetupError omits optional fields when null`() {
+        val setupError = mockk<SetupError> {
+            every { code } returns "some_error"
+            every { message } returns "Error message"
+            every { declineCode } returns "decline"
+            every { type } returns SetupErrorType.INVALID_REQUEST_ERROR
+            every { docUrl } returns null
+            every { param } returns null
+            every { adviceCode } returns null
+            every { networkAdviceCode } returns null
+            every { networkDeclineCode } returns null
+            every { paymentMethod } returns null
+            every { paymentMethodType } returns null
+        }
+
+        val result = mapFromSetupError(setupError) as JavaOnlyMap
+
+        assertFalse(result.hasKey("docUrl"), "docUrl should not be present when null")
+        assertFalse(result.hasKey("param"), "param should not be present when null")
+        assertFalse(result.hasKey("adviceCode"), "adviceCode should not be present when null")
+        assertFalse(result.hasKey("networkAdviceCode"), "networkAdviceCode should not be present when null")
+        assertFalse(result.hasKey("networkDeclineCode"), "networkDeclineCode should not be present when null")
+        assertFalse(result.hasKey("paymentMethod"), "paymentMethod should not be present when null")
+        assertFalse(result.hasKey("paymentMethodType"), "paymentMethodType should not be present when null")
+
+        assertTrue(result.hasKey("code"))
+        assertTrue(result.hasKey("message"))
+        assertTrue(result.hasKey("declineCode"))
+        assertTrue(result.hasKey("type"))
     }
 
     companion object {

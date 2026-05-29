@@ -46,9 +46,9 @@ enum class DeviceSerialName(val serialName: String) {
     WISEPOS_E("wisePosE"),
     WISEPOS_E_DEVKIT("wisePosEDevkit"),
     TAP_TO_PAY_DEVICE("tapToPay"),
-    VERIFONE_V660P("verifoneV660P"),
-    VERIFONE_V660P_DEVKIT("verifoneV660PDevkit"),
-    VERIFONE_V660PA("verifoneV660PA"),
+    VERIFONE_V660P("verifoneV660p"),
+    VERIFONE_V660P_DEVKIT("verifoneV660pDevkit"),
+    VERIFONE_V660PA("verifoneV660pA"),
     VERIFONE_M425("verifoneM425"),
     VERIFONE_M450("verifoneM450"),
     VERIFONE_P630("verifoneP630"),
@@ -64,7 +64,7 @@ enum class DeviceSerialName(val serialName: String) {
     companion object {
         private val serialNames = DeviceSerialName.entries.associateBy(DeviceSerialName::serialName)
 
-        fun fromSerialName(serialName: String): DeviceSerialName? = serialNames[serialName]
+        fun fromSerialName(serialName: String): DeviceSerialName = serialNames[serialName] ?: UNKNOWN
     }
 }
 

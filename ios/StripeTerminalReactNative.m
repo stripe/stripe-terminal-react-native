@@ -163,12 +163,6 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  simulateReaderUpdate:(NSString *)update
-                  resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
-                  )
-
-RCT_EXTERN_METHOD(
                   setSimulatedCard:(NSString *)cardNumber
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject

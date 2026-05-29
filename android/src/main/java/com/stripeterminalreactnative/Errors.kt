@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.stripe.stripeterminal.external.api.ApiError
+import com.stripe.stripeterminal.external.models.SetupError
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 
@@ -105,9 +106,6 @@ private fun WritableMap.putNonStripeErrorContents(throwable: Throwable?) {
  * Example: A payment may be declined (error), but the PaymentIntent was still created
  * and needs to be returned so the caller can retry or cancel it.
  *
- * Note: Android TerminalException does not have a refund property yet.
- * Future: refund will be added to TerminalException in upcoming SDK versions.
- *
  * @param throwable The throwable that may contain response objects
  * @param uuid Optional UUID to associate with response objects
  */
@@ -119,22 +117,21 @@ private fun WritableMap.addResponseObjects(throwable: Throwable, uuid: String?) 
         throwable.setupIntent?.let {
             putMap(ErrorConstants.SETUP_INTENT_KEY, mapFromSetupIntent(it, uuid ?: ""))
         }
-        // TODO: Add refund support when available in Android Terminal SDK
-        // throwable.refund?.let {
-        //     putMap(ErrorConstants.REFUND_KEY, mapFromRefund(it))
-        // }
+        throwable.refund?.let {
+            putMap(ErrorConstants.REFUND_KEY, mapFromRefund(it))
+        }
     }
 }
 
 /**
  * Maps an ApiError to a ReadableMap.
  *
- * Used for both error handling (TerminalException.apiError) and PaymentIntent.lastPaymentError.
- * Field handling matches ErrorConstants and TypeScript ApiErrorInformation interface:
- * - code: Required field, fallback to "unknown_api_error_code" if null
- * - message: Required field (non-null String in SDK)
- * - declineCode: Required field, fallback to empty string if null
- * - type, charge, docUrl, param: Optional fields, omitted if null
+ * Used for TerminalException.apiError, PaymentIntent.lastPaymentError,
+ * and SetupIntent.lastSetupError.
+ *
+ * Field handling:
+ * - code, message, declineCode: Required fields (with fallbacks if null)
+ * - type, charge, docUrl, param, requestLogUrl, adviceCode, networkAdviceCode, networkDeclineCode: Optional, omitted if null
  *
  * @param apiError The ApiError to map, or null if not available
  * @return ReadableMap containing the ApiError structure, or null if apiError is null
@@ -148,6 +145,41 @@ internal fun mapFromApiError(apiError: ApiError?): ReadableMap? = apiError?.let 
         apiErr.charge?.let { putString(ErrorConstants.API_ERROR_CHARGE_KEY, it) }
         apiErr.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
         apiErr.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
+        apiErr.requestLogUrl?.let { putString(ErrorConstants.API_ERROR_REQUEST_LOG_URL_KEY, it) }
+        apiErr.adviceCode?.let { putString(ErrorConstants.API_ERROR_ADVICE_CODE_KEY, it) }
+        apiErr.networkAdviceCode?.let { putString(ErrorConstants.API_ERROR_NETWORK_ADVICE_CODE_KEY, it) }
+        apiErr.networkDeclineCode?.let { putString(ErrorConstants.API_ERROR_NETWORK_DECLINE_CODE_KEY, it) }
+    }
+}
+
+/**
+ * Maps a SetupError to a ReadableMap.
+ *
+ * Used for SetupAttempt.setupError. SetupError is a distinct type from ApiError:
+ * - Shares: code, message, declineCode, docUrl, param, adviceCode, networkAdviceCode, networkDeclineCode
+ * - SetupError-only: paymentMethod, paymentMethodType
+ * - Not present (unlike ApiError): charge, requestLogUrl
+ * - type is non-null (SetupErrorType), always emitted
+ *
+ * Both mapFromApiError and mapFromSetupError map to the same TypeScript
+ * ApiErrorInformation interface on the RN side.
+ *
+ * @param setupError The SetupError to map, or null if not available
+ * @return ReadableMap containing the error structure, or null if setupError is null
+ */
+internal fun mapFromSetupError(setupError: SetupError?): ReadableMap? = setupError?.let { err ->
+    nativeMapOf {
+        putString(ErrorConstants.API_ERROR_CODE_KEY, err.code ?: ErrorConstants.API_ERROR_UNKNOWN_CODE)
+        putString(ErrorConstants.API_ERROR_MESSAGE_KEY, err.message)
+        putString(ErrorConstants.API_ERROR_DECLINE_CODE_KEY, err.declineCode ?: ErrorConstants.API_ERROR_REQUIRED_FIELD_EMPTY)
+        putString(ErrorConstants.API_ERROR_TYPE_KEY, err.type.toString())
+        err.docUrl?.let { putString(ErrorConstants.API_ERROR_DOC_URL_KEY, it) }
+        err.param?.let { putString(ErrorConstants.API_ERROR_PARAM_KEY, it) }
+        err.adviceCode?.let { putString(ErrorConstants.API_ERROR_ADVICE_CODE_KEY, it) }
+        err.networkAdviceCode?.let { putString(ErrorConstants.API_ERROR_NETWORK_ADVICE_CODE_KEY, it) }
+        err.networkDeclineCode?.let { putString(ErrorConstants.API_ERROR_NETWORK_DECLINE_CODE_KEY, it) }
+        err.paymentMethod?.let { putMap(ErrorConstants.API_ERROR_PAYMENT_METHOD_KEY, mapFromPaymentMethod(it)) }
+        err.paymentMethodType?.let { putString(ErrorConstants.API_ERROR_PAYMENT_METHOD_TYPE_KEY, it) }
     }
 }
 
@@ -386,6 +418,7 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     TerminalErrorCode.OFFLINE_TRANSACTION_DECLINED -> "OFFLINE_TRANSACTION_DECLINED"
     TerminalErrorCode.OFFLINE_COLLECT_AND_CONFIRM_MISMATCH -> "OFFLINE_COLLECT_AND_CONFIRM_MISMATCH"
     TerminalErrorCode.OFFLINE_TESTMODE_PAYMENT_IN_LIVEMODE -> "OFFLINE_TESTMODE_PAYMENT_IN_LIVEMODE"
+    TerminalErrorCode.SIMULATED_OFFLINE_MODE_NOT_AVAILABLE_IN_LIVEMODE -> "SIMULATED_OFFLINE_MODE_NOT_AVAILABLE_IN_LIVEMODE"
     TerminalErrorCode.OFFLINE_LIVEMODE_PAYMENT_IN_TESTMODE -> "OFFLINE_LIVEMODE_PAYMENT_IN_TESTMODE"
     TerminalErrorCode.OFFLINE_PAYMENT_INTENT_NOT_FOUND -> "OFFLINE_PAYMENT_INTENT_NOT_FOUND"
     TerminalErrorCode.MISSING_EMV_DATA -> "MISSING_EMV_DATA"

@@ -10,6 +10,7 @@ import { LogContext } from '../components/LogContext';
 import { AppContext } from '../AppContext';
 import type { RouteParamList } from '../App';
 import { formatAmountForDisplay } from '../util/currencyUtils';
+import { extractFullErrorMetadata } from '../util/errorUtils';
 
 export default function RefundPaymentScreen() {
   const { lastSuccessfulChargeId } = useContext(AppContext);
@@ -30,6 +31,7 @@ export default function RefundPaymentScreen() {
     reverseTransfer: false,
     enableCustomerCancellation: false,
   });
+  const customerCancellation = inputValues.enableCustomerCancellation ? 'enableIfAvailable' : 'disableIfAvailable';
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'RefundPaymentScreen'>>();
   const [testCardNumber, setTestCardNumber] = useState('4506445006931933');
@@ -38,26 +40,25 @@ export default function RefundPaymentScreen() {
   const { addLogs, clearLogs } = useContext(LogContext);
 
   const {
-    collectRefundPaymentMethod,
-    cancelCollectRefundPaymentMethod,
-    confirmRefund,
+    processRefund,
+    cancelProcessRefund,
     setSimulatedCard,
   } = useStripeTerminal({
     onDidRequestReaderInput: (input) => {
       addLogs({
-        name: 'Collect Refund Payment Method',
+        name: 'Process Refund',
         events: [
           {
             name: input.join(' / '),
             description: 'terminal.didRequestReaderInput',
-            onBack: cancelCollectRefundPaymentMethod,
+            onBack: cancelProcessRefund,
           },
         ],
       });
     },
     onDidRequestReaderDisplayMessage: (message) => {
       addLogs({
-        name: 'Collect Refund Payment Method',
+        name: 'Process Refund',
         events: [
           {
             name: message,
@@ -69,7 +70,7 @@ export default function RefundPaymentScreen() {
     },
   });
 
-  const _collectRefundPaymentMethod = async () => {
+  const _processRefund = async () => {
     clearLogs();
 
     if (simulated) {
@@ -78,94 +79,54 @@ export default function RefundPaymentScreen() {
 
     navigation.navigate('LogListScreen', {});
     addLogs({
-      name: 'Collect Refund Payment Method',
-      events: [
-        {
-          name: 'Collect',
-          description: 'terminal.collectRefundPaymentMethod',
-          metadata: _refundMetadata,
-          onBack: cancelCollectRefundPaymentMethod,
-        },
-      ],
-    });
-    const { error } = await collectRefundPaymentMethod({
-      ...inputValues,
-      amount: parseInt(inputValues.amount || '0', 10),
-    });
-
-    if (error) {
-      addLogs({
-        name: 'Collect Refund Payment Method',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.collectRefundPaymentMethod',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
-          },
-        ],
-      });
-    } else {
-      addLogs({
-        name: 'Collect Refund Payment Method',
-        events: [
-          {
-            name: 'Collected',
-            description: 'terminal.collectRefundPaymentMethod',
-            metadata: _refundMetadata,
-          },
-        ],
-      });
-      _confirmRefund();
-    }
-  };
-
-  const _confirmRefund = async () => {
-    addLogs({
-      name: 'Confirm Refund',
+      name: 'Process Refund',
       events: [
         {
           name: 'Processing',
-          description: 'terminal.confirmRefund',
+          description: 'terminal.processRefund',
           metadata: _refundMetadata,
+          onBack: cancelProcessRefund,
         },
       ],
     });
-    const { error, refund } = await confirmRefund();
+    const { refund, error } = await processRefund({
+      chargeId: inputValues.chargeId,
+      amount: parseInt(inputValues.amount || '0', 10),
+      currency: inputValues.currency,
+      refundApplicationFee: inputValues.refundApplicationFee,
+      reverseTransfer: inputValues.reverseTransfer,
+      customerCancellation,
+    });
+
     if (error) {
       addLogs({
-        name: 'Confirm Refund',
+        name: 'Process Refund',
         events: [
           {
             name: 'Failed',
-            description: 'terminal.confirmRefund',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            description: 'terminal.processRefund',
+            metadata: extractFullErrorMetadata(error),
           },
         ],
       });
     } else if (refund && refund.status === 'succeeded') {
       addLogs({
-        name: 'Confirm Refund',
+        name: 'Process Refund',
         events: [
           {
             name: 'Succeeded',
-            description: 'terminal.confirmRefund',
+            description: 'terminal.processRefund',
             metadata: _refundMetadata,
           },
         ],
       });
     } else {
       addLogs({
-        name: 'Confirm Refund',
+        name: 'Process Refund',
         events: [
           {
             name: 'Pending or unsuccessful',
-            description: 'terminal.confirmRefund',
+            description: 'terminal.processRefund',
             metadata: _refundMetadata,
           },
         ],
@@ -299,7 +260,7 @@ export default function RefundPaymentScreen() {
           color={colors.blue}
           testID="collect-refund-button"
           title="Collect refund"
-          onPress={_collectRefundPaymentMethod}
+          onPress={_processRefund}
         />
 
         <Text style={styles.info}>

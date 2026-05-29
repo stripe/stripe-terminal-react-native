@@ -10,6 +10,7 @@ import {
   TextInput,
   Switch,
   Alert,
+  NativeModules,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
@@ -26,6 +27,8 @@ import {
 import {
   type OfflineStatus,
   type Reader,
+  type AppTransitionAnimation,
+  AppTransitionPreset,
   useStripeTerminal,
   getSdkVersion,
 } from '@stripe/stripe-terminal-react-native';
@@ -59,6 +62,9 @@ export default function HomeScreen() {
   const [discoveryFilterType, setDiscoveryFilterType] =
     useState<string>('none');
   const [discoveryFilterValue, setDiscoveryFilterValue] = useState<string>('');
+  const [aodAnimationType, setAodAnimationType] = useState<
+    'systemDefault' | 'preset' | 'custom'
+  >('systemDefault');
   const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
 
   const {
@@ -152,7 +158,11 @@ export default function HomeScreen() {
         },
       ]);
     },
+    onDidReportAvailableUpdate(update) {
+      setPendingUpdate(update);
+    },
   });
+
   useEffect(() => {
     const getVersion = async () => {
       const version = await getNativeSdkVersion();
@@ -207,6 +217,21 @@ export default function HomeScreen() {
     return {};
   };
 
+  const getAodAnimation = (): AppTransitionAnimation => {
+    if (aodAnimationType === 'preset') {
+      return { type: 'preset', preset: AppTransitionPreset.SlideFromBottom };
+    }
+    if (aodAnimationType === 'custom') {
+      const enterAnim = NativeModules.DevAppConstants?.readerEnterScaleUpAnimId;
+      const exitAnim = NativeModules.DevAppConstants?.readerExitFadeOutAnimId;
+      if (enterAnim != null && exitAnim != null) {
+        return { type: 'custom', enterAnim, exitAnim };
+      }
+      return { type: 'systemDefault' };
+    }
+    return { type: 'systemDefault' };
+  };
+
   const renderConnectedContent = (
     <>
       <List title="READER CONNECTION">
@@ -257,6 +282,7 @@ export default function HomeScreen() {
           }}
         />
         <ListItem
+          testID="update-reader-software-button"
           title="Update reader software"
           visible={pendingUpdate != null}
           onPress={() => {
@@ -398,6 +424,10 @@ export default function HomeScreen() {
                     ) => {
                       setPendingUpdate(update);
                     },
+                    appTransitionAnimation:
+                      discoveryMethod === 'appsOnDevices'
+                        ? getAodAnimation()
+                        : undefined,
                   });
                 }}
               />
@@ -430,6 +460,10 @@ export default function HomeScreen() {
                     discoveryMethod,
                     discoveryTimeout: timeout,
                     discoveryFilter: discoveryFilter,
+                    appTransitionAnimation:
+                      discoveryMethod === 'appsOnDevices'
+                        ? getAodAnimation()
+                        : undefined,
                   });
                 }}
               />
@@ -472,6 +506,26 @@ export default function HomeScreen() {
                 }
               />
             </List>
+
+            {Platform.OS === 'android' && discoveryMethod === 'appsOnDevices' && (
+              <List topSpacing={false} title="APP TRANSITION">
+                <Picker
+                  selectedValue={aodAnimationType}
+                  style={styles.picker}
+                  itemStyle={styles.pickerItem}
+                  onValueChange={(value) => setAodAnimationType(value)}
+                >
+                  <Picker.Item label="System Default" value="systemDefault" />
+                  <Picker.Item label="Preset: Slide From Bottom" value="preset" />
+                  <Picker.Item label="Custom: Scale Up" value="custom" />
+                </Picker>
+                {aodAnimationType === 'custom' ? (
+                  <Text style={styles.infoText}>
+                    Reader app scales up from the center of the screen on enter, fades out on exit.
+                  </Text>
+                ) : <></>}
+              </List>
+            )}
 
             <List
               topSpacing={false}

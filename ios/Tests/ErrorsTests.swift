@@ -1109,13 +1109,13 @@ final class ErrorsTests: XCTestCase {
             return XCTFail("Expected metadata")
         }
 
-        XCTAssertEqual(metadata[ErrorConstants.deviceBannedUntilDateKey] as? String, "2025-12-31T23:59:59Z")
-        XCTAssertEqual(metadata[ErrorConstants.prepareFailedReasonKey] as? String, "Device setup failed")
-        XCTAssertEqual(metadata[ErrorConstants.httpStatusCodeKey] as? Int, 503)
-        XCTAssertEqual(metadata[ErrorConstants.readerMessageKey] as? String, "Insert card")
-        XCTAssertEqual(metadata[ErrorConstants.stripeAPIRequestIdKey] as? String, "req_123abc")
-        XCTAssertEqual(metadata[ErrorConstants.stripeAPIFailureReasonKey] as? String, "API rate limit exceeded")
-        XCTAssertEqual(metadata[ErrorConstants.offlineDeclineReasonKey] as? String, "Card expired")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataDeviceBannedUntilDate] as? String, "2025-12-31T23:59:59Z")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataPrepareFailedReason] as? String, "Device setup failed")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataHttpStatusCode] as? Int, 503)
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataReaderMessage] as? String, "Insert card")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataStripeAPIRequestId] as? String, "req_123abc")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataStripeAPIFailureReason] as? String, "API rate limit exceeded")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataOfflineDeclineReason] as? String, "Card expired")
     }
 
     func testAddPlatformMetadata_withPartialFields() {
@@ -1138,14 +1138,14 @@ final class ErrorsTests: XCTestCase {
             return XCTFail("Expected metadata")
         }
 
-        XCTAssertEqual(metadata[ErrorConstants.httpStatusCodeKey] as? Int, 404)
-        XCTAssertEqual(metadata[ErrorConstants.stripeAPIRequestIdKey] as? String, "req_xyz789")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataHttpStatusCode] as? Int, 404)
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataStripeAPIRequestId] as? String, "req_xyz789")
 
-        XCTAssertNil(metadata[ErrorConstants.deviceBannedUntilDateKey])
-        XCTAssertNil(metadata[ErrorConstants.prepareFailedReasonKey])
-        XCTAssertNil(metadata[ErrorConstants.readerMessageKey])
-        XCTAssertNil(metadata[ErrorConstants.stripeAPIFailureReasonKey])
-        XCTAssertNil(metadata[ErrorConstants.offlineDeclineReasonKey])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataDeviceBannedUntilDate])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataPrepareFailedReason])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataReaderMessage])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataStripeAPIFailureReason])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataOfflineDeclineReason])
     }
 
     func testAddPlatformMetadata_withNoSpecialFields() {
@@ -1165,13 +1165,13 @@ final class ErrorsTests: XCTestCase {
             return XCTFail("Expected metadata")
         }
 
-        XCTAssertNil(metadata[ErrorConstants.deviceBannedUntilDateKey])
-        XCTAssertNil(metadata[ErrorConstants.prepareFailedReasonKey])
-        XCTAssertNil(metadata[ErrorConstants.httpStatusCodeKey])
-        XCTAssertNil(metadata[ErrorConstants.readerMessageKey])
-        XCTAssertNil(metadata[ErrorConstants.stripeAPIRequestIdKey])
-        XCTAssertNil(metadata[ErrorConstants.stripeAPIFailureReasonKey])
-        XCTAssertNil(metadata[ErrorConstants.offlineDeclineReasonKey])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataDeviceBannedUntilDate])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataPrepareFailedReason])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataHttpStatusCode])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataReaderMessage])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataStripeAPIRequestId])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataStripeAPIFailureReason])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataOfflineDeclineReason])
 
         XCTAssertEqual(metadata.count, 0, "Metadata should be empty when no platform-specific fields are present")
     }
@@ -1194,10 +1194,8 @@ final class ErrorsTests: XCTestCase {
         XCTAssertFalse(ErrorConstants.readerMessage.isEmpty)
         XCTAssertFalse(ErrorConstants.offlineDeclineReason.isEmpty)
         XCTAssertFalse(ErrorConstants.stripeAPIDeclineCode.isEmpty)
-
-        // Verify that scpStripeAPICharge uses the hardcoded value
-        // (as it's not yet available in current SDK version)
-        XCTAssertEqual(ErrorConstants.stripeAPICharge, "com.stripe-terminal:StripeAPICharge")
+        XCTAssertFalse(ErrorConstants.stripeAPICharge.isEmpty)
+        XCTAssertFalse(ErrorConstants.stripeAPIError.isEmpty)
     }
 
     // MARK: - Error and PaymentIntent/SetupIntent Mutual Exclusivity Tests
@@ -1221,8 +1219,8 @@ final class ErrorsTests: XCTestCase {
         let result = Errors.createErrorFromNSError(nsError: generalError)
 
         // THEN result must have error but NOT paymentIntent
-        XCTAssertNotNil(result[ErrorConstants.errorKey])
-        XCTAssertNil(result[ErrorConstants.paymentIntentKey], "General error response must NOT contain 'paymentIntent'")
+        XCTAssertNotNil(result[ErrorConstants.rnError])
+        XCTAssertNil(result[ErrorConstants.rnPaymentIntent], "General error response must NOT contain 'paymentIntent'")
     }
 
     /// Tests that general error response does NOT contain SetupIntent.
@@ -1236,8 +1234,8 @@ final class ErrorsTests: XCTestCase {
         let result = Errors.createErrorFromNSError(nsError: generalError)
 
         // THEN result must have error but NOT setupIntent
-        XCTAssertNotNil(result[ErrorConstants.errorKey])
-        XCTAssertNil(result[ErrorConstants.setupIntentKey], "General error response must NOT contain 'setupIntent'")
+        XCTAssertNotNil(result[ErrorConstants.rnError])
+        XCTAssertNil(result[ErrorConstants.rnSetupIntent], "General error response must NOT contain 'setupIntent'")
     }
 
     // MARK: - mapFromApiError Tests

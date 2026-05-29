@@ -6,8 +6,9 @@ import {
 import React, { useCallback, useContext, useState } from 'react';
 import { StyleSheet, Switch, Platform } from 'react-native';
 import {
-  type SetupIntent,
   useStripeTerminal,
+  PaymentMethodType,
+  type SetupIntent,
   type StripeError,
   type AllowRedisplay,
   type CollectionReason,
@@ -229,7 +230,7 @@ export default function SetupIntentScreen() {
     if (motoConfiguration != undefined) {
       parameter = {
         customer: resp.id,
-        paymentMethodTypes: ['card'],
+        paymentMethodTypes: [PaymentMethodType.Card],
       };
     } else {
       parameter = {
@@ -356,7 +357,7 @@ export default function SetupIntentScreen() {
     if (motoConfiguration != undefined) {
       parameter = {
         customer: resp.id,
-        paymentMethodTypes: ['card'],
+        paymentMethodTypes: [PaymentMethodType.Card],
       };
     } else {
       parameter = {

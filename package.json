@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-terminal-react-native",
-  "version": "0.0.1-beta.30",
+  "version": "0.0.1-beta.31",
   "description": "Stripe Terminal React Native SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -11,6 +11,9 @@
     "test": "yarn unit-test:android && yarn unit-test:ios && yarn unit-test:js",
     "typescript": "tsc --noEmit",
     "lint": "jest --config \"jest.eslint.config.js\"",
+    "lint:swift": "cd ios && swiftlint",
+    "lint:android:null-check": "! grep -rn 'putNull' android/src/main/java/com/stripeterminalreactnative/ || (echo '❌ Found putNull usage - should omit key when null' && exit 1)",
+    "lint:native": "yarn lint:swift && yarn lint:android:null-check",
     "prettier": "prettier --write \"**/*.{ts,js,jsx,tsx}\"",
     "postinstall": "rm -rf node_modules/@types/minimatch  # Auto-runs after yarn/npm install",
     "prepare": "bob build",
@@ -31,6 +34,7 @@
     "e2e:test:ios": "detox test --configuration ios --take-screenshots failing --loglevel verbose",
     "e2e:build:android:release": "detox build --configuration android.emu.release",
     "e2e:build:ios:release": "detox build --configuration ios.sim.release",
+    "e2e:clean:customer": "node e2e/clean.js",
     "e2e:test:android:release": "maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml",
     "e2e:test:ios:release": "maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml",
     "get:testbutler": "curl -f -o ./test-butler-app.apk https://repo1.maven.org/maven2/com/linkedin/testbutler/test-butler-app/2.2.1/test-butler-app-2.2.1.apk",
@@ -38,7 +42,8 @@
     "unit-test:android": "cd android && ./gradlew testDebugUnitTest",
     "unit-test:ios": "xcodebuild test -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 16' -scheme UnitTests",
     "unit-test:js": "jest",
-    "check:rn-error-codes": "node scripts/check-rn-error-codes.js"
+    "check:rn-error-codes": "node scripts/check-rn-error-codes.js",
+    "check:rn-device-types": "node scripts/check-rn-device-types.js"
   },
   "keywords": [
     "react-native",
@@ -115,6 +120,9 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/dev-app/node_modules",
       "<rootDir>/lib/"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/example-app/"
     ],
     "moduleNameMapper": {
       "package.json$": "<rootDir>/package.json"

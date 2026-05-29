@@ -3,7 +3,7 @@
  *
  * Internal utilities for creating and converting StripeError objects.
  *
- * Security: Only `convertNativeErrorToStripeError` can set sensitive fields
+ * Security: Only `rehydrateBridgeError` can set sensitive fields
  * (paymentIntent, setupIntent, refund, apiError) from trusted native sources.
  *
  * @internal
@@ -21,23 +21,9 @@ function getStringOrFallback(value: unknown, fallback: string): string {
     : fallback;
 }
 
-/** Extracts userInfo from iOS native error objects */
-function extractUserInfo(
-  obj: Record<string, unknown>
-): Record<string, unknown> | undefined {
-  return obj.userInfo &&
-    typeof obj.userInfo === 'object' &&
-    obj.userInfo !== null
-    ? (obj.userInfo as Record<string, unknown>)
-    : undefined;
-}
-
-/** Extracts metadata from error object or userInfo */
-function extractMetadata(
-  obj: Record<string, unknown>,
-  userInfo?: Record<string, unknown>
-): Record<string, unknown> {
-  const rawMetadata = obj.metadata ?? userInfo?.metadata;
+/** Extracts metadata from error object */
+function extractMetadata(obj: Record<string, unknown>): Record<string, unknown> {
+  const rawMetadata = obj.metadata;
   return rawMetadata && typeof rawMetadata === 'object' && rawMetadata !== null
     ? (rawMetadata as Record<string, unknown>)
     : {};
@@ -52,6 +38,24 @@ function warnInvalidErrorCode(code: string): void {
     console.warn(
       `Invalid error code: ${code}. Consider using a valid ErrorCode enum value.`
     );
+  }
+}
+
+function preserveUnexpectedErrorInfo(
+  error: StripeError,
+  obj: Record<string, unknown>
+): void {
+  if (error.underlyingError) return;
+
+  const sourceCode = obj.code;
+  const hasRecognizedCode =
+    typeof sourceCode === 'string' && isValidErrorCode(sourceCode);
+
+  if (!hasRecognizedCode) {
+    error.underlyingError = {
+      code: obj.name ? String(obj.name) : error.code,
+      message: error.message,
+    };
   }
 }
 
@@ -78,7 +82,7 @@ export function checkIfObjectIsStripeError(e: unknown): e is StripeError {
  * Creates a StripeError for internal SDK use only.
  *
  * Security: Cannot set sensitive fields (paymentIntent, setupIntent, refund, etc).
- * Use `convertNativeErrorToStripeError` to populate those from native sources.
+ * Use `rehydrateBridgeError` to populate those from native bridge data.
  *
  * @internal
  */
@@ -116,14 +120,20 @@ export function createStripeError(
 }
 
 /**
- * Converts native platform errors to standardized StripeError format.
+ * Rehydrates a plain object from the React Native bridge into a proper
+ * StripeError instance (with Error.prototype in its prototype chain).
  *
- * Handles both iOS (userInfo) and Android (direct properties) error formats.
- * Only this function can populate sensitive fields from trusted native sources.
+ * The RN bridge serializes native errors (iOS NSDictionary / Android WritableMap)
+ * into plain JS objects, losing the Error prototype. This function reconstructs
+ * a real Error instance so that `error instanceof Error` returns true.
+ *
+ * Both iOS and Android produce a flat dictionary — no userInfo wrapper.
+ * Only this function can populate sensitive fields (paymentIntent, setupIntent, etc.)
+ * from bridge data.
  *
  * @internal
  */
-export function convertNativeErrorToStripeError(raw: unknown): StripeError {
+export function rehydrateBridgeError(raw: unknown): StripeError {
   if (!raw || typeof raw !== 'object') {
     return createStripeError({
       code: ErrorCode.UNEXPECTED_SDK_ERROR,
@@ -132,15 +142,11 @@ export function convertNativeErrorToStripeError(raw: unknown): StripeError {
   }
 
   const obj = raw as Record<string, unknown>;
-  const userInfo = extractUserInfo(obj);
 
-  const code = getStringOrFallback(
-    obj.code ?? userInfo?.code,
-    ErrorCode.UNEXPECTED_SDK_ERROR
-  );
-  const nativeErrorCode = getStringOrFallback(userInfo?.nativeErrorCode, code);
+  const code = getStringOrFallback(obj.code, ErrorCode.UNEXPECTED_SDK_ERROR);
+  const nativeErrorCode = getStringOrFallback(obj.nativeErrorCode, code);
   const message = getStringOrFallback(obj.message, code);
-  const metadata = extractMetadata(obj, userInfo);
+  const metadata = extractMetadata(obj);
 
   // Don't validate code - it may be from a newer SDK version not in our enum
   const error = createStripeError({
@@ -150,24 +156,23 @@ export function convertNativeErrorToStripeError(raw: unknown): StripeError {
     metadata,
   });
 
-  // Only native SDK errors can populate sensitive fields
-  if (userInfo?.paymentIntent) {
-    error.paymentIntent =
-      userInfo.paymentIntent as StripeError['paymentIntent'];
+  if (obj.paymentIntent) {
+    error.paymentIntent = obj.paymentIntent as StripeError['paymentIntent'];
   }
-  if (userInfo?.setupIntent) {
-    error.setupIntent = userInfo.setupIntent as StripeError['setupIntent'];
+  if (obj.setupIntent) {
+    error.setupIntent = obj.setupIntent as StripeError['setupIntent'];
   }
-  if (userInfo?.refund) {
-    error.refund = userInfo.refund as StripeError['refund'];
+  if (obj.refund) {
+    error.refund = obj.refund as StripeError['refund'];
   }
-  if (userInfo?.apiError) {
-    error.apiError = userInfo.apiError as StripeError['apiError'];
+  if (obj.apiError) {
+    error.apiError = obj.apiError as StripeError['apiError'];
   }
-  if (userInfo?.underlyingError) {
-    error.underlyingError =
-      userInfo.underlyingError as StripeError['underlyingError'];
+  if (obj.underlyingError) {
+    error.underlyingError = obj.underlyingError as StripeError['underlyingError'];
   }
+
+  preserveUnexpectedErrorInfo(error, obj);
 
   return error;
 }

@@ -2,19 +2,33 @@ package com.stripeterminalreactnative
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.facebook.react.bridge.JavaOnlyArray
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.stripe.stripeterminal.external.DonationApi
 import com.stripe.stripeterminal.external.models.AllowRedisplay
+import com.stripe.stripeterminal.external.models.AmountDetails
+import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
+import com.stripe.stripeterminal.external.models.MulticaptureStatus
 import com.stripe.stripeterminal.external.models.CollectSetupIntentConfiguration
+import com.stripe.stripeterminal.external.models.AppTransitionAnimation
+import com.stripe.stripeterminal.external.models.AppTransitionPreset
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration
+import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.CustomerCancellation
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryFilter
 import com.stripe.stripeterminal.external.models.EasyConnectConfiguration
+import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReauthorizationStatus
+import com.stripe.stripeterminal.external.models.SurchargeDetails
+import com.stripe.stripeterminal.external.models.SurchargeStatus
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
+import com.stripe.stripeterminal.external.models.TestReaderUpdate
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import io.mockk.every
@@ -23,6 +37,7 @@ import io.mockk.mockkStatic
 import io.mockk.verify
 import java.util.Base64
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
@@ -56,6 +71,60 @@ class MapperTest {
     }
 
     @Test
+    fun `test mapToPaymentMethodDetailsType accepts snake_case`() {
+        val paymentMethodTypes = mockk<ReadableArray>()
+        every { paymentMethodTypes.toArrayList() } returns arrayListOf("card_present", "interac_present", "wechat_pay")
+
+        val result = mapToPaymentMethodDetailsType(paymentMethodTypes)
+
+        assertTrue(
+            result.containsAll(
+                listOf(
+                    PaymentMethodType.CARD_PRESENT,
+                    PaymentMethodType.INTERAC_PRESENT,
+                    PaymentMethodType.WECHAT_PAY
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `test mapToPaymentMethodDetailsType includes interacPresent`() {
+        val paymentMethodTypes = mockk<ReadableArray>()
+        every { paymentMethodTypes.toArrayList() } returns arrayListOf("cardPresent", "interacPresent")
+
+        val result = mapToPaymentMethodDetailsType(paymentMethodTypes)
+
+        assertTrue(
+            result.containsAll(
+                listOf(
+                    PaymentMethodType.CARD_PRESENT,
+                    PaymentMethodType.INTERAC_PRESENT
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `test mapToPaymentMethodDetailsType maps affirm paynow paypay klarna`() {
+        val paymentMethodTypes = mockk<ReadableArray>()
+        every { paymentMethodTypes.toArrayList() } returns arrayListOf("affirm", "paynow", "paypay", "klarna")
+
+        val result = mapToPaymentMethodDetailsType(paymentMethodTypes)
+
+        assertTrue(
+            result.containsAll(
+                listOf(
+                    PaymentMethodType.AFFIRM,
+                    PaymentMethodType.PAYNOW,
+                    PaymentMethodType.PAYPAY,
+                    PaymentMethodType.KLARNA
+                )
+            )
+        )
+    }
+
+    @Test
     fun `test mapToSetupIntentPaymentMethodDetailsType transform`() {
         assertEquals(
             mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.IF_AVAILABLE),
@@ -66,6 +135,20 @@ class MapperTest {
             "never"
         )
         assertEquals(mapFromRequestPartialAuthorization(null), "")
+    }
+
+    @Test
+    fun `test mapFromMulticaptureStatus transform`() {
+        assertEquals(mapFromMulticaptureStatus(MulticaptureStatus.AVAILABLE), "available")
+        assertEquals(mapFromMulticaptureStatus(MulticaptureStatus.UNAVAILABLE), "unavailable")
+        assertEquals(mapFromMulticaptureStatus(null), "unknown")
+    }
+
+    @Test
+    fun `test mapFromReauthorizationStatus transform`() {
+        assertEquals(mapFromReauthorizationStatus(ReauthorizationStatus.AVAILABLE), "available")
+        assertEquals(mapFromReauthorizationStatus(ReauthorizationStatus.UNAVAILABLE), "unavailable")
+        assertEquals(mapFromReauthorizationStatus(null), "unknown")
     }
 
     @Test
@@ -167,36 +250,36 @@ class MapperTest {
     @Test
     fun `test mapToTapZone transform`() {
         assertEquals(
-            mapToTapZone("abc", 1f, 2f, 3f),
-            TapToPayUxConfiguration.TapZone.Default
+            TapToPayUxConfiguration.TapZone.Default,
+            mapToTapZone("abc", 1f, 2f, 3f)
         )
         assertEquals(
-            mapToTapZone("default", 1f, 2f, 3f),
-            TapToPayUxConfiguration.TapZone.Default
+            TapToPayUxConfiguration.TapZone.Default,
+            mapToTapZone("default", 1f, 2f, 3f)
         )
         assertEquals(
-            mapToTapZone("above", 1f, 2f, 3f),
-            TapToPayUxConfiguration.TapZone.Above(1f)
+            TapToPayUxConfiguration.TapZone.Above(1f),
+            mapToTapZone("above", 1f, 2f, 3f)
         )
         assertEquals(
-            mapToTapZone("below", 1f, 2f, 3f),
-            TapToPayUxConfiguration.TapZone.Below(1f)
+            TapToPayUxConfiguration.TapZone.Below(1f),
+            mapToTapZone("below", 1f, 2f, 3f)
         )
         assertEquals(
-            mapToTapZone("front", 1f, 0.5f, 0.6f),
-            TapToPayUxConfiguration.TapZone.Front(0.5f, 0.6f)
+            TapToPayUxConfiguration.TapZone.Front(0.5f, 0.6f),
+            mapToTapZone("front", 1f, 0.5f, 0.6f)
         )
         assertEquals(
-            mapToTapZone("behind", 1f, 0.5f, 0.6f),
-            TapToPayUxConfiguration.TapZone.Behind(0.5f, 0.6f)
+            TapToPayUxConfiguration.TapZone.Behind(0.5f, 0.6f),
+            mapToTapZone("behind", 1f, 0.5f, 0.6f)
         )
         assertEquals(
-            mapToTapZone("left", 1f, 2f, 3f),
-            TapToPayUxConfiguration.TapZone.Left(1f)
+            TapToPayUxConfiguration.TapZone.Left(1f),
+            mapToTapZone("left", 1f, 2f, 3f)
         )
         assertEquals(
-            mapToTapZone("right", 1f, 2f, 3f),
-            TapToPayUxConfiguration.TapZone.Right(1f)
+            TapToPayUxConfiguration.TapZone.Right(1f),
+            mapToTapZone("right", 1f, 2f, 3f)
         )
     }
 
@@ -403,10 +486,12 @@ class MapperTest {
     }
 
     @Test
+    @OptIn(DonationApi::class)
     fun `test buildCollectPaymentIntentConfiguration with all parameters`() {
         // GIVEN params with all configuration parameters
         val params = JavaOnlyMap().apply {
             putBoolean("skipTipping", true)
+            putBoolean("skipDonation", true)
             putInt("tipEligibleAmount", 1000)
             putBoolean("updatePaymentIntent", true)
             putString("customerCancellation", "enableIfAvailable")
@@ -424,6 +509,7 @@ class MapperTest {
         // THEN configuration should be built successfully with all parameters
         assertTrue(config != null)
         assertEquals(true, config.skipTipping)
+        assertEquals(true, config.skipDonation)
         assertEquals(true, config.updatePaymentIntent)
         assertEquals(true, config.requestDynamicCurrencyConversion)
         assertEquals(CustomerCancellation.ENABLE_IF_AVAILABLE, config.customerCancellation)
@@ -431,6 +517,22 @@ class MapperTest {
         assertEquals(1000L, config.tippingConfiguration?.eligibleAmount)
         assertEquals(true, config.motoConfiguration?.skipCvc)
         assertEquals(AllowRedisplay.ALWAYS, config.allowRedisplay)
+    }
+
+    @Test
+    @OptIn(DonationApi::class)
+    fun `test buildCollectPaymentIntentConfiguration with skipDonation`() {
+        // GIVEN params with skipDonation only
+        val params = JavaOnlyMap().apply {
+            putBoolean("skipDonation", true)
+        }
+
+        // WHEN building the configuration
+        val config = buildCollectPaymentIntentConfiguration(params)
+
+        // THEN configuration should be built successfully with skipDonation enabled
+        assertTrue(config != null)
+        assertEquals(true, config.skipDonation)
     }
 
     @Test
@@ -494,6 +596,7 @@ class MapperTest {
     }
 
     @Test
+    @OptIn(DonationApi::class)
     fun `test buildCollectPaymentIntentConfiguration with empty params`() {
         // GIVEN empty params
         val params = JavaOnlyMap()
@@ -504,6 +607,7 @@ class MapperTest {
         // THEN configuration should be built successfully with defaults
         assertTrue(config != null)
         assertEquals(false, config.skipTipping)
+        assertEquals(false, config.skipDonation)
         assertEquals(false, config.updatePaymentIntent)
         assertEquals(false, config.requestDynamicCurrencyConversion)
         assertEquals(null, config.tippingConfiguration)
@@ -849,6 +953,233 @@ class MapperTest {
         assertTrue(easyConnectConfig is EasyConnectConfiguration.TapToPayEasyConnectConfiguration)
         assertEquals(discoveryConfig, easyConnectConfig.discoveryConfiguration)
         assertEquals(connectionConfig, easyConnectConfig.connectionConfiguration)
+    }
+
+    @Test
+    fun `test DeviceType roundtrip mapping`() {
+        DeviceType.entries.forEach { nativeDeviceType ->
+            val rnString = mapFromDeviceType(nativeDeviceType)
+            val mappedBack = mapToDeviceType(rnString)
+            assertEquals(
+                nativeDeviceType,
+                mappedBack,
+                "DeviceType roundtrip failed for $nativeDeviceType: " +
+                    "mapped to \"$rnString\", but mapped back to $mappedBack"
+            )
+        }
+    }
+
+    @Test
+    fun `test mapToUpdateComponent transform`() {
+        assertEquals(ReaderSoftwareUpdate.UpdateComponent.FIRMWARE, mapToUpdateComponent("firmware"))
+        assertEquals(ReaderSoftwareUpdate.UpdateComponent.CONFIG, mapToUpdateComponent("config"))
+        assertEquals(ReaderSoftwareUpdate.UpdateComponent.KEYS, mapToUpdateComponent("keys"))
+        assertEquals(ReaderSoftwareUpdate.UpdateComponent.INCREMENTAL, mapToUpdateComponent("incremental"))
+        assertEquals(null, mapToUpdateComponent("unknown"))
+    }
+
+    @Test
+    fun `test mapFromUpdateComponent transform`() {
+        assertEquals("firmware", mapFromUpdateComponent(ReaderSoftwareUpdate.UpdateComponent.FIRMWARE))
+        assertEquals("config", mapFromUpdateComponent(ReaderSoftwareUpdate.UpdateComponent.CONFIG))
+        assertEquals("keys", mapFromUpdateComponent(ReaderSoftwareUpdate.UpdateComponent.KEYS))
+        assertEquals("incremental", mapFromUpdateComponent(ReaderSoftwareUpdate.UpdateComponent.INCREMENTAL))
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate available`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "available")
+            putArray("components", JavaOnlyArray().apply {
+                pushString("firmware")
+                pushString("config")
+            })
+        }
+        val result = mapToTestReaderUpdate(map)!!
+        assertEquals(TestReaderUpdate.TestReaderUpdateType.AVAILABLE, result.updateType)
+        assertEquals(
+            setOf(ReaderSoftwareUpdate.UpdateComponent.FIRMWARE, ReaderSoftwareUpdate.UpdateComponent.CONFIG),
+            result.components
+        )
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate required`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "required")
+            putArray("components", JavaOnlyArray().apply {
+                pushString("keys")
+            })
+        }
+        val result = mapToTestReaderUpdate(map)!!
+        assertEquals(TestReaderUpdate.TestReaderUpdateType.REQUIRED, result.updateType)
+        assertEquals(setOf(ReaderSoftwareUpdate.UpdateComponent.KEYS), result.components)
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate requiredOffline`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "requiredOffline")
+            putArray("components", JavaOnlyArray().apply {
+                pushString("incremental")
+            })
+        }
+        val result = mapToTestReaderUpdate(map)!!
+        assertEquals(TestReaderUpdate.TestReaderUpdateType.REQUIRED_OFFLINE, result.updateType)
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate lowBattery`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "lowBattery")
+        }
+        val result = mapToTestReaderUpdate(map)!!
+        assertEquals(TestReaderUpdate.TestReaderUpdateType.LOW_BATTERY, result.updateType)
+        assertTrue(result.components.isEmpty())
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate lowBatterySucceedConnect`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "lowBatterySucceedConnect")
+        }
+        val result = mapToTestReaderUpdate(map)!!
+        assertEquals(TestReaderUpdate.TestReaderUpdateType.LOW_BATTERY_SUCCEED_CONNECT, result.updateType)
+        assertTrue(result.components.isEmpty())
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate random`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "random")
+        }
+        val result = mapToTestReaderUpdate(map)
+        // random returns a randomly selected type or null, just verify it doesn't crash
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate returns null for unknown type`() {
+        val map = JavaOnlyMap().apply {
+            putString("type", "unknown")
+        }
+        assertEquals(null, mapToTestReaderUpdate(map))
+    }
+
+    @Test
+    fun `test mapToTestReaderUpdate returns null when type is missing`() {
+        val map = JavaOnlyMap()
+        assertEquals(null, mapToTestReaderUpdate(map))
+    }
+
+    @Test
+    fun `test mapFromPaymentIntent surcharge with null maximumAmount`() {
+        val surchargeDetails = SurchargeDetails(amount = 5L, maximumAmount = null, status = SurchargeStatus.AVAILABLE)
+        val mockAmountDetails = mockk<AmountDetails>(relaxed = true) {
+            every { tip } returns mockTip()
+            every { donation } returns mockDonation()
+            every { surcharge } returns surchargeDetails
+        }
+        val mockPI = mockPaymentIntent()
+        every { mockPI.amountDetails } returns mockAmountDetails
+
+        val result = mapFromPaymentIntent(mockPI, "aa")
+        val surchargeResult = result.getMap("amountDetails")?.getMap("surcharge")
+
+        assertEquals(5, surchargeResult?.getInt("amount"))
+        assertEquals("available", surchargeResult?.getString("status"))
+        assertFalse(surchargeResult?.hasKey("maximumAmount") ?: false)
+    }
+
+    @Test
+    fun `test mapFromPaymentIntent surcharge with null amount`() {
+        val surchargeDetails = SurchargeDetails(amount = null, maximumAmount = 500L, status = SurchargeStatus.AVAILABLE)
+        val mockAmountDetails = mockk<AmountDetails>(relaxed = true) {
+            every { tip } returns mockTip()
+            every { donation } returns mockDonation()
+            every { surcharge } returns surchargeDetails
+        }
+        val mockPI = mockPaymentIntent()
+        every { mockPI.amountDetails } returns mockAmountDetails
+
+        val result = mapFromPaymentIntent(mockPI, "aa")
+        val surchargeResult = result.getMap("amountDetails")?.getMap("surcharge")
+
+        assertFalse(surchargeResult?.hasKey("amount") ?: false)
+        assertEquals("available", surchargeResult?.getString("status"))
+        assertEquals(500, surchargeResult?.getInt("maximumAmount"))
+    }
+
+    @Test
+    fun `mapToAppTransitionAnimation returns SystemDefault for null params`() {
+        val result = mapToAppTransitionAnimation(null)
+        assertEquals(AppTransitionAnimation.SystemDefault, result)
+    }
+
+    @Test
+    fun `mapToAppTransitionAnimation returns SystemDefault for systemDefault type`() {
+        val params = JavaOnlyMap().apply { putString("type", "systemDefault") }
+        val result = mapToAppTransitionAnimation(params)
+        assertEquals(AppTransitionAnimation.SystemDefault, result)
+    }
+
+    @Test
+    fun `mapToAppTransitionAnimation returns Preset for slideFromBottom`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "preset")
+            putString("preset", "slideFromBottom")
+        }
+        val result = mapToAppTransitionAnimation(params)
+        assertEquals(AppTransitionAnimation.Preset(AppTransitionPreset.SLIDE_FROM_BOTTOM), result)
+    }
+
+    @Test
+    fun `mapToAppTransitionAnimation returns Custom with provided resource IDs`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "custom")
+            putInt("enterAnim", 12345)
+            putInt("exitAnim", 67890)
+        }
+        val result = mapToAppTransitionAnimation(params)
+        assertEquals(AppTransitionAnimation.Custom(12345, 67890), result)
+    }
+
+    @Test
+    fun `mapToAppTransitionAnimation returns Custom with NO_ANIMATION for missing resource IDs`() {
+        val params = JavaOnlyMap().apply { putString("type", "custom") }
+        val result = mapToAppTransitionAnimation(params)
+        assertEquals(
+            AppTransitionAnimation.Custom(
+                AppTransitionAnimation.Custom.NO_ANIMATION,
+                AppTransitionAnimation.Custom.NO_ANIMATION
+            ),
+            result
+        )
+    }
+
+    @Test(expected = TerminalException::class)
+    fun `mapToAppTransitionAnimation throws for unknown type`() {
+        val params = JavaOnlyMap().apply { putString("type", "dissolve") }
+        mapToAppTransitionAnimation(params)
+    }
+
+    @Test(expected = TerminalException::class)
+    fun `mapToAppTransitionAnimation throws for missing type`() {
+        mapToAppTransitionAnimation(JavaOnlyMap())
+    }
+
+    @Test(expected = TerminalException::class)
+    fun `mapToAppTransitionAnimation throws for unknown preset`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "preset")
+            putString("preset", "spinCube")
+        }
+        mapToAppTransitionAnimation(params)
+    }
+
+    @Test(expected = TerminalException::class)
+    fun `mapToAppTransitionAnimation throws for preset with null preset value`() {
+        val params = JavaOnlyMap().apply { putString("type", "preset") }
+        mapToAppTransitionAnimation(params)
     }
 
     @Test

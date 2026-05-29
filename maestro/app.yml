@@ -7,24 +7,59 @@ tags:
     permissions:
       all: allow
 
-- runFlow: 
+- runFlow:
     file: e2e/connectReader.yaml
     env:
       discoveryMethod: "bt-scn-btn"
 - runFlow: e2e/checkIfConnected.yaml
 
+# Announce available update and connect
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "bt-scn-btn"
+      updateType: "available"
+- runFlow: e2e/assertUpdateAnnounced.yaml
 
 # Install required update and connect
 - launchApp:
     permissions:
       all: allow
-      
-- runFlow: 
+
+- runFlow:
     file: e2e/connectReader.yaml
     env:
       discoveryMethod: "bt-scn-btn"
-      updateRequired: true
+      updateType: "required"
 - runFlow: e2e/checkIfConnected.yaml
+
+# Fail to connect when required update cannot install due to low battery
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "bt-scn-btn"
+      updateType: "lowBattery"
+- runFlow: e2e/assertLowBatteryUpdateFailure.yaml
+
+# Connect with low battery and announce update (connection succeeds)
+- launchApp:
+    permissions:
+      all: allow
+
+- runFlow:
+    file: e2e/connectReader.yaml
+    env:
+      discoveryMethod: "bt-scn-btn"
+      updateType: "lowBatterySucceedConnect"
+- runFlow: e2e/assertLowBatterySucceedConnectUpdate.yaml
 
 # Change discovery method to bluetooth proximity
 - launchApp:
@@ -48,9 +83,6 @@ tags:
     env:
       discoveryMethod: "internet-btn"
 
-# TODO ios only
-# Required update impossible due to low battery
-
 # Collect card payment
 - launchApp:
     permissions:
@@ -60,6 +92,7 @@ tags:
     file: e2e/connectReader.yaml
     env:
       discoveryMethod: "bt-scn-btn"
+- runFlow: e2e/checkIfConnected.yaml
 - runFlow:
     file: e2e/collectPayment.yaml
 
@@ -72,6 +105,7 @@ tags:
     file: e2e/connectReader.yaml
     env:
       discoveryMethod: "bt-scn-btn"
+- runFlow: e2e/checkIfConnected.yaml
 - runFlow:
     file: e2e/setupIntent.yaml
 
@@ -84,5 +118,6 @@ tags:
     file: e2e/connectReader.yaml
     env:
       discoveryMethod: "bt-scn-btn"
+- runFlow: e2e/checkIfConnected.yaml
 - runFlow:
     file: e2e/inpersonRefund.yaml

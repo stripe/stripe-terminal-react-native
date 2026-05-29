@@ -10,6 +10,7 @@ import { colors } from '../colors';
 import icon from '../assets/icon.png';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
+import { showErrorAlert } from '../util/errorHandling';
 
 import type { RouteParamList } from '../App';
 
@@ -27,8 +28,12 @@ export default function UpdateReaderScreen() {
       onDidReportReaderSoftwareUpdateProgress: (progress) => {
         setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
       },
-      onDidFinishInstallingUpdate: () => {
-        params?.onDidUpdate();
+      onDidFinishInstallingUpdate: (result) => {
+        if (result.error) {
+          showErrorAlert(result.error);
+        } else {
+          params?.onDidUpdate();
+        }
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
@@ -79,6 +84,11 @@ export default function UpdateReaderScreen() {
           }
         />
       </List>
+      {updateInfo?.components && updateInfo.components.length > 0 && (
+        <Text style={[styles.info, styles.row]}>
+          Components: {updateInfo.components.join(', ')}
+        </Text>
+      )}
 
       <List>
         <ListItem

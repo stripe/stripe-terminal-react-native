@@ -24,22 +24,19 @@
         }
       ]
     ],
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.stripeterminalreactnative"
+      "bundleIdentifier": "com.yourdomain.stripeterminalreactnative"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.example.stripeterminalreactnative"
+      "package": "com.yourdomain.stripeterminalreactnative"
     },
     "web": {
       "favicon": "./assets/favicon.png"

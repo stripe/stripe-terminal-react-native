@@ -14,6 +14,7 @@ stages:
       - lint: {}
       - typescript: {}
       - unit-js: {}
+      - unit-example-app: {}
       - unit-android: {}
       - unit-ios: {}
       - example-build-ios: {}
@@ -25,6 +26,7 @@ stages:
       - lint: {}
       - typescript: {}
       - unit-js: {}
+      - unit-example-app: {}
       - unit-android: {}
       - unit-ios: {}
       - example-build-ios: {}
@@ -34,7 +36,8 @@ stages:
       - deploy-firebase-android: {}
 workflows:
   complete_all:
-    steps: []
+    steps:
+      - save-gradle-cache@1: {}
       # - save-npm-cache@1: {}
       # - save-cocoapods-cache@1: {}
   deploy-firebase-android:
@@ -44,6 +47,10 @@ workflows:
             - connection: 'off'
             - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
           title: fastlane increment version
+      - install-missing-android-tools@3:
+          inputs:
+            - gradlew_path: dev-app/android/gradlew
+          title: Install missing Android SDK components for dev-app
       - yarn@0:
           inputs:
             - command: dev-app:build:android:release
@@ -71,6 +78,10 @@ workflows:
             - command: install --frozen-lockfile
             # - cache_local_deps: 'yes'
           title: yarn install --frozen-lockfile
+      - install-missing-android-tools@3:
+          inputs:
+            - gradlew_path: dev-app/android/gradlew
+          title: Install missing Android SDK components for dev-app
       - yarn@0:
           inputs:
             - command: e2e:build:android:release
@@ -84,6 +95,7 @@ workflows:
       - script@1:
           inputs:
             - content: |-
+                node e2e/clean.js
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
                 ~/.maestro/bin/maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml
           title: install maestro & run tests
@@ -104,12 +116,12 @@ workflows:
           title: build for detox
       - xcode-start-simulator:
           inputs:
-            - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 16e,OS=latest
             - wait_for_boot_timeout: 90
       - script@1:
-          is_skippable: true
           inputs:
             - content: |-
+                node e2e/clean.js
                 xcrun simctl install Booted dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
                 ~/.maestro/bin/maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml
@@ -127,6 +139,10 @@ workflows:
             - tag: default
             - abi: x86_64
             - api_level: '34'
+      - install-missing-android-tools@3:
+          inputs:
+            - gradlew_path: example-app/android/gradlew
+          title: Install missing Android SDK components for example-app
       - yarn@0:
           inputs:
             - command: e2e:build:example:android
@@ -145,9 +161,10 @@ workflows:
       - script@1:
           inputs:
             - content: |-
+                rbenv install --skip-existing 3.2.3
+                rbenv local 3.2.3
+                gem install cocoapods -v 1.16.2
                 cd example-app/ios
-                pod update hermes-engine --no-repo-update
-                pod update RCT-Folly --no-repo-update
                 pod install
           title: Pod install
       - yarn@0:
@@ -159,6 +176,10 @@ workflows:
       - prep_all
     after_run:
       - complete_all
+    meta:
+      bitrise.io:
+        stack: osx-xcode-26.0.x
+        machine_type_id: g2.mac.large
   lint:
     steps:
       - yarn@0:
@@ -168,9 +189,18 @@ workflows:
           title: yarn check:rn-error-codes
       - yarn@0:
           inputs:
+            - cache_local_deps: 'yes'
+            - command: check:rn-device-types
+          title: yarn check:rn-device-types
+      - yarn@0:
+          inputs:
             # - cache_local_deps: 'yes'
             - command: lint
           title: yarn lint
+      - yarn@0:
+          inputs:
+            - command: lint:native
+          title: lint:native (SwiftLint + Android Null Check)
     before_run:
       - prep_all
     after_run:
@@ -187,6 +217,7 @@ workflows:
             - is_create_path: false
       # - restore-npm-cache@1: {}
       # - restore-cocoapods-cache@1: {}
+      - restore-gradle-cache@1: {}
       - script@1:
           inputs:
             - content: |-
@@ -230,8 +261,9 @@ workflows:
           inputs:
             - content: |-
                 set -e
-                # This is a terrible hack, as I haven't worked out how Bitrise's `pod install` step interacts with the rbenv set in this app. You definitely shouldn't copy this.
-                cd dev-app/ios && asdf install ruby 3.2.3 && bundle install && \
+                rbenv install --skip-existing 3.2.3
+                rbenv local 3.2.3
+                cd dev-app/ios && bundle install && \
                 gem install cocoapods -v 1.16.2 && pod install && cd - && \
                 npm rebuild detox
                 echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
@@ -256,6 +288,10 @@ workflows:
       - complete_all
   unit-android:
     steps:
+      - install-missing-android-tools@3:
+          inputs:
+            - gradlew_path: android/gradlew
+          title: Install missing Android SDK components for library
       - yarn@0:
           inputs:
             - command: unit-test:android
@@ -265,6 +301,10 @@ workflows:
       - prep_all
     after_run:
       - complete_all
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   unit-js:
     steps:
       - yarn@0:
@@ -276,13 +316,24 @@ workflows:
       - prep_all
     after_run:
       - complete_all
+  unit-example-app:
+    steps:
+      - yarn@0:
+          inputs:
+            - workdir: example-app
+            - command: test
+          title: yarn test (example-app)
+    before_run:
+      - prep_all
+    after_run:
+      - complete_all
   unit-ios:
     steps:
       - xcode-test@6:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 16,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 16e,OS=latest
             - command: yarn unit-test:ios
             # - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
@@ -293,7 +344,7 @@ workflows:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-16.4.x
+    stack: osx-xcode-26.0.x
     machine_type_id: g2.mac.large
 app:
   envs:

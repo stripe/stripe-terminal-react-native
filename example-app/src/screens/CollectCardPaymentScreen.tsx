@@ -5,9 +5,9 @@ import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import {
   useStripeTerminal,
   PaymentIntent,
-  StripeError,
-  CommonError,
 } from '@stripe/stripe-terminal-react-native';
+import type { StripeError } from '@stripe/stripe-terminal-react-native';
+import { extractFullErrorMetadata } from '../util/errorUtils';
 import { colors } from '../colors';
 import List from '../components/List';
 import ListItem from '../components/ListItem';
@@ -171,7 +171,7 @@ export default function CollectCardPaymentScreen() {
       },
     };
     let paymentIntent: PaymentIntent.Type | undefined;
-    let paymentIntentError: StripeError<CommonError> | undefined;
+    let paymentIntentError: StripeError | undefined;
     if (discoveryMethod === 'internet') {
       const resp = await api.createPaymentIntent({
         amount: Number(inputValues.amount),
@@ -256,10 +256,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.createPaymentIntent',
-            metadata: {
-              errorCode: paymentIntentError?.code,
-              errorMessage: paymentIntentError?.message,
-            },
+            metadata: extractFullErrorMetadata(paymentIntentError),
           },
         ],
       });
@@ -316,7 +313,7 @@ export default function CollectCardPaymentScreen() {
         ? Number(tipEligibleAmount)
         : undefined,
       updatePaymentIntent: enableUpdatePaymentIntent,
-      enableCustomerCancellation: enableCustomerCancellation,
+      customerCancellation: enableCustomerCancellation ? 'enableIfAvailable' : 'disableIfAvailable',
     });
 
     if (error) {
@@ -326,10 +323,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.collectPaymentMethod',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: extractFullErrorMetadata(error),
           },
         ],
       });
@@ -373,10 +367,7 @@ export default function CollectCardPaymentScreen() {
           {
             name: 'Failed',
             description: 'terminal.confirmPaymentIntent',
-            metadata: {
-              errorCode: error.code,
-              errorMessage: error.message,
-            },
+            metadata: extractFullErrorMetadata(error),
           },
         ],
       });

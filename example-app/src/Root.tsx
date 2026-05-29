@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StripeTerminalProvider } from '@stripe/stripe-terminal-react-native';
 import App from './App';
 import { AppContext, api } from './AppContext';
@@ -25,19 +26,21 @@ export default function Root() {
   }, []);
 
   return (
-    <AppContext.Provider
-      value={{
-        api,
-        setLastSuccessfulChargeId: (id) => setLastSuccessfulChargeId(id),
-        lastSuccessfulChargeId,
-      }}
-    >
-      <StripeTerminalProvider
-        logLevel="verbose"
-        tokenProvider={fetchTokenProvider}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppContext.Provider
+        value={{
+          api,
+          setLastSuccessfulChargeId: (id) => setLastSuccessfulChargeId(id),
+          lastSuccessfulChargeId,
+        }}
       >
-        <App />
-      </StripeTerminalProvider>
-    </AppContext.Provider>
+        <StripeTerminalProvider
+          logLevel="verbose"
+          tokenProvider={fetchTokenProvider}
+        >
+          <App />
+        </StripeTerminalProvider>
+      </AppContext.Provider>
+    </GestureHandlerRootView>
   );
 }

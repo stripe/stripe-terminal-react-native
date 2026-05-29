@@ -64,44 +64,28 @@ export default function TapToPayUXScreen() {
     }
 
     function buildTapZone(): TapZone {
+        const bias = getNumber(inputValues.bias);
+        const xBias = getNumber(inputValues.xbias);
+        const yBias = getNumber(inputValues.ybias);
+
         switch (inputValues.tapZoneType) {
             case 'above':
-                return {
-                    indicator: 'above',
-                    bias: getNumber(inputValues.bias)
-                };
+                return { indicator: 'above', bias };
             case 'below':
-                return {
-                    indicator: 'below',
-                    bias: getNumber(inputValues.bias)
-                };
+                return { indicator: 'below', bias };
             case 'left':
-                return {
-                    indicator: 'left',
-                    bias: getNumber(inputValues.bias)
-                };
+                return { indicator: 'left', bias };
             case 'right':
-                return {
-                    indicator: 'right',
-                    bias: getNumber(inputValues.bias)
-                };
+                return { indicator: 'right', bias };
             case 'front':
-                return {
-                    indicator: 'front',
-                    xBias: getNumber(inputValues.bias),
-                    yBias: getNumber(inputValues.bias)
-                };
+                if (xBias !== undefined && yBias !== undefined) return { indicator: 'front', xBias, yBias };
+                return { indicator: 'front' };
             case 'behind':
-                return {
-                    indicator: 'behind',
-                    xBias: getNumber(inputValues.bias),
-                    yBias: getNumber(inputValues.bias)
-                };
+                if (xBias !== undefined && yBias !== undefined) return { indicator: 'behind', xBias, yBias };
+                return { indicator: 'behind' };
             case 'default':
             default:
-                return {
-                    indicator: 'default'
-                };
+                return { indicator: 'default' };
         }
     }
 

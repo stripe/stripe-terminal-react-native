@@ -9,9 +9,14 @@ import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
+import com.stripe.stripeterminal.external.DonationApi
 import com.stripe.stripeterminal.external.InternalApi
 import com.stripe.stripeterminal.external.Surcharging
 import com.stripe.stripeterminal.external.models.Address
+import com.stripe.stripeterminal.external.models.AppTransitionAnimation
+import com.stripe.stripeterminal.external.models.AppTransitionPreset
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
+import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.AffirmDetails
 import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.AmountDetails
@@ -19,6 +24,7 @@ import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
+import com.stripe.stripeterminal.external.models.CardPresentRequestReauthorization
 import com.stripe.stripeterminal.external.models.CartLineItem
 import com.stripe.stripeterminal.external.models.Charge
 import com.stripe.stripeterminal.external.models.CollectDataType
@@ -39,6 +45,7 @@ import com.stripe.stripeterminal.external.models.EasyConnectConfiguration
 import com.stripe.stripeterminal.external.models.EasyConnectConfiguration.*
 import com.stripe.stripeterminal.external.models.EmailResult
 import com.stripe.stripeterminal.external.models.GeneratedFrom
+import com.stripe.stripeterminal.external.models.KlarnaDetails
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
 import com.stripe.stripeterminal.external.models.MotoConfiguration
@@ -68,6 +75,8 @@ import com.stripe.stripeterminal.external.models.ReaderSettings
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.ReaderSupportResult
 import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
+import com.stripe.stripeterminal.external.models.Reauthorization
+import com.stripe.stripeterminal.external.models.ReauthorizationStatus
 import com.stripe.stripeterminal.external.models.ReceiptDetails
 import com.stripe.stripeterminal.external.models.RedirectUrl
 import com.stripe.stripeterminal.external.models.Refund
@@ -84,7 +93,6 @@ import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
 import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SignatureResult
-import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultSucceeded
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.SimulatedCollectInputsResultTimeout
@@ -92,6 +100,7 @@ import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehav
 import com.stripe.stripeterminal.external.models.SurchargeConfiguration
 import com.stripe.stripeterminal.external.models.SurchargeConsent
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
+import com.stripe.stripeterminal.external.models.TestReaderUpdate
 import com.stripe.stripeterminal.external.models.TextResult
 import com.stripe.stripeterminal.external.models.TippingConfiguration
 import com.stripe.stripeterminal.external.models.ToggleResult
@@ -101,6 +110,7 @@ import com.stripe.stripeterminal.external.models.WechatPayDetails
 import com.stripe.stripeterminal.external.models.WechatPayDisplayQrCode
 import com.stripe.stripeterminal.external.models.PaymentOption
 import com.stripe.stripeterminal.external.models.QrCodeDisplayData
+import com.stripe.stripeterminal.external.models.MulticaptureStatus
 import com.stripe.stripeterminal.log.LogLevel
 import java.util.Base64
 import com.stripe.stripeterminal.external.models.SurchargeConsentCollection as NativeSurchargeConsentCollection
@@ -173,19 +183,15 @@ internal fun mapToBitmap(imageData: String): Bitmap? {
     }
 }
 
-internal fun putDoubleOrNull(mapTarget: WritableMap, key: String, value: Double?) {
+internal fun putDoubleIfNotNull(mapTarget: WritableMap, key: String, value: Double?) {
     value?.let {
         mapTarget.putDouble(key, it)
-    } ?: run {
-        mapTarget.putNull(key)
     }
 }
 
-internal fun putIntOrNull(mapTarget: WritableMap, key: String, value: Int?) {
+internal fun putIntIfNotNull(mapTarget: WritableMap, key: String, value: Int?) {
     value?.let {
         mapTarget.putInt(key, it)
-    } ?: run {
-        mapTarget.putNull(key)
     }
 }
 
@@ -232,7 +238,7 @@ internal fun mapFromReader(reader: Reader): ReadableMap = nativeMapOf {
     putMap("availableUpdate", mapFromReaderSoftwareUpdate(reader.availableUpdate))
     putMap("location", mapFromLocation(reader.location))
     putString("status", mapFromNetworkStatus(reader.networkStatus))
-    putDoubleOrNull(this, "batteryLevel", reader.batteryLevel?.toDouble())
+    putDoubleIfNotNull(this, "batteryLevel", reader.batteryLevel?.toDouble())
 }
 
 internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String {
@@ -281,7 +287,7 @@ internal fun mapFromDeviceType(type: DeviceType): String {
     }
 }
 
-internal fun mapToDeviceType(type: String): DeviceType? {
+internal fun mapToDeviceType(type: String): DeviceType {
     val deviceSerialName = DeviceSerialName.fromSerialName(type)
     return when (deviceSerialName) {
         DeviceSerialName.CHIPPER_1X -> DeviceType.CHIPPER_1X
@@ -292,6 +298,10 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         DeviceSerialName.STRIPE_S700_DEVKIT -> DeviceType.STRIPE_S700_DEVKIT
         DeviceSerialName.STRIPE_S710 -> DeviceType.STRIPE_S710
         DeviceSerialName.STRIPE_S710_DEVKIT -> DeviceType.STRIPE_S710_DEVKIT
+        DeviceSerialName.STRIPE_T600 -> DeviceType.STRIPE_T600
+        DeviceSerialName.STRIPE_T600_DEVKIT -> DeviceType.STRIPE_T600_DEVKIT
+        DeviceSerialName.STRIPE_T610 -> DeviceType.STRIPE_T610
+        DeviceSerialName.STRIPE_T610_DEVKIT -> DeviceType.STRIPE_T610_DEVKIT
         DeviceSerialName.WISECUBE -> DeviceType.WISECUBE
         DeviceSerialName.WISEPAD_3 -> DeviceType.WISEPAD_3
         DeviceSerialName.WISEPAD_3S -> DeviceType.WISEPAD_3S
@@ -312,7 +322,7 @@ internal fun mapToDeviceType(type: String): DeviceType? {
         DeviceSerialName.VERIFONE_VP110 -> DeviceType.VERIFONE_VP110
         DeviceSerialName.VERIFONE_VL110 -> DeviceType.VERIFONE_VL110
         DeviceSerialName.STRIPE_U200 -> DeviceType.STRIPE_U200
-        else -> null
+        DeviceSerialName.UNKNOWN -> DeviceType.UNKNOWN
     }
 }
 
@@ -443,17 +453,9 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
                         "requestPartialAuthorization",
                         mapFromRequestPartialAuthorization(it.cardPresent?.requestPartialAuthorization)
                     )
-                    putMap(
-                        "surcharge",
-                        nativeMapOf {
-                            putString("status", it.cardPresent?.surcharge?.status)
-                            putIntOrNull(
-                                this,
-                                "maximumAmount",
-                                it.cardPresent?.surcharge?.maximumAmount?.toInt()
-                            )
-                        }
-                    )
+                    mapFromRequestReauthorization(it.cardPresent?.requestReauthorization)?.let {
+                        putString("requestReauthorization", it)
+                    }
                 }
             )
         }
@@ -461,6 +463,30 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
 
 internal fun mapFromRequestPartialAuthorization(partialAuth: CardPresentRequestPartialAuthorization?): String {
     return partialAuth?.typeName.orEmpty()
+}
+
+internal fun mapFromMulticaptureStatus(status: MulticaptureStatus?): String {
+    return when (status) {
+        MulticaptureStatus.AVAILABLE -> "available"
+        MulticaptureStatus.UNAVAILABLE -> "unavailable"
+        else -> "unknown"
+    }
+}
+
+internal fun mapFromRequestReauthorization(reauth: CardPresentRequestReauthorization?): String? {
+    return when (reauth) {
+        CardPresentRequestReauthorization.IF_AVAILABLE -> "if_available"
+        CardPresentRequestReauthorization.NEVER -> "never"
+        else -> null
+    }
+}
+
+internal fun mapFromReauthorizationStatus(status: ReauthorizationStatus?): String {
+    return when (status) {
+        ReauthorizationStatus.AVAILABLE -> "available"
+        ReauthorizationStatus.UNAVAILABLE -> "unavailable"
+        else -> "unknown"
+    }
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
@@ -534,6 +560,7 @@ internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt
         putString("setupIntentId", it.setupIntentId)
         putString("status", mapFromSetupAttemptStatus(it.status))
         putString("usage", mapFromSetupIntentUsage(it.usage))
+        it.setupError?.let { err -> putMap("setupError", mapFromSetupError(err)) }
     }
 }
 
@@ -652,16 +679,10 @@ internal fun mapFromLocation(location: Location?): ReadableMap? = location?.let 
         putString("id", it.id)
         putString("displayName", it.displayName)
 
-        mapFromAddress(it.address)?.let {
-            putMap("address", it)
-        } ?: run {
-            putNull("address")
-        }
+        putMap("address", mapFromAddress(it.address))
 
-        it.livemode?.let {
-            putBoolean("livemode", it)
-        } ?: run {
-            putNull("livemode")
+        it.livemode?.let { livemode ->
+            putBoolean("livemode", livemode)
         }
     }
 }
@@ -683,9 +704,9 @@ internal fun mapFromPaymentIntentStatus(status: PaymentIntentStatus?): String {
         PaymentIntentStatus.REQUIRES_CAPTURE -> "requiresCapture"
         PaymentIntentStatus.REQUIRES_CONFIRMATION -> "requiresConfirmation"
         PaymentIntentStatus.REQUIRES_PAYMENT_METHOD -> "requiresPaymentMethod"
-        PaymentIntentStatus.REQUIRES_REAUTHORIZATION -> "requiresReauthorization"
         PaymentIntentStatus.SUCCEEDED -> "succeeded"
         PaymentIntentStatus.REQUIRES_ACTION -> "requiresAction"
+        PaymentIntentStatus.REQUIRES_REAUTHORIZATION -> "requiresReauthorization"
         PaymentIntentStatus.PROCESSING -> "processing"
         null -> "unknown"
     }
@@ -732,16 +753,41 @@ internal fun mapFromSetupIntentStatus(status: SetupIntentStatus?): String {
     }
 }
 
-internal fun mapFromSimulateReaderUpdate(update: String): SimulateReaderUpdate {
-    return when (update) {
-        "available" -> SimulateReaderUpdate.UPDATE_AVAILABLE
-        "none" -> SimulateReaderUpdate.NONE
-        "random" -> SimulateReaderUpdate.RANDOM
-        "required" -> SimulateReaderUpdate.REQUIRED
-        "lowBattery" -> SimulateReaderUpdate.LOW_BATTERY
-        "lowBatterySucceedConnect" -> SimulateReaderUpdate.LOW_BATTERY_SUCCEED_CONNECT
-        "requiredForOffline" -> SimulateReaderUpdate.REQUIRED_FOR_OFFLINE
-        else -> SimulateReaderUpdate.NONE
+internal fun mapToUpdateComponent(component: String): ReaderSoftwareUpdate.UpdateComponent? {
+    return when (component) {
+        "firmware" -> ReaderSoftwareUpdate.UpdateComponent.FIRMWARE
+        "config" -> ReaderSoftwareUpdate.UpdateComponent.CONFIG
+        "keys" -> ReaderSoftwareUpdate.UpdateComponent.KEYS
+        "incremental" -> ReaderSoftwareUpdate.UpdateComponent.INCREMENTAL
+        else -> null
+    }
+}
+
+internal fun mapFromUpdateComponent(component: ReaderSoftwareUpdate.UpdateComponent): String {
+    // Keep the RN payload aligned across platforms. If the Android SDK adds a
+    // new UpdateComponent and this when-expression needs another branch, update
+    // Mappers.mapFromUpdateComponents(_:) in public/ios/Mappers.swift as well.
+    return when (component) {
+        ReaderSoftwareUpdate.UpdateComponent.FIRMWARE -> "firmware"
+        ReaderSoftwareUpdate.UpdateComponent.CONFIG -> "config"
+        ReaderSoftwareUpdate.UpdateComponent.KEYS -> "keys"
+        ReaderSoftwareUpdate.UpdateComponent.INCREMENTAL -> "incremental"
+    }
+}
+
+internal fun mapToTestReaderUpdate(map: ReadableMap): TestReaderUpdate? {
+    val type = map.getString("type") ?: return null
+    val components = map.getArray("components")?.let { arr ->
+        (0 until arr.size()).mapNotNull { arr.getString(it)?.let(::mapToUpdateComponent) }.toSet()
+    } ?: emptySet()
+    return when (type) {
+        "available" -> TestReaderUpdate.available(components)
+        "required" -> TestReaderUpdate.required(components)
+        "requiredOffline" -> TestReaderUpdate.requiredOffline(components)
+        "lowBattery" -> TestReaderUpdate.lowBattery()
+        "lowBatterySucceedConnect" -> TestReaderUpdate.lowBatterySucceedConnect()
+        "random" -> TestReaderUpdate.random()
+        else -> null
     }
 }
 
@@ -773,6 +819,11 @@ internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): Writabl
                 mapFromUpdateTimeEstimate(it.durationEstimate)
             )
             putString("requiredAt", it.requiredAtMs.toString())
+            putArray("components", nativeArrayOf {
+                it.components.forEach { component ->
+                    pushString(mapFromUpdateComponent(component))
+                }
+            })
         }
     }
 
@@ -802,7 +853,7 @@ internal fun mapToCartLineItem(cartLineItem: HashMap<*, *>): CartLineItem? {
 
 internal fun mapFromRefund(refund: Refund): ReadableMap = nativeMapOf {
     putString("id", refund.id)
-    putIntOrNull(this, "amount", refund.amount?.toInt())
+    putIntIfNotNull(this, "amount", refund.amount?.toInt())
     putString("balanceTransaction", refund.balanceTransaction)
     putString("chargeId", refund.chargeId)
     refund.created?.let { created ->
@@ -881,6 +932,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "paypayDetails",
                 mapFromPaypayDetails(it.paypayDetails)
             )
+            putMap(
+                "klarnaDetails",
+                mapFromKlarnaDetails(it.klarnaDetails)
+            )
             putMap("cardDetails", mapFromCardDetails(it.cardDetails))
             putString("customer", it.customer)
             putString("id", it.id)
@@ -931,6 +986,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
                 "paypayDetails",
                 mapFromPaypayDetails(paymentMethodDetails.paypayDetails)
             )
+            putMap(
+                "klarnaDetails",
+                mapFromKlarnaDetails(paymentMethodDetails.klarnaDetails)
+            )
             if (paymentMethodDetails.cardDetails != null) {
                 putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
             }
@@ -948,6 +1007,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.AFFIRM -> "affirm"
         PaymentMethodType.PAYNOW -> "paynow"
         PaymentMethodType.PAYPAY -> "paypay"
+        PaymentMethodType.KLARNA -> "klarna"
         else -> "unknown"
     }
 }
@@ -977,12 +1037,13 @@ internal fun mapToPaymentMethodDetailsType(array: ReadableArray): List<PaymentMe
 internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
     return when (type) {
         "card" -> PaymentMethodType.CARD
-        "cardPresent" -> PaymentMethodType.CARD_PRESENT
-        "interacPresent" -> PaymentMethodType.INTERAC_PRESENT
-        "wechatPay" -> PaymentMethodType.WECHAT_PAY
+        "cardPresent", "card_present" -> PaymentMethodType.CARD_PRESENT
+        "interacPresent", "interac_present" -> PaymentMethodType.INTERAC_PRESENT
+        "wechatPay", "wechat_pay" -> PaymentMethodType.WECHAT_PAY
         "affirm" -> PaymentMethodType.AFFIRM
         "paynow" -> PaymentMethodType.PAYNOW
         "paypay" -> PaymentMethodType.PAYPAY
+        "klarna" -> PaymentMethodType.KLARNA
         else -> null
     }
 }
@@ -994,8 +1055,8 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             putString("cardholderName", it.cardholderName)
             putString("country", it.country)
             putString("emvAuthData", it.emvAuthData)
-            putIntOrNull(this, "expMonth", it.expMonth)
-            putIntOrNull(this, "expYear", it.expYear)
+            putIntIfNotNull(this, "expMonth", it.expMonth)
+            putIntIfNotNull(this, "expYear", it.expYear)
             putString("funding", it.funding)
             putString("generatedCard", it.generatedCard)
             putString("last4", it.last4)
@@ -1012,6 +1073,14 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             )
             putString("location", it.location)
             putString("reader", it.reader)
+            putString("multicaptureStatus", mapFromMulticaptureStatus(it.multicapture?.status))
+            putString("reauthorizationStatus", mapFromReauthorizationStatus(it.reauthorization?.status))
+            it.captureBefore?.let { captureBefore ->
+                putString("captureBefore", convertToUnixTimestamp(captureBefore))
+            }
+            it.reauthorizeBefore?.let { reauthorizeBefore ->
+                putString("reauthorizeBefore", convertToUnixTimestamp(reauthorizeBefore))
+            }
         }
     }
 
@@ -1044,6 +1113,14 @@ private fun mapFromPaynowDetails(paynowDetails: PaynowDetails?): ReadableMap? =
 
 private fun mapFromPaypayDetails(paypayDetails: PaypayDetails?): ReadableMap? =
     paypayDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
+        }
+    }
+
+private fun mapFromKlarnaDetails(klarnaDetails: KlarnaDetails?): ReadableMap? =
+    klarnaDetails?.let {
         nativeMapOf {
             putString("location", it.location)
             putString("reader", it.reader)
@@ -1159,19 +1236,23 @@ private fun mapFromAmountDetails(amountDetails: AmountDetails?): ReadableMap? =
             putMap(
                 "tip",
                 nativeMapOf {
-                    putIntOrNull(this, "amount", amountDetails.tip?.amount?.toInt())
+                    putIntIfNotNull(this, "amount", amountDetails.tip?.amount?.toInt())
                 }
             )
             putMap(
                 "donation",
                 nativeMapOf {
-                    putIntOrNull(this, "amount", amountDetails.donation?.amount?.toInt())
+                    putIntIfNotNull(this, "amount", amountDetails.donation?.amount?.toInt())
                 }
             )
             putMap(
                 "surcharge",
                 nativeMapOf {
-                    putIntOrNull(this, "amount", amountDetails.surcharge?.amount?.toInt())
+                    amountDetails.surcharge?.let { s ->
+                        putIntIfNotNull(this, "amount", s.amount?.toInt())
+                        s.status?.let { putString("status", it.typeName) }
+                        putIntIfNotNull(this, "maximumAmount", s.maximumAmount?.toInt())
+                    }
                 }
             )
         }
@@ -1182,8 +1263,8 @@ private fun mapFromOfflineCardPresentDetails(offlineCardPresentDetails: OfflineC
         nativeMapOf {
             putString("brand", offlineCardPresentDetails.brand)
             putString("cardholderName", offlineCardPresentDetails.cardholderName)
-            putIntOrNull(this, "expMonth", offlineCardPresentDetails.expMonth)
-            putIntOrNull(this, "expYear", offlineCardPresentDetails.expYear)
+            putIntIfNotNull(this, "expMonth", offlineCardPresentDetails.expMonth)
+            putIntIfNotNull(this, "expYear", offlineCardPresentDetails.expYear)
             putString("last4", offlineCardPresentDetails.last4)
             putString("readMethod", offlineCardPresentDetails.readMethod)
             putMap(
@@ -1513,53 +1594,29 @@ fun mapToTapZone(
     return when (indicator) {
         "default" -> TapToPayUxConfiguration.TapZone.Default
         "above" -> {
-            if (bias == null) {
-                TapToPayUxConfiguration.TapZone.Above()
-            } else {
-                TapToPayUxConfiguration.TapZone.Above(bias)
-            }
+            if (bias != null) TapToPayUxConfiguration.TapZone.Above(bias)
+            else TapToPayUxConfiguration.TapZone.Above()
         }
-
         "below" -> {
-            if (bias == null) {
-                TapToPayUxConfiguration.TapZone.Below()
-            } else {
-                TapToPayUxConfiguration.TapZone.Below(bias)
-            }
+            if (bias != null) TapToPayUxConfiguration.TapZone.Below(bias)
+            else TapToPayUxConfiguration.TapZone.Below()
         }
-
         "front" -> {
-            if (xBias != null && yBias != null) {
-                TapToPayUxConfiguration.TapZone.Front(xBias, yBias)
-            } else {
-                TapToPayUxConfiguration.TapZone.Front()
-            }
+            if (xBias != null && yBias != null) TapToPayUxConfiguration.TapZone.Front(xBias, yBias)
+            else TapToPayUxConfiguration.TapZone.Front()
         }
-
         "behind" -> {
-            if (xBias != null && yBias != null) {
-                TapToPayUxConfiguration.TapZone.Behind(xBias, yBias)
-            } else {
-                TapToPayUxConfiguration.TapZone.Behind()
-            }
+            if (xBias != null && yBias != null) TapToPayUxConfiguration.TapZone.Behind(xBias, yBias)
+            else TapToPayUxConfiguration.TapZone.Behind()
         }
-
         "left" -> {
-            if (bias == null) {
-                TapToPayUxConfiguration.TapZone.Left()
-            } else {
-                TapToPayUxConfiguration.TapZone.Left(bias)
-            }
+            if (bias != null) TapToPayUxConfiguration.TapZone.Left(bias)
+            else TapToPayUxConfiguration.TapZone.Left()
         }
-
         "right" -> {
-            if (bias == null) {
-                TapToPayUxConfiguration.TapZone.Right()
-            } else {
-                TapToPayUxConfiguration.TapZone.Right(bias)
-            }
+            if (bias != null) TapToPayUxConfiguration.TapZone.Right(bias)
+            else TapToPayUxConfiguration.TapZone.Right()
         }
-
         else -> TapToPayUxConfiguration.TapZone.Default
     }
 }
@@ -1625,12 +1682,15 @@ internal fun buildConfirmPaymentIntentConfiguration(params: ReadableMap): Confir
     return configBuilder.build()
 }
 
-@OptIn(InternalApi::class)
+@OptIn(InternalApi::class, DonationApi::class)
 internal fun buildCollectPaymentIntentConfiguration(params: ReadableMap): CollectPaymentIntentConfiguration {
     val configBuilder = CollectPaymentIntentConfiguration.Builder()
 
     if (params.hasKey("skipTipping")) {
         configBuilder.skipTipping(getBoolean(params, "skipTipping"))
+    }
+    if (params.hasKey("skipDonation")) {
+        configBuilder.skipDonation(getBoolean(params, "skipDonation"))
     }
     if (params.hasKey("tipEligibleAmount")) {
         val tipEligibleAmount = getInt(params, "tipEligibleAmount")?.toLong()
@@ -1730,3 +1790,23 @@ internal fun mapFromQrCodeDisplayData(qrData: QrCodeDisplayData): ReadableMap =
         putDouble("expiresAtMs", qrData.expiresAtMs.toDouble())
         putString("paymentMethodType", mapFromPaymentMethodDetailsType(qrData.paymentMethodType))
     }
+
+internal fun mapToAppTransitionAnimation(params: ReadableMap?): AppTransitionAnimation {
+    params ?: return AppTransitionAnimation.SystemDefault
+    return when (val type = params.getString("type")) {
+        "systemDefault" -> AppTransitionAnimation.SystemDefault
+        "preset" -> {
+            val preset = when (val presetValue = params.getString("preset")) {
+                "slideFromBottom" -> AppTransitionPreset.SLIDE_FROM_BOTTOM
+                else -> throw TerminalException(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, "Unknown AppTransitionPreset: $presetValue")
+            }
+            AppTransitionAnimation.Preset(preset)
+        }
+        "custom" -> {
+            val enterAnim = getInt(params, "enterAnim") ?: AppTransitionAnimation.Custom.NO_ANIMATION
+            val exitAnim = getInt(params, "exitAnim") ?: AppTransitionAnimation.Custom.NO_ANIMATION
+            AppTransitionAnimation.Custom(enterAnim, exitAnim)
+        }
+        else -> throw TerminalException(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, "Unknown AppTransitionAnimation type: $type")
+    }
+}

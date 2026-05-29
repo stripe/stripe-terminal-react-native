@@ -50,11 +50,7 @@ type InitializeResultNativeType = Promise<{
 
 interface InternalInitParams extends InitParams {
   reactNativeVersion: string;
-  /**
-   * When true, uses Android's AppsOnDevicesConnectionTokenProvider for serverless
-   * Apps-on-Devices mode. This eliminates the need for a backend server to provide
-   * connection tokens.
-   */
+  /** @internal */
   useAppsOnDevicesConnectionTokenProvider: boolean;
 }
 
@@ -143,7 +139,6 @@ export interface StripeTerminalSdkType {
   processSetupIntent(
     params: ProcessSetupIntentParams
   ): Promise<SetupIntentResultType>;
-  simulateReaderUpdate(update: Reader.SimulateUpdateType): Promise<void>;
   processRefund(params: RefundParams): Promise<ProcessRefundResultType>;
   clearCachedCredentials(): Promise<{
     error?: StripeError;

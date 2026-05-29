@@ -11,7 +11,8 @@ import com.stripeterminalreactnative.nativeMapOf
 class RNPaymentIntentCallback(
     private val promise: Promise,
     private val uuid: String,
-    private val onPaymentIntentSuccess: (PaymentIntent) -> Unit = {}
+    private val onPaymentIntentSuccess: (PaymentIntent) -> Unit = {},
+    private val onPaymentIntentFailure: (PaymentIntent) -> Unit = {},
 ) : PaymentIntentCallback {
 
     override fun onSuccess(paymentIntent: PaymentIntent) {
@@ -24,6 +25,7 @@ class RNPaymentIntentCallback(
     }
 
     override fun onFailure(e: TerminalException) {
+        e.paymentIntent?.let { onPaymentIntentFailure(it) }
         promise.resolve(createError(e, uuid))
     }
 }

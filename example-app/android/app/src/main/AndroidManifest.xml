@@ -28,7 +28,7 @@
          <action android:name="android.intent.action.VIEW"/>
          <category android:name="android.intent.category.DEFAULT"/>
          <category android:name="android.intent.category.BROWSABLE"/>
-         <data android:scheme="com.example.stripeterminalreactnative"/>
+         <data android:scheme="com.yourdomain.stripeterminalreactnative"/>
        </intent-filter>
     </activity>
   </application>

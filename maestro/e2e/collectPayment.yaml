@@ -2,6 +2,16 @@ appId: ${APP_ID}
 ---
 - tapOn:
     id: "collect-payment-method-button"
+
+- extendedWaitUntil:
+    visible:
+      id: "amount-text-field"
+    timeout: 20000
+
+- extendedWaitUntil:
+    visible:
+      id: "collect-payment-button"
+    timeout: 20000
 - tapOn:
     id: "collect-payment-button"
 

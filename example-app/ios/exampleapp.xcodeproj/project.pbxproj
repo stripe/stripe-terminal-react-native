@@ -251,12 +251,12 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-exampleapp/Pods-exampleapp-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/StripeTerminal/StripeTerminal.framework/StripeTerminal",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/StripeTerminal.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -306,11 +306,16 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(SRCROOT)/.xcode.env",
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/exampleapp/exampleapp.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-exampleapp/expo-configure-project.sh",
 			);
 			name = "[Expo] Configure project";
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(SRCROOT)/Pods/Target Support Files/Pods-exampleapp/ExpoModulesProvider.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -358,7 +363,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.stripeterminalreactnative;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourdomain.stripeterminalreactnative$(SAMPLE_CODE_DISAMBIGUATOR)";
 				PRODUCT_NAME = exampleapp;
 				SWIFT_OBJC_BRIDGING_HEADER = "exampleapp/exampleapp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -389,7 +394,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.stripeterminalreactnative;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourdomain.stripeterminalreactnative$(SAMPLE_CODE_DISAMBIGUATOR)";
 				PRODUCT_NAME = exampleapp;
 				SWIFT_OBJC_BRIDGING_HEADER = "exampleapp/exampleapp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -453,11 +458,14 @@
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					" ",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SAMPLE_CODE_DISAMBIGUATOR = "$(DEVELOPMENT_TEAM)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				USE_HERMES = true;
@@ -511,11 +519,14 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					" ",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SAMPLE_CODE_DISAMBIGUATOR = "$(DEVELOPMENT_TEAM)";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
