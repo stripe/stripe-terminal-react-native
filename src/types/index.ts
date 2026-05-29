@@ -1,6 +1,7 @@
 import type { Refund } from './Refund';
 import type { PaymentIntent } from './PaymentIntent';
 import type { Reader } from './Reader';
+import type { TestReaderUpdate } from './Reader';
 import type { SetupIntent } from './SetupIntent';
 import type { StripeError } from './StripeError';
 
@@ -167,8 +168,18 @@ export type EasyConnectTapToPayParams = {
   tosAcceptancePermitted?: boolean;
 };
 
+export enum AppTransitionPreset {
+  SlideFromBottom = 'slideFromBottom',
+}
+
+export type AppTransitionAnimation =
+  | { type: 'systemDefault' }
+  | { type: 'preset'; preset: AppTransitionPreset }
+  | { type: 'custom'; enterAnim: number; exitAnim: number };
+
 export type EasyConnectAppsOnDevicesParams = {
   discoveryMethod: 'appsOnDevices';
+  appTransitionAnimation?: AppTransitionAnimation;
 };
 
 export type ConnectReaderParams =
@@ -186,6 +197,8 @@ export type ConnectBluetoothReaderParams = {
   autoReconnectOnUnexpectedDisconnect?: boolean;
   onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
   onQrCodeDisplayRequired?: QrCodeDisplayHandler;
+  /** Configures a simulated reader update for testing. Only used in test mode. */
+  testReaderUpdate?: TestReaderUpdate;
 };
 
 export type ConnectBluetoothProximityReaderParams = {
@@ -195,6 +208,8 @@ export type ConnectBluetoothProximityReaderParams = {
   autoReconnectOnUnexpectedDisconnect?: boolean;
   onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
   onQrCodeDisplayRequired?: QrCodeDisplayHandler;
+  /** Configures a simulated reader update for testing. Only used in test mode. */
+  testReaderUpdate?: TestReaderUpdate;
 };
 
 export type ConnectUsbReaderParams = {
@@ -204,6 +219,8 @@ export type ConnectUsbReaderParams = {
   autoReconnectOnUnexpectedDisconnect?: boolean;
   onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
   onQrCodeDisplayRequired?: QrCodeDisplayHandler;
+  /** Configures a simulated reader update for testing. Only used in test mode. */
+  testReaderUpdate?: TestReaderUpdate;
 };
 
 export type ConnectTapToPayParams = {
@@ -214,11 +231,18 @@ export type ConnectTapToPayParams = {
   merchantDisplayName?: string;
   tosAcceptancePermitted?: boolean;
   autoReconnectOnUnexpectedDisconnect?: boolean;
+  /**
+   * iOS only. Setting this on Android will result in an error.
+   * Only `none`, `required`, and `random` types are supported for
+   * Tap to Pay iPhone readers.
+   */
+  testReaderUpdate?: TestReaderUpdate;
 };
 
 export type ConnectAppsOnDevicesParams = {
   discoveryMethod: 'appsOnDevices';
   reader: Reader.Type;
+  appTransitionAnimation?: AppTransitionAnimation;
 };
 
 export type ConnectInternetReaderParams = {
@@ -296,10 +320,15 @@ export type RebootReaderResultType = {
   error: StripeError;
 };
 
-export type UpdateSoftwareResultType = {
-  update?: Reader.SoftwareUpdate;
-  error?: StripeError;
-};
+export type UpdateSoftwareResultType =
+  | {
+      update: Reader.SoftwareUpdate;
+      error?: undefined;
+    }
+  | {
+      update?: undefined;
+      error: StripeError;
+    };
 
 export interface Location {
   displayName?: string;
@@ -323,14 +352,25 @@ export type PaymentStatus =
   | 'processing'
   | 'waitingForInput';
 
+/**
+ * Use these values instead of plain string literals for paymentMethodTypes.
+ * String literals matching these values continue to work for backwards
+ * compatibility but are deprecated — use the named values instead.
+ * @example [PaymentMethodType.CardPresent, PaymentMethodType.InteracPresent]
+ */
+export const PaymentMethodType = {
+  Card: 'card',
+  CardPresent: 'cardPresent',
+  InteracPresent: 'interacPresent',
+  WechatPay: 'wechatPay',
+  Affirm: 'affirm',
+  PayNow: 'paynow',
+  PayPay: 'paypay',
+  Klarna: 'klarna',
+} as const;
+
 export type PaymentMethodType =
-  | 'cardPresent'
-  | 'interacPresent'
-  | 'card'
-  | 'wechatPay'
-  | 'affirm'
-  | 'paynow'
-  | 'paypay';
+  (typeof PaymentMethodType)[keyof typeof PaymentMethodType];
 
 export interface Charge {
   id: string;
@@ -387,15 +427,23 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
 };
 
 export type CreatePaymentIntentIOSParams = {
-  paymentMethodTypes?: string[];
+  /**
+   * Prefer using {@link PaymentMethodType} enum values over plain string literals.
+   * @remarks String literals continue to work but named values provide better
+   * autocomplete and type safety.
+   * @example [PaymentMethodType.CardPresent, PaymentMethodType.InteracPresent]
+   */
+  paymentMethodTypes?: PaymentMethodType[];
 };
 
 export type PaymentMethodOptions = {
   requestExtendedAuthorization?: boolean;
   requestIncrementalAuthorizationSupport?: boolean;
-  requestedPriority: string;
+  requestedPriority?: string;
   requestPartialAuthorization?: string;
+  requestReauthorization?: 'if_available' | 'never';
   captureMethod?: 'manual' | 'manual_preferred';
+  requestMulticapture?: 'if_available' | 'never';
 };
 
 export type MotoConfiguration = {
@@ -405,6 +453,7 @@ export type MotoConfiguration = {
 export type CollectPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
   skipTipping?: boolean;
+  skipDonation?: boolean;
   tipEligibleAmount?: number;
   updatePaymentIntent?: boolean;
   customerCancellation?: CustomerCancellation;
@@ -423,6 +472,7 @@ export type ConfirmPaymentMethodParams = {
 export type ProcessPaymentIntentParams = {
   paymentIntent: PaymentIntent.Type;
   skipTipping?: boolean;
+  skipDonation?: boolean;
   tipEligibleAmount?: number;
   updatePaymentIntent?: boolean;
   customerCancellation?: CustomerCancellation;
@@ -445,6 +495,14 @@ export type SurchargeConsent = {
 };
 
 export type SurchargeConsentCollection = 'disabled' | 'enabled';
+
+export type SurchargeStatus = 'available' | 'unavailable';
+
+export type SurchargeDetails = {
+  amount?: number;
+  maximumAmount?: number;
+  status?: SurchargeStatus;
+};
 
 export type CancelPaymentMethodParams = {
   paymentIntent: PaymentIntent.Type;
@@ -483,7 +541,13 @@ export type CreateSetupIntentParams = {
   description?: string;
   metadata?: Record<string, string>;
   onBehalfOf?: string;
-  paymentMethodTypes?: string[];
+  /**
+   * Prefer using {@link PaymentMethodType} enum values over plain string literals.
+   * @remarks String literals continue to work but named values provide better
+   * autocomplete and type safety.
+   * @example [PaymentMethodType.CardPresent, PaymentMethodType.InteracPresent]
+   */
+  paymentMethodTypes?: PaymentMethodType[];
   usage?: string;
 };
 
@@ -494,10 +558,6 @@ export type PaymentIntentResultType =
   }
   | {
     paymentIntent?: undefined;
-    error: StripeError;
-  }
-  | {
-    paymentIntent: PaymentIntent.Type;
     error: StripeError;
   };
 
@@ -552,6 +612,9 @@ export type RefundParams =
   | RefundParamsWithPaymentIntentId
   | RefundParamsWithChargeId;
 
+export type MulticaptureStatus = 'unknown' | 'unavailable' | 'available';
+export type ReauthorizationStatus = 'unknown' | 'unavailable' | 'available';
+
 export type CardPresentDetails = {
   last4: string;
   expMonth: string;
@@ -571,6 +634,10 @@ export type CardPresentDetails = {
   wallet: Wallet;
   location?: string;
   reader?: string;
+  multicaptureStatus?: MulticaptureStatus;
+  reauthorizationStatus?: ReauthorizationStatus;
+  captureBefore?: string;
+  reauthorizeBefore?: string;
 };
 
 export type WechatPayDetails = {
@@ -597,6 +664,11 @@ export type PaypayDetails = {
   reference?: string;
 };
 
+export type KlarnaDetails = {
+  location?: string;
+  reader?: string;
+};
+
 export type ReceiptDetails = {
   accountType: string;
   applicationCryptogram: string;
@@ -621,6 +693,7 @@ export type PaymentMethodDetails = {
   affirmDetails?: AffirmDetails;
   paynowDetails?: PaynowDetails;
   paypayDetails?: PaypayDetails;
+  klarnaDetails?: KlarnaDetails;
   cardDetails?: CardDetails;
 };
 
@@ -634,10 +707,15 @@ export type CardDetails = {
   last4?: string;
 };
 
-export type ProcessRefundResultType = {
-  refund?: Refund.Props;
-  error?: StripeError;
-};
+export type ProcessRefundResultType =
+  | {
+      refund: Refund.Props;
+      error?: undefined;
+    }
+  | {
+      refund?: undefined;
+      error: StripeError;
+    };
 
 export type OfflineStatusDetails = {
   networkStatus: 'online' | 'offline' | 'unknown';
@@ -714,6 +792,7 @@ export namespace PaymentMethod {
     affirmDetails: AffirmDetails;
     paynowDetails?: PaynowDetails;
     paypayDetails?: PaypayDetails;
+    klarnaDetails?: KlarnaDetails;
     cardDetails?: CardDetails;
     livemode: boolean;
     metadata?: Record<string, string>;
@@ -855,7 +934,7 @@ export type OfflineCardPresentDetails = {
 export type AmountDetails = {
   tip?: Amount;
   donation?: Amount;
-  surcharge?: Amount;
+  surcharge?: SurchargeDetails;
 };
 
 export type Amount = {
@@ -926,15 +1005,11 @@ export type TapZoneBelow = {
 
 export type TapZoneFront = {
   indicator: 'front';
-  xBias?: number;
-  yBias?: number;
-};
+} & ({ xBias: number; yBias: number } | { xBias?: never; yBias?: never });
 
 export type TapZoneBehind = {
   indicator: 'behind';
-  xBias?: number;
-  yBias?: number;
-};
+} & ({ xBias: number; yBias: number } | { xBias?: never; yBias?: never });
 
 export type TapZoneLeft = {
   indicator: 'left';

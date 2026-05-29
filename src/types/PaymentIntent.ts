@@ -16,7 +16,6 @@ export namespace PaymentIntent {
     amountDetails?: AmountDetails;
     amountReceived?: number;
     amountRequested?: number;
-    amountSurcharge?: number;
     amountTip?: number;
     applicationFeeAmount?: number;
     canceledAt?: string;

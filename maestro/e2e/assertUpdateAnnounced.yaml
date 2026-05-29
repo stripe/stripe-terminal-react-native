@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible: "New update is available"
+    timeout: 60000
+- tapOn: "OK"
+- extendedWaitUntil:
+    visible:
+        id: "home-screen"
+    timeout: 16000
+- assertVisible:
+    id: "disconnect-button"
+- scrollUntilVisible:
+    element:
+        id: "update-reader-software-button"
+- assertVisible:
+    id: "update-reader-software-button"

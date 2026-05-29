@@ -53,8 +53,8 @@ const TOKEN_PROVIDER_ERROR_MESSAGE =
  * the AppsOnDevicesConnectionTokenProvider can be used to obtain connection tokens without
  * contacting your backend server.
  *
- * This feature is in private preview and only available on Android.
- * Contact Stripe support to enable this feature on your account.
+ * This feature is currently in development and is not yet available for use. To express interest
+ * in the private preview, contact your Stripe account team.
  *
  * @example
  * ```ts
@@ -174,6 +174,7 @@ export function StripeTerminalProvider({
   const didFinishDiscoveringReaders = useCallback(
     ({ result }: EventResult<{ error?: StripeError }>) => {
       log('didFinishDiscoveringReaders', result);
+      // result.error is already rehydrated by useListener when present
       emitter?.emit(FINISH_DISCOVERING_READERS, result.error);
     },
     [log]
@@ -208,7 +209,14 @@ export function StripeTerminalProvider({
       result,
     }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
       log('didFinishInstallingUpdate', result);
-      emitter?.emit(FINISH_INSTALLING_UPDATE, result);
+      const raw = result as { error?: StripeError };
+      if (raw.error) {
+        emitter?.emit(FINISH_INSTALLING_UPDATE, {
+          error: raw.error,
+        });
+      } else {
+        emitter?.emit(FINISH_INSTALLING_UPDATE, result);
+      }
     },
     [log]
   );
@@ -286,7 +294,8 @@ export function StripeTerminalProvider({
   );
 
   const didReportForwardingError = useCallback(
-    ({ error }: { error?: StripeError }) => {
+    ({ result }: { result?: { error?: StripeError } }) => {
+      const error = result?.error;
       log('didReportForwardingError', error);
       emitter?.emit(REPORT_FORWARDING_ERROR, error);
     },

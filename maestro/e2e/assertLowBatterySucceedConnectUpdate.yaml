@@ -1,0 +1,28 @@
+appId: ${APP_ID}
+---
+# For lowBatterySucceedConnect, the update announcement and install failure
+# alerts both appear. On iOS they stack; on Android the second replaces
+# the first. Dismiss what's visible, then verify the update button.
+- extendedWaitUntil:
+    visible: "New update is available"
+    timeout: 60000
+- tapOn: "OK"
+- runFlow:
+    when:
+        platform: ios
+    commands:
+        - extendedWaitUntil:
+            visible: "READER_SOFTWARE_UPDATE_FAILED_BATTERY_LOW"
+            timeout: 16000
+        - tapOn: "OK"
+- extendedWaitUntil:
+    visible:
+        id: "home-screen"
+    timeout: 16000
+- assertVisible:
+    id: "disconnect-button"
+- scrollUntilVisible:
+    element:
+        id: "update-reader-software-button"
+- assertVisible:
+    id: "update-reader-software-button"

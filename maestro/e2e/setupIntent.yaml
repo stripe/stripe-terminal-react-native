@@ -6,6 +6,11 @@ appId: ${APP_ID}
 - tapOn:
     id: "setup-intent-button"
 
+- extendedWaitUntil:
+    visible:
+      id: "collect-setup-intent-button"
+    timeout: 20000
+
 - tapOn:
     id: "collect-setup-intent-button"
 
@@ -29,4 +34,4 @@ appId: ${APP_ID}
       id: "Process"
 - scrollUntilVisible:
     element:
-      text: "terminal.confirmSetupIntent"
+      id: "Finished"

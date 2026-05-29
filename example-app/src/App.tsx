@@ -29,6 +29,7 @@ import {
   requestNeededAndroidPermissions,
 } from '@stripe/stripe-terminal-react-native';
 import { Alert, LogBox } from 'react-native';
+import { formatErrorAlert } from './util/errorUtils';
 import DatabaseScreen from './screens/DatabaseScreen';
 
 export type RouteParamList = {
@@ -129,7 +130,8 @@ export default function App() {
       const { error, reader } = await initStripe();
 
       if (error) {
-        Alert.alert('StripeTerminal init failed', error.message);
+        const alertInfo = formatErrorAlert(error, 'StripeTerminal init');
+        Alert.alert(alertInfo.title, alertInfo.message);
         return;
       }
 

@@ -6,9 +6,25 @@ appId: ${APP_ID}
 - tapOn:
     id: "in-person-refund-button"
 
+- extendedWaitUntil:
+    visible:
+      id: "charge-id-text-field"
+    timeout: 20000
+
 - tapOn:
     id: "charge-id-text-field"
 - inputText: "ch_3JxsjUBDuqlYGNW21EL8UyOm"
+
+- runFlow:
+    when:
+      platform: android
+    commands:
+      - hideKeyboard
+
+- extendedWaitUntil:
+    visible:
+      id: "amount-text-field"
+    timeout: 20000
 
 - tapOn:
     id: "amount-text-field"

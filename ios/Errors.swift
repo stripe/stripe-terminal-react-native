@@ -121,8 +121,19 @@ class Errors {
         case TAP_TO_PAY_READER_REQUEST_INTERRUPTED = "TAP_TO_PAY_READER_REQUEST_INTERRUPTED"
         case CARD_NOT_SUPPORTED = "CARD_NOT_SUPPORTED"
 
+        case SURCHARGE_NOTICE_NOT_AVAILABLE = "SURCHARGE_NOTICE_NOT_AVAILABLE"
+        case AMOUNT_SURCHARGE_REQUIRES_UPDATE_PAYMENT_INTENT = "AMOUNT_SURCHARGE_REQUIRES_UPDATE_PAYMENT_INTENT"
+        case AMOUNT_SURCHARGE_NOT_SUPPORTED_OFFLINE = "AMOUNT_SURCHARGE_NOT_SUPPORTED_OFFLINE"
+
+        case SIMULATED_OFFLINE_MODE_NOT_AVAILABLE_IN_LIVEMODE = "SIMULATED_OFFLINE_MODE_NOT_AVAILABLE_IN_LIVEMODE"
+
         // IOS TTP Only.
         case TAP_TO_PAY_READER_MERCHANT_BLOCKED = "TAP_TO_PAY_READER_MERCHANT_BLOCKED"
+        case TAP_TO_PAY_READER_OFFLINE_MODE_NOT_ALLOWED = "TAP_TO_PAY_READER_OFFLINE_MODE_NOT_ALLOWED"
+        case TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_EXPIRED = "TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_EXPIRED"
+        case TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_INVALIDATED = "TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_INVALIDATED"
+        case TAP_TO_PAY_READER_OFFLINE_MODE_TOKEN_ISSUER_CHANGED = "TAP_TO_PAY_READER_OFFLINE_MODE_TOKEN_ISSUER_CHANGED"
+
     }
 
     // MARK: - Utilities
@@ -192,11 +203,11 @@ class Errors {
         metadata: [String: Any]
     ) -> [String: Any] {
         return [
-            ErrorConstants.nameKey: name,
-            ErrorConstants.messageKey: message.isEmpty ? ErrorConstants.unknownErrorMessage : message,
-            ErrorConstants.codeKey: code,
-            ErrorConstants.nativeErrorCodeKey: nativeErrorCode,
-            ErrorConstants.metadataKey: metadata
+            ErrorConstants.rnErrorName: name,
+            ErrorConstants.rnErrorMessage: message.isEmpty ? ErrorConstants.unknownErrorMessage : message,
+            ErrorConstants.rnErrorCode: code,
+            ErrorConstants.rnErrorNativeErrorCode: nativeErrorCode,
+            ErrorConstants.rnMetadata: metadata
         ]
     }
 
@@ -214,7 +225,7 @@ class Errors {
             message: message,
             metadata: [:]
         )
-        return [ErrorConstants.errorKey: error]
+        return [ErrorConstants.rnError: error]
     }
 
     // MARK: - Error Creation
@@ -271,7 +282,7 @@ class Errors {
     ///   - uuid: The UUID to associate with response objects (PaymentIntent, SetupIntent, Refund)
     /// - Returns: A dictionary containing the wrapped error structure with response objects at top level
     class func createErrorFromNSError(nsError: NSError, uuid: String?) -> [String: Any] {
-        var result: [String: Any] = [ErrorConstants.errorKey: mapToStripeErrorObject(nsError: nsError)]
+        var result: [String: Any] = [ErrorConstants.rnError: mapToStripeErrorObject(nsError: nsError)]
 
         addResponseObjectsToTopLevel(from: nsError, to: &result, uuid: uuid ?? "")
 
@@ -317,7 +328,7 @@ class Errors {
 
         extractUnderlyingErrorToTopLevel(from: nsError, to: &result)
 
-        result[ErrorConstants.metadataKey] = addPlatformMetadata(from: nsError)
+        result[ErrorConstants.rnMetadata] = addPlatformMetadata(from: nsError)
 
         return result
     }
@@ -363,7 +374,7 @@ class Errors {
             isStripeError: isStripeError,
             code: code,
             nativeErrorCode: nativeErrorCode,
-            errorName: isStripeError ? ErrorConstants.stripeErrorName : ErrorConstants.nonStripeErrorName
+            errorName: isStripeError ? ErrorConstants.rnStripeErrorName : ErrorConstants.rnNonStripeErrorName
         )
     }
 
@@ -398,7 +409,7 @@ class Errors {
         addRequiredApiErrorFields(from: nsError, to: &apiError)
         addOptionalApiErrorFields(from: nsError, to: &apiError)
 
-        result[ErrorConstants.apiErrorKey] = apiError
+        result[ErrorConstants.rnApiError] = apiError
     }
 
     /// Checks if the NSError contains API-level error information.
@@ -421,44 +432,53 @@ class Errors {
     ///   - nsError: The NSError containing API error information
     ///   - apiError: The dictionary to add fields to (modified in place)
     private class func addRequiredApiErrorFields(from nsError: NSError, to apiError: inout [String: Any]) {
-        apiError[ErrorConstants.apiErrorCodeKey] = nsError.userInfo[ErrorConstants.stripeAPIErrorCode] as? String ?? ErrorConstants.apiErrorUnknownCode
+        apiError[ErrorConstants.rnApiErrorCode] = nsError.userInfo[ErrorConstants.stripeAPIErrorCode] as? String ?? ErrorConstants.apiErrorUnknownCode
 
         if let failureReason = nsError.userInfo[ErrorConstants.stripeAPIFailureReason] as? String {
-            apiError[ErrorConstants.apiErrorMessageKey] = failureReason
+            apiError[ErrorConstants.rnApiErrorMessage] = failureReason
         } else {
-            apiError[ErrorConstants.apiErrorMessageKey] = nsError.localizedDescription
+            apiError[ErrorConstants.rnApiErrorMessage] = nsError.localizedDescription
         }
 
-        apiError[ErrorConstants.apiErrorDeclineCodeKey] = nsError.userInfo[ErrorConstants.stripeAPIDeclineCode] as? String ?? ErrorConstants.apiErrorRequiredFieldEmpty
+        apiError[ErrorConstants.rnApiErrorDeclineCode] = nsError.userInfo[ErrorConstants.stripeAPIDeclineCode] as? String ?? ErrorConstants.apiErrorRequiredFieldEmpty
     }
 
     /// Adds optional ApiError fields from NSError userInfo.
     ///
-    /// These fields (type, docUrl, param, charge) are optional in the TypeScript ApiErrorInformation interface
-    /// and will only be present if available from the Stripe SDK.
+    /// - type, docUrl, param, charge: read via individual ErrorKey constants from flat userInfo.
+    /// - requestLogUrl, adviceCode, networkAdviceCode, networkDeclineCode: don't have individual
+    ///   ErrorKey constants in the iOS SDK, so they are read from the structured ApiError object
+    ///   stored at ErrorKey.stripeAPIError. On Android, all fields are accessed uniformly via
+    ///   TerminalException.apiError.
     ///
     /// - Parameters:
     ///   - nsError: The NSError containing API error information
     ///   - apiError: The dictionary to add fields to (modified in place)
     private class func addOptionalApiErrorFields(from nsError: NSError, to apiError: inout [String: Any]) {
-        apiError[ErrorConstants.apiErrorTypeKey] = nsError.userInfo[ErrorConstants.stripeAPIErrorType] as? String
-        apiError[ErrorConstants.apiErrorDocUrlKey] = nsError.userInfo[ErrorConstants.stripeAPIDocUrl] as? String
-        apiError[ErrorConstants.apiErrorParamKey] = nsError.userInfo[ErrorConstants.stripeAPIErrorParameter] as? String
-        apiError[ErrorConstants.apiErrorChargeKey] = nsError.userInfo[ErrorConstants.stripeAPICharge] as? String
+        apiError[ErrorConstants.rnApiErrorType]   = nsError.userInfo[ErrorConstants.stripeAPIErrorType] as? String
+        apiError[ErrorConstants.rnApiErrorDocUrl]  = nsError.userInfo[ErrorConstants.stripeAPIDocUrl] as? String
+        apiError[ErrorConstants.rnApiErrorParam]   = nsError.userInfo[ErrorConstants.stripeAPIErrorParameter] as? String
+        apiError[ErrorConstants.rnApiErrorCharge]  = nsError.userInfo[ErrorConstants.stripeAPICharge] as? String
+
+        if let structuredApiError = nsError.userInfo[ErrorConstants.stripeAPIError] as? ApiError {
+            apiError[ErrorConstants.rnApiErrorRequestLogUrl]      = structuredApiError.requestLogUrl
+            apiError[ErrorConstants.rnApiErrorAdviceCode]         = structuredApiError.adviceCode
+            apiError[ErrorConstants.rnApiErrorNetworkAdviceCode]  = structuredApiError.networkAdviceCode
+            apiError[ErrorConstants.rnApiErrorNetworkDeclineCode] = structuredApiError.networkDeclineCode
+        }
     }
 
     // MARK: - ApiError Object Mapping
 
-    /// Maps an ApiError object to an NSDictionary.
+    /// Maps an SCPApiError object to an NSDictionary.
     ///
-    /// Used for PaymentIntent.lastPaymentError which returns an ApiError object directly
-    /// (as opposed to NSError.userInfo which is handled by extractApiErrorToTopLevel).
+    /// Used for PaymentIntent.lastPaymentError, SetupIntent.lastSetupError,
+    /// and SetupAttempt.setupError (all return SCPApiError on iOS).
+    /// For TerminalException-level errors, see extractApiErrorToTopLevel.
     ///
-    /// Field handling matches ErrorConstants and TypeScript ApiErrorInformation interface:
-    /// - code: Required field, fallback to "unknown_api_error_code" if nil
-    /// - message: Required field
-    /// - declineCode: Required field, fallback to empty string if nil
-    /// - type, charge, docUrl, param: Optional fields, omitted if nil
+    /// Field handling:
+    /// - code, message, declineCode: Required fields (with fallbacks if nil)
+    /// - type, charge, docUrl, param, requestLogUrl, adviceCode, networkAdviceCode, networkDeclineCode: Optional, omitted if nil
     ///
     /// - Parameter apiError: The ApiError object, or nil if not available
     /// - Returns: NSDictionary containing the ApiError structure, or nil if apiError is nil
@@ -469,14 +489,18 @@ class Errors {
 
         var result: [String: Any] = [:]
 
-        result[ErrorConstants.apiErrorCodeKey] = apiError.code ?? ErrorConstants.apiErrorUnknownCode
-        result[ErrorConstants.apiErrorMessageKey] = apiError.message
-        result[ErrorConstants.apiErrorDeclineCodeKey] = apiError.declineCode ?? ErrorConstants.apiErrorRequiredFieldEmpty
+        result[ErrorConstants.rnApiErrorCode] = apiError.code ?? ErrorConstants.apiErrorUnknownCode
+        result[ErrorConstants.rnApiErrorMessage] = apiError.message
+        result[ErrorConstants.rnApiErrorDeclineCode] = apiError.declineCode ?? ErrorConstants.apiErrorRequiredFieldEmpty
 
-        result[ErrorConstants.apiErrorTypeKey] = apiError.type
-        result[ErrorConstants.apiErrorChargeKey] = apiError.charge
-        result[ErrorConstants.apiErrorDocUrlKey] = apiError.docUrl
-        result[ErrorConstants.apiErrorParamKey] = apiError.param
+        result[ErrorConstants.rnApiErrorType] = apiError.type
+        result[ErrorConstants.rnApiErrorCharge] = apiError.charge
+        result[ErrorConstants.rnApiErrorDocUrl] = apiError.docUrl
+        result[ErrorConstants.rnApiErrorParam] = apiError.param
+        result[ErrorConstants.rnApiErrorRequestLogUrl] = apiError.requestLogUrl
+        result[ErrorConstants.rnApiErrorAdviceCode] = apiError.adviceCode
+        result[ErrorConstants.rnApiErrorNetworkAdviceCode] = apiError.networkAdviceCode
+        result[ErrorConstants.rnApiErrorNetworkDeclineCode] = apiError.networkDeclineCode
 
         return NSDictionary(dictionary: result)
     }
@@ -497,11 +521,11 @@ class Errors {
     ///   - uuid: The UUID to associate with response objects for tracking
     private class func addResponseObjectsToTopLevel(from nsError: NSError, to result: inout [String: Any], uuid: String) {
         if let confirmError = nsError as? ConfirmPaymentIntentError, let paymentIntent = confirmError.paymentIntent {
-            result[ErrorConstants.paymentIntentKey] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+            result[ErrorConstants.rnPaymentIntent] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
         } else if let confirmError = nsError as? ConfirmSetupIntentError, let setupIntent = confirmError.setupIntent {
-            result[ErrorConstants.setupIntentKey] = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+            result[ErrorConstants.rnSetupIntent] = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
         } else if let confirmError = nsError as? ConfirmRefundError, let refund = confirmError.refund {
-            result[ErrorConstants.refundKey] = Mappers.mapFromRefund(refund)
+            result[ErrorConstants.rnRefund] = Mappers.mapFromRefund(refund)
         }
     }
 
@@ -517,23 +541,23 @@ class Errors {
         var underlyingError: [String: Any] = [:]
 
         if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-            underlyingError[ErrorConstants.underlyingErrorCodeKey] = String(underlying.code)
-            underlyingError[ErrorConstants.underlyingErrorMessageKey] = underlying.localizedDescription
-            underlyingError[ErrorConstants.underlyingErrorIosDomainKey] = underlying.domain
+            underlyingError[ErrorConstants.rnUnderlyingErrorCode] = String(underlying.code)
+            underlyingError[ErrorConstants.rnUnderlyingErrorMessage] = underlying.localizedDescription
+            underlyingError[ErrorConstants.rnUnderlyingErrorIosDomain] = underlying.domain
         } else {
-            underlyingError[ErrorConstants.underlyingErrorCodeKey] = String(nsError.code)
-            underlyingError[ErrorConstants.underlyingErrorMessageKey] = nsError.localizedDescription
-            underlyingError[ErrorConstants.underlyingErrorIosDomainKey] = nsError.domain
+            underlyingError[ErrorConstants.rnUnderlyingErrorCode] = String(nsError.code)
+            underlyingError[ErrorConstants.rnUnderlyingErrorMessage] = nsError.localizedDescription
+            underlyingError[ErrorConstants.rnUnderlyingErrorIosDomain] = nsError.domain
         }
 
         if let failure = nsError.localizedFailureReason, !failure.isEmpty {
-            underlyingError[ErrorConstants.underlyingErrorIosLocalizedFailureReasonKey] = failure
+            underlyingError[ErrorConstants.rnUnderlyingErrorIosLocalizedFailureReason] = failure
         }
         if let suggestion = nsError.localizedRecoverySuggestion, !suggestion.isEmpty {
-            underlyingError[ErrorConstants.underlyingErrorIosLocalizedRecoverySuggestionKey] = suggestion
+            underlyingError[ErrorConstants.rnUnderlyingErrorIosLocalizedRecoverySuggestion] = suggestion
         }
 
-        result[ErrorConstants.underlyingErrorKey] = underlyingError
+        result[ErrorConstants.rnUnderlyingError] = underlyingError
     }
 
     /// Adds platform-specific metadata fields extracted from NSError.userInfo.
@@ -547,13 +571,13 @@ class Errors {
     private class func addPlatformMetadata(from nsError: NSError) -> [String: Any] {
         var metadata: [String: Any] = [:]
 
-        metadata[ErrorConstants.deviceBannedUntilDateKey] = nsError.userInfo[ErrorConstants.deviceBannedUntilDate] as? String
-        metadata[ErrorConstants.prepareFailedReasonKey] = nsError.userInfo[ErrorConstants.prepareFailedReason] as? String
-        metadata[ErrorConstants.httpStatusCodeKey] = nsError.userInfo[ErrorConstants.httpStatusCode] as? Int
-        metadata[ErrorConstants.readerMessageKey] = nsError.userInfo[ErrorConstants.readerMessage] as? String
-        metadata[ErrorConstants.stripeAPIRequestIdKey] = nsError.userInfo[ErrorConstants.stripeAPIRequestId] as? String
-        metadata[ErrorConstants.stripeAPIFailureReasonKey] = nsError.userInfo[ErrorConstants.stripeAPIFailureReason] as? String
-        metadata[ErrorConstants.offlineDeclineReasonKey] = nsError.userInfo[ErrorConstants.offlineDeclineReason] as? String
+        metadata[ErrorConstants.rnMetadataDeviceBannedUntilDate] = nsError.userInfo[ErrorConstants.deviceBannedUntilDate] as? String
+        metadata[ErrorConstants.rnMetadataPrepareFailedReason] = nsError.userInfo[ErrorConstants.prepareFailedReason] as? String
+        metadata[ErrorConstants.rnMetadataHttpStatusCode] = nsError.userInfo[ErrorConstants.httpStatusCode] as? Int
+        metadata[ErrorConstants.rnMetadataReaderMessage] = nsError.userInfo[ErrorConstants.readerMessage] as? String
+        metadata[ErrorConstants.rnMetadataStripeAPIRequestId] = nsError.userInfo[ErrorConstants.stripeAPIRequestId] as? String
+        metadata[ErrorConstants.rnMetadataStripeAPIFailureReason] = nsError.userInfo[ErrorConstants.stripeAPIFailureReason] as? String
+        metadata[ErrorConstants.rnMetadataOfflineDeclineReason] = nsError.userInfo[ErrorConstants.offlineDeclineReason] as? String
 
         return metadata
     }
@@ -721,8 +745,16 @@ class Errors {
         case .tapToPayReaderRequestInterrupted: return RNErrorCode.TAP_TO_PAY_READER_REQUEST_INTERRUPTED.rawValue
         case .unexpectedOperationError: return RNErrorCode.UNEXPECTED_OPERATION.rawValue
         case .cardNotSupported: return RNErrorCode.CARD_NOT_SUPPORTED.rawValue
-
-
+        case .confirmInvalidSetupIntent: return RNErrorCode.CONFIRM_INVALID_SETUP_INTENT.rawValue
+        case .surchargeNoticeNotAvailable: return RNErrorCode.SURCHARGE_NOTICE_NOT_AVAILABLE.rawValue
+        case .amountSurchargeRequiresUpdatePaymentIntent: return RNErrorCode.AMOUNT_SURCHARGE_REQUIRES_UPDATE_PAYMENT_INTENT.rawValue
+        case .amountSurchargeNotSupportedOffline: return RNErrorCode.AMOUNT_SURCHARGE_NOT_SUPPORTED_OFFLINE.rawValue
+        case .tapToPayReaderOfflineModeNotAllowed: return RNErrorCode.TAP_TO_PAY_READER_OFFLINE_MODE_NOT_ALLOWED.rawValue
+        case .tapToPayReaderOfflineModeSessionExpired: return RNErrorCode.TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_EXPIRED.rawValue
+        case .tapToPayReaderOfflineModeSessionInvalidated: return RNErrorCode.TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_INVALIDATED.rawValue
+        case .tapToPayReaderOfflineModeTokenIssuerChanged: return RNErrorCode.TAP_TO_PAY_READER_OFFLINE_MODE_TOKEN_ISSUER_CHANGED.rawValue
+        case .simulatedOfflineModeNotAvailableInLivemode: return RNErrorCode.SIMULATED_OFFLINE_MODE_NOT_AVAILABLE_IN_LIVEMODE.rawValue
+        case .simulatedOfflineModeNotAvailableForAccount: return RNErrorCode.UNSUPPORTED_OPERATION.rawValue
         // NOTE: No default case - this ensures that any new ErrorCode cases
         // added to the Stripe Terminal SDK will cause a COMPILER ERROR,
         // forcing us to explicitly handle new cases and preventing silent mapping failures.

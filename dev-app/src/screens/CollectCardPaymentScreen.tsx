@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import {
   useStripeTerminal,
+  PaymentMethodType,
   type PaymentIntent,
   type StripeError,
   type AllowRedisplay,
@@ -98,6 +99,18 @@ const PARTIAL_AUTH = [
   { value: 'never', label: 'never' },
 ];
 
+const REQUEST_MULTICAPTURE = [
+  { value: undefined, label: 'default' },
+  { value: 'if_available', label: 'if_available' },
+  { value: 'never', label: 'never' },
+];
+
+const REQUEST_REAUTHORIZATION = [
+  { value: 'unspecified', label: 'unspecified' },
+  { value: 'if_available', label: 'if_available' },
+  { value: 'never', label: 'never' },
+];
+
 const ALLOW_REDISPLAY = [
   { value: 'unspecified', label: 'unspecified' },
   { value: 'limited', label: 'limited' },
@@ -122,6 +135,8 @@ export default function CollectCardPaymentScreen() {
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
     requestPartialAuthorization?: string;
+    requestMulticapture?: 'if_available' | 'never';
+    requestReauthorization?: 'if_available' | 'never';
     captureMethod: 'automatic' | 'manual';
     requestedPriority: 'domestic' | 'international' | '';
     offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
@@ -284,6 +299,8 @@ export default function CollectCardPaymentScreen() {
           inputValues.requestIncrementalAuthorizationSupport,
         requestedPriority: inputValues.requestedPriority,
         requestPartialAuthorization: inputValues.requestPartialAuthorization,
+        requestMulticapture: inputValues.requestMulticapture,
+        requestReauthorization: inputValues.requestReauthorization,
         captureMethod: inputValues?.cardPresentCaptureMethod,
       },
       captureMethod: inputValues?.captureMethod,
@@ -424,6 +441,8 @@ export default function CollectCardPaymentScreen() {
           inputValues.requestIncrementalAuthorizationSupport,
         requestedPriority: inputValues.requestedPriority,
         requestPartialAuthorization: inputValues.requestPartialAuthorization,
+        requestMulticapture: inputValues.requestMulticapture,
+        requestReauthorization: inputValues.requestReauthorization,
         captureMethod: inputValues?.cardPresentCaptureMethod,
       },
       captureMethod: inputValues?.captureMethod,
@@ -593,6 +612,9 @@ export default function CollectCardPaymentScreen() {
             description: 'terminal.collectPaymentMethod',
             metadata: {
               paymentIntentId: paymentIntent.id,
+              multicaptureStatus:
+                paymentIntent.paymentMethod?.cardPresentDetails
+                  ?.multicaptureStatus ?? 'not present',
               pi: JSON.stringify(paymentIntent, undefined, 2),
             },
           },
@@ -965,19 +987,23 @@ export default function CollectCardPaymentScreen() {
                   setEnableInterac(value);
                   if (
                     value &&
-                    !enabledPaymentMethodTypes.includes('interac_present')
+                    !enabledPaymentMethodTypes.includes(
+                      PaymentMethodType.InteracPresent
+                    )
                   ) {
                     setEnabledPaymentMethodTypes([
                       ...enabledPaymentMethodTypes,
-                      'interac_present',
+                      PaymentMethodType.InteracPresent,
                     ]);
                   } else if (
                     !value &&
-                    enabledPaymentMethodTypes.includes('interac_present')
+                    enabledPaymentMethodTypes.includes(
+                      PaymentMethodType.InteracPresent
+                    )
                   ) {
                     setEnabledPaymentMethodTypes(
                       enabledPaymentMethodTypes.filter(
-                        (type) => type !== 'interac_present'
+                        (type) => type !== PaymentMethodType.InteracPresent
                       )
                     );
                   }
@@ -996,9 +1022,13 @@ export default function CollectCardPaymentScreen() {
                 paymentMethodTypes: paymentMethodTypes,
                 enabledPaymentMethodTypes: enabledPaymentMethodTypes,
                 onChange: (newPaymentMethodTypes: string[]) => {
-                  setEnabledPaymentMethodTypes(newPaymentMethodTypes);
+                  setEnabledPaymentMethodTypes(
+                    newPaymentMethodTypes as PaymentMethodType[]
+                  );
                   setEnableInterac(
-                    newPaymentMethodTypes.includes('interac_present')
+                    newPaymentMethodTypes.includes(
+                      PaymentMethodType.InteracPresent
+                    )
                   );
                 },
               })
@@ -1210,6 +1240,53 @@ export default function CollectCardPaymentScreen() {
             }
           >
             {PARTIAL_AUTH.map((a) => (
+              <Picker.Item
+                key={a.value}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+              />
+            ))}
+          </Picker>
+        </List>
+
+        <List bolded={false} topSpacing={false} title="REQUEST MULTICAPTURE">
+          <Picker
+            selectedValue={inputValues?.requestMulticapture}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-multicapture-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({
+                ...state,
+                requestMulticapture: value,
+              }))
+            }
+          >
+            {REQUEST_MULTICAPTURE.map((a) => (
+              <Picker.Item
+                key={a.label}
+                label={a.label}
+                testID={a.value}
+                value={a.value}
+                />
+              ))}
+            </Picker>
+          </List>
+        <List bolded={false} topSpacing={false} title="REQUEST REAUTHORIZATION">
+          <Picker
+            selectedValue={inputValues?.requestReauthorization}
+            style={styles.picker}
+            itemStyle={styles.pickerItem}
+            testID="select-request-reauthorization-picker"
+            onValueChange={(value) =>
+              setInputValues((state) => ({
+                ...state,
+                requestReauthorization: value,
+              }))
+            }
+          >
+            {REQUEST_REAUTHORIZATION.map((a) => (
               <Picker.Item
                 key={a.value}
                 label={a.label}

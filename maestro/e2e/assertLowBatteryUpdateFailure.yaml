@@ -1,0 +1,41 @@
+appId: ${APP_ID}
+---
+# The install attempt fails first (low battery), then the connection
+# itself fails. On iOS both alerts stack; on Android the second
+# replaces the first so only the connection error is visible.
+# Both now use showErrorAlert so the title is the error code.
+- runFlow:
+    when:
+        platform: ios
+    commands:
+        - extendedWaitUntil:
+            visible: "READER_SOFTWARE_UPDATE_FAILED_BATTERY_LOW"
+            timeout: 16000
+        - tapOn: "OK"
+- extendedWaitUntil:
+    visible: "READER_SOFTWARE_UPDATE_FAILED_BATTERY_LOW"
+    timeout: 16000
+- tapOn: "OK"
+- runFlow:
+    when:
+        platform: ios
+    commands:
+        - extendedWaitUntil:
+            visible:
+                id: "discovery-readers-screen"
+            timeout: 10000
+        - tapOn:
+            text: ".*Cancel.*"
+- runFlow:
+    when:
+        platform: android
+    commands:
+        - extendedWaitUntil:
+            visible:
+                id: "discovery-readers-screen"
+            timeout: 10000
+        - back
+- assertVisible:
+    id: "home-screen"
+- assertVisible:
+    id: "discover-readers-button"

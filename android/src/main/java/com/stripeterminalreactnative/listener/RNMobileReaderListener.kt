@@ -26,7 +26,7 @@ import com.stripeterminalreactnative.mapFromReaderEvent
 import com.stripeterminalreactnative.mapFromReaderInputOptions
 import com.stripeterminalreactnative.mapFromReaderSoftwareUpdate
 import com.stripeterminalreactnative.nativeMapOf
-import com.stripeterminalreactnative.putDoubleOrNull
+import com.stripeterminalreactnative.putDoubleIfNotNull
 import com.stripeterminalreactnative.putError
 import com.stripe.stripeterminal.external.callable.PaymentMethodSelectionCallback
 import com.stripe.stripeterminal.external.callable.QrCodeDisplayCallback
@@ -105,7 +105,7 @@ class RNMobileReaderListener(
             putMap(
                 "result",
                 nativeMapOf {
-                    putDoubleOrNull(this, "batteryLevel", batteryLevel.toDouble())
+                    putDoubleIfNotNull(this, "batteryLevel", batteryLevel.toDouble())
                     putString("batteryStatus", mapFromBatteryStatus(batteryStatus))
                     putBoolean("isCharging", isCharging)
                 }

@@ -1,12 +1,20 @@
 import type { ErrorCode } from '../Errors/ErrorCodes';
 import type { PaymentIntent } from '../types/PaymentIntent';
+import type { PaymentMethod } from './';
 import type { SetupIntent } from '../types/SetupIntent';
 import type { Refund } from '../types/Refund';
 
 /**
- * API-level error information
- * - Android: Complete ApiError object from TerminalException.apiError
- * - iOS: Partially available via userInfo extraction
+ * API-level error information, unified across platforms.
+ *
+ * Sources:
+ * - TerminalException.apiError (both platforms)
+ * - PaymentIntent.lastPaymentError (both platforms, ApiError / SCPApiError)
+ * - SetupIntent.lastSetupError (both platforms, ApiError / SCPApiError)
+ * - SetupAttempt.setupError (Android: SetupError, iOS: SCPApiError)
+ *
+ * Android's SetupError is a distinct type from ApiError — it adds paymentMethod
+ * and paymentMethodType but lacks charge and requestLogUrl.
  */
 export interface ApiErrorInformation {
   /** API error code */
@@ -27,8 +35,26 @@ export interface ApiErrorInformation {
   /** Error type (optional) */
   type?: string;
 
-  /** Charge ID (optional, iOS will add in v5.1) */
+  /** Charge ID (optional) */
   charge?: string;
+
+  /** URL to the Stripe request log entry for this API call (optional) */
+  requestLogUrl?: string;
+
+  /** Advice code providing additional context about the error (optional) */
+  adviceCode?: string;
+
+  /** Network-level advice code (optional) */
+  networkAdviceCode?: string;
+
+  /** Network-level decline code (optional) */
+  networkDeclineCode?: string;
+
+  /** Payment method associated with this error (Android SetupError only) */
+  paymentMethod?: PaymentMethod.Type;
+
+  /** Payment method type string (Android SetupError only) */
+  paymentMethodType?: string;
 }
 
 /**
@@ -68,7 +94,7 @@ export interface StripeError extends Error {
   /** Associated SetupIntent (if applicable) */
   setupIntent?: SetupIntent.Type;
 
-  /** Associated Refund (if applicable, Android will populate this) */
+  /** Associated Refund (if applicable) */
   refund?: Refund.Props;
 
   /** API-level error information (unified across platforms) */

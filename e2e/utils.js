@@ -46,17 +46,27 @@ const setSelectedCurrency = async (currency = 'USD') => {
   }
 };
 
-const setSimulatedUpdatePlan = async (plan = 'Update required') => {
-  const picker = element(by.id('update-plan-picker'));
-  const touchable = element(by.id('close-picker'));
-  await picker.tap();
+const setTestReaderUpdate = async (type = 'required') => {
+  // Tap the "Test Reader Update" list item to navigate to the selection screen
+  const button = element(by.id('test-reader-update-button'));
+  await waitFor(button).toBeVisible().withTimeout(16000);
+  await button.tap();
 
-  if (device.getPlatform() === 'ios') {
-    await element(by.type('UIPickerView')).setColumnToValue(0, plan);
-    await touchable.tap();
-  } else {
-    await element(by.text(plan)).tap();
-  }
+  // Wait for the selection screen to appear
+  await waitFor(element(by.id('test-reader-update-screen')))
+    .toBeVisible()
+    .withTimeout(16000);
+
+  // Tap the desired update type
+  await element(by.id(`update-type-${type}`)).tap();
+
+  // Go back to the discovery screen
+  await goBack();
+
+  // Wait for discovery screen to be visible again
+  await waitFor(element(by.id('discovery-readers-screen')))
+    .toBeVisible()
+    .withTimeout(16000);
 };
 
 const checkIfConnected = async ({
@@ -226,7 +236,7 @@ module.exports = {
   connectReader,
   setSelectedMerchant,
   setSelectedCurrency,
-  setSimulatedUpdatePlan,
+  setTestReaderUpdate,
   checkIfConnected,
   disconnectReader,
   checkIfLogExist,

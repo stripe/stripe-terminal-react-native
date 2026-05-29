@@ -1,4 +1,8 @@
-export const DEFAULT_ENABLED_PAYMENT_METHOD_TYPES = ['card_present'];
+import { PaymentMethodType } from '@stripe/stripe-terminal-react-native';
+
+export const DEFAULT_ENABLED_PAYMENT_METHOD_TYPES: PaymentMethodType[] = [
+  PaymentMethodType.CardPresent,
+];
 
 export const PAYMENT_METHOD_TYPES = [
   'ach_debit',

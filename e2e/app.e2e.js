@@ -5,7 +5,7 @@ const {
   connectReader,
   checkIfLogExist,
   checkIfConnected,
-  setSimulatedUpdatePlan,
+  setTestReaderUpdate,
   changeDiscoveryMethod,
 } = require('./utils');
 
@@ -39,7 +39,7 @@ describe('Basic funtionalities', () => {
   it('Install required update and connect', async () => {
     await changeDiscoveryMethod('Bluetooth Scan');
     await navigateTo('Discover Readers');
-    await setSimulatedUpdatePlan();
+    await setTestReaderUpdate('required');
     await connectReader();
 
     await waitFor(element(by.text('Required update in progress')))
@@ -70,7 +70,7 @@ describe('Basic funtionalities', () => {
       return;
     }
     await navigateTo('Discover Readers');
-    await setSimulatedUpdatePlan('Update required; reader has low battery');
+    await setTestReaderUpdate('lowBattery');
     await connectReader();
     await waitFor(
       element(

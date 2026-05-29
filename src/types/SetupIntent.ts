@@ -25,7 +25,7 @@ export namespace SetupIntent {
     paymentMethodId?: string;
     paymentMethod?: PaymentMethod.Type;
     paymentMethodOptions?: PaymentMethodOptions;
-    paymentMethodTypes?: string[];
+    paymentMethodTypes?: PaymentMethodType[];
     singleUseMandate?: string;
     status?: Status;
     usage?: Usage;
@@ -55,6 +55,7 @@ export namespace SetupIntent {
     setupIntentId?: string;
     status: string;
     usage?: Usage;
+    setupError?: ApiErrorInformation;
   };
 
   export interface SetupAttemptPaymentMethodDetails {

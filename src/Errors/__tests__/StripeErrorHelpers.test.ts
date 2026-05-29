@@ -1,7 +1,7 @@
 import {
   checkIfObjectIsStripeError,
   createStripeError,
-  convertNativeErrorToStripeError,
+  rehydrateBridgeError,
 } from '../StripeErrorHelpers';
 import { ErrorCode } from '../ErrorCodes';
 
@@ -214,55 +214,96 @@ describe('StripeErrorHelpers', () => {
     });
   });
 
-  describe('convertNativeErrorToStripeError', () => {
+  describe('rehydrateBridgeError', () => {
     it('should normalize Android error structure', () => {
-      // GIVEN Android error structure
+      // GIVEN the flat structure Android produces via mapToStripeErrorObject
       const rawAndroidError = {
+        name: 'StripeError',
         code: 'DECLINED_BY_STRIPE_API',
+        nativeErrorCode: 'STRIPE_API_ERROR',
         message: 'Payment was declined',
-        metadata: {
-          declineCode: 'generic_decline',
-          apiError: {
-            code: 'card_declined',
-            message: 'Your card was declined.',
-          },
-        },
-      };
-
-      // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawAndroidError);
-
-      // THEN it should create a proper StripeError
-      expect(normalizedError.name).toBe('StripeError');
-      expect(normalizedError.code).toBe('DECLINED_BY_STRIPE_API');
-      expect(normalizedError.message).toBe('Payment was declined');
-      expect(normalizedError.nativeErrorCode).toBe('DECLINED_BY_STRIPE_API');
-      expect(normalizedError.metadata).toEqual({
-        declineCode: 'generic_decline',
+        metadata: {},
         apiError: {
           code: 'card_declined',
           message: 'Your card was declined.',
+          declineCode: 'generic_decline',
         },
-      });
-    });
-
-    it('should normalize iOS error structure with userInfo', () => {
-      // GIVEN iOS error structure
-      const rawIOSError = {
-        userInfo: {
-          code: 'BLUETOOTH_ERROR',
-          nativeErrorCode: '1200',
-          metadata: {
-            domain: 'com.stripe-terminal',
-            isStripeError: true,
-          },
-          paymentIntent: { id: 'pi_test' },
-        },
-        message: 'Bluetooth connection failed',
       };
 
       // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawIOSError);
+      const normalizedError = rehydrateBridgeError(rawAndroidError);
+
+      // THEN it should create a proper StripeError with apiError populated
+      expect(normalizedError.name).toBe('StripeError');
+      expect(normalizedError.code).toBe('DECLINED_BY_STRIPE_API');
+      expect(normalizedError.message).toBe('Payment was declined');
+      expect(normalizedError.nativeErrorCode).toBe('STRIPE_API_ERROR');
+      expect(normalizedError.metadata).toEqual({});
+      expect(normalizedError.apiError).toEqual({
+        code: 'card_declined',
+        message: 'Your card was declined.',
+        declineCode: 'generic_decline',
+      });
+    });
+
+    it('should populate all ApiErrorInformation fields including v5.4.0 additions', () => {
+      // GIVEN a flat bridge error with all apiError fields (Android/iOS resolved-value path)
+      const rawError = {
+        name: 'StripeError',
+        code: 'DECLINED_BY_STRIPE_API',
+        nativeErrorCode: 'STRIPE_API_ERROR',
+        message: 'Card declined',
+        metadata: {},
+        apiError: {
+          code: 'card_declined',
+          message: 'Your card was declined.',
+          declineCode: 'generic_decline',
+          type: 'card_error',
+          charge: 'ch_abc',
+          docUrl: 'https://stripe.com/docs/error-codes/card-declined',
+          param: 'number',
+          requestLogUrl: 'https://dashboard.stripe.com/logs/req_123',
+          adviceCode: '01',
+          networkAdviceCode: 'Z1',
+          networkDeclineCode: '05',
+        },
+      };
+
+      // WHEN normalizing
+      const normalizedError = rehydrateBridgeError(rawError);
+
+      // THEN all apiError fields should be accessible on StripeError.apiError
+      expect(normalizedError.apiError).toEqual({
+        code: 'card_declined',
+        message: 'Your card was declined.',
+        declineCode: 'generic_decline',
+        type: 'card_error',
+        charge: 'ch_abc',
+        docUrl: 'https://stripe.com/docs/error-codes/card-declined',
+        param: 'number',
+        requestLogUrl: 'https://dashboard.stripe.com/logs/req_123',
+        adviceCode: '01',
+        networkAdviceCode: 'Z1',
+        networkDeclineCode: '05',
+      });
+    });
+
+    it('should normalize iOS error structure', () => {
+      // GIVEN the flat structure iOS produces via mapToStripeErrorObject
+      const rawIOSError = {
+        name: 'StripeError',
+        code: 'BLUETOOTH_ERROR',
+        nativeErrorCode: '1200',
+        message: 'Bluetooth connection failed',
+        metadata: {
+          domain: 'com.stripe-terminal',
+          isStripeError: true,
+        },
+        paymentIntent: { id: 'pi_test' },
+      };
+
+      // WHEN normalizing the error
+      const normalizedError = rehydrateBridgeError(rawIOSError);
 
       // THEN it should create a proper StripeError
       expect(normalizedError.name).toBe('StripeError');
@@ -281,7 +322,7 @@ describe('StripeErrorHelpers', () => {
       const rawError = {};
 
       // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError);
 
       // THEN it should use fallback values
       expect(normalizedError.name).toBe('StripeError');
@@ -293,29 +334,6 @@ describe('StripeErrorHelpers', () => {
       expect(normalizedError.setupIntent).toBeUndefined();
     });
 
-    it('should prioritize direct properties over userInfo', () => {
-      // GIVEN error with both direct and userInfo properties
-      const rawError = {
-        code: 'DIRECT_CODE',
-        message: 'Direct message',
-        metadata: { direct: true },
-        userInfo: {
-          code: 'USERINFO_CODE',
-          nativeErrorCode: 'userinfo_native',
-          metadata: { userInfo: true },
-        },
-      };
-
-      // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawError);
-
-      // THEN direct properties should take precedence
-      expect(normalizedError.code).toBe('DIRECT_CODE');
-      expect(normalizedError.message).toBe('Direct message');
-      expect(normalizedError.metadata).toEqual({ direct: true });
-      expect(normalizedError.nativeErrorCode).toBe('userinfo_native');
-    });
-
     it('should use code as fallback for nativeErrorCode', () => {
       // GIVEN error without nativeErrorCode
       const rawError = {
@@ -324,7 +342,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError);
 
       // THEN nativeErrorCode should fallback to code
       expect(normalizedError.nativeErrorCode).toBe('READER_BUSY');
@@ -337,24 +355,25 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError);
 
       // THEN message should fallback to code
       expect(normalizedError.message).toBe('READER_BUSY');
     });
 
-    it('should handle setupIntent from userInfo', () => {
-      // GIVEN error with setupIntent in userInfo
+    it('should handle setupIntent from flat bridge object', () => {
+      // GIVEN a flat bridge error with setupIntent at top level
       const rawError = {
+        name: 'StripeError',
         code: 'COLLECT_INPUTS_TIMED_OUT',
+        nativeErrorCode: 'COLLECT_INPUTS_TIMED_OUT',
         message: 'Setup intent collection timed out',
-        userInfo: {
-          setupIntent: { id: 'seti_test' },
-        },
+        metadata: {},
+        setupIntent: { id: 'seti_test' },
       };
 
       // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError);
 
       // THEN setupIntent should be included
       expect(normalizedError.setupIntent).toEqual({ id: 'seti_test' });
@@ -363,8 +382,8 @@ describe('StripeErrorHelpers', () => {
     it('should handle null or undefined raw error', () => {
       // GIVEN null and undefined values
       // WHEN normalizing them
-      const nullResult = convertNativeErrorToStripeError(null);
-      const undefinedResult = convertNativeErrorToStripeError(undefined);
+      const nullResult = rehydrateBridgeError(null);
+      const undefinedResult = rehydrateBridgeError(undefined);
 
       // THEN they should use fallback values
       expect(nullResult.code).toBe('UNEXPECTED_SDK_ERROR');
@@ -397,7 +416,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = convertNativeErrorToStripeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError);
 
       // THEN complex metadata should be preserved
       expect(normalizedError.metadata).toEqual({
@@ -411,6 +430,86 @@ describe('StripeErrorHelpers', () => {
           message: 'Connection timeout',
         },
       });
+    });
+
+    it('should preserve unexpected error info in underlyingError when code is invalid', () => {
+      const bridgeError = {
+        name: 'TypeError',
+        code: 'EUNSPECIFIED',
+        message: 'Network request failed',
+      };
+
+      const normalizedError = rehydrateBridgeError(bridgeError);
+
+      expect(normalizedError).toBeInstanceOf(Error);
+      expect(normalizedError.code).toBe('EUNSPECIFIED');
+      expect(normalizedError.message).toBe('Network request failed');
+      expect(normalizedError.underlyingError).toEqual({
+        code: 'TypeError',
+        message: 'Network request failed',
+      });
+    });
+
+    it('should not overwrite native SDK underlyingError with bridge error info', () => {
+      // GIVEN a flat bridge error where native already provided underlyingError
+      const rawError = {
+        code: 'SOME_UNKNOWN_CODE',
+        message: 'Something went wrong',
+        underlyingError: {
+          code: 'NativeNetworkError',
+          message: 'DNS resolution failed',
+        },
+      };
+
+      const normalizedError = rehydrateBridgeError(rawError);
+
+      // THEN native underlyingError is preserved; preserveUnexpectedErrorInfo does not overwrite it
+      expect(normalizedError.underlyingError).toEqual({
+        code: 'NativeNetworkError',
+        message: 'DNS resolution failed',
+      });
+    });
+
+    it('should handle refund from flat bridge object', () => {
+      const rawError = {
+        name: 'StripeError',
+        code: 'DECLINED_BY_STRIPE_API',
+        nativeErrorCode: 'STRIPE_API_ERROR',
+        message: 'Refund failed',
+        metadata: {},
+        refund: { id: 're_test', amount: 500, status: 'failed' },
+      };
+
+      const normalizedError = rehydrateBridgeError(rawError);
+
+      expect(normalizedError.refund).toEqual({
+        id: 're_test',
+        amount: 500,
+        status: 'failed',
+      });
+    });
+
+    it('should return an instance of Error', () => {
+      const rawError = {
+        code: 'CANCELED',
+        message: 'The operation was canceled.',
+      };
+
+      const normalizedError = rehydrateBridgeError(rawError);
+
+      expect(normalizedError).toBeInstanceOf(Error);
+    });
+
+    it('should not add underlyingError for valid ErrorCode', () => {
+      const rawError = {
+        code: 'CANCELED',
+        message: 'The operation was canceled.',
+      };
+
+      const normalizedError = rehydrateBridgeError(rawError);
+
+      expect(normalizedError.code).toBe('CANCELED');
+      expect(normalizedError.underlyingError).toBeUndefined();
     });
   });
 });

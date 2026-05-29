@@ -16,6 +16,7 @@ import { AppContext } from '../AppContext';
 import { Api } from '../api/api';
 import type { IShortAccount } from '../types';
 import {
+  getPreloadedSecretKeys,
   getStoredAccounts,
   getStoredConnectedAccountID,
   setStoredAccounts,
@@ -31,19 +32,43 @@ export default function MerchantSelectScreen() {
   const [newAccountKey, setNewAccountKey] = useState<string>('');
   const [connectedStripeAccountID, setConnectedStripeAccountID] =
     useState<string>('');
-  // on init load all stored accounts
   useEffect(() => {
-    const fetchAccounts = async () => {
+    let cancelled = false;
+    (async () => {
       try {
         const storedAccounts = await getStoredAccounts();
-        setAccounts(storedAccounts);
+        if (cancelled) {
+          return;
+        }
+
+        const preloadedKeys = getPreloadedSecretKeys();
+        if (preloadedKeys.length === 0) {
+          setAccounts(storedAccounts);
+          return;
+        }
+
+        const resolved = await Api.getAccounts(preloadedKeys);
+        if (cancelled) {
+          return;
+        }
+
+        const existingKeys = new Set(storedAccounts.map((a) => a.secretKey));
+        const newAccounts = resolved
+          .filter((r) => !existingKeys.has(r.secretKey))
+          .map((r) => ({
+            id: r.id,
+            secretKey: r.secretKey,
+            name: r.settings?.dashboard?.display_name,
+          }));
+
+        setAccounts([...storedAccounts, ...newAccounts]);
       } catch (e) {
-        // error reading value
         console.log(e);
       }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    fetchAccounts();
   }, []);
 
   // write list of accounts to storage whenever it's changed

@@ -13,35 +13,7 @@ export const clearMerchantStorage = async () => AsyncStorage.clear();
 
 export const getStoredAccounts = async (): Promise<Array<IShortAccount>> => {
   const jsonValue = await AsyncStorage.getItem(ACCOUNTS_KEY);
-  const accts = jsonValue ? JSON.parse(jsonValue) : [];
-
-  if (
-    process.env.STRIPE_PRIVATE_KEY &&
-    !accts.find(
-      (a: IShortAccount) => a.secretKey === process.env.STRIPE_PRIVATE_KEY
-    )
-  ) {
-    accts.push({
-      id: 'acct_1234',
-      name: 'CI US TEST ACCT',
-      secretKey: process.env.STRIPE_PRIVATE_KEY,
-    });
-  }
-
-  if (
-    process.env.STRIPE_PRIVATE_CA_KEY &&
-    !accts.find(
-      (a: IShortAccount) => a.secretKey === process.env.STRIPE_PRIVATE_CA_KEY
-    )
-  ) {
-    accts.push({
-      id: 'acct_5555',
-      name: 'CI CA TEST ACCT',
-      secretKey: process.env.STRIPE_PRIVATE_CA_KEY,
-    });
-  }
-
-  return accts;
+  return jsonValue ? JSON.parse(jsonValue) : [];
 };
 
 type ISetDiscoveryParams = {
@@ -75,7 +47,7 @@ export const setStoredAccounts = async (accounts: Array<IShortAccount>) =>
 
 export const getSelectedAccount = async (): Promise<string | null> =>
   (await AsyncStorage.getItem(SELECTED_ACCOUNT_KEY)) ||
-  process.env.STRIPE_PRIVATE_KEY ||
+  getPreloadedSecretKeys()[0] ||
   null;
 
 export const setSelectedAccount = async (accountKey: string) =>
@@ -102,3 +74,6 @@ export const getServerlessAoDTestPending = async (): Promise<boolean> => {
 
 export const clearServerlessAoDTestPending = () =>
   AsyncStorage.removeItem(SERVERLESS_AOD_TEST_PENDING_KEY);
+
+export const getPreloadedSecretKeys = (): string[] =>
+  (process.env.PRELOADED_SECRET_KEYS || '').split(',').filter(Boolean);

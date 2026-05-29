@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import {
   useStripeTerminal,
+  type AppTransitionAnimation,
   type Reader,
   type Location,
 } from '@stripe/stripe-terminal-react-native';
@@ -45,6 +46,9 @@ export default function EasyConnectScreen() {
   const [connectedReader, setConnectedReader] = useState<Reader.Type | null>(
     null
   );
+
+  const appTransitionAnimation: AppTransitionAnimation | undefined =
+    params.appTransitionAnimation;
 
   // Configurable parameters
   const [discoveryMethod, setDiscoveryMethod] =
@@ -166,7 +170,8 @@ export default function EasyConnectScreen() {
       };
     } else if (discoveryMethod === 'appsOnDevices') {
       params = {
-        discoveryMethod: 'appsOnDevices'
+        discoveryMethod: 'appsOnDevices',
+        appTransitionAnimation,
       };
     } else {
       Alert.alert(
@@ -215,6 +220,7 @@ export default function EasyConnectScreen() {
     selectedLocation,
     buildDiscoveryFilter,
     failIfInUse,
+    appTransitionAnimation,
     autoReconnectOnUnexpectedDisconnect,
     merchantDisplayName,
     onBehalfOf,
@@ -269,6 +275,22 @@ export default function EasyConnectScreen() {
               <ActivityIndicator size="small" color={colors.blue} />
             ) : undefined
           }
+        />
+
+        <ListItem
+          testID="cancel-easy-connect-button"
+          title="Cancel Easy Connect"
+          color={colors.red}
+          onPress={async () => {
+            const { error } = await cancelEasyConnect();
+            if (error) {
+              Alert.alert('Cancel Error', `${error.code}: ${error.message}`);
+            } else {
+              setConnecting(false);
+              Alert.alert('Cancelled', 'Easy Connect was cancelled.');
+            }
+          }}
+          disabled={!connecting}
         />
 
         <List topSpacing={false} title="DISCOVERY METHOD">

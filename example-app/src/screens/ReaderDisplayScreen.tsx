@@ -9,6 +9,7 @@ import {
 import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { useStripeTerminal } from '@stripe/stripe-terminal-react-native';
+import { formatErrorAlert } from '../util/errorUtils';
 import { colors } from '../colors';
 
 export default function ReaderDisplayScreen() {
@@ -40,8 +41,9 @@ export default function ReaderDisplayScreen() {
     });
 
     if (error) {
-      console.log('error', error);
-      Alert.alert('setReaderDisplay error', error.message);
+      const { title, message } = formatErrorAlert(error, 'Set reader display');
+      console.log(title, message);
+      Alert.alert(title, message);
       return;
     }
 
@@ -53,8 +55,9 @@ export default function ReaderDisplayScreen() {
     const { error } = await clearReaderDisplay();
 
     if (error) {
-      console.log('error', error);
-      Alert.alert('clearReaderDisplay error', error.message);
+      const { title, message } = formatErrorAlert(error, 'Clear reader display');
+      console.log(title, message);
+      Alert.alert(title, message);
     } else {
       console.log('clearReaderDisplay success');
       Alert.alert('clearReaderDisplay success');

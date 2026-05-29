@@ -22,6 +22,7 @@ import {
   Reader,
   useStripeTerminal,
 } from '@stripe/stripe-terminal-react-native';
+import { formatErrorAlert } from '../util/errorUtils';
 import type { RouteParamList } from '../App';
 
 export default function HomeScreen() {
@@ -36,8 +37,12 @@ export default function HomeScreen() {
       setOnline(status.sdk.networkStatus === 'online' ? true : false);
     },
     onDidForwardingFailure(error) {
-      console.log('onDidForwardingFailure ' + error?.message);
-      let toast = Toast.show(error?.message ? error.message : 'unknown error', {
+      const errorInfo = error
+        ? formatErrorAlert(error, 'Forwarding')
+        : { title: 'Forwarding Failed', message: 'unknown error' };
+      console.log(errorInfo.title, errorInfo.message);
+      const toastText = `${errorInfo.title}: ${errorInfo.message.split('\n')[0]}`;
+      let toast = Toast.show(toastText, {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
         shadow: true,
@@ -51,13 +56,10 @@ export default function HomeScreen() {
       }, 3000);
     },
     onDidForwardPaymentIntent(paymentIntent, error) {
-      let toastMsg =
-        'Payment Intent ' +
-        paymentIntent.id +
-        ' forwarded. ErrorCode' +
-        error?.code +
-        '. ErrorMsg = ' +
-        error?.message;
+      const errorPart = error
+        ? ` Error: ${error.code} - ${error.message}`
+        : '';
+      let toastMsg = `Payment Intent ${paymentIntent.id} forwarded.${errorPart}`;
       let toast = Toast.show(toastMsg, {
         duration: Toast.durations.LONG,
         position: Toast.positions.BOTTOM,
@@ -272,8 +274,8 @@ function mapFromDiscoveryMethod(method: Reader.DiscoveryMethod) {
       return 'Bluetooth Proximity';
     case 'internet':
       return 'Internet';
-    case 'handoff':
-      return 'Handoff';
+    case 'appsOnDevices':
+      return 'Apps on Devices';
     case 'tapToPay':
       return 'Tap to Pay';
     case 'usb':

@@ -79,6 +79,8 @@ export namespace Reader {
     deviceSoftwareVersion: string;
     estimatedUpdateTime: EstimatedUpdateTime;
     requiredAt?: string;
+    /** The update components (firmware, config, keys, incremental) included in this update. */
+    components?: UpdateComponent[];
   };
 
   export type EstimatedUpdateTime =
@@ -87,35 +89,41 @@ export namespace Reader {
     | 'estimate5To15Minutes'
     | 'estimateLessThan1Minute';
 
-  export type SimulateUpdateType =
-    | 'random'
-    | 'available'
-    | 'none'
-    | 'required'
-    | 'lowBattery'
-    | 'lowBatterySucceedConnect'
-    | 'requiredForOffline';
-
   export type DeviceType =
     | 'chipper1X'
     | 'chipper2X'
+    | 'cotsDevice'
+    | 'etna'
     | 'stripeM2'
+    | 'stripeS700'
+    | 'stripeS700Devkit'
+    | 'stripeS710'
+    | 'stripeS710Devkit'
+    | 'stripeT600'
+    | 'stripeT600Devkit'
+    | 'stripeT610'
+    | 'stripeT610Devkit'
     | 'stripeU200'
+    | 'tapToPay'
+    | 'unknown'
+    | 'verifoneM425'
+    | 'verifoneM450'
+    | 'verifoneP630'
+    | 'verifoneUX700'
+    | 'verifoneUX700Devkit'
+    | 'verifoneV660p'
+    | 'verifoneV660pA'
+    | 'verifoneV660pDevkit'
+    | 'verifoneVL110'
+    | 'verifoneVM100'
+    | 'verifoneVM110'
+    | 'verifoneVP100'
+    | 'verifoneVP110'
     | 'wiseCube'
     | 'wisePad3'
-    | 'wisePosE'
-    | 'wisePosEDevkit'
     | 'wisePad3s'
-    | 'stripeS700Devkit'
-    | 'stripeS700'
-    | 'stripeS710Devkit'
-    | 'stripeS710'
-    | 'cotsDevice'
-    | 'tapToPay'
-    | 'etna'
-    | 'verifoneVM110'
-    | 'verifoneVP110'
-    | 'verifoneVL110';
+    | 'wisePosE'
+    | 'wisePosEDevkit';
 
   export type InputOptions = 'insertCard' | 'swipeCard' | 'tapCard';
 
@@ -152,13 +160,13 @@ export namespace Reader {
 
   export type ReaderSettings =
     | {
-        accessibility?: Accessibility;
-        error?: undefined;
-      }
+      accessibility?: Accessibility;
+      error?: undefined;
+    }
     | {
-        accessibility?: undefined;
-        error?: StripeError;
-      };
+      accessibility?: undefined;
+      error?: StripeError;
+    };
 
   export type Accessibility = {
     textToSpeechStatus: ReaderTextToSpeechStatus;
@@ -182,3 +190,40 @@ export namespace Reader {
     readerSupportResult: boolean;
   };
 }
+
+/** The component types that can be included in a reader software update. */
+export enum UpdateComponent {
+  FIRMWARE = 'firmware',
+  CONFIG = 'config',
+  KEYS = 'keys',
+  INCREMENTAL = 'incremental',
+}
+
+/**
+ * Configures a simulated reader update for testing purposes. Pass as
+ * `testReaderUpdate` on connection params to exercise update flows in
+ * test mode on both simulated and physical readers.
+ *
+ * - `available` — An optional update is available and will be announced
+ *   during connect.
+ * - `required` — A required update will be performed during connect.
+ * - `requiredOffline` — A required update exists. When connecting
+ *   offline, connection will fail because the reader's version is not
+ *   allowed. When connecting online, the reader will update and connect
+ *   normally.
+ * - `lowBattery` — A required update exists but the reader's battery is
+ *   too low for the update to begin. The connection will fail.
+ * - `lowBatterySucceedConnect` — A required update exists but the
+ *   reader's battery is too low for the update to begin. The update will
+ *   fail but connection succeeds because the reader is on a recent
+ *   software version.
+ * - `random` — Randomly selects a concrete update scenario to exercise
+ *   various states, or no update being available.
+ */
+export type TestReaderUpdate =
+  | { type: 'available'; components: UpdateComponent[] }
+  | { type: 'required'; components: UpdateComponent[] }
+  | { type: 'requiredOffline'; components: UpdateComponent[] }
+  | { type: 'lowBattery' }
+  | { type: 'lowBatterySucceedConnect' }
+  | { type: 'random' };
