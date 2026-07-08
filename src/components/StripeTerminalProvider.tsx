@@ -367,7 +367,15 @@ export function StripeTerminalProvider({
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
   useListener(ACCEPT_TERMS_OF_SERVICE, didAcceptTermsOfService);
 
-  const tokenProviderHandler = async () => {
+  // Memoized so the FETCH_TOKEN_PROVIDER listener stays registered. Without
+  // this, the handler gets a new identity on every render, and `useListener`
+  // (keyed on the callback) tears the native listener down and re-adds it on
+  // every provider re-render — including the frequent re-renders during
+  // initialize/connect. A FETCH_TOKEN_PROVIDER event landing in that gap is
+  // dropped, so `setConnectionToken` is never called and native times out
+  // after 60s ("ConnectionTokenProvider did not call the provided completion
+  // block within 60s").
+  const tokenProviderHandler = useCallback(async () => {
     try {
       const connectionToken = await tokenProvider();
 
@@ -378,7 +386,7 @@ export function StripeTerminalProvider({
       console.error(error);
       console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
     }
-  };
+  }, [tokenProvider]);
 
   useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
