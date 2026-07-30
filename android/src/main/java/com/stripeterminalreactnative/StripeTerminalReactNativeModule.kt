@@ -150,20 +150,33 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @OptIn(OfflineMode::class)
     @ReactMethod
-    @Suppress("unused")
+    @Suppress("unused", "DEPRECATION")
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
         val result = if (!Terminal.isInitialized()) {
             val tokenProviderToUse = TokenProviderFactory.createTokenProvider(params, tokenProvider)
+            val localeConfig = mapToLocaleConfig(params.getMap("localeConfig"))
 
-            Terminal.init(
-                this.context.applicationContext,
-                mapToLogLevel(params.getString("logLevel")),
-                tokenProviderToUse,
-                RNTerminalListener(context),
-                RNOfflineListener(context)
-            )
+            if (localeConfig == null) {
+                // Let the native Android SDK own its default locale behavior.
+                Terminal.init(
+                    this.context.applicationContext,
+                    mapToLogLevel(params.getString("logLevel")),
+                    tokenProviderToUse,
+                    RNTerminalListener(context),
+                    RNOfflineListener(context)
+                )
+            } else {
+                Terminal.init(
+                    this.context.applicationContext,
+                    mapToLogLevel(params.getString("logLevel")),
+                    tokenProviderToUse,
+                    RNTerminalListener(context),
+                    RNOfflineListener(context),
+                    localeConfig
+                )
+            }
             NativeTypeFactory.writableNativeMap()
         } else {
             nativeMapOf {

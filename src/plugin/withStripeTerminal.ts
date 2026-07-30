@@ -5,9 +5,11 @@ import {
   withInfoPlist,
   withAndroidManifest,
   withMainApplication,
+  withDangerousMod,
   withGradleProperties,
   AndroidConfig,
 } from '@expo/config-plugins';
+import * as fs from 'fs';
 
 type InnerManifest = AndroidConfig.Manifest.AndroidManifest['manifest'];
 
@@ -77,26 +79,60 @@ const withDelegateAndroid: ConfigPlugin<StripeTerminalPluginProps> = (config, pr
   });
 };
 
-const withTapToPayAndroid: ConfigPlugin<StripeTerminalPluginProps> = (expoConfig, props) => {
-  return withMainApplication(expoConfig, async config => {
-    if (props.tapToPayCheck != true) {
-      return config;
-    }
+const TTP_GUARD = '    if (TapToPay.isInTapToPayProcess()) { return }';
 
+const withTapToPayAndroid: ConfigPlugin<StripeTerminalPluginProps> = (expoConfig, props) => {
+  if (props.tapToPayCheck !== true) {
+    return expoConfig;
+  }
+
+  // Inject the import during the regular mod phase (order-independent for imports).
+  expoConfig = withMainApplication(expoConfig, config => {
     if (!config.modResults.contents.includes('import com.stripeterminalreactnative.TapToPay')) {
       config.modResults.contents = config.modResults.contents.replace(
         'import com.facebook.react.ReactApplication',
         'import com.facebook.react.ReactApplication\nimport com.stripeterminalreactnative.TapToPay'
       );
     }
-    if (!config.modResults.contents.includes('TapToPay.isInTapToPayProcess()')) {
-      config.modResults.contents = config.modResults.contents.replace(
-        'super.onCreate()',
-        'super.onCreate()\n    if (TapToPay.isInTapToPayProcess()) { return }'
-      );
-    }
     return config;
   });
+
+  // Dangerous mods run AFTER all withMainApplication mods have been applied and
+  // written to disk, so this re-positions the guard to be immediately after
+  // super.onCreate() regardless of how other plugins ordered their injections.
+  expoConfig = withDangerousMod(expoConfig, [
+    'android',
+    async config => {
+      const { path: mainAppPath } = await AndroidConfig.Paths.getMainApplicationAsync(
+        config.modRequest.projectRoot
+      );
+      let contents = await fs.promises.readFile(mainAppPath, 'utf-8');
+
+      // Nothing to do if the guard is already in the correct position.
+      if (contents.includes(`super.onCreate()\n${TTP_GUARD}`)) {
+        return config;
+      }
+
+      // Remove the guard from wherever it was placed by earlier mods.
+      if (contents.includes(TTP_GUARD)) {
+        contents = contents.replace(`\n${TTP_GUARD}`, '');
+      }
+
+      if (!contents.includes('super.onCreate()')) {
+        console.warn(
+          '[stripe-terminal-react-native] Could not find super.onCreate() in ' +
+            'MainApplication — tapToPayCheck guard was not injected.'
+        );
+        return config;
+      }
+
+      contents = contents.replace('super.onCreate()', `super.onCreate()\n${TTP_GUARD}`);
+      await fs.promises.writeFile(mainAppPath, contents, 'utf-8');
+      return config;
+    },
+  ]);
+
+  return expoConfig;
 };
 
 const withJetifierIgnoringJackson: ConfigPlugin = (expoConfig) => {

@@ -465,6 +465,7 @@ class Errors {
             apiError[ErrorConstants.rnApiErrorAdviceCode]         = structuredApiError.adviceCode
             apiError[ErrorConstants.rnApiErrorNetworkAdviceCode]  = structuredApiError.networkAdviceCode
             apiError[ErrorConstants.rnApiErrorNetworkDeclineCode] = structuredApiError.networkDeclineCode
+            addLocalizationResult(from: structuredApiError, to: &apiError)
         }
     }
 
@@ -502,7 +503,18 @@ class Errors {
         result[ErrorConstants.rnApiErrorNetworkAdviceCode] = apiError.networkAdviceCode
         result[ErrorConstants.rnApiErrorNetworkDeclineCode] = apiError.networkDeclineCode
 
+        addLocalizationResult(from: apiError, to: &result)
+
         return NSDictionary(dictionary: result)
+    }
+
+    private class func addLocalizationResult(from apiError: ApiError, to result: inout [String: Any]) {
+        if let locResult = apiError.localizationResult {
+            result[ErrorConstants.rnApiErrorLocalizationResult] = [
+                ErrorConstants.rnLocalizationResultRequestedLocale: locResult.requestedLocale,
+                ErrorConstants.rnLocalizationResultResolvedLocale: locResult.resolvedLocale
+            ]
+        }
     }
 
     // MARK: - Response Objects

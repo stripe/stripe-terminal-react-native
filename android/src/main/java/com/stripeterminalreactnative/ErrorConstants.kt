@@ -37,6 +37,10 @@ internal object ErrorConstants {
     const val API_ERROR_ADVICE_CODE_KEY = "adviceCode"
     const val API_ERROR_NETWORK_ADVICE_CODE_KEY = "networkAdviceCode"
     const val API_ERROR_NETWORK_DECLINE_CODE_KEY = "networkDeclineCode"
+    // LocalizationResult keys
+    const val API_ERROR_LOCALIZATION_RESULT_KEY = "localizationResult"
+    const val LOCALIZATION_RESULT_REQUESTED_LOCALE_KEY = "requestedLocale"
+    const val LOCALIZATION_RESULT_RESOLVED_LOCALE_KEY = "resolvedLocale"
     // SetupError-only fields (Android SetupAttempt.setupError)
     const val API_ERROR_PAYMENT_METHOD_KEY = "paymentMethod"
     const val API_ERROR_PAYMENT_METHOD_TYPE_KEY = "paymentMethodType"

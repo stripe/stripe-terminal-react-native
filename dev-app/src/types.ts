@@ -1,6 +1,9 @@
 import type { Stripe } from 'stripe';
 import type { Api as IApi } from './api/api';
-import type { Location } from '@stripe/stripe-terminal-react-native';
+import type {
+  LocaleConfig,
+  Location,
+} from '@stripe/stripe-terminal-react-native';
 
 export type IAccount = Stripe.Account & { secretKey: string };
 
@@ -27,6 +30,9 @@ export type IAppContext = {
   refreshToken: boolean;
   setRefreshToken: (b: boolean) => void;
   isServerlessAoDTest: boolean;
+  localeConfig: LocaleConfig;
+  setLocaleConfig: (localeConfig: LocaleConfig) => void;
+  onStripeTerminalInitialized: (success: boolean) => Promise<boolean>;
 };
 
 export type IShortAccount = {

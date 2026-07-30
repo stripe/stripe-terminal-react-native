@@ -24,4 +24,7 @@ export const AppContext = React.createContext<IAppContext>({
   refreshToken: false,
   setRefreshToken: (_b) => null,
   isServerlessAoDTest: false,
+  localeConfig: { type: 'cardLanguagePreferenceIfAvailable' },
+  setLocaleConfig: (_localeConfig) => null,
+  onStripeTerminalInitialized: async (_success) => false,
 });

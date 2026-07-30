@@ -13,7 +13,10 @@
  * - context: Additional context data (optional)
  */
 
-import type { StripeError } from '@stripe/stripe-terminal-react-native';
+import type {
+  LocalizationResult,
+  StripeError,
+} from '@stripe/stripe-terminal-react-native';
 
 export class DevAppError extends Error {
   public readonly code: string;
@@ -21,6 +24,8 @@ export class DevAppError extends Error {
   public readonly paymentIntent?: string;
   public readonly setupIntent?: string;
   public readonly refund?: string;
+  public readonly apiErrorMessage?: string;
+  public readonly localizationResult?: LocalizationResult;
   public readonly context?: string;
 
   constructor(
@@ -31,6 +36,8 @@ export class DevAppError extends Error {
       paymentIntent?: string;
       setupIntent?: string;
       refund?: string;
+      apiErrorMessage?: string;
+      localizationResult?: LocalizationResult;
       context?: Record<string, unknown>;
       cause?: Error;
     }
@@ -42,6 +49,8 @@ export class DevAppError extends Error {
     this.paymentIntent = options?.paymentIntent;
     this.setupIntent = options?.setupIntent;
     this.refund = options?.refund;
+    this.apiErrorMessage = options?.apiErrorMessage;
+    this.localizationResult = options?.localizationResult;
     this.context = options?.context
       ? JSON.stringify(options.context)
       : undefined;
@@ -64,6 +73,9 @@ export class DevAppError extends Error {
       errorCode: this.code,
       errorMessage: this.message,
       nativeErrorCode: this.nativeErrorCode ?? undefined,
+      apiErrorMessage: this.apiErrorMessage ?? undefined,
+      requestedLocale: this.localizationResult?.requestedLocale,
+      resolvedLocale: this.localizationResult?.resolvedLocale,
       pi: this.paymentIntent ?? undefined,
       si: this.setupIntent ?? undefined,
       refund: this.refund ?? undefined,
@@ -87,11 +99,11 @@ export class DevAppError extends Error {
     const context: Record<string, unknown> = {};
 
     if (error.metadata && Object.keys(error.metadata).length > 0) {
-      context.metadata = error.metadata;
+      context.metadata = { ...error.metadata };
     }
 
     if (additionalContext) {
-      Object.assign(context, additionalContext);
+      Object.assign(context, { ...additionalContext });
     }
 
     return new DevAppError(
@@ -108,6 +120,8 @@ export class DevAppError extends Error {
         refund: error.refund
           ? JSON.stringify(error.refund, undefined, 2)
           : undefined,
+        apiErrorMessage: error.apiError?.message,
+        localizationResult: error.apiError?.localizationResult,
         context: Object.keys(context).length > 0 ? context : undefined,
         cause: error,
       }

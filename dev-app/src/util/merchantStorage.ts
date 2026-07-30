@@ -1,4 +1,4 @@
-import type { Reader } from '@stripe/stripe-terminal-react-native';
+import type { LocaleConfig, Reader } from '@stripe/stripe-terminal-react-native';
 
 import type { IShortAccount } from '../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SELECTED_ACCOUNT_KEY = '@rn_selected_example_account';
 const ACCOUNTS_KEY = '@rn_example_accounts';
 const DISCOVERY_KEY = '@rn_example_discovery';
+const LOCALE_CONFIG_KEY = '@rn_example_locale_config';
+const PENDING_LOCALE_CONFIG_KEY = '@rn_example_pending_locale_config';
 const CONNECTED_ACCOUNT_ID_KEY = '@rn_example_connected_account_key';
 const SERVERLESS_AOD_TEST_PENDING_KEY = '@rn_example_serverless_aod_test_pending';
 
@@ -41,6 +43,39 @@ export const getDiscoveryMethod =
 
     return JSON.parse(disc);
   };
+
+export const setLocaleConfig = async (localeConfig: LocaleConfig) =>
+  await AsyncStorage.setItem(LOCALE_CONFIG_KEY, JSON.stringify(localeConfig));
+
+export const getLocaleConfig = async (): Promise<LocaleConfig | null> => {
+  const localeConfig = await AsyncStorage.getItem(LOCALE_CONFIG_KEY);
+
+  if (!localeConfig) {
+    return null;
+  }
+
+  return JSON.parse(localeConfig);
+};
+
+export const setPendingLocaleConfig = async (localeConfig: LocaleConfig) =>
+  await AsyncStorage.setItem(
+    PENDING_LOCALE_CONFIG_KEY,
+    JSON.stringify(localeConfig)
+  );
+
+export const getPendingLocaleConfig =
+  async (): Promise<LocaleConfig | null> => {
+    const localeConfig = await AsyncStorage.getItem(PENDING_LOCALE_CONFIG_KEY);
+
+    if (!localeConfig) {
+      return null;
+    }
+
+    return JSON.parse(localeConfig);
+  };
+
+export const clearPendingLocaleConfig = async () =>
+  await AsyncStorage.removeItem(PENDING_LOCALE_CONFIG_KEY);
 
 export const setStoredAccounts = async (accounts: Array<IShortAccount>) =>
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));

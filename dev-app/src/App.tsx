@@ -15,7 +15,7 @@ import {
 } from '@react-navigation/stack';
 import { HeaderBackButton } from '@react-navigation/elements';
 import HomeScreen from './screens/HomeScreen';
-import { Platform, StatusBar, StyleSheet } from 'react-native';
+import { Alert, Platform, StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
 import {
   LogContext,
@@ -53,12 +53,13 @@ import {
   requestNeededAndroidPermissions,
   type DiscoveryFilter,
 } from '@stripe/stripe-terminal-react-native';
-import { Alert, LogBox } from 'react-native';
+import { LogBox } from 'react-native';
 
 import { AppContext } from './AppContext';
 import TapToPayUXScreen from './screens/TapToPayUXScreen';
 import AppsOnDevicesTestScreen from './screens/AppsOnDevicesTestScreen';
 import { QrModalProvider } from './components/QrModalContext';
+import { getErrorMessage } from './util/errorHandling';
 
 export type RouteParamList = {
   UpdateReaderScreen: {
@@ -180,17 +181,28 @@ export default function App() {
   const clearLogs = useCallback(() => setlogs([]), []);
   const { initialize: initStripeTerminal, clearCachedCredentials } =
     useStripeTerminal();
-  const { account, isServerlessAoDTest } = useContext(AppContext);
+  const { account, isServerlessAoDTest, onStripeTerminalInitialized } =
+    useContext(AppContext);
   const { refreshToken } = useContext(AppContext);
   useEffect(() => {
     const initAndClear = async () => {
       const { error, reader } = await initStripeTerminal();
 
       if (error) {
-        Alert.alert('StripeTerminal init failed', error.message);
+        const didFallbackLocaleConfig =
+          await onStripeTerminalInitialized(false);
+        const fallbackMessage = didFallbackLocaleConfig
+          ? '\n\nFalling back to en-US.'
+          : '';
+
+        Alert.alert(
+          'StripeTerminal init failed',
+          `${getErrorMessage(error)}${fallbackMessage}`
+        );
         return;
       }
 
+      await onStripeTerminalInitialized(true);
       await clearCachedCredentials();
 
       if (reader) {
@@ -210,6 +222,7 @@ export default function App() {
     account,
     initStripeTerminal,
     clearCachedCredentials,
+    onStripeTerminalInitialized,
     hasPerms,
     refreshToken,
   ]);

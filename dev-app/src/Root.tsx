@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import {
   StripeTerminalProvider,
   AppsOnDevicesConnectionTokenProvider,
+  type LocaleConfig,
   type Location,
 } from '@stripe/stripe-terminal-react-native';
 import App from './App';
@@ -14,10 +15,21 @@ import {
   getSelectedAccount,
   clearMerchantStorage,
   getServerlessAoDTestPending,
+  getLocaleConfig,
+  setLocaleConfig as setStoredLocaleConfig,
+  getPendingLocaleConfig,
+  setPendingLocaleConfig,
+  clearPendingLocaleConfig,
 } from './util/merchantStorage';
+import { FALLBACK_HARDCODED_LOCALE } from './util/localeConfig';
+
+const DEFAULT_LOCALE_CONFIG: LocaleConfig = {
+  type: 'cardLanguagePreferenceIfAvailable',
+};
 
 export default function Root() {
   const [account, setAccount] = useState<IAccount | null>(null);
+  const [accountLoaded, setAccountLoaded] = useState<boolean>(false);
   const [lastSuccessfulChargeId, setLastSuccessfulChargeId] = useState<
     string | null
   >(null);
@@ -33,6 +45,13 @@ export default function Root() {
     setAutoReconnectOnUnexpectedDisconnect,
   ] = useState<boolean | false>(false);
   const [refreshToken, setRefreshToken] = useState<boolean | false>(false);
+  const [activeLocaleConfig, setActiveLocaleConfigState] =
+    useState<LocaleConfig | null>(null);
+  const [localeConfig, setLocaleConfigState] = useState<LocaleConfig | null>(
+    null
+  );
+  const [pendingLocaleConfig, setPendingLocaleConfigState] =
+    useState<LocaleConfig | null>(null);
 
   const [cachedLocations, setCachedLocations] = useState<Location[]>([]);
 
@@ -53,6 +72,54 @@ export default function Root() {
     };
     loadServerlessAoDTestPending();
   }, []);
+
+  useEffect(() => {
+    const loadLocaleConfig = async () => {
+      const storedLocaleConfig = await getLocaleConfig();
+      const storedPendingLocaleConfig = await getPendingLocaleConfig();
+      const loadedLocaleConfig = storedLocaleConfig ?? DEFAULT_LOCALE_CONFIG;
+
+      setActiveLocaleConfigState(storedPendingLocaleConfig ?? loadedLocaleConfig);
+      setLocaleConfigState(loadedLocaleConfig);
+      setPendingLocaleConfigState(storedPendingLocaleConfig);
+    };
+    loadLocaleConfig();
+  }, []);
+
+  const setLocaleConfig = useCallback(async (nextLocaleConfig: LocaleConfig) => {
+    setPendingLocaleConfigState(nextLocaleConfig);
+    await setPendingLocaleConfig(nextLocaleConfig);
+  }, []);
+
+  const onStripeTerminalInitialized = useCallback(
+    async (success: boolean) => {
+      if (pendingLocaleConfig == null) {
+        return false;
+      }
+
+      await clearPendingLocaleConfig();
+
+      if (success) {
+        setLocaleConfigState(pendingLocaleConfig);
+        setActiveLocaleConfigState(pendingLocaleConfig);
+        await setStoredLocaleConfig(pendingLocaleConfig);
+        setPendingLocaleConfigState(null);
+        return false;
+      }
+
+      const fallbackConfig: LocaleConfig = {
+        type: 'hardcoded',
+        locale: FALLBACK_HARDCODED_LOCALE,
+      };
+
+      setLocaleConfigState(fallbackConfig);
+      setActiveLocaleConfigState(fallbackConfig);
+      await setStoredLocaleConfig(fallbackConfig);
+      setPendingLocaleConfigState(null);
+      return true;
+    },
+    [pendingLocaleConfig]
+  );
 
   const onSelectAccount = useCallback(
     async ({ selectedAccountKey }: { selectedAccountKey: string | null }) => {
@@ -84,8 +151,12 @@ export default function Root() {
 
   useEffect(() => {
     const initAccount = async () => {
-      const acct = await getSelectedAccount();
-      onSelectAccount({ selectedAccountKey: acct });
+      try {
+        const acct = await getSelectedAccount();
+        await onSelectAccount({ selectedAccountKey: acct });
+      } finally {
+        setAccountLoaded(true);
+      }
     };
 
     initAccount();
@@ -105,7 +176,12 @@ export default function Root() {
   }, []);
 
   // Wait for serverless AoD test setting to load before rendering StripeTerminalProvider
-  if (serverlessAoDTestState === 'loading') {
+  if (
+    serverlessAoDTestState === 'loading' ||
+    activeLocaleConfig == null ||
+    localeConfig == null ||
+    !accountLoaded
+  ) {
     return null;
   }
 
@@ -132,10 +208,14 @@ export default function Root() {
         refreshToken,
         setRefreshToken: (b) => setRefreshToken(b),
         isServerlessAoDTest: serverlessAoDTestState === 'enabled',
+        localeConfig,
+        setLocaleConfig,
+        onStripeTerminalInitialized,
       }}
     >
       <StripeTerminalProvider
         logLevel="verbose"
+        localeConfig={activeLocaleConfig}
         tokenProvider={serverlessAoDTestState === 'enabled' ? AppsOnDevicesConnectionTokenProvider : fetchTokenProvider}
       >
         <App />

@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-terminal-react-native",
-  "version": "0.0.1-beta.31",
+  "version": "0.0.1-beta.32",
   "description": "Stripe Terminal React Native SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -196,6 +196,9 @@
   },
   "dependencies": {
     "base-64": "^1.0.0"
+  },
+  "reactNativeDirectory": {
+    "newArchitecture": true
   },
   "rnx-kit": {
     "kitType": "library",

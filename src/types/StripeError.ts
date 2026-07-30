@@ -50,11 +50,27 @@ export interface ApiErrorInformation {
   /** Network-level decline code (optional) */
   networkDeclineCode?: string;
 
+  /** Reports the outcome of localizing the error message (optional) */
+  localizationResult?: LocalizationResult;
+
   /** Payment method associated with this error (Android SetupError only) */
   paymentMethod?: PaymentMethod.Type;
 
   /** Payment method type string (Android SetupError only) */
   paymentMethodType?: string;
+}
+
+/**
+ * Reports the outcome of localizing an API error message.
+ *
+ * Present when a locale was requested via LocaleConfig and the server processed
+ * the request. The two locales may differ when the requested locale is not supported.
+ */
+export interface LocalizationResult {
+  /** The locale sent in the Accept-Language request header. */
+  requestedLocale: string;
+  /** The locale the message was actually localized to. */
+  resolvedLocale: string;
 }
 
 /**

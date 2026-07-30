@@ -11,11 +11,12 @@ import {
   Switch,
   Alert,
   NativeModules,
+  ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
-import { showErrorToast } from '../util/errorHandling';
+import { getErrorMessage, showErrorToast } from '../util/errorHandling';
 import icon from '../assets/icon.png';
 import ListItem from '../components/ListItem';
 import List from '../components/List';
@@ -29,6 +30,7 @@ import {
   type Reader,
   type AppTransitionAnimation,
   AppTransitionPreset,
+  type LocaleConfig,
   useStripeTerminal,
   getSdkVersion,
 } from '@stripe/stripe-terminal-react-native';
@@ -43,9 +45,11 @@ const DISCOVERY_FILTER = [
   { value: 'serialNumber', label: 'BySerialNumber' },
 ];
 
+type LocaleConfigType = LocaleConfig['type'];
+
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
-  const { account } = useContext(AppContext);
+  const { account, localeConfig, setLocaleConfig } = useContext(AppContext);
   const [simulated, setSimulated] = useState<boolean>(true);
   const [simulatedOffline, setSimulatedOffline] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(true);
@@ -66,6 +70,16 @@ export default function HomeScreen() {
     'systemDefault' | 'preset' | 'custom'
   >('systemDefault');
   const [innerSdkVersion, setInnerSdkVersion] = useState<string>('');
+  const [showLocaleConfigDialog, setShowLocaleConfigDialog] =
+    useState<boolean>(false);
+  const [savingLocaleConfig, setSavingLocaleConfig] = useState<boolean>(false);
+  const [restartingForLocaleConfig, setRestartingForLocaleConfig] =
+    useState<boolean>(false);
+  const [draftLocaleConfigType, setDraftLocaleConfigType] =
+    useState<LocaleConfigType>(localeConfig.type);
+  const [hardcodedLocale, setHardcodedLocale] = useState<string>(
+    localeConfig.type === 'hardcoded' ? localeConfig.locale : 'en-US'
+  );
 
   const {
     disconnectReader,
@@ -98,7 +112,7 @@ export default function HomeScreen() {
       let toastMsg = 'Payment Intent ' + paymentIntent.id + ' forwarded. ';
       if (error) {
         toastMsg +=
-          'ErrorCode = ' + error.code + '. ErrorMsg = ' + error.message;
+          'ErrorCode = ' + error.code + '. ErrorMsg = ' + getErrorMessage(error);
       }
       console.log(toastMsg);
       const toast = Toast.show(toastMsg, {
@@ -170,6 +184,13 @@ export default function HomeScreen() {
     };
     getVersion();
   }, [getNativeSdkVersion]);
+
+  useEffect(() => {
+    setDraftLocaleConfigType(localeConfig.type);
+    if (localeConfig.type === 'hardcoded') {
+      setHardcodedLocale(localeConfig.locale);
+    }
+  }, [localeConfig]);
   const batteryPercentage =
     (connectedReader?.batteryLevel ? connectedReader?.batteryLevel : 0) * 100;
   const batteryStatus = batteryPercentage
@@ -230,6 +251,85 @@ export default function HomeScreen() {
       return { type: 'systemDefault' };
     }
     return { type: 'systemDefault' };
+  };
+
+  const openLocaleConfigDialog = () => {
+    setRestartingForLocaleConfig(false);
+    setDraftLocaleConfigType(localeConfig.type);
+    setHardcodedLocale(
+      localeConfig.type === 'hardcoded' ? localeConfig.locale : 'en-US'
+    );
+    setShowLocaleConfigDialog(true);
+  };
+
+  const updateHardcodedLocale = (locale: string) => {
+    setHardcodedLocale(locale);
+  };
+
+  const updateDraftLocaleConfigType = (type: LocaleConfigType) => {
+    setDraftLocaleConfigType(type);
+  };
+
+  const buildPendingLocaleConfig = (): LocaleConfig => {
+    if (draftLocaleConfigType === 'hardcoded') {
+      const locale = hardcodedLocale.trim();
+
+      return {
+        type: 'hardcoded',
+        locale,
+      };
+    }
+
+    return { type: 'cardLanguagePreferenceIfAvailable' };
+  };
+
+  const savePendingLocaleConfig = async () => {
+    if (savingLocaleConfig || restartingForLocaleConfig) {
+      return false;
+    }
+
+    const pendingLocaleConfig = buildPendingLocaleConfig();
+
+    try {
+      setSavingLocaleConfig(true);
+      await setLocaleConfig(pendingLocaleConfig);
+      return true;
+    } catch (error) {
+      console.log('Failed to save LocaleConfig', error);
+      Alert.alert('Unable to save LocaleConfig', 'Please try again.');
+      return false;
+    } finally {
+      setSavingLocaleConfig(false);
+    }
+  };
+
+  const savePendingLocaleConfigAndRestart = async () => {
+    if (await savePendingLocaleConfig()) {
+      setRestartingForLocaleConfig(true);
+      setTimeout(() => {
+        if (Platform.OS === 'ios') {
+          NativeModules.DevAppRestart?.closeApp();
+        } else {
+          RNRestart.restart();
+        }
+      }, 100);
+    }
+  };
+
+  const localeConfigActionInProgress =
+    savingLocaleConfig || restartingForLocaleConfig;
+
+  const mapFromDraftLocaleConfig = () => {
+    if (draftLocaleConfigType === 'hardcoded') {
+      return mapFromLocaleConfig({
+        type: 'hardcoded',
+        locale: hardcodedLocale.trim(),
+      });
+    }
+
+    return mapFromLocaleConfig({
+      type: 'cardLanguagePreferenceIfAvailable',
+    });
   };
 
   const renderConnectedContent = (
@@ -507,6 +607,18 @@ export default function HomeScreen() {
               />
             </List>
 
+            <List topSpacing={false} title="LOCALE CONFIG">
+              <ListItem
+                title="Stored LocaleConfig"
+                description={mapFromLocaleConfig(localeConfig)}
+                testID="active-locale-config-button"
+                onPress={openLocaleConfigDialog}
+              />
+              <Text style={styles.infoText}>
+                LocaleConfig is applied during Terminal SDK initialization.
+              </Text>
+            </List>
+
             {Platform.OS === 'android' && discoveryMethod === 'appsOnDevices' && (
               <List topSpacing={false} title="APP TRANSITION">
                 <Picker
@@ -666,6 +778,67 @@ export default function HomeScreen() {
           },
         ]}
       />
+
+      <AlertDialog
+        visible={showLocaleConfigDialog}
+        title="LocaleConfig"
+        message="Restart the app after changing this setting."
+        onDismiss={() => setShowLocaleConfigDialog(false)}
+        buttons={[
+          {
+            text: Platform.OS === 'ios' ? 'Apply and close app' : 'Restart app',
+            onPress: savePendingLocaleConfigAndRestart,
+            disabled: localeConfigActionInProgress,
+          },
+        ]}
+      >
+        <Picker
+          enabled={!localeConfigActionInProgress}
+          selectedValue={draftLocaleConfigType}
+          style={styles.dialogPicker}
+          itemStyle={styles.dialogPickerItem}
+          testID="select-locale-config"
+          onValueChange={updateDraftLocaleConfigType}
+        >
+          <Picker.Item label="Hardcoded locale" value="hardcoded" />
+          <Picker.Item
+            label="Card default language"
+            value="cardLanguagePreferenceIfAvailable"
+          />
+        </Picker>
+        {draftLocaleConfigType === 'hardcoded' ? (
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!localeConfigActionInProgress}
+            style={styles.dialogInput}
+            value={hardcodedLocale}
+            placeholderTextColor={colors.gray}
+            placeholder="en-US"
+            testID="hardcoded-locale-input"
+            onChangeText={updateHardcodedLocale}
+          />
+        ) : (
+          <></>
+        )}
+        {localeConfigActionInProgress ? (
+          <View style={styles.dialogLoadingContainer}>
+            <ActivityIndicator />
+            <Text style={styles.dialogLoadingText}>
+              {restartingForLocaleConfig && Platform.OS === 'ios'
+                ? 'Closing app...'
+                : restartingForLocaleConfig
+                  ? 'Restarting app...'
+                  : 'Saving LocaleConfig...'}
+            </Text>
+          </View>
+        ) : (
+          <></>
+        )}
+        <Text style={styles.dialogDescription}>
+          {mapFromDraftLocaleConfig()}
+        </Text>
+      </AlertDialog>
     </React.Fragment>
   );
 }
@@ -687,6 +860,14 @@ function mapFromDiscoveryMethod(method: Reader.DiscoveryMethod) {
     default:
       return '';
   }
+}
+
+function mapFromLocaleConfig(localeConfig: LocaleConfig) {
+  if (localeConfig.type === 'hardcoded') {
+    return `Hardcoded locale: ${localeConfig.locale}`;
+  }
+
+  return 'Card default language';
 }
 
 const styles = StyleSheet.create({
@@ -795,5 +976,37 @@ const styles = StyleSheet.create({
         height: 200,
       },
     }),
+  },
+  dialogPicker: {
+    width: '100%',
+    ...Platform.select({
+      android: {
+        color: colors.slate,
+      },
+    }),
+  },
+  dialogPickerItem: {
+    fontSize: 16,
+    color: colors.slate,
+  },
+  dialogInput: {
+    height: 40,
+    color: colors.dark_gray,
+    borderBottomColor: colors.gray,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 4,
+  },
+  dialogDescription: {
+    color: colors.dark_gray,
+    marginTop: 12,
+  },
+  dialogLoadingContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginTop: 12,
+  },
+  dialogLoadingText: {
+    color: colors.dark_gray,
+    marginLeft: 8,
   },
 });

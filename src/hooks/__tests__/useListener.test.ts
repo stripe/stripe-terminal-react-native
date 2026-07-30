@@ -163,6 +163,10 @@ describe('useListener', () => {
           code: 'card_declined',
           message: 'Your card was declined.',
           declineCode: 'generic_decline',
+          localizationResult: {
+            requestedLocale: 'fr-FR',
+            resolvedLocale: 'fr',
+          },
         },
       },
     });
@@ -172,6 +176,10 @@ describe('useListener', () => {
       code: 'card_declined',
       message: 'Your card was declined.',
       declineCode: 'generic_decline',
+      localizationResult: {
+        requestedLocale: 'fr-FR',
+        resolvedLocale: 'fr',
+      },
     });
   });
 

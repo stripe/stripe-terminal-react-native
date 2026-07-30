@@ -32,10 +32,23 @@ export interface ErrorInfo {
   errorCode: string;
   errorMessage: string;
   nativeErrorCode?: string;
+  apiErrorMessage?: string;
+  requestedLocale?: string;
+  resolvedLocale?: string;
   paymentIntent?: string;
   setupIntent?: string;
   refund?: string;
   context?: string;
+}
+
+function formatLocalizationMessage(
+  localizationResult?: { requestedLocale: string; resolvedLocale: string }
+): string {
+  if (!localizationResult) {
+    return '';
+  }
+
+  return `\n\nRequested locale: ${localizationResult.requestedLocale}\nResolved locale: ${localizationResult.resolvedLocale}`;
 }
 
 /**
@@ -46,7 +59,13 @@ export function getErrorMessage(
   fallback = 'Unknown error occurred'
 ): string {
   if (checkIfObjectIsStripeError(error)) {
-    return error.message;
+    return `${error.apiError?.message || error.message}${formatLocalizationMessage(
+      error.apiError?.localizationResult
+    )}`;
+  } else if (error instanceof DevAppError) {
+    return `${error.apiErrorMessage || error.message}${formatLocalizationMessage(
+      error.localizationResult
+    )}`;
   } else if (error instanceof Error) {
     return error.message;
   } else if (error && typeof error === 'object' && 'message' in error) {
@@ -126,6 +145,9 @@ export function extractErrorInfo(
       errorCode: error.code,
       errorMessage: error.message,
       nativeErrorCode: error.nativeErrorCode,
+      apiErrorMessage: error.apiError?.message,
+      requestedLocale: error.apiError?.localizationResult?.requestedLocale,
+      resolvedLocale: error.apiError?.localizationResult?.resolvedLocale,
       paymentIntent: error.paymentIntent
         ? JSON.stringify(error.paymentIntent, undefined, 2)
         : undefined,
@@ -169,6 +191,9 @@ export function extractErrorInfo(
       errorCode: error.code,
       errorMessage: error.message,
       nativeErrorCode: error.nativeErrorCode,
+      apiErrorMessage: error.apiErrorMessage,
+      requestedLocale: error.localizationResult?.requestedLocale,
+      resolvedLocale: error.localizationResult?.resolvedLocale,
       paymentIntent: error.paymentIntent,
       setupIntent: error.setupIntent,
       refund: error.refund,
@@ -212,4 +237,3 @@ export const ErrorUtils = {
   getCode: getErrorCode,
   getSafeMessage: safeErrorMessage,
 };
-

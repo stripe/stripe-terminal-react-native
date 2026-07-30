@@ -28,7 +28,7 @@
     "@react-native-picker/picker": "2.11.4",
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/stack": "^7.4.2",
-    "@stripe/stripe-terminal-react-native": "^0.0.1-beta.29",
+    "@stripe/stripe-terminal-react-native": "^0.0.1-beta.31",
     "@types/jest": "^29.2.1",
     "expo": "^55.0.0",
     "expo-splash-screen": "~55.0.0",

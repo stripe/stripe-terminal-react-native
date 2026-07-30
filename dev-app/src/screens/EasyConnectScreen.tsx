@@ -30,6 +30,7 @@ import List from '../components/List';
 
 import type { RouteParamList } from '../App';
 import type { NavigationProp } from '@react-navigation/native';
+import { getErrorMessage } from '../util/errorHandling';
 
 const DISCOVERY_FILTER = [
   { value: 'none', label: 'None' },
@@ -189,7 +190,8 @@ export default function EasyConnectScreen() {
     setConnecting(false);
 
     if (easyConnectError) {
-      const { code, message } = easyConnectError;
+      const { code } = easyConnectError;
+      const message = getErrorMessage(easyConnectError);
       console.error('EasyConnect error:', code, message);
       Alert.alert('EasyConnect Error', `${code}: ${message}`);
     } else if (reader) {
@@ -284,7 +286,7 @@ export default function EasyConnectScreen() {
           onPress={async () => {
             const { error } = await cancelEasyConnect();
             if (error) {
-              Alert.alert('Cancel Error', `${error.code}: ${error.message}`);
+              Alert.alert('Cancel Error', `${error.code}: ${getErrorMessage(error)}`);
             } else {
               setConnecting(false);
               Alert.alert('Cancelled', 'Easy Connect was cancelled.');

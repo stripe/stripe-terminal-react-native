@@ -1147,6 +1147,24 @@ class Mappers {
         }
     }
 
+    class func mapToLocaleConfig(_ params: NSDictionary?) throws -> LocaleConfig? {
+        guard let params = params else {
+            return nil
+        }
+
+        switch params["type"] as? String {
+        case "hardcoded":
+            guard let locale = params["locale"] as? String else {
+                return nil
+            }
+            return try HardcodedLocaleConfigBuilder(locale: locale).build()
+        case "cardLanguagePreferenceIfAvailable":
+            return LocaleConfig.cardLanguagePreferenceIfAvailable
+        default:
+            return nil
+        }
+    }
+
     class func mapFromNetworkStatus(_ status: NetworkStatus) -> String {
         switch status {
         case NetworkStatus.online: return "online"

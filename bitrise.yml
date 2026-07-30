@@ -33,7 +33,8 @@ stages:
       - example-build-android: {}
       - e2e-android: {}
       - e2e-ios: {}
-      - deploy-firebase-android: {}
+      - deploy-firebase-android:
+          run_if: '{{getenv "ENABLE_INTERNAL_RELEASES" | ne ""}}'
 workflows:
   complete_all:
     steps:
@@ -45,6 +46,7 @@ workflows:
       - fastlane@3:
           inputs:
             - connection: 'off'
+            - work_dir: ..
             - lane: increment_version app_id:$FIREBASE_APP_ID_ANDROID version_suffix:$VERSION_SUFFIX
           title: fastlane increment version
       - install-missing-android-tools@3:
@@ -59,6 +61,7 @@ workflows:
       - fastlane@3:
           inputs:
             - connection: 'off'
+            - work_dir: ..
             - lane: publish_to_firebase app_id:$FIREBASE_APP_ID_ANDROID firebase_token:$FIREBASE_TOKEN
           title: fastlane distribute app
     before_run:
@@ -116,7 +119,7 @@ workflows:
           title: build for detox
       - xcode-start-simulator:
           inputs:
-            - destination: platform=iOS Simulator,name=iPhone 16e,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 17e,OS=latest
             - wait_for_boot_timeout: 90
       - script@1:
           inputs:
@@ -178,7 +181,7 @@ workflows:
       - complete_all
     meta:
       bitrise.io:
-        stack: osx-xcode-26.0.x
+        stack: osx-xcode-26.5.x
         machine_type_id: g2.mac.large
   lint:
     steps:
@@ -256,18 +259,25 @@ workflows:
           title: Check for diffs in yarn lockfile
   setup_cocoapods:
     steps:
-      - bundler@0: {}
       - script@1:
           inputs:
             - content: |-
                 set -e
                 rbenv install --skip-existing 3.2.3
                 rbenv local 3.2.3
-                cd dev-app/ios && bundle install && \
-                gem install cocoapods -v 1.16.2 && pod install && cd - && \
+                cd dev-app && bundle install && \
+                cd ios && gem install cocoapods -v 1.16.2 && pod install && cd ../.. && \
                 npm rebuild detox
-                echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date" && \
-                git diff --exit-code
+                echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date"
+                # RN 0.85 prebuilt pods embed absolute paths in podspecs, making their
+                # SPEC CHECKSUMS path-dependent. Ignore diffs in only those three pods.
+                IGNORED_PODS="hermes-engine|React-Core-prebuilt|ReactNativeDependencies"
+                UNEXPECTED_DIFFS=$(git diff -- dev-app/ios/Podfile.lock | grep '^[+-]  ' | grep -Ev "^[+-]  ($IGNORED_PODS):" || true)
+                if [ -n "$UNEXPECTED_DIFFS" ]; then
+                  echo "Unexpected diffs in Podfile.lock:"
+                  echo "$UNEXPECTED_DIFFS"
+                  exit 1
+                fi
           title: Set up cocoapods
   typescript:
     steps:
@@ -333,7 +343,7 @@ workflows:
           inputs:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
-            - destination: platform=iOS Simulator,name=iPhone 16e,OS=latest
+            - destination: platform=iOS Simulator,name=iPhone 17e,OS=latest
             - command: yarn unit-test:ios
             # - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
@@ -344,7 +354,7 @@ workflows:
       - complete_all
 meta:
   bitrise.io:
-    stack: osx-xcode-26.0.x
+    stack: osx-xcode-26.5.x
     machine_type_id: g2.mac.large
 app:
   envs:
