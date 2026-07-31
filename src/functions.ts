@@ -137,9 +137,26 @@ export async function initialize(params: {
 }): Promise<InitializeResultType> {
   Logger.setLogLevel(params.initParams.logLevel);
 
+  const { localeConfig } = params.initParams;
+  if (
+    localeConfig &&
+    localeConfig.type !== 'hardcoded' &&
+    localeConfig.type !== 'cardLanguagePreferenceIfAvailable'
+  ) {
+    return {
+      error: createStripeError({
+        code: ErrorCode.INVALID_REQUIRED_PARAMETER,
+        message:
+          "Invalid localeConfig.type. Expected 'hardcoded' or 'cardLanguagePreferenceIfAvailable'.",
+      }),
+      reader: undefined,
+    };
+  }
+
   const internalInitParams = {
     reactNativeVersion: PackageJson.version,
     logLevel: params.initParams.logLevel,
+    localeConfig,
     useAppsOnDevicesConnectionTokenProvider: params.useAppsOnDevicesConnectionTokenProvider,
   };
 

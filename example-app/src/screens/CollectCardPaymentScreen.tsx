@@ -5,6 +5,7 @@ import { Platform, StyleSheet, Switch, Text, TextInput } from 'react-native';
 import {
   useStripeTerminal,
   PaymentIntent,
+  PaymentMethodType,
 } from '@stripe/stripe-terminal-react-native';
 import type { StripeError } from '@stripe/stripe-terminal-react-native';
 import { extractFullErrorMetadata } from '../util/errorUtils';
@@ -151,12 +152,13 @@ export default function CollectCardPaymentScreen() {
       name: 'Create Payment Intent',
       events: [{ name: 'Create', description: 'terminal.createPaymentIntent' }],
     });
-    const resolvedPaymentMethodTypes = enabledPaymentMethodTypes;
+    const resolvedPaymentMethodTypes =
+      enabledPaymentMethodTypes as PaymentMethodType[];
     if (
       enableInterac &&
-      !resolvedPaymentMethodTypes.includes('interac_present')
+      !resolvedPaymentMethodTypes.includes(PaymentMethodType.InteracPresent)
     ) {
-      resolvedPaymentMethodTypes.push('interac_present');
+      resolvedPaymentMethodTypes.push(PaymentMethodType.InteracPresent);
     }
     const routingPriority = {
       requested_priority: inputValues.requestedPriority,

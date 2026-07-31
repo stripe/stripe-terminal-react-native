@@ -73,6 +73,41 @@ export type QrCodeDisplayHandler = (
 
 export type InitParams = {
   logLevel?: LogLevel;
+
+  /**
+   * Configures localization of API error messages returned by the React Native SDK.
+   *
+   * This value is applied during SDK initialization. Changing it after the SDK
+   * has initialized does not update localization for the current app session.
+   * To use a different locale config, restart the app and initialize the SDK
+   * with the new value.
+   */
+  localeConfig?: LocaleConfig;
+};
+
+/**
+ * Configures localization of API error messages returned by the React Native SDK.
+ */
+export type LocaleConfig =
+  | HardcodedLocaleConfig
+  | CardLanguagePreferenceLocaleConfig;
+
+/**
+ * Localizes API error messages to a fixed locale.
+ *
+ * If the locale is not supported, messages fall back to English (`en-US`).
+ */
+export type HardcodedLocaleConfig = {
+  type: 'hardcoded';
+  locale: string;
+};
+
+/**
+ * Localizes API error messages to the cardholder's preferred language when
+ * available, falling back to the device locale otherwise.
+ */
+export type CardLanguagePreferenceLocaleConfig = {
+  type: 'cardLanguagePreferenceIfAvailable';
 };
 
 export type SetConnectionTokenParams = {

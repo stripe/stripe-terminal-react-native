@@ -881,7 +881,8 @@ export default function CollectCardPaymentScreen() {
       <KeyboardAwareScrollView
         testID="collect-scroll-view"
         contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
       >
         {simulated && (
           <List bolded={false} topSpacing={false} title="CARD NUMBER">

@@ -2885,7 +2885,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stripe-terminal-react-native (0.0.1-beta.29):
+  - stripe-terminal-react-native (0.0.1-beta.31):
     - boost
     - DoubleConversion
     - fast_float
@@ -2912,9 +2912,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - SocketRocket
-    - StripeTerminal (~> 5.1.1)
+    - StripeTerminal (~> 5.5.0)
     - Yoga
-  - StripeTerminal (5.1.1)
+  - StripeTerminal (5.5.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -3238,7 +3238,7 @@ SPEC CHECKSUMS:
   FBLazyVector: 06b1c8278e6e1b31ef68e9e14c296b7872e79e48
   fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
-  hermes-engine: 1bd235a66ee15b92182d88351ce7b86d70ddd498
+  hermes-engine: f1555cb3a25c33948c90dacec1d260f4c539d1b0
   RCT-Folly: 121436bcc4611f6bde5c09bf35f0a7a82cef1969
   RCTDeprecation: c5e70bcdbc24b9edbca24b96f3997319f01ba8fb
   RCTRequired: 7fbf6c9b97de59aab5c6a1ca5a5d91555d5ba403
@@ -3317,8 +3317,8 @@ SPEC CHECKSUMS:
   RNScreens: ec8bdc9f024d5828e5adf4f5e8870d5260cff616
   RNWorklets: 3f35c2c01e5839d4fee0496d10ada185628ba328
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stripe-terminal-react-native: 63292141323949465f3ebe8556f385de070023b9
-  StripeTerminal: abece5648834aedf1724c021e13589e38cb65378
+  stripe-terminal-react-native: fe239025e8cfda45743a1ab3fbeaa8ae630bd0cb
+  StripeTerminal: e9c7e64089beeed2188e6e6afe8779c01945d13c
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
 
 PODFILE CHECKSUM: 9b24617f84668e87d00cf5416fcfa8049b09d608

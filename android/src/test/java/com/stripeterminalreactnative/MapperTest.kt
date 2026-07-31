@@ -21,6 +21,7 @@ import com.stripe.stripeterminal.external.models.CustomerCancellation
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryFilter
 import com.stripe.stripeterminal.external.models.EasyConnectConfiguration
+import com.stripe.stripeterminal.external.models.LocaleConfig
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
@@ -37,7 +38,10 @@ import io.mockk.mockkStatic
 import io.mockk.verify
 import java.util.Base64
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
@@ -315,6 +319,71 @@ class MapperTest {
             mapToDiscoveryFilter(readerMap),
             DiscoveryFilter.ByReaderId("tmr_5678")
         )
+    }
+
+    @Test
+    fun `test mapToLocaleConfig maps hardcoded locale config`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "hardcoded")
+            putString("locale", "fr-FR")
+        }
+
+        val result = mapToLocaleConfig(params)
+
+        assertTrue(result is LocaleConfig.HardcodedLocale)
+        assertEquals("fr-FR", result.locale)
+    }
+
+    @Test
+    fun `test mapToLocaleConfig maps card language preference locale config`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "cardLanguagePreferenceIfAvailable")
+        }
+
+        val result = mapToLocaleConfig(params)
+
+        assertSame(LocaleConfig.CardLanguagePreferenceIfAvailable, result)
+    }
+
+    @Test
+    fun `test mapToLocaleConfig returns null for missing config`() {
+        val result = mapToLocaleConfig(null)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `test mapToLocaleConfig returns null for hardcoded missing locale`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "hardcoded")
+        }
+
+        val result = mapToLocaleConfig(params)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `test mapToLocaleConfig returns null for unknown type`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "unknown")
+        }
+
+        val result = mapToLocaleConfig(params)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `test mapToLocaleConfig propagates invalid hardcoded locale error`() {
+        val params = JavaOnlyMap().apply {
+            putString("type", "hardcoded")
+            putString("locale", "not_a_locale")
+        }
+
+        assertFailsWith<TerminalException> {
+            mapToLocaleConfig(params)
+        }
     }
 
     @Test

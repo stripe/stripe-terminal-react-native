@@ -23,6 +23,8 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["jest", "node", "react", "react-native", "react-test-renderer"]
   }
 }

@@ -118,7 +118,7 @@ describe('StripeTerminalProvider.tsx', () => {
 
       await waitFor(() => {
         expect(initializeSpy).toHaveBeenCalledWith({
-          initParams: { logLevel: 'verbose' },
+          initParams: { logLevel: 'verbose', localeConfig: undefined },
           useAppsOnDevicesConnectionTokenProvider: true,
         });
       });
@@ -154,7 +154,45 @@ describe('StripeTerminalProvider.tsx', () => {
 
       await waitFor(() => {
         expect(initializeSpy).toHaveBeenCalledWith({
-          initParams: { logLevel: 'verbose' },
+          initParams: { logLevel: 'verbose', localeConfig: undefined },
+          useAppsOnDevicesConnectionTokenProvider: false,
+        });
+      });
+    });
+
+    it('passes localeConfig through initParams', async () => {
+      const standardTokenProvider = jest
+        .fn()
+        .mockResolvedValue('test_connection_token');
+      const localeConfig = { type: 'hardcoded' as const, locale: 'fr-FR' };
+
+      const ChildImpl = () => {
+        const { initialize } = useStripeTerminal();
+
+        return (
+          <TouchableOpacity onPress={() => initialize()}>
+            <Text>init</Text>
+          </TouchableOpacity>
+        );
+      };
+
+      const { findByText } = render(
+        <StripeTerminalProvider
+          tokenProvider={standardTokenProvider}
+          logLevel="verbose"
+          localeConfig={localeConfig}
+        >
+          <ChildImpl />
+        </StripeTerminalProvider>
+      );
+
+      await act(async () => {
+        fireEvent.press(await findByText('init'));
+      });
+
+      await waitFor(() => {
+        expect(initializeSpy).toHaveBeenCalledWith({
+          initParams: { logLevel: 'verbose', localeConfig },
           useAppsOnDevicesConnectionTokenProvider: false,
         });
       });

@@ -2,7 +2,42 @@
 
 This document details changes made to the SDK by version.
 
-## 0.0.1-beta.31 - 2026-05-18
+## 0.0.1-beta.32
+
+Includes iOS native SDK [5.6.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.6.0) and [5.7.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.7.0), and Android native SDK [5.6.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#560---2026-06-08) and [5.7.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#570---2026-07-13).
+
+### New
+
+- Added `localeConfig` initialization support to configure localization of API error messages. Pass `{ type: 'cardLanguagePreferenceIfAvailable' }` to localize messages to the cardholder's preferred language when available, falling back to the device locale, or `{ type: 'hardcoded', locale: '<locale>' }` to use a fixed locale. API errors now include `localizationResult` when the native Terminal SDK provides localized error details.
+- **Preview:** Surcharging is now supported on Tap to Pay readers (Tap to Pay on iPhone and Tap to Pay on Android). To request access to this preview, please contact [Stripe Support](https://support.stripe.com/). (from native 5.7.0)
+
+### Updates
+
+- Added a release and support lifecycle policy for the React Native SDK.
+- Android: `onDidUpdateBatteryLevel` now only fires when the battery level, status, or charging state changes from the last reported value. Previously it fired on every battery poll (~every 10 minutes) regardless of whether the value changed. (from native 5.6.0)
+- Android (Tap to Pay): API error messages from Tap to Pay attestation now default to English (`en-US`) instead of the application locale. (from native 5.6.0)
+- Android (Tap to Pay): Discovered Tap to Pay readers that are already registered to a location now include their `location`, so it can be passed directly to `connectReader` without a separate location lookup. (from native 5.7.0)
+
+### Fixes
+
+- Android (Expo): Fixed the `tapToPayCheck` Expo config plugin option injecting the `TapToPay.isInTapToPayProcess()` guard in the wrong position in `MainApplication.kt` when other plugins that modify `onCreate()` are listed after `@stripe/stripe-terminal-react-native` in `app.config.ts`. The guard is now re-positioned immediately after `super.onCreate()` regardless of plugin order, ensuring code added by other plugins is correctly skipped in the Tap to Pay subprocess.
+- iOS: Fixed crash when reloading the app in development or when the React Native bridge is torn down while a reader is connected or discovering. Events from the Terminal SDK were being sent to an invalidated bridge, causing an `NSInternalInconsistencyException` (`RCTCallableJSModules is not set`).
+- Android: Fixed race condition where canceling a cancelable operation, such as calling `cancelCollectPaymentMethod()` within milliseconds of `collectPaymentMethod()`, could cause the operation to never resolve, leaving callers hanging indefinitely. (from native 5.6.0)
+- Android: Fixed race condition where calling `cancelPaymentIntent()` or `cancelSetupIntent()` while `collectPaymentMethod` was in-flight on an internet reader could cause an unexpected disconnect after a 45-second timeout. (from native 5.6.0)
+- Android: `onDidForwardPaymentIntent` offline callback now receives the up-to-date intent returned by the Stripe API rather than the stale locally-stored snapshot. (from native 5.6.0)
+- Android: When programmatically canceling a payment on a smart reader, the error message is now `"Transaction is cancelled by the user."` instead of `"Job was canceled"`. (from native 5.6.0)
+- Android (Tap to Pay): Fixed an issue where the immersive mode system overlay could cause the Tap to Pay collection screen to prematurely close. Fixes [#1120](https://github.com/stripe/stripe-terminal-react-native/issues/1120). (from native 5.6.0)
+- iOS: Fixed a crash caused by a race condition during internal logging operations. (from native 5.6.0)
+- iOS: Fixed a race condition where reader state could be mutated after a disconnect, leaving the SDK permanently stuck in the Connected state. (from native 5.6.0)
+- iOS: **Preview:** Fixed an issue where `surchargeDetails.amount` was not included in the amount charged, which also caused an incorrect `maximumAmount` calculation. (from native 5.6.0)
+- iOS: Fixed a mobile reader disconnect caused by a critically low battery being reported with the wrong reason. `onDidDisconnect` now receives `criticallyLowBattery` instead of `disconnectRequested`. (from native 5.7.0)
+- Android: Fixed `collectPaymentMethod` not populating `PaymentIntent.paymentMethod` for non-card payment methods (e.g. Affirm) when `updatePaymentIntent` is enabled. (from native 5.7.0)
+- Android (Tap to Pay): Fixed an issue where a reader could fail to connect when Keystore certificates registered to the device had expired. (from native 5.7.0)
+- Android (Tap to Pay): Fixed `generatedCard` not being populated on `CardPresentDetails` after processing a `PaymentIntent`. (from native 5.7.0)
+- Android (Tap to Pay): Fixed a crash when initiating payment collection in portrait orientation while the app was running in landscape. (from native 5.7.0)
+- Android (Tap to Pay): Fixed a build issue where Terminal resource names could collide with those of certain third-party libraries. (from native 5.7.0)
+
+## 0.0.1-beta.31 - 2026-05-28
 
 Includes iOS native SDK [5.2.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.2.0), [5.3.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.3.0), [5.4.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.4.0), [5.5.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.5.0) and Android native SDK [5.5.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#550---2026-05-06), [5.5.1](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#551---2026-05-22).
 
@@ -22,6 +57,7 @@ Includes iOS native SDK [5.2.0](https://github.com/stripe/stripe-terminal-ios/re
   - Added `TestReaderUpdate` type and `UpdateComponent` enum. Set `testReaderUpdate` on `ConnectBluetoothReaderParams`, `ConnectBluetoothProximityReaderParams`, `ConnectUsbReaderParams`, or `ConnectTapToPayParams` (iOS only for Tap to Pay).
   - Added `components` field to `Reader.SoftwareUpdate` to expose which update components (firmware, config, keys, incremental) are included in an update.
   - **Breaking:** Removed `simulateReaderUpdate` function and `SimulateUpdateType` type in favor of this new per-connection API.
+- Added Klarna as a supported payment method. `PaymentMethodType.Klarna` is now available and `klarnaDetails` is exposed on payment method details.
 - Added `PaymentMethodType` const object with named values (`CardPresent`, `InteracPresent`, etc.) for use with `paymentMethodTypes` fields. String literals continue to work for backwards compatibility.
 - Added the `captureBefore` response field to `CardPresentDetails`, previously only available via the server-side API.
 - Added `lastSetupError` field to `SetupIntent`, exposing the error from the last failed setup attempt.
@@ -35,6 +71,7 @@ Includes iOS native SDK [5.2.0](https://github.com/stripe/stripe-terminal-ios/re
 - Updated `TapZoneFront` and `TapZoneBehind` types to enforce that `xBias` and `yBias` must be provided together or omitted together.
 - Made `PaymentMethodOptions.requestedPriority` optional so `captureMethod` can be set independently.
 - iOS + Android: Offline mode now falls back faster when the device cannot reach Stripe, with optimized per-request timeouts replacing the previous 15-second wait. (from native 5.5.0)
+- Android: The simulated Tap to Pay payment collection screen UI was updated to match the livemode UI and can now be customized with [`setTapToPayUxConfiguration`](https://docs.stripe.com/terminal/payments/setup-reader/tap-to-pay?terminal-sdk-platform=android#user-interface). Pressing the screen simulates a successful payment; long pressing simulates a failed payment collection.
 
 ### Fixes
 

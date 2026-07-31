@@ -86,6 +86,7 @@ class ErrorsTest {
             every { adviceCode } returns null
             every { networkAdviceCode } returns null
             every { networkDeclineCode } returns null
+            every { localizationResult } returns null
         }
         val cause = IllegalStateException("cause message")
         val terminalException = mockTerminalException(
@@ -554,6 +555,7 @@ class ErrorsTest {
             every { adviceCode } returns "01"
             every { networkAdviceCode } returns "Z1"
             every { networkDeclineCode } returns "05"
+            every { localizationResult } returns null
         }
 
         // WHEN mapping
@@ -588,6 +590,7 @@ class ErrorsTest {
             every { adviceCode } returns null
             every { networkAdviceCode } returns null
             every { networkDeclineCode } returns null
+            every { localizationResult } returns null
         }
 
         // WHEN mapping
@@ -614,6 +617,7 @@ class ErrorsTest {
             every { adviceCode } returns null
             every { networkAdviceCode } returns null
             every { networkDeclineCode } returns null
+            every { localizationResult } returns null
         }
 
         // WHEN mapping
@@ -628,11 +632,44 @@ class ErrorsTest {
         assertFalse(result.hasKey("adviceCode"), "adviceCode should not be present when null")
         assertFalse(result.hasKey("networkAdviceCode"), "networkAdviceCode should not be present when null")
         assertFalse(result.hasKey("networkDeclineCode"), "networkDeclineCode should not be present when null")
+        assertFalse(result.hasKey("localizationResult"), "localizationResult should not be present when null")
 
         // AND required fields should be present
         assertTrue(result.hasKey("code"))
         assertTrue(result.hasKey("message"))
         assertTrue(result.hasKey("declineCode"))
+    }
+
+    @Test
+    fun `mapFromApiError includes localizationResult when present`() {
+        // GIVEN an ApiError with localizationResult
+        val mockLocalizationResult = mockk<ApiError.LocalizationResult> {
+            every { requestedLocale } returns "fr-FR"
+            every { resolvedLocale } returns "fr"
+        }
+        val apiError = mockk<ApiError> {
+            every { code } returns "card_declined"
+            every { message } returns "Votre carte a été refusée."
+            every { declineCode } returns "generic_decline"
+            every { type } returns null
+            every { charge } returns null
+            every { docUrl } returns null
+            every { param } returns null
+            every { requestLogUrl } returns null
+            every { adviceCode } returns null
+            every { networkAdviceCode } returns null
+            every { networkDeclineCode } returns null
+            every { localizationResult } returns mockLocalizationResult
+        }
+
+        // WHEN mapping
+        val result = mapFromApiError(apiError) as JavaOnlyMap
+
+        // THEN localizationResult should be present as a nested map
+        assertTrue(result.hasKey("localizationResult"))
+        val locResult = result.getMap("localizationResult") as JavaOnlyMap
+        assertEquals("fr-FR", locResult.getString("requestedLocale"))
+        assertEquals("fr", locResult.getString("resolvedLocale"))
     }
 
     @Test
@@ -650,6 +687,7 @@ class ErrorsTest {
             every { adviceCode } returns null
             every { networkAdviceCode } returns null
             every { networkDeclineCode } returns null
+            every { localizationResult } returns null
         }
         val terminalException = mockTerminalException(
             TerminalErrorCode.STRIPE_API_ERROR,

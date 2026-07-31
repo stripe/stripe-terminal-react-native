@@ -39,6 +39,10 @@ struct ErrorConstants {
     static let rnApiErrorAdviceCode         = "adviceCode"
     static let rnApiErrorNetworkAdviceCode  = "networkAdviceCode"
     static let rnApiErrorNetworkDeclineCode = "networkDeclineCode"
+    // LocalizationResult keys
+    static let rnApiErrorLocalizationResult = "localizationResult"
+    static let rnLocalizationResultRequestedLocale = "requestedLocale"
+    static let rnLocalizationResultResolvedLocale = "resolvedLocale"
 
     // MARK: - RN UnderlyingError Keys
     // Keys for the underlyingError object returned across the RN bridge.

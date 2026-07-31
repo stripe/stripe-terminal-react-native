@@ -48,6 +48,7 @@ import com.stripe.stripeterminal.external.models.GeneratedFrom
 import com.stripe.stripeterminal.external.models.KlarnaDetails
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
+import com.stripe.stripeterminal.external.models.LocaleConfig
 import com.stripe.stripeterminal.external.models.MotoConfiguration
 import com.stripe.stripeterminal.external.models.NetworkStatus
 import com.stripe.stripeterminal.external.models.NextAction
@@ -156,6 +157,21 @@ internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
 
 internal fun getBoolean(map: ReadableMap?, key: String, defaultValue: Boolean): Boolean =
     if (map?.hasKey(key) == true) map.getBoolean(key) else defaultValue
+
+internal fun mapToLocaleConfig(map: ReadableMap?): LocaleConfig? {
+    if (map == null) {
+        return null
+    }
+
+    return when (map.getString("type")) {
+        "hardcoded" -> {
+            val locale = map.getString("locale") ?: return null
+            LocaleConfig.HardcodedLocale.Builder(locale).build()
+        }
+        "cardLanguagePreferenceIfAvailable" -> LocaleConfig.CardLanguagePreferenceIfAvailable
+        else -> null
+    }
+}
 
 /**
  * Converts a data URI or base64 string to a Bitmap

@@ -35,6 +35,23 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     var paymentIntents: [AnyHashable : PaymentIntent] = [:]
     var setupIntents: [AnyHashable : SetupIntent] = [:]
 
+    private var hasListeners = false
+
+    override func startObserving() {
+        hasListeners = true
+    }
+
+    override func stopObserving() {
+        hasListeners = false
+    }
+
+    override func sendEvent(withName name: String!, body: Any!) {
+        guard hasListeners else {
+            return
+        }
+        super.sendEvent(withName: name, body: body)
+    }
+
     override func supportedEvents() -> [String]! {
         return ReactNativeConstants.allCases.map {
             $0.rawValue
@@ -99,15 +116,34 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         TokenProvider.delegate = self
 
         let logLevel = Mappers.mapToLogLevel(params["logLevel"] as? String)
+        let localeConfig: LocaleConfig?
+        do {
+            localeConfig = try Mappers.mapToLocaleConfig(params["localeConfig"] as? NSDictionary)
+        } catch {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
+            return
+        }
 
         if (Terminal.isInitialized()) {
             if let reader = Terminal.shared.connectedReader {
                 connectedReader = Mappers.mapFromReader(reader)
             }
             Terminal.shared.logLevel = logLevel
+        } else if let localeConfig = localeConfig {
+            Terminal.initWithTokenProvider(
+                TokenProvider.shared,
+                delegate: self,
+                offlineDelegate: self,
+                logLevel: logLevel,
+                localeConfig: localeConfig
+            )
         } else {
-            Terminal.initWithTokenProvider(TokenProvider.shared)
-            Terminal.shared.logLevel = logLevel
+            Terminal.initWithTokenProvider(
+                TokenProvider.shared,
+                delegate: self,
+                offlineDelegate: self,
+                logLevel: logLevel
+            )
         }
 
         Terminal.shared.offlineDelegate = self

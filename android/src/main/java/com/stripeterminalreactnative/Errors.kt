@@ -149,6 +149,12 @@ internal fun mapFromApiError(apiError: ApiError?): ReadableMap? = apiError?.let 
         apiErr.adviceCode?.let { putString(ErrorConstants.API_ERROR_ADVICE_CODE_KEY, it) }
         apiErr.networkAdviceCode?.let { putString(ErrorConstants.API_ERROR_NETWORK_ADVICE_CODE_KEY, it) }
         apiErr.networkDeclineCode?.let { putString(ErrorConstants.API_ERROR_NETWORK_DECLINE_CODE_KEY, it) }
+        apiErr.localizationResult?.let { locResult ->
+            putMap(ErrorConstants.API_ERROR_LOCALIZATION_RESULT_KEY, nativeMapOf {
+                putString(ErrorConstants.LOCALIZATION_RESULT_REQUESTED_LOCALE_KEY, locResult.requestedLocale)
+                putString(ErrorConstants.LOCALIZATION_RESULT_RESOLVED_LOCALE_KEY, locResult.resolvedLocale)
+            })
+        }
     }
 }
 

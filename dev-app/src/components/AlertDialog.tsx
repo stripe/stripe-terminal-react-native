@@ -6,23 +6,27 @@ import {
   Pressable,
   View,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 
 interface AlertButton {
   text?: string | undefined;
   onPress?: ((value?: string) => void) | undefined;
+  disabled?: boolean;
 }
 
 export default function AlertDialog({
   visible,
   title,
   message,
+  children,
   buttons,
   onDismiss = () => { },
 }: {
   visible: boolean;
   title: string;
   message?: string;
+  children?: React.ReactNode;
   buttons?: AlertButton[];
   onDismiss?: () => void;
 }) {
@@ -114,6 +118,7 @@ export default function AlertDialog({
               ]}
             >
               <Pressable
+                disabled={item.disabled}
                 onPress={() => {
                   if (item.onPress) {
                     item.onPress();
@@ -141,6 +146,7 @@ export default function AlertDialog({
                         textTransform: 'uppercase',
                         marginRight: 12,
                       },
+                      item.disabled ? styles.disabledButtonText : {},
                     ]}
                   >
                     {item.text || defaultButtonText}
@@ -200,6 +206,7 @@ export default function AlertDialog({
               ]}
             >
               <Pressable
+                disabled={item.disabled}
                 onPress={() => {
                   if (item.onPress) {
                     item.onPress();
@@ -220,6 +227,7 @@ export default function AlertDialog({
                       fontWeight: '500',
                       textTransform: 'none',
                       textAlign: 'center',
+                      opacity: item.disabled ? 0.35 : 1,
                     }}
                   >
                     {item.text || defaultButtonText}
@@ -246,21 +254,26 @@ export default function AlertDialog({
         ]}
         onPress={onDismiss}
       />
-      <View style={styles.alertBox}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.alertBox}
+      >
         {Platform.OS === 'ios' ? (
           <View style={styles.iOSAlertBox}>
             <Text style={styles.iOSTitle}>{title || 'Message'}</Text>
-            <Text style={styles.iOSMessage}>{message || ''}</Text>
+            {message ? <Text style={styles.iOSMessage}>{message}</Text> : null}
+            {children ? <View style={styles.iOSContent}>{children}</View> : null}
             <IOSButtonBox />
           </View>
         ) : (
           <View style={styles.androidAlertBox}>
             <Text style={styles.androidTitle}>{title || 'Message'}</Text>
-            <Text style={styles.androidMessage}>{message || ''}</Text>
+            {message ? <Text style={styles.androidMessage}>{message}</Text> : null}
+            {children ? <View style={styles.androidContent}>{children}</View> : null}
             <AndroidButtonBox />
           </View>
         )}
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -334,6 +347,11 @@ const styles = StyleSheet.create({
     marginRight: 24,
     marginBottom: 8,
   },
+  androidContent: {
+    marginLeft: 24,
+    marginRight: 24,
+    marginBottom: 8,
+  },
   androidButtonGroup: {
     marginTop: 0,
     marginRight: 0,
@@ -384,6 +402,11 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     textAlign: 'center',
   },
+  iOSContent: {
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingLeft: 16,
+  },
   iOSButtonGroup: {
     marginRight: -0.55,
   },
@@ -401,5 +424,8 @@ const styles = StyleSheet.create({
   iOSButtonInner: {
     minHeight: 44,
     justifyContent: 'center',
+  },
+  disabledButtonText: {
+    opacity: 0.35,
   },
 });

@@ -257,6 +257,7 @@ fun mockApiError() = mockk<ApiError>(relaxed = true) {
     every { adviceCode } returns null
     every { networkAdviceCode } returns null
     every { networkDeclineCode } returns null
+    every { localizationResult } returns null
 }
 
 fun expectedApiError() = JavaOnlyMap().apply {

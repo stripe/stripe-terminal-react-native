@@ -161,6 +161,63 @@ describe('functions.test.ts', () => {
       });
     });
 
+    it('initialize passes localeConfig to the native bridge', async () => {
+      const functions = require('../functions');
+      const StripeTerminalSdk = require('../StripeTerminalSdk');
+      const localeConfig = { type: 'hardcoded', locale: 'fr-FR' };
+
+      await functions.initialize({
+        initParams: { logLevel: 'verbose', localeConfig },
+        useAppsOnDevicesConnectionTokenProvider: false,
+      });
+
+      expect(StripeTerminalSdk.initialize).toHaveBeenCalledWith({
+        reactNativeVersion: expect.any(String),
+        logLevel: 'verbose',
+        localeConfig,
+        useAppsOnDevicesConnectionTokenProvider: false,
+      });
+    });
+
+    it('initialize passes card language preference localeConfig to the native bridge', async () => {
+      const functions = require('../functions');
+      const StripeTerminalSdk = require('../StripeTerminalSdk');
+      const localeConfig = { type: 'cardLanguagePreferenceIfAvailable' };
+
+      await functions.initialize({
+        initParams: { logLevel: 'verbose', localeConfig },
+        useAppsOnDevicesConnectionTokenProvider: false,
+      });
+
+      expect(StripeTerminalSdk.initialize).toHaveBeenCalledWith({
+        reactNativeVersion: expect.any(String),
+        logLevel: 'verbose',
+        localeConfig,
+        useAppsOnDevicesConnectionTokenProvider: false,
+      });
+    });
+
+    it('initialize returns an error for invalid localeConfig type', async () => {
+      const functions = require('../functions');
+      const StripeTerminalSdk = require('../StripeTerminalSdk');
+      StripeTerminalSdk.initialize.mockClear();
+
+      const result = await functions.initialize({
+        initParams: {
+          logLevel: 'verbose',
+          localeConfig: { type: 'unknown' },
+        },
+        useAppsOnDevicesConnectionTokenProvider: false,
+      } as any);
+
+      expect(result.reader).toBeUndefined();
+      expect(result.error?.code).toBe('INVALID_REQUIRED_PARAMETER');
+      expect(result.error?.message).toBe(
+        "Invalid localeConfig.type. Expected 'hardcoded' or 'cardLanguagePreferenceIfAvailable'."
+      );
+      expect(StripeTerminalSdk.initialize).not.toHaveBeenCalled();
+    });
+
     it('setConnectionToken returns a proper value', async () => {
       const functions = require('../functions');
       await expect(functions.setConnectionToken()).resolves.toEqual(undefined);
@@ -638,6 +695,10 @@ describe('functions.test.ts', () => {
       adviceCode: '01',
       networkAdviceCode: 'Z1',
       networkDeclineCode: '05',
+      localizationResult: {
+        requestedLocale: 'fr-FR',
+        resolvedLocale: 'fr',
+      },
     };
 
     beforeAll(() => {

@@ -328,6 +328,52 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(skipCvcConfiguration?.skipCvc, true)
     }
 
+    func testMapToLocaleConfigMapsHardcodedLocaleConfig() throws {
+        let config = try Mappers.mapToLocaleConfig([
+            "type": "hardcoded",
+            "locale": "fr-FR"
+        ])
+
+        let hardcodedConfig = config as? HardcodedLocaleConfig
+        XCTAssertNotNil(hardcodedConfig)
+        XCTAssertEqual(hardcodedConfig?.locale, "fr-FR")
+    }
+
+    func testMapToLocaleConfigMapsCardLanguagePreferenceLocaleConfig() throws {
+        let config = try Mappers.mapToLocaleConfig([
+            "type": "cardLanguagePreferenceIfAvailable"
+        ])
+
+        XCTAssertTrue(config === LocaleConfig.cardLanguagePreferenceIfAvailable)
+    }
+
+    func testMapToLocaleConfigReturnsNilForMissingConfig() throws {
+        XCTAssertNil(try Mappers.mapToLocaleConfig(nil))
+    }
+
+    func testMapToLocaleConfigReturnsNilForHardcodedMissingLocale() throws {
+        let config = try Mappers.mapToLocaleConfig([
+            "type": "hardcoded"
+        ])
+
+        XCTAssertNil(config)
+    }
+
+    func testMapToLocaleConfigReturnsNilForUnknownType() throws {
+        let config = try Mappers.mapToLocaleConfig([
+            "type": "unknown"
+        ])
+
+        XCTAssertNil(config)
+    }
+
+    func testMapToLocaleConfigPropagatesInvalidHardcodedLocaleError() {
+        XCTAssertThrowsError(try Mappers.mapToLocaleConfig([
+            "type": "hardcoded",
+            "locale": "not_a_locale"
+        ]))
+    }
+
     func testBuildCollectPaymentIntentConfigurationWithAllParameters() throws {
         // GIVEN params with all configuration parameters
         let params: NSDictionary = [

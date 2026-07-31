@@ -3,6 +3,7 @@ import {
   type Reader,
   type LogLevel,
   type InitParams,
+  type LocaleConfig,
   type EventResult,
   type PaymentStatus,
   type OfflineStatus,
@@ -119,6 +120,7 @@ export interface Props {
    */
   tokenProvider: () => Promise<string>;
   logLevel?: LogLevel;
+  localeConfig?: LocaleConfig;
 }
 
 /**
@@ -145,6 +147,7 @@ export function StripeTerminalProvider({
   children,
   tokenProvider,
   logLevel,
+  localeConfig,
 }: Props) {
   // Detect if using Apps-on-Devices mode by checking if the sentinel function was passed
   const isAppsOnDevicesMode = tokenProvider === AppsOnDevicesConnectionTokenProvider;
@@ -383,7 +386,7 @@ export function StripeTerminalProvider({
   useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
   const _initialize = useCallback(async () => {
-    const initParams: InitParams = { logLevel };
+    const initParams: InitParams = { logLevel, localeConfig };
 
     setLoading(true);
     log('initialize', `tokenProvider mode: ${isAppsOnDevicesMode ? 'AppsOnDevicesConnectionTokenProvider' : 'StandardConnectionTokenProvider'}`);
@@ -405,7 +408,7 @@ export function StripeTerminalProvider({
     setLoading(false);
 
     return response;
-  }, [logLevel, isAppsOnDevicesMode, tokenProvider, log]);
+  }, [logLevel, localeConfig, isAppsOnDevicesMode, tokenProvider, log]);
 
   const value = useMemo(
     () => ({

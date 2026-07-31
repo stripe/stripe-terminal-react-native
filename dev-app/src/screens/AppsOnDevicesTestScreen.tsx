@@ -24,6 +24,7 @@ import ListItem from '../components/ListItem';
 import List from '../components/List';
 import { clearServerlessAoDTestPending } from '../util/merchantStorage';
 import RNRestart from 'react-native-restart';
+import { getErrorMessage } from '../util/errorHandling';
 
 interface VerificationStep {
   title: string;
@@ -75,7 +76,7 @@ export default function AppsOnDevicesTestScreen() {
     createPaymentIntent,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (error) => {
-      if (error) updateStep(VerificationStep.Steps.STEP_1_DISCOVERY, VerificationStep.Status.failure, error.message);
+      if (error) updateStep(VerificationStep.Steps.STEP_1_DISCOVERY, VerificationStep.Status.failure, getErrorMessage(error));
     },
   });
 
@@ -88,7 +89,7 @@ export default function AppsOnDevicesTestScreen() {
     });
 
     if (error) {
-      updateStep(VerificationStep.Steps.STEP_3_ONLINE_MODE, VerificationStep.Status.failure, `${error.code}: ${error.message}`);
+      updateStep(VerificationStep.Steps.STEP_3_ONLINE_MODE, VerificationStep.Status.failure, `${error.code}: ${getErrorMessage(error)}`);
     } else if (paymentIntent) {
       updateStep(VerificationStep.Steps.STEP_3_ONLINE_MODE, VerificationStep.Status.success, 'Online mode verified');
     }
@@ -101,7 +102,7 @@ export default function AppsOnDevicesTestScreen() {
       reader,
     });
     if (error) {
-      updateStep(VerificationStep.Steps.STEP_2_CONNECTION, VerificationStep.Status.failure, error.message);
+      updateStep(VerificationStep.Steps.STEP_2_CONNECTION, VerificationStep.Status.failure, getErrorMessage(error));
     } else if (result) {
       updateStep(VerificationStep.Steps.STEP_2_CONNECTION, VerificationStep.Status.success, `${result.deviceType} (${result.serialNumber})`);
       // After successful connection, verify we're in online mode
@@ -117,13 +118,13 @@ export default function AppsOnDevicesTestScreen() {
     (async () => {
       const { error } = await initialize();
       if (error) {
-        updateStep(VerificationStep.Steps.STEP_1_DISCOVERY, VerificationStep.Status.failure, `Init failed: ${error.message}`);
+        updateStep(VerificationStep.Steps.STEP_1_DISCOVERY, VerificationStep.Status.failure, `Init failed: ${getErrorMessage(error)}`);
         return;
       }
 
       const { error: discoverError } = await discoverReaders({ discoveryMethod: 'appsOnDevices' });
       if (discoverError) {
-        updateStep(VerificationStep.Steps.STEP_1_DISCOVERY, VerificationStep.Status.failure, discoverError.message);
+        updateStep(VerificationStep.Steps.STEP_1_DISCOVERY, VerificationStep.Status.failure, getErrorMessage(discoverError));
       }
     })();
 

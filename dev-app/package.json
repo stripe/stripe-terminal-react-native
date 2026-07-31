@@ -23,8 +23,8 @@
     "@react-navigation/stack": "^7.4.2",
     "@types/jest": "^29.5.14",
     "postinstall-postinstall": "^2.1.0",
-    "react": "19.1.1",
-    "react-native": "^0.82.0",
+    "react": "19.2.3",
+    "react-native": "^0.85.0",
     "react-native-canvas": "^0.1.40",
     "react-native-gesture-handler": "^2.29.0",
     "react-native-image-picker": "^8.2.1",
@@ -40,13 +40,13 @@
     "@babel/core": "^7.26.0",
     "@babel/runtime": "^7.26.10",
     "@babel/traverse": "^7.26.0",
-    "@react-native-community/cli": "^20.0.0",
-    "@react-native-community/cli-platform-android": "^20.0.0",
-    "@react-native-community/cli-platform-ios": "^20.0.0",
-    "@react-native/babel-preset": "^0.82.0",
-    "@react-native/js-polyfills": "^0.82.0",
-    "@react-native/metro-babel-transformer": "^0.82.0",
-    "@react-native/metro-config": "^0.82.0",
+    "@react-native-community/cli": "^20.1.0",
+    "@react-native-community/cli-platform-android": "^20.1.0",
+    "@react-native-community/cli-platform-ios": "^20.1.0",
+    "@react-native/babel-preset": "^0.85.0",
+    "@react-native/js-polyfills": "^0.85.0",
+    "@react-native/metro-babel-transformer": "^0.85.0",
+    "@react-native/metro-config": "^0.85.0",
     "@rnx-kit/align-deps": "^3.3.2",
     "@types/express": "^4.17.13",
     "@types/react-native-canvas": "^0.1.14",
@@ -55,15 +55,15 @@
     "concurrently": "^7.0.0",
     "detox": "^20.32.0",
     "jest": "^29.7.0",
-    "metro-config": "^0.82.0",
-    "metro-runtime": "^0.82.0",
+    "metro-config": "^0.84.0",
+    "metro-runtime": "^0.84.0",
     "stripe": "^12.8.0"
   },
   "rnx-kit": {
     "kitType": "app",
     "alignDeps": {
       "requirements": [
-        "react-native@0.82"
+        "react-native@0.85"
       ],
       "capabilities": [
         "babel-preset-react-native",

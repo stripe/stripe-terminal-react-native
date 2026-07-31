@@ -13,7 +13,9 @@ import {
   useStripeTerminal,
   Location,
   Reader,
+  UpdateComponent,
 } from '@stripe/stripe-terminal-react-native';
+import type { TestReaderUpdate } from '@stripe/stripe-terminal-react-native';
 import type { NavigationAction } from '@react-navigation/routers';
 import type { StripeError } from '@stripe/stripe-terminal-react-native';
 import { formatErrorAlert } from '../util/errorUtils';
@@ -28,10 +30,30 @@ import type { RouteParamList } from '../App';
 const SIMULATED_UPDATE_PLANS = [
   'random',
   'available',
-  'none',
   'required',
+  'requiredOffline',
   'lowBattery',
-];
+  'lowBatterySucceedConnect',
+] as const;
+
+type UpdatePlan = (typeof SIMULATED_UPDATE_PLANS)[number];
+
+function buildTestReaderUpdate(plan: UpdatePlan): TestReaderUpdate {
+  switch (plan) {
+    case 'random':
+      return { type: 'random' };
+    case 'available':
+      return { type: 'available', components: [UpdateComponent.FIRMWARE] };
+    case 'required':
+      return { type: 'required', components: [UpdateComponent.FIRMWARE] };
+    case 'requiredOffline':
+      return { type: 'requiredOffline', components: [UpdateComponent.FIRMWARE] };
+    case 'lowBattery':
+      return { type: 'lowBattery' };
+    case 'lowBatterySucceedConnect':
+      return { type: 'lowBatterySucceedConnect' };
+  }
+}
 
 export default function DiscoverReadersScreen() {
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
@@ -47,7 +69,6 @@ export default function DiscoverReadersScreen() {
     discoverReaders,
     connectReader,
     discoveredReaders,
-    simulateReaderUpdate,
   } = useStripeTerminal({
     onFinishDiscoveringReaders: (finishError) => {
       if (finishError) {
@@ -94,7 +115,7 @@ export default function DiscoverReadersScreen() {
 
   const [selectedLocation, setSelectedLocation] = useState<Location>();
   const [selectedUpdatePlan, setSelectedUpdatePlan] =
-    useState<Reader.SimulateUpdateType>('none');
+    useState<UpdatePlan>('random');
 
   const handleGoBack = useCallback(
     async (action: NavigationAction) => {
@@ -138,9 +159,8 @@ export default function DiscoverReadersScreen() {
   }, [navigation, discoverReaders, discoveryMethod, simulated]);
 
   useEffect(() => {
-    simulateReaderUpdate('none');
     handleDiscoverReaders();
-  }, [handleDiscoverReaders, simulateReaderUpdate]);
+  }, [handleDiscoverReaders]);
 
   const handleConnectReader = async (reader: Reader.Type) => {
     let error: StripeError | undefined;
@@ -195,6 +215,7 @@ export default function DiscoverReadersScreen() {
       discoveryMethod: 'tapToPay',
       reader,
       locationId: selectedLocation?.id || reader?.location?.id || '',
+      testReaderUpdate: buildTestReaderUpdate(selectedUpdatePlan),
     });
 
     if (error) {
@@ -213,6 +234,7 @@ export default function DiscoverReadersScreen() {
       reader,
       locationId: selectedLocation?.id || reader?.location?.id || '',
       autoReconnectOnUnexpectedDisconnect: false,
+      testReaderUpdate: buildTestReaderUpdate(selectedUpdatePlan),
     });
 
     if (error) {
@@ -247,6 +269,7 @@ export default function DiscoverReadersScreen() {
       reader,
       locationId: selectedLocation?.id || reader?.location?.id || '',
       autoReconnectOnUnexpectedDisconnect: false,
+      testReaderUpdate: buildTestReaderUpdate(selectedUpdatePlan),
     });
 
     if (error) {
@@ -257,8 +280,7 @@ export default function DiscoverReadersScreen() {
     return { error };
   };
 
-  const handleChangeUpdatePlan = async (plan: Reader.SimulateUpdateType) => {
-    await simulateReaderUpdate(plan);
+  const handleChangeUpdatePlan = (plan: UpdatePlan) => {
     setSelectedUpdatePlan(plan);
   };
 
@@ -458,12 +480,14 @@ function mapToPlanDisplayName(plan: string) {
       return 'Random';
     case 'available':
       return 'Update Available';
-    case 'none':
-      return 'No Update';
     case 'required':
       return 'Update required';
+    case 'requiredOffline':
+      return 'Update required (offline)';
     case 'lowBattery':
       return 'Update required; reader has low battery';
+    case 'lowBatterySucceedConnect':
+      return 'Low battery; succeed connect';
     default:
       return '';
   }
