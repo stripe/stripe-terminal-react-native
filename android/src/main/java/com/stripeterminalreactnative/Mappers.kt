@@ -1565,6 +1565,9 @@ fun mapFromToggleResult(toggleResult: ToggleResult): String {
 fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): ReadableMap {
     return nativeMapOf {
         putBoolean("readerSupportResult", readerSupportResult.isSupported)
+        // Surface the reason the reader isn't supported so callers can distinguish
+        // e.g. a missing passcode (user-fixable) from an unsupported device (not).
+        readerSupportResult.error?.let { putError(it) }
     }
 }
 

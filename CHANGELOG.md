@@ -2,6 +2,12 @@
 
 This document details changes made to the SDK by version.
 
+## Unreleased
+
+### Fixes
+
+- `supportsReadersOfType` now populates `error` when `readerSupportResult` is `false`, instead of discarding the reason from the native SDK. Callers can distinguish causes the end user can resolve (no device passcode, terms not accepted, not signed into iCloud) from ones they can't (unsupported device, missing entitlements, account-side blocks). `readerSupportResult` keeps its existing meaning, and `error` is only populated on failure, where the return type already declared it.
+
 ## 0.0.1-beta.32
 
 Includes iOS native SDK [5.6.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.6.0) and [5.7.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.7.0), and Android native SDK [5.6.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#560---2026-06-08) and [5.7.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#570---2026-07-13).

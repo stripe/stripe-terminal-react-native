@@ -186,6 +186,11 @@ export namespace Reader {
   };
 
   export type ReaderSupportResult = {
+    /**
+     * When `readerSupportResult` is `false`, this describes why the reader isn't
+     * supported — e.g. a missing device passcode, unaccepted terms, or missing
+     * entitlements — so the failure can be surfaced or acted on appropriately.
+     */
     error?: StripeError;
     readerSupportResult: boolean;
   };
