@@ -1639,9 +1639,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["deviceType", "discoveryMethod"])
 
         if let invalidParams {
-            var payload: [String: Any] = ["readerSupportResult": false]
-            payload.merge(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams) parameters.")) { current, _ in current }
-            resolve(payload)
+            resolve(Mappers.mapFromUnsupportedReaderParams(
+                rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER,
+                message: "You must provide \(invalidParams) parameters."
+            ))
             return
         }
 
@@ -1650,22 +1651,19 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let discoveryMethod = params["discoveryMethod"] as? String
         let deviceType = Mappers.mapToDeviceType(deviceTypeParam)
         guard let deviceType else {
-            var payload: [String: Any] = ["readerSupportResult": false]
-            payload.merge(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide correct deviceType parameter.")) { current, _ in current }
-            resolve(payload)
+            resolve(Mappers.mapFromUnsupportedReaderParams(
+                rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER,
+                message: "You must provide correct deviceType parameter."
+            ))
             return
         }
         let result = Terminal.shared.supportsReaders(of: deviceType, discoveryMethod: Mappers.mapToDiscoveryMethod(discoveryMethod), simulated: simulated)
         switch result {
         case .success(_):
-            resolve(["readerSupportResult": true])
+            resolve(Mappers.mapFromReaderSupportResult(isSupported: true))
             break
         case .failure(let error):
-            // Surface the reason the reader isn't supported so callers can distinguish
-            // e.g. a missing passcode (user-fixable) from an unsupported device (not).
-            var payload: [String: Any] = ["readerSupportResult": false]
-            payload.merge(Errors.createErrorFromNSError(nsError: error as NSError)) { current, _ in current }
-            resolve(payload)
+            resolve(Mappers.mapFromReaderSupportResult(isSupported: false, error: error as NSError))
             break
         }
     }

@@ -1166,6 +1166,124 @@ final class MappersTests: XCTestCase {
         XCTAssertNil(Mappers.mapToTestReaderUpdate(dict))
 
     }
+
+    // MARK: - mapFromReaderSupportResult tests
+
+    func testMapFromReaderSupportResultSupported() {
+        // GIVEN a supported reader
+        // WHEN mapping the result
+        let result = Mappers.mapFromReaderSupportResult(isSupported: true)
+
+        // THEN readerSupportResult is true and no error is attached
+        XCTAssertEqual(result["readerSupportResult"] as? Bool, true)
+        XCTAssertNil(result["error"], "error should not be present when the reader is supported")
+    }
+
+    func testMapFromReaderSupportResultUnsupportedIncludesReason() {
+        // GIVEN an unsupported reader because the device has no passcode set
+        let nsError = NSError(
+            domain: "com.stripe-terminal",
+            code: ErrorCode.Code.passcodeNotEnabled.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Passcode is not enabled on this device."]
+        )
+
+        // WHEN mapping the result
+        let result = Mappers.mapFromReaderSupportResult(isSupported: false, error: nsError)
+
+        // THEN readerSupportResult is false and the reason is surfaced
+        XCTAssertEqual(result["readerSupportResult"] as? Bool, false)
+
+        guard let error = result["error"] as? [String: Any] else {
+            return XCTFail("error should be present when the reader is unsupported")
+        }
+        XCTAssertEqual(error["name"] as? String, "StripeError")
+        // Note: passcodeNotEnabled, commandNotAllowed and unsupportedMobileDeviceConfiguration
+        // all map to UNSUPPORTED_OPERATION, so `code` alone does not identify the cause.
+        // nativeErrorCode carries the specific SCPError.
+        XCTAssertEqual(error["code"] as? String, "UNSUPPORTED_OPERATION")
+        XCTAssertEqual(error["nativeErrorCode"] as? String, String(ErrorCode.Code.passcodeNotEnabled.rawValue))
+        XCTAssertEqual(error["message"] as? String, "Passcode is not enabled on this device.")
+    }
+
+    func testMapFromReaderSupportResultUnsupportedDistinguishesCauses() {
+        // GIVEN three reasons a reader may be unsupported, with different owners:
+        // the developer, nobody, and the end user respectively
+        let entitlementsError = NSError(
+            domain: "com.stripe-terminal",
+            code: ErrorCode.Code.commandNotAllowed.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Missing entitlements."]
+        )
+        let deviceError = NSError(
+            domain: "com.stripe-terminal",
+            code: ErrorCode.Code.unsupportedMobileDeviceConfiguration.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Unsupported device."]
+        )
+        let passcodeError = NSError(
+            domain: "com.stripe-terminal",
+            code: ErrorCode.Code.passcodeNotEnabled.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Passcode is not enabled on this device."]
+        )
+
+        // WHEN mapping each result
+        let results = [entitlementsError, deviceError, passcodeError].map {
+            Mappers.mapFromReaderSupportResult(isSupported: false, error: $0)
+        }
+        let errors = results.compactMap { $0["error"] as? [String: Any] }
+        XCTAssertEqual(errors.count, 3)
+
+        // THEN all three collapse to the same `code`, so callers must read nativeErrorCode
+        // to tell them apart. This is the guarantee the fix actually provides; if the RN
+        // code mapping is ever made more granular, update this test deliberately.
+        XCTAssertEqual(Set(errors.compactMap { $0["code"] as? String }), ["UNSUPPORTED_OPERATION"])
+
+        let nativeCodes = errors.compactMap { $0["nativeErrorCode"] as? String }
+        XCTAssertEqual(nativeCodes, [
+            String(ErrorCode.Code.commandNotAllowed.rawValue),
+            String(ErrorCode.Code.unsupportedMobileDeviceConfiguration.rawValue),
+            String(ErrorCode.Code.passcodeNotEnabled.rawValue),
+        ])
+        XCTAssertEqual(Set(nativeCodes).count, 3, "each cause must be distinguishable")
+    }
+
+    func testMapFromReaderSupportResultUnsupportedOmitsResponseObjects() {
+        // GIVEN an unsupported reader
+        let nsError = NSError(
+            domain: "com.stripe-terminal",
+            code: ErrorCode.Code.passcodeNotEnabled.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Passcode is not enabled on this device."]
+        )
+
+        // WHEN mapping the result
+        let result = Mappers.mapFromReaderSupportResult(isSupported: false, error: nsError)
+
+        // THEN no top-level response objects are lifted onto the payload. This mapper uses
+        // mapToStripeErrorObject rather than createErrorFromNSError precisely so that
+        // PaymentIntent/SetupIntent/Refund can never appear here.
+        XCTAssertNil(result["paymentIntent"])
+        XCTAssertNil(result["setupIntent"])
+        XCTAssertNil(result["refund"])
+    }
+
+    // MARK: - mapFromUnsupportedReaderParams tests
+
+    func testMapFromUnsupportedReaderParamsIncludesBooleanAndError() {
+        // GIVEN a call rejected before it reached the native SDK
+        // WHEN mapping the rejection
+        let result = Mappers.mapFromUnsupportedReaderParams(
+            rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER,
+            message: "You must provide correct deviceType parameter."
+        )
+
+        // THEN the payload still satisfies the declared return type, which has
+        // readerSupportResult as non-optional
+        XCTAssertEqual(result["readerSupportResult"] as? Bool, false)
+
+        guard let error = result["error"] as? [String: Any] else {
+            return XCTFail("error should be present for an invalid-parameter rejection")
+        }
+        XCTAssertEqual(error["code"] as? String, "INVALID_REQUIRED_PARAMETER")
+        XCTAssertEqual(error["message"] as? String, "You must provide correct deviceType parameter.")
+    }
 }
 
 struct TestableTextResult : stripe_terminal_react_native.TextResult {

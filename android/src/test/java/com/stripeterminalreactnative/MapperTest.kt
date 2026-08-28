@@ -16,6 +16,7 @@ import com.stripe.stripeterminal.external.models.CollectSetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.AppTransitionAnimation
 import com.stripe.stripeterminal.external.models.AppTransitionPreset
 import com.stripe.stripeterminal.external.models.ConnectionConfiguration
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.CustomerCancellation
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
@@ -25,6 +26,7 @@ import com.stripe.stripeterminal.external.models.LocaleConfig
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReaderSupportResult
 import com.stripe.stripeterminal.external.models.ReauthorizationStatus
 import com.stripe.stripeterminal.external.models.SurchargeDetails
 import com.stripe.stripeterminal.external.models.SurchargeStatus
@@ -40,6 +42,7 @@ import java.util.Base64
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -1265,6 +1268,106 @@ class MapperTest {
         assertEquals(discoveryConfig, easyConnectConfig.discoveryConfiguration)
         assertEquals(connectionConfig, easyConnectConfig.connectionConfiguration)
     }
+
+    // region mapFromReaderSupportResult
+
+    @Test
+    fun `test mapFromReaderSupportResult supported omits error`() {
+        val result = mapFromReaderSupportResult(ReaderSupportResult.Supported) as JavaOnlyMap
+
+        assertTrue(result.getBoolean("readerSupportResult"))
+        assertNull(result.getMap("error"), "error should not be present when the reader is supported")
+    }
+
+    @Test
+    fun `test mapFromReaderSupportResult unsupported includes mapped error`() {
+        val exception = mockTerminalException(
+            TerminalErrorCode.UNSUPPORTED_OPERATION,
+            "Tap to Pay is not supported on this device."
+        )
+
+        val result = mapFromReaderSupportResult(
+            ReaderSupportResult.NotSupported(exception)
+        ) as JavaOnlyMap
+
+        assertFalse(result.getBoolean("readerSupportResult"))
+
+        val error = result.getMap("error")
+        assertNotNull(error, "error should be present when the reader is unsupported")
+        assertEquals("StripeError", error.getString("name"))
+        assertEquals("UNSUPPORTED_OPERATION", error.getString("code"))
+        assertEquals(
+            TerminalErrorCode.UNSUPPORTED_OPERATION.toString(),
+            error.getString("nativeErrorCode")
+        )
+        assertEquals("Tap to Pay is not supported on this device.", error.getString("message"))
+    }
+
+    @Test
+    fun `test mapFromReaderSupportResult unsupported distinguishes causes`() {
+        // GIVEN two reasons a reader may be unsupported, with different owners
+        val notAllowed = mockTerminalException(
+            TerminalErrorCode.UNSUPPORTED_OPERATION,
+            "Missing entitlements."
+        )
+        val readerBusy = mockTerminalException(
+            TerminalErrorCode.READER_BUSY,
+            "Reader is busy."
+        )
+
+        // WHEN mapping each result
+        val first = mapFromReaderSupportResult(ReaderSupportResult.NotSupported(notAllowed))
+        val second = mapFromReaderSupportResult(ReaderSupportResult.NotSupported(readerBusy))
+
+        // THEN the causes are distinguishable, which is the point of the change
+        assertEquals("UNSUPPORTED_OPERATION", first.getMap("error")?.getString("code"))
+        assertEquals("READER_BUSY", second.getMap("error")?.getString("code"))
+    }
+
+    @Test
+    fun `test mapFromReaderSupportResult unsupported omits response objects`() {
+        // GIVEN an exception that carries a PaymentIntent
+        val paymentIntent = mockk<PaymentIntent>(relaxed = true)
+        val exception = mockk<TerminalException>(relaxed = true) {
+            every { errorCode } returns TerminalErrorCode.UNSUPPORTED_OPERATION
+            every { errorMessage } returns "Tap to Pay is not supported on this device."
+            every { message } returns "Tap to Pay is not supported on this device."
+            every { apiError } returns null
+            every { cause } returns null
+            every { this@mockk.paymentIntent } returns paymentIntent
+            every { setupIntent } returns null
+            every { refund } returns null
+        }
+
+        // WHEN mapping the result
+        val result = mapFromReaderSupportResult(
+            ReaderSupportResult.NotSupported(exception)
+        ) as JavaOnlyMap
+
+        // THEN no response objects are lifted onto the payload. This mapper uses
+        // mapToStripeErrorObject rather than putError precisely so that
+        // paymentIntent/setupIntent/refund can never appear here.
+        assertNull(result.getMap("paymentIntent"))
+        assertNull(result.getMap("setupIntent"))
+        assertNull(result.getMap("refund"))
+        assertNotNull(result.getMap("error"))
+    }
+
+    private fun mockTerminalException(
+        code: TerminalErrorCode,
+        message: String
+    ): TerminalException = mockk(relaxed = true) {
+        every { errorCode } returns code
+        every { errorMessage } returns message
+        every { this@mockk.message } returns message
+        every { apiError } returns null
+        every { cause } returns null
+        every { paymentIntent } returns null
+        every { setupIntent } returns null
+        every { refund } returns null
+    }
+
+    // endregion
 }
 
 private fun <T> matchesMap(map: Map<String, T>, reference: Map<String, T>?): Boolean {

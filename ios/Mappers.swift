@@ -1214,6 +1214,51 @@ class Mappers {
         return(["accessibility": accessibility])
     }
 
+    /// Maps the outcome of `Terminal.shared.supportsReaders(of:discoveryMethod:simulated:)`
+    /// into the `Reader.ReaderSupportResult` shape declared by the TypeScript bindings.
+    ///
+    /// When unsupported, the reason reported by the native SDK is attached under `error`,
+    /// so callers can distinguish causes the end user can resolve (no device passcode,
+    /// terms not accepted) from ones they cannot (unsupported device, missing entitlements).
+    ///
+    /// Uses `Errors.mapToStripeErrorObject` rather than `Errors.createErrorFromNSError` so
+    /// only the error object itself is attached. `createErrorFromNSError` would also lift
+    /// PaymentIntent/SetupIntent/Refund to the top level, which cannot occur for this call.
+    ///
+    /// - Parameters:
+    ///   - isSupported: Whether the reader is supported on this device.
+    ///   - error: The reason it isn't supported, or `nil` when supported.
+    /// - Returns: A dictionary containing `readerSupportResult` and, on failure, `error`.
+    class func mapFromReaderSupportResult(isSupported: Bool, error: NSError? = nil) -> [String: Any] {
+        var result: [String: Any] = ["readerSupportResult": isSupported]
+
+        if let error {
+            result[ErrorConstants.rnError] = Errors.mapToStripeErrorObject(nsError: error)
+        }
+
+        return result
+    }
+
+    /// Builds a `Reader.ReaderSupportResult` for a call rejected before reaching the native SDK,
+    /// e.g. a missing or unmappable `deviceType`/`discoveryMethod`.
+    ///
+    /// `readerSupportResult` is included so the response always satisfies the declared return
+    /// type, which has the field as non-optional.
+    ///
+    /// - Parameters:
+    ///   - rnCode: The React Native error code describing the rejection.
+    ///   - message: The error message.
+    /// - Returns: A dictionary containing `readerSupportResult: false` and `error`.
+    class func mapFromUnsupportedReaderParams(rnCode: Errors.RNErrorCode, message: String) -> [String: Any] {
+        var result: [String: Any] = ["readerSupportResult": false]
+
+        // createErrorFromRnCodeEnum already returns ["error": {the error}], so merge it in
+        // to keep a single top-level result.error.
+        result.merge(Errors.createErrorFromRnCodeEnum(rnCode: rnCode, message: message)) { current, _ in current }
+
+        return result
+    }
+
     class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {
         switch reason {
         case DisconnectReason.disconnectRequested: return "disconnectRequested"

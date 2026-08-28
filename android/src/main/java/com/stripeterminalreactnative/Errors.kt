@@ -47,6 +47,21 @@ internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): R
 }
 
 /**
+ * Maps a throwable to the StripeError object structure, without the top-level "error" key
+ * and without any accompanying response objects (PaymentIntent, SetupIntent, Refund).
+ *
+ * Use this when attaching an error to a result that is not itself an error response, and where
+ * response objects cannot apply. Callers wanting the wrapped shape should use [createError].
+ * Mirrors `Errors.mapToStripeErrorObject` on iOS.
+ *
+ * @param throwable The throwable to convert
+ * @return ReadableMap containing the error object itself
+ */
+internal fun mapToStripeErrorObject(throwable: Throwable): ReadableMap = nativeMapOf {
+    putErrorContents(throwable)
+}
+
+/**
  * Adds error contents (name, message, code, apiError, underlyingError, metadata) to the error object
  *
  * Routes to the appropriate handler based on whether the throwable is a TerminalException or not.

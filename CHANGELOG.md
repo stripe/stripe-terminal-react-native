@@ -6,7 +6,7 @@ This document details changes made to the SDK by version.
 
 ### Fixes
 
-- `supportsReadersOfType` now populates `error` when `readerSupportResult` is `false`, instead of discarding the reason from the native SDK. Callers can distinguish causes the end user can resolve (no device passcode, terms not accepted, not signed into iCloud) from ones they can't (unsupported device, missing entitlements, account-side blocks). `readerSupportResult` keeps its existing meaning, and `error` is only populated on failure, where the return type already declared it.
+- `supportsReadersOfType` now populates `error` when `readerSupportResult` is `false`, instead of discarding the reason from the native SDK. Callers can distinguish causes the end user can resolve (no device passcode, terms not accepted, not signed into iCloud) from ones they can't (unsupported device, missing entitlements, account-side blocks). On iOS several of these share the `UNSUPPORTED_OPERATION` code, so read `nativeErrorCode` to identify the specific cause. `readerSupportResult` keeps its existing meaning, and `error` is only populated on failure, where the return type already declared it.
 
 ## 0.0.1-beta.32
 

@@ -1562,12 +1562,24 @@ fun mapFromToggleResult(toggleResult: ToggleResult): String {
     }
 }
 
+/**
+ * Maps a [ReaderSupportResult] into the `Reader.ReaderSupportResult` shape declared by the
+ * TypeScript bindings.
+ *
+ * When unsupported, the reason reported by the native SDK is attached under `error`, so callers
+ * can distinguish causes the end user can resolve (no device passcode, terms not accepted) from
+ * ones they cannot (unsupported device, missing entitlements).
+ *
+ * Uses [mapToStripeErrorObject] rather than `putError` so only the error object itself is
+ * attached. `putError` would also lift PaymentIntent/SetupIntent/Refund to the top level, which
+ * cannot occur for this call.
+ */
 fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): ReadableMap {
     return nativeMapOf {
         putBoolean("readerSupportResult", readerSupportResult.isSupported)
-        // Surface the reason the reader isn't supported so callers can distinguish
-        // e.g. a missing passcode (user-fixable) from an unsupported device (not).
-        readerSupportResult.error?.let { putError(it) }
+        readerSupportResult.error?.let {
+            putMap(ErrorConstants.ERROR_KEY, mapToStripeErrorObject(it))
+        }
     }
 }
 
