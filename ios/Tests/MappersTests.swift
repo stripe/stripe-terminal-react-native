@@ -1179,6 +1179,22 @@ final class MappersTests: XCTestCase {
         XCTAssertNil(result["error"], "error should not be present when the reader is supported")
     }
 
+    func testMapFromReaderSupportResultSupportedIgnoresContradictoryError() {
+        // GIVEN a contradictory call: supported, but with an error supplied
+        let nsError = NSError(
+            domain: "com.stripe-terminal",
+            code: ErrorCode.Code.passcodeNotEnabled.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: "Passcode is not enabled on this device."]
+        )
+
+        // WHEN mapping the result
+        let result = Mappers.mapFromReaderSupportResult(isSupported: true, error: nsError)
+
+        // THEN the error is dropped rather than producing a supported result that carries one
+        XCTAssertEqual(result["readerSupportResult"] as? Bool, true)
+        XCTAssertNil(result["error"], "a supported result must never carry an error")
+    }
+
     func testMapFromReaderSupportResultUnsupportedIncludesReason() {
         // GIVEN an unsupported reader because the device has no passcode set
         let nsError = NSError(

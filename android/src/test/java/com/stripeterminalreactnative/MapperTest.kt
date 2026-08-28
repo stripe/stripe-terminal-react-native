@@ -1304,6 +1304,23 @@ class MapperTest {
     }
 
     @Test
+    fun `test mapFromReaderSupportResult maps generic throwable`() {
+        // GIVEN a non-TerminalException reason. ReaderSupportResult.error is typed Throwable?,
+        // so this exercises the non-Stripe branch of mapToStripeErrorObject.
+        val result = mapFromReaderSupportResult(
+            ReaderSupportResult.NotSupported(IllegalStateException("Unexpected failure"))
+        )
+
+        assertFalse(result.getBoolean("readerSupportResult"))
+
+        val error = result.getMap("error")
+        assertNotNull(error)
+        assertEquals("NonStripeError", error.getString("name"))
+        assertEquals("UNEXPECTED_SDK_ERROR", error.getString("code"))
+        assertEquals("Unexpected failure", error.getString("message"))
+    }
+
+    @Test
     fun `test mapFromReaderSupportResult unsupported distinguishes causes`() {
         // GIVEN two reasons a reader may be unsupported, with different owners
         val notAllowed = mockTerminalException(

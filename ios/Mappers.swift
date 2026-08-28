@@ -1232,7 +1232,9 @@ class Mappers {
     class func mapFromReaderSupportResult(isSupported: Bool, error: NSError? = nil) -> [String: Any] {
         var result: [String: Any] = ["readerSupportResult": isSupported]
 
-        if let error {
+        // Guard on isSupported as well as error, so a contradictory call can never produce a
+        // supported result that also carries an error.
+        if !isSupported, let error {
             result[ErrorConstants.rnError] = Errors.mapToStripeErrorObject(nsError: error)
         }
 
