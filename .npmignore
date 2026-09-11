@@ -80,6 +80,8 @@ CODE_OF_CONDUCT.md
 CODEOWNERS
 
 # Other
+AGENTS.md
+CLAUDE.md
 Brewfile
 babel.config.js
 .watchmanconfig

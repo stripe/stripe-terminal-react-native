@@ -80,7 +80,7 @@ Implement a token provider single function in your app that requests a connectio
 
 **2e. Verify permissions on Android**
 
-Location access must be enabled in order to use the SDK. You’ll need to make sure that the `ACCESS_FINE_LOCATION` permission is enabled in your app. To do this, add the following check before you initialize the Terminal SDK:
+Location and Bluetooth access must be enabled in order to use the SDK. Call `requestNeededAndroidPermissions` before initializing the Terminal SDK so the app requests the permissions required for the device's Android version:
 
 **2f. Initialize the SDK**
 

@@ -22,16 +22,24 @@ const isAndroid12orHigher = () =>
 export async function requestNeededAndroidPermissions({
   accessFineLocation = defaultFineLocationParams,
 }: PermissionsProps | undefined = {}): Promise<Error> {
-  const grantedFineLocation = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  // Terminal native SDK 5.8.0 declares ACCESS_FINE_LOCATION with
+  // maxSdkVersion="30" and BLUETOOTH_SCAN with neverForLocation, and treats
+  // ACCESS_COARSE_LOCATION as sufficient for its location reporting. Request
+  // COARSE on Android 12+ (FINE can no longer be granted there) and FINE on
+  // Android 11 and earlier, where BLE scanning still requires it.
+  const locationPermission = isAndroid12orHigher()
+    ? PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION
+    : PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+
+  const grantedLocation = await PermissionsAndroid.request(
+    locationPermission,
     accessFineLocation || defaultFineLocationParams
   );
 
-  if (!hasGrantedPermission(grantedFineLocation)) {
+  if (!hasGrantedPermission(grantedLocation)) {
     return {
       error: {
-        [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]:
-          grantedFineLocation,
+        [locationPermission]: grantedLocation,
       },
     };
   }

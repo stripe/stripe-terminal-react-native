@@ -1,6 +1,13 @@
 import StripeTerminal
 import UIKit
 
+enum ReaderSettingsParametersMapping {
+    case accessibility(ReaderAccessibilityParameters)
+    case buzzerVolume(BuzzerVolumeParameters)
+    case invalid(String)
+    case nativeError(Error)
+}
+
 class Mappers {
     class func mapFromReaders(_ readers: [Reader]) -> [NSDictionary] {
         var readersList: [NSDictionary] = []
@@ -98,6 +105,7 @@ class Mappers {
         case .verifoneVP100: return "verifoneVP100"
         case .verifoneVP110: return "verifoneVP110"
         case .verifoneVL110: return "verifoneVL110"
+        case .unknown: return "unknown"
         // NOTE: No default case - this ensures that any new DeviceType cases
         // added to the Stripe Terminal SDK will cause a COMPILER ERROR,
         // forcing us to explicitly handle new cases and preventing silent mapping failures.
@@ -136,6 +144,7 @@ class Mappers {
         case "verifoneVP100": return .verifoneVP100
         case "verifoneVP110": return .verifoneVP110
         case "verifoneVL110": return .verifoneVL110
+        case "unknown": return .unknown
         default: return nil
         }
     }
@@ -1193,25 +1202,104 @@ class Mappers {
         return(["sdk": sdkDict, "reader": readerDict])
     }
 
-    class func mapFromReaderTextToSpeechStatus(_ status: ReaderTextToSpeechStatus) -> String {
+    class func mapFromReaderTextToSpeechStatus(_ status: ReaderTextToSpeechStatus) -> String? {
         switch status {
+        case ReaderTextToSpeechStatus.unknown: return nil
         case ReaderTextToSpeechStatus.off: return "off"
         case ReaderTextToSpeechStatus.headphones: return "headphones"
         case ReaderTextToSpeechStatus.speakers: return "speakers"
-        @unknown default: return "unknown"
+        @unknown default: return nil
+        }
+    }
+
+    class func mapToReaderSettingsParameters(_ params: NSDictionary) -> ReaderSettingsParametersMapping {
+        let hasAccessibility = params.object(forKey: "textToSpeechViaSpeakers") != nil
+        let hasBuzzerVolume = params.object(forKey: "buzzerVolume") != nil
+        guard hasAccessibility != hasBuzzerVolume else {
+            return .invalid("You must provide exactly one of textToSpeechViaSpeakers or buzzerVolume.")
+        }
+
+        if hasAccessibility {
+            guard let textToSpeechViaSpeakers = params["textToSpeechViaSpeakers"] as? Bool else {
+                return .invalid("textToSpeechViaSpeakers must be a boolean.")
+            }
+            do {
+                return .accessibility(
+                    try ReaderAccessibilityParametersBuilder()
+                        .setTextToSpeechViaSpeakers(textToSpeechViaSpeakers)
+                        .build()
+                )
+            } catch {
+                return .nativeError(error)
+            }
+        }
+
+        guard let buzzerVolume = params["buzzerVolume"] as? NSDictionary else {
+            return .invalid("buzzerVolume must be an object.")
+        }
+        guard let level = buzzerVolume["level"] as? String else {
+            return .invalid("You must provide buzzerVolume.level.")
+        }
+
+        switch level {
+        case "low":
+            return .buzzerVolume(BuzzerVolumeParameters(level: .low))
+        case "high":
+            return .buzzerVolume(BuzzerVolumeParameters(level: .high))
+        case "custom":
+            guard let volume = buzzerVolume["volume"] as? NSNumber else {
+                return .invalid("You must provide volume when buzzerVolume.level is custom.")
+            }
+            let numericVolume = volume.doubleValue
+            guard CFGetTypeID(volume) != CFBooleanGetTypeID(),
+                  numericVolume.isFinite,
+                  let integerVolume = Int(exactly: numericVolume) else {
+                return .invalid("buzzerVolume.volume must be an integer.")
+            }
+            return .buzzerVolume(BuzzerVolumeParameters(volume: integerVolume))
+        default:
+            return .invalid("Unsupported buzzerVolume.level: \(level).")
         }
     }
 
     class func mapFromReaderSettings(_ readerSettings: ReaderSettings) -> NSDictionary {
-        var accessibility: [String : Any] = [
-            "textToSpeechStatus": mapFromReaderTextToSpeechStatus(readerSettings.accessibility.textToSpeechStatus),
-        ]
-
-        if let error = readerSettings.accessibility.error as NSError? {
-            accessibility["error"] = Errors.mapToStripeErrorObject(nsError: error)
+        let accessibilityError = readerSettings.accessibility.error as NSError?
+        let accessibility: [String : Any]
+        if let error = accessibilityError {
+            accessibility = ["error": Errors.mapToStripeErrorObject(nsError: error)]
+        } else if let textToSpeechStatus = mapFromReaderTextToSpeechStatus(
+            readerSettings.accessibility.textToSpeechStatus
+        ) {
+            accessibility = ["textToSpeechStatus": textToSpeechStatus]
+        } else {
+            accessibility = Errors.createErrorFromRnCodeEnum(
+                rnCode: Errors.RNErrorCode.UNEXPECTED_SDK_ERROR,
+                message: "Native reader settings returned an invalid accessibility result."
+            )
         }
 
-        return(["accessibility": accessibility])
+        let nativeBuzzerVolume = readerSettings.buzzerVolume.volume
+        let buzzerVolumeError = readerSettings.buzzerVolume.error as NSError?
+        let buzzerVolume: [String : Any]
+        switch (nativeBuzzerVolume, buzzerVolumeError) {
+        case let (volume?, nil):
+            buzzerVolume = [
+                "currentVolume": volume.currentVolume,
+                "maxVolume": volume.maxVolume,
+            ]
+        case let (nil, error?):
+            buzzerVolume = ["error": Errors.mapToStripeErrorObject(nsError: error)]
+        default:
+            return Errors.createErrorFromRnCodeEnum(
+                rnCode: Errors.RNErrorCode.UNEXPECTED_SDK_ERROR,
+                message: "Native reader settings returned an invalid buzzer volume result."
+            ) as NSDictionary
+        }
+
+        return([
+            "accessibility": accessibility,
+            "buzzerVolume": buzzerVolume,
+        ])
     }
 
     class func mapFromReaderDisconnectReason(_ reason: DisconnectReason) -> String {

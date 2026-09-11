@@ -2015,7 +2015,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-terminal-react-native (0.0.1-beta.32):
+  - stripe-terminal-react-native (0.0.1-beta.33):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2036,9 +2036,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - StripeTerminal (~> 5.7.0)
+    - StripeTerminal (~> 5.8.0)
     - Yoga
-  - stripe-terminal-react-native/Tests (0.0.1-beta.32):
+  - stripe-terminal-react-native/Tests (0.0.1-beta.33):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2059,9 +2059,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - StripeTerminal (~> 5.7.0)
+    - StripeTerminal (~> 5.8.0)
     - Yoga
-  - StripeTerminal (5.7.0)
+  - StripeTerminal (5.8.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2326,7 +2326,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: 24e62c765683b8d89006a88a2c8f5cf019f0074d
-  hermes-engine: 1f31f4607e7d98b41b746d65afcd0c0bf655258c
+  hermes-engine: b6d7dff94dd41717cc000b320d5026f65936386c
   RCTDeprecation: a4c521821fab57cbb125b36effe84d897d0dfa12
   RCTRequired: 9f3a7e5645d4bc3f551593de7550bb66ab6e42bc
   RCTSwiftUI: 239ed2eb9e73de5a6f518810630f0c95e01c8702
@@ -2335,7 +2335,7 @@ SPEC CHECKSUMS:
   React: e2dc35338068bbd299c66f043ae0d7f25de8499e
   React-callinvoker: 28b25d21b124c26cebaea713ba7d801b9351dc48
   React-Core: f90d375d3bab515ad00df30605ce1bf02e6db12f
-  React-Core-prebuilt: 229899eae22b79da10a305e97d7f8e6d70200f56
+  React-Core-prebuilt: ee27f2b528f039e2451065deb4c665457a1bcf59
   React-CoreModules: da4f80202ef954bdfb926ca4c9ac5f685900aa5c
   React-cxxreact: 1d1d2a28a5f10e4e2e7cf2bfd54dc9c92c68c672
   React-debug: 92944dc4d89f56d640e75498266cbde557a48189
@@ -2401,13 +2401,13 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: a54c0c9b976766e1b6d5e2bb4d1ad0d15913e9e1
   ReactCodegen: 9af5798e943781fd2318dab7b60f25337388047c
   ReactCommon: 3ec2a55999d296af90c24beb66c8a77dc660d3ef
-  ReactNativeDependencies: 8da21bd4292800c936872c0ebd2588c535735124
+  ReactNativeDependencies: 07483c9017de30b4800590ee96a1b08c59de42c4
   RNCAsyncStorage: 0f84413588571e74ef9cff6e3b669346e3abf9cb
   RNCPicker: 5850b195903c126967b2dffcf9500299c8581177
   RNGestureHandler: 103ab0a2b91b2ffe81095150ba2d72d8528df8e7
   RNScreens: 0e1e137944cc0310d0ff607c046504bb5ebf9a9e
-  stripe-terminal-react-native: 03dde836ab66c6a2995ba724cbec52bec23b175b
-  StripeTerminal: eb4b4a85efe1365f562dab7e589cfa77ec2bdc99
+  stripe-terminal-react-native: d76d91682ea6f764f7f8ca08893d4d11543c2914
+  StripeTerminal: 93b5d9ae383058c38940f6730ca734937b6043db
   Yoga: 77dfa8673de2874e1855002ae59c68b8be9b007b
 
 PODFILE CHECKSUM: e009781e648a01878b7871661e120f6974757587

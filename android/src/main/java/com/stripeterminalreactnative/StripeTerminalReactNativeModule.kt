@@ -52,7 +52,6 @@ import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PhoneInput
 import com.stripe.stripeterminal.external.models.PrintContent
 import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
 import com.stripe.stripeterminal.external.models.RefundParameters
 import com.stripe.stripeterminal.external.models.RoutingPriority
 import com.stripe.stripeterminal.external.models.SelectionButton
@@ -647,6 +646,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val requestReauthorization =
             paymentMethodOptions?.getString("requestReauthorization")
         val cardPresentCaptureMethod = paymentMethodOptions?.getString("captureMethod")
+        val captureDelayDays = paymentMethodOptions?.let { getInt(it, "captureDelayDays") }
         val requestMulticapture = paymentMethodOptions?.getString("requestMulticapture")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
@@ -728,9 +728,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 when (it) {
                     "manual" -> setCaptureMethod(CardPresentCaptureMethod.Manual)
                     "manual_preferred" -> setCaptureMethod(CardPresentCaptureMethod.ManualPreferred)
+                    "automatic_delayed" -> setCaptureMethod(CardPresentCaptureMethod.AutomaticDelayed)
                     else -> {}
                 }
             }
+            captureDelayDays?.let { setCaptureDelayDays(it) }
             requestMulticapture?.let {
                 when (it) {
                     "if_available" -> setRequestMulticapture(CardPresentRequestMulticapture.IF_AVAILABLE)
@@ -1240,14 +1242,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun setReaderSettings(params: ReadableMap, promise: Promise) {
-        val textToSpeechViaSpeakers = requireNonNullParameter(getBoolean(params, "textToSpeechViaSpeakers")) {
-            "You must provide textToSpeechViaSpeakers parameters."
-        }
-        val readerSettingsParameters = ReaderSettingsParameters.AccessibilityParameters(
-            textToSpeechViaSpeakers
-        )
-        terminal.setReaderSettings(readerSettingsParameters, RNReadSettingsCallback(promise))
+    fun setReaderSettings(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        terminal.setReaderSettings(mapToReaderSettingsParameters(params), RNReadSettingsCallback(promise))
     }
 
     private fun getTogglesFromParam(toggleList: ReadableArray): ArrayList<Toggle> {

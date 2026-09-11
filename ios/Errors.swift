@@ -110,6 +110,7 @@ class Errors {
         case PRINTER_ABSENT = "PRINTER_ABSENT"
         case PRINTER_UNAVAILABLE = "PRINTER_UNAVAILABLE"
         case PRINTER_ERROR = "PRINTER_ERROR"
+        case PRINTER_LOW_BATTERY = "PRINTER_LOW_BATTERY"
 
         case READER_TAMPERED = "READER_TAMPERED"
         case READER_MISSING_ENCRYPTION_KEYS = "READER_MISSING_ENCRYPTION_KEYS"
@@ -747,6 +748,7 @@ class Errors {
         case .printerAbsent: return RNErrorCode.PRINTER_ABSENT.rawValue
         case .printerUnavailable: return RNErrorCode.PRINTER_UNAVAILABLE.rawValue
         case .printerError: return RNErrorCode.PRINTER_ERROR.rawValue
+        case .printerLowBattery: return RNErrorCode.PRINTER_LOW_BATTERY.rawValue
         case .readerConnectedToAnotherDevice: return RNErrorCode.READER_CONNECTED_TO_ANOTHER_DEVICE.rawValue
         case .readerTampered: return RNErrorCode.READER_TAMPERED.rawValue
         case .genericReaderError: return RNErrorCode.GENERIC_READER_ERROR.rawValue

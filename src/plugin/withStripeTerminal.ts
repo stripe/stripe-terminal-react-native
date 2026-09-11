@@ -15,6 +15,13 @@ type InnerManifest = AndroidConfig.Manifest.AndroidManifest['manifest'];
 
 type ManifestPermission = InnerManifest['permission'];
 
+// `@expo/config-plugins` only types `android:name`/`android:required` on a
+// uses-permission node, so reference the node's own attribute type to add
+// `android:maxSdkVersion` / `android:usesPermissionFlags`.
+type UsesPermissionAttributes = NonNullable<
+  InnerManifest['uses-permission']
+>[number]['$'];
+
 type AndroidManifest = {
   manifest: InnerManifest & {
     'permission'?: ManifestPermission;
@@ -163,7 +170,10 @@ export function addLocationPermissionToManifest(
     androidManifest.manifest['uses-permission']?.push({
       $: {
         'android:name': 'android.permission.ACCESS_FINE_LOCATION',
-      },
+        // Terminal native SDK 5.8.0 caps FINE at API 30; COARSE is sufficient
+        // for location reporting on Android 12+.
+        'android:maxSdkVersion': '30',
+      } as UsesPermissionAttributes,
     });
   }
 
@@ -209,7 +219,9 @@ export function addBTPermissionToManifest(androidManifest: AndroidManifest) {
     androidManifest.manifest['uses-permission']?.push({
       $: {
         'android:name': 'android.permission.BLUETOOTH_SCAN',
-      },
+        // Terminal native SDK 5.8.0 does not derive location from BLE scans.
+        'android:usesPermissionFlags': 'neverForLocation',
+      } as UsesPermissionAttributes,
     });
   }
   return androidManifest;

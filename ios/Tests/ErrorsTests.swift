@@ -545,6 +545,7 @@ final class ErrorsTests: XCTestCase {
             (.printerAbsent, "PRINTER_ABSENT"),
             (.printerUnavailable, "PRINTER_UNAVAILABLE"),
             (.printerError, "PRINTER_ERROR"),
+            (.printerLowBattery, "PRINTER_LOW_BATTERY"),
             (.readerConnectedToAnotherDevice, "READER_CONNECTED_TO_ANOTHER_DEVICE"),
             (.readerTampered, "READER_TAMPERED"),
             (.genericReaderError, "GENERIC_READER_ERROR"),

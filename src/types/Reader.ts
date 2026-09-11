@@ -154,30 +154,80 @@ export namespace Reader {
     | 'poweredOff'
     | 'bluetoothDisabled'
     | 'bluetoothSignalLost'
+    | 'peerRemovedPairingInformation'
     | 'usbDisconnected'
     | 'idlePowerDown'
     | 'unknown';
 
   export type ReaderSettings =
     | {
-      accessibility?: Accessibility;
+      accessibility: Accessibility;
+      buzzerVolume: ReaderBuzzerVolume;
       error?: undefined;
     }
     | {
       accessibility?: undefined;
-      error?: StripeError;
+      buzzerVolume?: undefined;
+      error: StripeError;
     };
 
-  export type Accessibility = {
-    textToSpeechStatus: ReaderTextToSpeechStatus;
-    error?: StripeError;
-  };
+  export type Accessibility =
+    | {
+        textToSpeechStatus: ReaderTextToSpeechStatus;
+        error?: undefined;
+      }
+    | {
+        textToSpeechStatus?: undefined;
+        error: StripeError;
+      };
 
   export type ReaderTextToSpeechStatus = 'off' | 'headphones' | 'speakers';
 
-  export type ReaderSettingsParameters = {
+  /** The current buzzer volume reported by a supported reader. */
+  export type ReaderBuzzerVolume =
+    | {
+        currentVolume: number;
+        maxVolume: number;
+        error?: undefined;
+      }
+    | {
+        currentVolume?: undefined;
+        maxVolume?: undefined;
+        error: StripeError;
+      };
+
+  /** Parameters for setting a reader's buzzer volume. */
+  export type BuzzerVolumeParameters =
+    | {
+        level: 'low' | 'high';
+        volume?: never;
+      }
+    | {
+        level: 'custom';
+        /** A volume between 1 and `ReaderBuzzerVolume.maxVolume`. */
+        volume: number;
+      };
+
+  /** Parameters for updating a reader's accessibility settings. */
+  export type AccessibilityReaderSettingsParameters = {
     textToSpeechViaSpeakers: boolean;
+    buzzerVolume?: never;
   };
+
+  /** Parameters for updating a reader's buzzer volume. */
+  export type BuzzerVolumeReaderSettingsParameters = {
+    textToSpeechViaSpeakers?: never;
+    buzzerVolume: BuzzerVolumeParameters;
+  };
+
+  /**
+   * Parameters accepted by `setReaderSettings`.
+   *
+   * Provide exactly one setting category per call.
+   */
+  export type ReaderSettingsParameters =
+    | AccessibilityReaderSettingsParameters
+    | BuzzerVolumeReaderSettingsParameters;
 
   export type ReaderSupportParams = {
     deviceType: DeviceType;

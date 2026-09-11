@@ -23,10 +23,12 @@ describe('androidPermissionsUtils.ts', () => {
     });
   });
 
-  it('access fine location is not granted', async () => {
+  it('access coarse location is not granted on android 12+', async () => {
     (PermissionsAndroid.request as jest.Mock)
       .mockImplementation((permission) => {
-        if (permission === PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION) {
+        if (
+          permission === PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION
+        ) {
           return Promise.resolve(PermissionsAndroid.RESULTS.DENIED);
         }
         return Promise.resolve(PermissionsAndroid.RESULTS.GRANTED);
@@ -43,7 +45,7 @@ describe('androidPermissionsUtils.ts', () => {
 
     await expect(requestNeededAndroidPermissions()).resolves.toEqual({
       error: {
-        'android.permission.ACCESS_FINE_LOCATION': 'denied',
+        'android.permission.ACCESS_COARSE_LOCATION': 'denied',
       },
     });
   });

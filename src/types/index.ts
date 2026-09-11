@@ -477,7 +477,8 @@ export type PaymentMethodOptions = {
   requestedPriority?: string;
   requestPartialAuthorization?: string;
   requestReauthorization?: 'if_available' | 'never';
-  captureMethod?: 'manual' | 'manual_preferred';
+  captureMethod?: 'manual' | 'manual_preferred' | 'automatic_delayed';
+  captureDelayDays?: number;
   requestMulticapture?: 'if_available' | 'never';
 };
 
