@@ -21,6 +21,7 @@ import com.stripe.stripeterminal.external.models.AffirmDetails
 import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.BatteryStatus
+import com.stripe.stripeterminal.external.models.BuzzerVolumeLevel
 import com.stripe.stripeterminal.external.models.CardDetails
 import com.stripe.stripeterminal.external.models.CardPresentDetails
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
@@ -68,11 +69,13 @@ import com.stripe.stripeterminal.external.models.PaypayDetails
 import com.stripe.stripeterminal.external.models.PhoneResult
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.ReaderAccessibility
+import com.stripe.stripeterminal.external.models.ReaderBuzzerVolume
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderEvent
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
 import com.stripe.stripeterminal.external.models.ReaderSettings
+import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.ReaderSupportResult
 import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
@@ -1414,24 +1417,111 @@ fun mapFromReaderDisconnectReason(reason: DisconnectReason): String {
     }
 }
 
-internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
-    return nativeMapOf {
-        val ra = settings.readerAccessibility
-        if (ra is ReaderAccessibility.Accessibility) {
-            val accessibility = nativeMapOf {
-                putString(
-                    "textToSpeechStatus",
-                    when (ra.textToSpeechStatus) {
-                        ReaderTextToSpeechStatus.OFF -> "off"
-                        ReaderTextToSpeechStatus.HEADPHONES -> "headphones"
-                        ReaderTextToSpeechStatus.SPEAKERS -> "speakers"
-                    }
+internal fun mapToReaderSettingsParameters(params: ReadableMap): ReaderSettingsParameters {
+    val hasAccessibility = params.hasKey("textToSpeechViaSpeakers")
+    val hasBuzzerVolume = params.hasKey("buzzerVolume")
+    if (hasAccessibility == hasBuzzerVolume) {
+        throw TerminalException(
+            TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+            "You must provide exactly one of textToSpeechViaSpeakers or buzzerVolume."
+        )
+    }
+
+    if (hasAccessibility) {
+        if (params.isNull("textToSpeechViaSpeakers") ||
+            params.getType("textToSpeechViaSpeakers") != ReadableType.Boolean
+        ) {
+            throw TerminalException(
+                TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                "textToSpeechViaSpeakers must be a boolean."
+            )
+        }
+        return ReaderSettingsParameters.AccessibilityParameters(
+            params.getBoolean("textToSpeechViaSpeakers")
+        )
+    }
+
+    if (params.isNull("buzzerVolume") || params.getType("buzzerVolume") != ReadableType.Map) {
+        throw TerminalException(
+            TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+            "buzzerVolume must be an object."
+        )
+    }
+    val buzzerVolume = requireNonNullParameter(params.getMap("buzzerVolume")) {
+        "You must provide buzzerVolume parameters."
+    }
+    if (!buzzerVolume.hasKey("level") || buzzerVolume.isNull("level") ||
+        buzzerVolume.getType("level") != ReadableType.String
+    ) {
+        throw TerminalException(
+            TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+            "You must provide buzzerVolume.level."
+        )
+    }
+    val level = when (val levelParam = buzzerVolume.getString("level")) {
+        "low" -> BuzzerVolumeLevel.Low
+        "high" -> BuzzerVolumeLevel.High
+        "custom" -> {
+            if (!buzzerVolume.hasKey("volume") || buzzerVolume.isNull("volume")) {
+                throw TerminalException(
+                    TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                    "You must provide volume when buzzerVolume.level is custom."
                 )
             }
-            putMap("accessibility", accessibility)
-        } else if (ra is ReaderAccessibility.Error) {
-            putError(ra.error)
+            if (buzzerVolume.getType("volume") != ReadableType.Number) {
+                throw TerminalException(
+                    TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                    "buzzerVolume.volume must be an integer."
+                )
+            }
+            val volume = buzzerVolume.getDouble("volume")
+            if (volume % 1 != 0.0) {
+                throw TerminalException(
+                    TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+                    "buzzerVolume.volume must be an integer."
+                )
+            }
+            BuzzerVolumeLevel.Exact(volume.toInt())
         }
+        else -> throw TerminalException(
+            TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
+            "Unsupported buzzerVolume.level: $levelParam."
+        )
+    }
+    return ReaderSettingsParameters.BuzzerVolumeParameters(level)
+}
+
+internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
+    return nativeMapOf {
+        val accessibility = nativeMapOf {
+            when (val readerAccessibility = settings.readerAccessibility) {
+                is ReaderAccessibility.Accessibility -> {
+                    putString(
+                        "textToSpeechStatus",
+                        when (readerAccessibility.textToSpeechStatus) {
+                            ReaderTextToSpeechStatus.OFF -> "off"
+                            ReaderTextToSpeechStatus.HEADPHONES -> "headphones"
+                            ReaderTextToSpeechStatus.SPEAKERS -> "speakers"
+                        }
+                    )
+                }
+                is ReaderAccessibility.Error -> {
+                    putError(readerAccessibility.error)
+                }
+            }
+        }
+        putMap("accessibility", accessibility)
+
+        val buzzerVolume = when (val readerBuzzerVolume = settings.readerBuzzerVolume) {
+            is ReaderBuzzerVolume.BuzzerVolume -> nativeMapOf {
+                putInt("currentVolume", readerBuzzerVolume.currentVolume)
+                putInt("maxVolume", readerBuzzerVolume.maxVolume)
+            }
+            is ReaderBuzzerVolume.Error -> nativeMapOf {
+                putError(readerBuzzerVolume.error)
+            }
+        }
+        putMap("buzzerVolume", buzzerVolume)
     }
 }
 
@@ -1565,6 +1655,9 @@ fun mapFromToggleResult(toggleResult: ToggleResult): String {
 fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): ReadableMap {
     return nativeMapOf {
         putBoolean("readerSupportResult", readerSupportResult.isSupported)
+        readerSupportResult.error?.let { error ->
+            putError(error)
+        }
     }
 }
 

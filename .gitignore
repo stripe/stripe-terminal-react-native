@@ -91,3 +91,7 @@ test-butler-app.apk
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Local agent guidance
+AGENTS.md
+CLAUDE.md

@@ -2,6 +2,34 @@
 
 This document details changes made to the SDK by version.
 
+## 0.0.1-beta.33
+
+Includes iOS native SDK [5.8.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.8.0) and Android native SDK [5.8.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#580---2026-08-17).
+
+### New
+- Added support for reading and setting the buzzer volume on supported readers through `getReaderSettings` and `setReaderSettings`. (from native 5.8.0)
+  - Read `buzzerVolume.currentVolume` and `buzzerVolume.maxVolume` from `getReaderSettings`.
+  - Set the volume to `low`, `high`, or a custom value between 1 and the reader's `maxVolume`.
+  - Each `setReaderSettings` call accepts exactly one setting category: accessibility settings or buzzer volume.
+  - Unsupported readers return `buzzerVolume.error`, and attempts to set their buzzer volume fail.
+- Added the `PRINTER_LOW_BATTERY` error code, returned when the reader's battery is too low to complete a print operation. (from native 5.8.0)
+- Added `automatic_delayed` capture method support for card-present `paymentMethodOptions.captureMethod` (with a new `captureDelayDays` option), for parity with other Stripe Terminal SDKs.
+
+### Updates
+
+- **Breaking:** Reader settings accessibility failures now omit `textToSpeechStatus` and return the error under `accessibility.error` on both platforms. Android previously returned these failures as a top-level `error`; the nested error preserves independently retrieved settings such as `buzzerVolume`.
+- Android: Adopted the native 5.8.0 location/Bluetooth permission model. `requestNeededAndroidPermissions` now requests `ACCESS_COARSE_LOCATION` on Android 12 and later (and `ACCESS_FINE_LOCATION` on Android 11 and earlier, where BLE scanning still requires it), matching the native SDK which now declares `BLUETOOTH_SCAN` with `neverForLocation` and `ACCESS_FINE_LOCATION` with `maxSdkVersion="30"`. The Expo config plugin declares them the same way. If your app requires precise location for other purposes, request `ACCESS_FINE_LOCATION` yourself. (from native 5.8.0)
+- iOS: A reader whose device type is not recognized by this version of the SDK is now surfaced with a `deviceType` of `unknown` instead of being omitted. (from native 5.8.0)
+- The SDK is now built and tested against React Native 0.85, and the example app now uses Expo SDK 56. The iOS example app requires iOS 16.4 or later; the SDK remains compatible with apps targeting iOS 15.1 or later. `react-native` remains a `*` peer dependency, so the range of React Native versions your app can use is unchanged.
+
+### Fixes
+
+- iOS: Reader disconnect reasons are now accurate for Bluetooth mobile readers such as the Stripe Reader M2. A Bluetooth signal loss is reported as `bluetoothSignalLost`, selecting "Forget this device" in iOS Settings is reported as `peerRemovedPairingInformation`, and an unexpected internal disconnect is no longer misreported as `disconnectRequested`. (from native 5.8.0)
+- iOS: Fixed a crash during Tap to Pay on iPhone `collectPaymentMethod` when the connected reader or reader account ID was unexpectedly unavailable. (from native 5.8.0)
+- Android: Fixed a crash during `initialize` on devices with unsupported Android Keystore implementations. (from native 5.8.0)
+- Android: Fixed mobile reader software updates timing out on slow network connections. (from native 5.8.0)
+- Android (Tap to Pay): Fixed an issue causing PIN collection to fail on certain device models. (from native 5.8.0)
+
 ## 0.0.1-beta.32
 
 Includes iOS native SDK [5.6.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.6.0) and [5.7.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.7.0), and Android native SDK [5.6.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#560---2026-06-08) and [5.7.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#570---2026-07-13).

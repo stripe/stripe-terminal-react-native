@@ -456,6 +456,7 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     TerminalErrorCode.PRINTER_ABSENT -> "PRINTER_ABSENT"
     TerminalErrorCode.PRINTER_UNAVAILABLE -> "PRINTER_UNAVAILABLE"
     TerminalErrorCode.PRINTER_ERROR -> "PRINTER_ERROR"
+    TerminalErrorCode.PRINTER_LOW_BATTERY -> "PRINTER_LOW_BATTERY"
     TerminalErrorCode.INVALID_MOTO_CONFIGURATION -> "INVALID_MOTO_CONFIGURATION"
 
     // Barcode

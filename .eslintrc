@@ -1,4 +1,3 @@
 {
-  "extends": "@react-native",
-  "plugins": ["detox"]
+  "extends": "@react-native"
 }

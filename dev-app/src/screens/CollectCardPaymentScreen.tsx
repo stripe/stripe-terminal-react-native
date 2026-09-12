@@ -79,6 +79,7 @@ const CARD_PRESENT_CAPTURE_METHODS = [
   { value: undefined, label: 'default' },
   { value: 'manual', label: 'manual' },
   { value: 'manual_preferred', label: 'manual_preferred' },
+  { value: 'automatic_delayed', label: 'automatic_delayed' },
 ];
 
 const ROUTING_PRIORITY = [
@@ -142,7 +143,8 @@ export default function CollectCardPaymentScreen() {
     offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
     offlineModeTransactionLimit: string;
     offlineModeStoredTransactionLimit: string;
-    cardPresentCaptureMethod?: 'manual' | 'manual_preferred';
+    cardPresentCaptureMethod?: 'manual' | 'manual_preferred' | 'automatic_delayed';
+    captureDelayDays?: string;
   }>({
     amount: '20000',
     currency: account?.default_currency || 'usd',
@@ -302,6 +304,9 @@ export default function CollectCardPaymentScreen() {
         requestMulticapture: inputValues.requestMulticapture,
         requestReauthorization: inputValues.requestReauthorization,
         captureMethod: inputValues?.cardPresentCaptureMethod,
+        captureDelayDays: inputValues?.captureDelayDays
+          ? Number(inputValues.captureDelayDays)
+          : undefined,
       },
       captureMethod: inputValues?.captureMethod,
       offlineBehavior: inputValues?.offlineBehavior,
@@ -444,6 +449,9 @@ export default function CollectCardPaymentScreen() {
         requestMulticapture: inputValues.requestMulticapture,
         requestReauthorization: inputValues.requestReauthorization,
         captureMethod: inputValues?.cardPresentCaptureMethod,
+        captureDelayDays: inputValues?.captureDelayDays
+          ? Number(inputValues.captureDelayDays)
+          : undefined,
       },
       captureMethod: inputValues?.captureMethod,
       offlineBehavior: inputValues?.offlineBehavior,
@@ -975,6 +983,22 @@ export default function CollectCardPaymentScreen() {
               />
             ))}
           </Picker>
+        </List>
+
+        <List bolded={false} topSpacing={false} title="CAPTURE DELAY DAYS">
+          <TextInput
+            testID="capture-delay-days-text-field"
+            keyboardType="numeric"
+            style={styles.input}
+            value={inputValues.captureDelayDays || ''}
+            onChangeText={(value) =>
+              setInputValues((state) => ({
+                ...state,
+                captureDelayDays: value,
+              }))
+            }
+            placeholder="capture delay days (e.g. 2)"
+          />
         </List>
 
         <List bolded={false} topSpacing={false} title="INTERAC">

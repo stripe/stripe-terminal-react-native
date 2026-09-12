@@ -9,6 +9,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.stripe.stripeterminal.external.DonationApi
 import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.AmountDetails
+import com.stripe.stripeterminal.external.models.BuzzerVolumeLevel
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.MulticaptureStatus
@@ -25,6 +26,13 @@ import com.stripe.stripeterminal.external.models.LocaleConfig
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.ReaderAccessibility
+import com.stripe.stripeterminal.external.models.ReaderBuzzerVolume
+import com.stripe.stripeterminal.external.models.ReaderSettings
+import com.stripe.stripeterminal.external.models.ReaderSettingsParameters
+import com.stripe.stripeterminal.external.models.ReaderSupportResult
+import com.stripe.stripeterminal.external.models.ReaderTextToSpeechStatus
+import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.ReauthorizationStatus
 import com.stripe.stripeterminal.external.models.SurchargeDetails
 import com.stripe.stripeterminal.external.models.SurchargeStatus
@@ -40,6 +48,7 @@ import java.util.Base64
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -1264,6 +1273,206 @@ class MapperTest {
         assertTrue(easyConnectConfig is EasyConnectConfiguration.AppsOnDevicesEasyConnectionConfiguration)
         assertEquals(discoveryConfig, easyConnectConfig.discoveryConfiguration)
         assertEquals(connectionConfig, easyConnectConfig.connectionConfiguration)
+    }
+
+    @Test
+    fun `mapFromReaderSupportResult returns true and no error when supported`() {
+        val readerSupportResult = mockk<ReaderSupportResult> {
+            every { isSupported } returns true
+            every { error } returns null
+        }
+        val result = mapFromReaderSupportResult(readerSupportResult) as JavaOnlyMap
+        assertTrue(result.getBoolean("readerSupportResult"))
+        assertFalse(result.hasKey("error"), "error key should not be present when supported")
+    }
+
+    @Test
+    fun `mapFromReaderSupportResult returns false and StripeError when NotSupported with TerminalException`() {
+        val terminalException = mockk<TerminalException>(relaxed = true) {
+            every { errorCode } returns TerminalErrorCode.READER_BUSY
+            every { errorMessage } returns "This device does not support Tap to Pay"
+            every { message } returns "This device does not support Tap to Pay"
+            every { apiError } returns null
+            every { cause } returns null
+            every { paymentIntent } returns null
+            every { setupIntent } returns null
+            every { refund } returns null
+        }
+        val readerSupportResult = mockk<ReaderSupportResult> {
+            every { isSupported } returns false
+            every { error } returns terminalException
+        }
+        val result = mapFromReaderSupportResult(readerSupportResult) as JavaOnlyMap
+        assertFalse(result.getBoolean("readerSupportResult"))
+        val error = result.getMap("error") as JavaOnlyMap
+        assertNotNull(error)
+        assertEquals("StripeError", error.getString("name"))
+        assertEquals(TerminalErrorCode.READER_BUSY.convertToReactNativeErrorCode(), error.getString("code"))
+        assertEquals("This device does not support Tap to Pay", error.getString("message"))
+    }
+
+    @Test
+    fun `mapFromReaderSupportResult returns false and NonStripeError when NotSupported with generic Throwable`() {
+        val throwable = RuntimeException("NFC hardware unavailable")
+        val readerSupportResult = mockk<ReaderSupportResult> {
+            every { isSupported } returns false
+            every { error } returns throwable
+        }
+        val result = mapFromReaderSupportResult(readerSupportResult) as JavaOnlyMap
+        assertFalse(result.getBoolean("readerSupportResult"))
+        val error = result.getMap("error") as JavaOnlyMap
+        assertNotNull(error)
+        assertEquals("NonStripeError", error.getString("name"))
+        assertEquals("NFC hardware unavailable", error.getString("message"))
+    }
+
+    @Test
+    fun `mapToReaderSettingsParameters maps accessibility settings`() {
+        val params = JavaOnlyMap().apply {
+            putBoolean("textToSpeechViaSpeakers", true)
+        }
+
+        val result = mapToReaderSettingsParameters(params)
+
+        assertTrue(result is ReaderSettingsParameters.AccessibilityParameters)
+        assertTrue(result.textToSpeechViaSpeakers)
+    }
+
+    @Test
+    fun `mapToReaderSettingsParameters maps buzzer volume levels`() {
+        fun params(level: String, volume: Int? = null) = JavaOnlyMap().apply {
+            putMap("buzzerVolume", JavaOnlyMap().apply {
+                putString("level", level)
+                volume?.let { putInt("volume", it) }
+            })
+        }
+
+        val low = mapToReaderSettingsParameters(params("low"))
+        val high = mapToReaderSettingsParameters(params("high"))
+        val custom = mapToReaderSettingsParameters(params("custom", 3))
+
+        assertEquals(
+            BuzzerVolumeLevel.Low,
+            (low as ReaderSettingsParameters.BuzzerVolumeParameters).level
+        )
+        assertEquals(
+            BuzzerVolumeLevel.High,
+            (high as ReaderSettingsParameters.BuzzerVolumeParameters).level
+        )
+        assertEquals(
+            BuzzerVolumeLevel.Exact(3),
+            (custom as ReaderSettingsParameters.BuzzerVolumeParameters).level
+        )
+    }
+
+    @Test
+    fun `mapToReaderSettingsParameters rejects mixed and malformed settings`() {
+        val mixed = JavaOnlyMap().apply {
+            putBoolean("textToSpeechViaSpeakers", true)
+            putMap("buzzerVolume", JavaOnlyMap().apply { putString("level", "low") })
+        }
+        val malformed = JavaOnlyMap().apply {
+            putString("textToSpeechViaSpeakers", "true")
+        }
+        val missingCustomVolume = JavaOnlyMap().apply {
+            putMap("buzzerVolume", JavaOnlyMap().apply { putString("level", "custom") })
+        }
+        val fractionalCustomVolume = JavaOnlyMap().apply {
+            putMap("buzzerVolume", JavaOnlyMap().apply {
+                putString("level", "custom")
+                putDouble("volume", 3.5)
+            })
+        }
+        val booleanCustomVolume = JavaOnlyMap().apply {
+            putMap("buzzerVolume", JavaOnlyMap().apply {
+                putString("level", "custom")
+                putBoolean("volume", true)
+            })
+        }
+        val unsupportedLevel = JavaOnlyMap().apply {
+            putMap("buzzerVolume", JavaOnlyMap().apply { putString("level", "medium") })
+        }
+
+        assertEquals(
+            "You must provide exactly one of textToSpeechViaSpeakers or buzzerVolume.",
+            assertFailsWith<TerminalException> {
+                mapToReaderSettingsParameters(mixed)
+            }.message
+        )
+        assertEquals(
+            "textToSpeechViaSpeakers must be a boolean.",
+            assertFailsWith<TerminalException> {
+                mapToReaderSettingsParameters(malformed)
+            }.message
+        )
+        assertEquals(
+            "You must provide volume when buzzerVolume.level is custom.",
+            assertFailsWith<TerminalException> {
+                mapToReaderSettingsParameters(missingCustomVolume)
+            }.message
+        )
+        assertEquals(
+            "buzzerVolume.volume must be an integer.",
+            assertFailsWith<TerminalException> {
+                mapToReaderSettingsParameters(fractionalCustomVolume)
+            }.message
+        )
+        assertEquals(
+            "buzzerVolume.volume must be an integer.",
+            assertFailsWith<TerminalException> {
+                mapToReaderSettingsParameters(booleanCustomVolume)
+            }.message
+        )
+        assertEquals(
+            "Unsupported buzzerVolume.level: medium.",
+            assertFailsWith<TerminalException> {
+                mapToReaderSettingsParameters(unsupportedLevel)
+            }.message
+        )
+    }
+
+    @Test
+    fun `mapFromReaderSettings maps supported buzzer volume`() {
+        val settings = ReaderSettings(
+            readerAccessibility = ReaderAccessibility.Error(
+                RuntimeException("Accessibility is not supported")
+            ),
+            readerBuzzerVolume = ReaderBuzzerVolume.BuzzerVolume(
+                maxVolume = 5,
+                currentVolume = 3
+            )
+        )
+
+        val result = mapFromReaderSettings(settings) as JavaOnlyMap
+        val buzzerVolume = result.getMap("buzzerVolume") as JavaOnlyMap
+        val accessibility = result.getMap("accessibility") as JavaOnlyMap
+
+        assertEquals(3, buzzerVolume.getInt("currentVolume"))
+        assertEquals(5, buzzerVolume.getInt("maxVolume"))
+        assertFalse(buzzerVolume.hasKey("error"))
+        assertFalse(result.hasKey("error"))
+        assertFalse(accessibility.hasKey("textToSpeechStatus"))
+        assertEquals(
+            "Accessibility is not supported",
+            accessibility.getMap("error")?.getString("message")
+        )
+    }
+
+    @Test
+    fun `mapFromReaderSettings maps unsupported buzzer volume error`() {
+        val settings = ReaderSettings(
+            readerAccessibility = ReaderAccessibility.Accessibility(ReaderTextToSpeechStatus.OFF),
+            readerBuzzerVolume = ReaderBuzzerVolume.Error(
+                RuntimeException("Buzzer volume is not supported")
+            )
+        )
+
+        val result = mapFromReaderSettings(settings) as JavaOnlyMap
+        val buzzerVolume = result.getMap("buzzerVolume") as JavaOnlyMap
+        val error = buzzerVolume.getMap("error") as JavaOnlyMap
+
+        assertEquals("NonStripeError", error.getString("name"))
+        assertEquals("Buzzer volume is not supported", error.getString("message"))
     }
 }
 

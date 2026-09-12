@@ -758,6 +758,7 @@ final class MappersTests: XCTestCase {
             .verifoneUX700DevKit,
             .verifoneVM100,
             .verifoneVP100,
+            .unknown,
         ]
 
         for deviceType in allDeviceTypes {
@@ -769,6 +770,13 @@ final class MappersTests: XCTestCase {
                 "DeviceType roundtrip failed for \(deviceType): mapped to \"\(rnString)\", but mapped back to \(String(describing: mappedBack))"
             )
         }
+    }
+
+    func testMapFromReaderDisconnectReasonPeerRemovedPairingInformation() {
+        XCTAssertEqual(
+            Mappers.mapFromReaderDisconnectReason(.peerRemovedPairingInformation),
+            "peerRemovedPairingInformation"
+        )
     }
 
     func testMapToSetupIntentCollectionReason() {
@@ -1165,6 +1173,251 @@ final class MappersTests: XCTestCase {
         let dict: NSDictionary = [:]
         XCTAssertNil(Mappers.mapToTestReaderUpdate(dict))
 
+    }
+
+    func testMapToReaderSettingsParametersMapsAccessibilitySettings() {
+        let result = Mappers.mapToReaderSettingsParameters([
+            "textToSpeechViaSpeakers": true,
+        ])
+
+        guard case let .accessibility(parameters) = result else {
+            return XCTFail("Expected accessibility parameters")
+        }
+        XCTAssertTrue(parameters.textToSpeechViaSpeakers)
+    }
+
+    func testMapToReaderSettingsParametersMapsBuzzerVolumeLevels() {
+        let low = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "low"],
+        ])
+        let high = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "high"],
+        ])
+        let custom = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "custom", "volume": 3],
+        ])
+
+        guard case let .buzzerVolume(lowParameters) = low,
+              case let .buzzerVolume(highParameters) = high,
+              case let .buzzerVolume(customParameters) = custom else {
+            return XCTFail("Expected buzzer volume parameters")
+        }
+        XCTAssertEqual(lowParameters.level, .low)
+        XCTAssertEqual(highParameters.level, .high)
+        XCTAssertEqual(customParameters.level, .custom)
+        XCTAssertEqual(customParameters.volume, 3)
+    }
+
+    func testMapToReaderSettingsParametersRejectsMixedAndMalformedSettings() {
+        let mixed = Mappers.mapToReaderSettingsParameters([
+            "textToSpeechViaSpeakers": true,
+            "buzzerVolume": ["level": "low"],
+        ])
+        let malformed = Mappers.mapToReaderSettingsParameters([
+            "textToSpeechViaSpeakers": "true",
+        ])
+        let missingCustomVolume = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "custom"],
+        ])
+        let fractionalCustomVolume = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "custom", "volume": 3.5],
+        ])
+        let booleanCustomVolume = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "custom", "volume": true],
+        ])
+        let outOfRangeCustomVolume = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "custom", "volume": Double(Int.max)],
+        ])
+        let malformedBuzzerVolume = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": "high",
+        ])
+        let unsupportedLevel = Mappers.mapToReaderSettingsParameters([
+            "buzzerVolume": ["level": "medium"],
+        ])
+
+        guard case let .invalid(mixedMessage) = mixed,
+              case let .invalid(malformedMessage) = malformed,
+              case let .invalid(missingVolumeMessage) = missingCustomVolume,
+              case let .invalid(fractionalVolumeMessage) = fractionalCustomVolume,
+              case let .invalid(booleanVolumeMessage) = booleanCustomVolume,
+              case let .invalid(outOfRangeVolumeMessage) = outOfRangeCustomVolume,
+              case let .invalid(malformedBuzzerVolumeMessage) = malformedBuzzerVolume,
+              case let .invalid(unsupportedLevelMessage) = unsupportedLevel else {
+            return XCTFail("Expected invalid parameter results")
+        }
+        XCTAssertEqual(
+            mixedMessage,
+            "You must provide exactly one of textToSpeechViaSpeakers or buzzerVolume."
+        )
+        XCTAssertEqual(malformedMessage, "textToSpeechViaSpeakers must be a boolean.")
+        XCTAssertEqual(
+            missingVolumeMessage,
+            "You must provide volume when buzzerVolume.level is custom."
+        )
+        XCTAssertEqual(fractionalVolumeMessage, "buzzerVolume.volume must be an integer.")
+        XCTAssertEqual(booleanVolumeMessage, "buzzerVolume.volume must be an integer.")
+        XCTAssertEqual(outOfRangeVolumeMessage, "buzzerVolume.volume must be an integer.")
+        XCTAssertEqual(malformedBuzzerVolumeMessage, "buzzerVolume must be an object.")
+        XCTAssertEqual(unsupportedLevelMessage, "Unsupported buzzerVolume.level: medium.")
+    }
+
+    func testMapFromReaderSettingsMapsSupportedBuzzerVolume() throws {
+        let accessibility = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderAccessibility")
+        )
+        accessibility.setValue(
+            NSNumber(value: ReaderTextToSpeechStatus.off.rawValue),
+            forKey: "textToSpeechStatus"
+        )
+
+        let volume = try XCTUnwrap(ObjCRuntimeHelper.createInstance(className: "SCPBuzzerVolume"))
+        volume.setValue(NSNumber(value: 3), forKey: "currentVolume")
+        volume.setValue(NSNumber(value: 5), forKey: "maxVolume")
+
+        let readerBuzzerVolume = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderBuzzerVolume")
+        )
+        readerBuzzerVolume.setValue(volume, forKey: "volume")
+
+        let settingsObject = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderSettings")
+        )
+        settingsObject.setValue(accessibility, forKey: "accessibility")
+        settingsObject.setValue(readerBuzzerVolume, forKey: "buzzerVolume")
+        let settings = try XCTUnwrap(settingsObject as? ReaderSettings)
+
+        let result = Mappers.mapFromReaderSettings(settings)
+        let mappedBuzzerVolume = try XCTUnwrap(result["buzzerVolume"] as? NSDictionary)
+
+        XCTAssertEqual(mappedBuzzerVolume["currentVolume"] as? Int, 3)
+        XCTAssertEqual(mappedBuzzerVolume["maxVolume"] as? Int, 5)
+        XCTAssertNil(mappedBuzzerVolume["error"])
+    }
+
+    func testMapFromReaderSettingsMapsUnsupportedBuzzerVolumeError() throws {
+        let accessibility = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderAccessibility")
+        )
+        accessibility.setValue(
+            NSNumber(value: ReaderTextToSpeechStatus.off.rawValue),
+            forKey: "textToSpeechStatus"
+        )
+
+        let readerBuzzerVolume = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderBuzzerVolume")
+        )
+        readerBuzzerVolume.setValue(
+            NSError(domain: "test", code: 123, userInfo: [NSLocalizedDescriptionKey: "Unsupported"]),
+            forKey: "error"
+        )
+
+        let settingsObject = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderSettings")
+        )
+        settingsObject.setValue(accessibility, forKey: "accessibility")
+        settingsObject.setValue(readerBuzzerVolume, forKey: "buzzerVolume")
+        let settings = try XCTUnwrap(settingsObject as? ReaderSettings)
+
+        let result = Mappers.mapFromReaderSettings(settings)
+        let mappedBuzzerVolume = try XCTUnwrap(result["buzzerVolume"] as? NSDictionary)
+        let error = try XCTUnwrap(mappedBuzzerVolume["error"] as? NSDictionary)
+
+        XCTAssertEqual(error["message"] as? String, "Unsupported")
+    }
+
+    func testMapFromReaderSettingsOmitsAccessibilityStatusOnError() throws {
+        let accessibility = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderAccessibility")
+        )
+        accessibility.setValue(
+            NSNumber(value: ReaderTextToSpeechStatus.off.rawValue),
+            forKey: "textToSpeechStatus"
+        )
+        accessibility.setValue(
+            NSError(domain: "test", code: 123, userInfo: [NSLocalizedDescriptionKey: "Unsupported"]),
+            forKey: "error"
+        )
+
+        let volume = try XCTUnwrap(ObjCRuntimeHelper.createInstance(className: "SCPBuzzerVolume"))
+        volume.setValue(NSNumber(value: 3), forKey: "currentVolume")
+        volume.setValue(NSNumber(value: 5), forKey: "maxVolume")
+        let readerBuzzerVolume = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderBuzzerVolume")
+        )
+        readerBuzzerVolume.setValue(volume, forKey: "volume")
+
+        let settingsObject = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderSettings")
+        )
+        settingsObject.setValue(accessibility, forKey: "accessibility")
+        settingsObject.setValue(readerBuzzerVolume, forKey: "buzzerVolume")
+        let settings = try XCTUnwrap(settingsObject as? ReaderSettings)
+
+        let result = Mappers.mapFromReaderSettings(settings)
+        let mappedAccessibility = try XCTUnwrap(result["accessibility"] as? NSDictionary)
+
+        XCTAssertNil(mappedAccessibility["textToSpeechStatus"])
+        XCTAssertNotNil(mappedAccessibility["error"])
+    }
+
+    func testMapFromReaderSettingsMapsUnknownAccessibilityStatusToError() throws {
+        let accessibility = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderAccessibility")
+        )
+        accessibility.setValue(
+            NSNumber(value: ReaderTextToSpeechStatus.unknown.rawValue),
+            forKey: "textToSpeechStatus"
+        )
+
+        let volume = try XCTUnwrap(ObjCRuntimeHelper.createInstance(className: "SCPBuzzerVolume"))
+        volume.setValue(NSNumber(value: 3), forKey: "currentVolume")
+        volume.setValue(NSNumber(value: 5), forKey: "maxVolume")
+        let readerBuzzerVolume = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderBuzzerVolume")
+        )
+        readerBuzzerVolume.setValue(volume, forKey: "volume")
+
+        let settingsObject = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderSettings")
+        )
+        settingsObject.setValue(accessibility, forKey: "accessibility")
+        settingsObject.setValue(readerBuzzerVolume, forKey: "buzzerVolume")
+        let settings = try XCTUnwrap(settingsObject as? ReaderSettings)
+
+        let result = Mappers.mapFromReaderSettings(settings)
+        let mappedAccessibility = try XCTUnwrap(result["accessibility"] as? NSDictionary)
+        let accessibilityError = try XCTUnwrap(mappedAccessibility["error"] as? NSDictionary)
+        let mappedBuzzerVolume = try XCTUnwrap(result["buzzerVolume"] as? NSDictionary)
+
+        XCTAssertNil(mappedAccessibility["textToSpeechStatus"])
+        XCTAssertEqual(accessibilityError["code"] as? String, "UNEXPECTED_SDK_ERROR")
+        XCTAssertEqual(mappedBuzzerVolume["currentVolume"] as? Int, 3)
+        XCTAssertEqual(mappedBuzzerVolume["maxVolume"] as? Int, 5)
+        XCTAssertNil(result["error"])
+    }
+
+    func testMapFromReaderSettingsRejectsInvalidNativeBuzzerResult() throws {
+        let accessibility = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderAccessibility")
+        )
+        accessibility.setValue(
+            NSNumber(value: ReaderTextToSpeechStatus.off.rawValue),
+            forKey: "textToSpeechStatus"
+        )
+        let readerBuzzerVolume = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderBuzzerVolume")
+        )
+        let settingsObject = try XCTUnwrap(
+            ObjCRuntimeHelper.createInstance(className: "SCPReaderSettings")
+        )
+        settingsObject.setValue(accessibility, forKey: "accessibility")
+        settingsObject.setValue(readerBuzzerVolume, forKey: "buzzerVolume")
+        let settings = try XCTUnwrap(settingsObject as? ReaderSettings)
+
+        let result = Mappers.mapFromReaderSettings(settings)
+        let error = try XCTUnwrap(result["error"] as? NSDictionary)
+
+        XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
     }
 }
 

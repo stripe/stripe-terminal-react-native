@@ -45,6 +45,8 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 
 The React Native SDK includes an open-source example app, which you can use to familiarize yourself with the SDK and reader before starting your own integration.
 
+Because it uses Expo SDK 56, the iOS example app requires iOS 16.4 or later. The React Native SDK remains compatible with apps targeting iOS 15.1 or later.
+
 To build the example app from source, you'll need to:
 
 1. Run `yarn bootstrap` from the root directory to build the SDK.

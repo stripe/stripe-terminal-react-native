@@ -1,4 +1,11 @@
-import type { PaymentMethodOptions, CreatePaymentIntentParams, CreateSetupIntentParams, AppTransitionAnimation } from '../types';
+import type {
+  AppTransitionAnimation,
+  CreatePaymentIntentParams,
+  CreateSetupIntentParams,
+  PaymentMethodOptions,
+  Reader,
+  StripeError,
+} from '../types';
 import { PaymentMethodType, AppTransitionPreset } from '../types';
 
 describe('PaymentMethodType', () => {
@@ -100,6 +107,80 @@ describe('AppTransitionPreset', () => {
       expect(animation.enterAnim).toBe(12345);
       expect(animation.exitAnim).toBe(0);
     }
+  });
+});
+
+describe('ReaderSettingsParameters', () => {
+  it('accepts accessibility and buzzer volume settings one at a time', () => {
+    const accessibility: Reader.AccessibilityReaderSettingsParameters = {
+      textToSpeechViaSpeakers: true,
+    };
+    const low: Reader.BuzzerVolumeReaderSettingsParameters = {
+      buzzerVolume: { level: 'low' },
+    };
+    const high: Reader.ReaderSettingsParameters = {
+      buzzerVolume: { level: 'high' },
+    };
+    const custom: Reader.ReaderSettingsParameters = {
+      buzzerVolume: { level: 'custom', volume: 3 },
+    };
+    const settings: Reader.ReaderSettingsParameters[] = [
+      accessibility,
+      low,
+      high,
+      custom,
+    ];
+
+    expect(accessibility.textToSpeechViaSpeakers).toBe(true);
+    expect(low.buzzerVolume?.level).toBe('low');
+    expect(high.buzzerVolume?.level).toBe('high');
+    expect(custom.buzzerVolume?.level).toBe('custom');
+    expect(settings).toHaveLength(4);
+  });
+
+  it('requires a custom volume and exactly one setting category', () => {
+    const missingCustomVolume: Reader.BuzzerVolumeReaderSettingsParameters = {
+      // @ts-expect-error custom buzzer volume requires an explicit volume
+      buzzerVolume: { level: 'custom' },
+    };
+
+    // @ts-expect-error setReaderSettings requires a setting category
+    const emptySettings: Reader.ReaderSettingsParameters = {};
+
+    const mixedSettings: Reader.ReaderSettingsParameters = {
+      textToSpeechViaSpeakers: true,
+      // @ts-expect-error setReaderSettings accepts only one setting category per call
+      buzzerVolume: { level: 'low' },
+    };
+
+    expect(missingCustomVolume.buzzerVolume?.level).toBe('custom');
+    expect(emptySettings).toEqual({});
+    expect(mixedSettings.buzzerVolume?.level).toBe('low');
+  });
+});
+
+describe('Reader.Accessibility', () => {
+  it('keeps successful status and error results mutually exclusive', () => {
+    const success: Reader.Accessibility = {
+      textToSpeechStatus: 'speakers',
+    };
+    const failure: Reader.Accessibility = {
+      error: {} as StripeError,
+    };
+
+    // @ts-expect-error unknown native statuses are represented as accessibility errors
+    const invalidStatus: Reader.ReaderTextToSpeechStatus = 'unknown';
+
+    // @ts-expect-error accessibility errors must not include a status
+    const invalid: Reader.Accessibility = {
+      textToSpeechStatus: 'off',
+      error: {} as StripeError,
+    };
+
+    expect(success.textToSpeechStatus).toBe('speakers');
+    expect(failure.textToSpeechStatus).toBeUndefined();
+    expect(invalidStatus).toBe('unknown');
+    expect(invalid.error).toBeDefined();
   });
 });
 

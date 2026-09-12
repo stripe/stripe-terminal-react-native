@@ -1,21 +1,24 @@
-## Runing e2e tests
+# Running e2e tests
+
+End-to-end tests are driven by [Maestro](https://maestro.mobile.dev/) against the
+dev app. The flows live in `maestro/app.yml` (and the `maestro/e2e/` sub-flows).
+
+Install Maestro once:
+
+```
+curl -fsSL "https://get.maestro.mobile.dev" | bash
+```
 
 ### Android
 
-1. Create an Android emulator with a name that matches the name found in `.detoxrc.json`
-1. Run `yarn detox build --configuration android`
-1. Run `yarn e2e:test:android`
+1. Start an Android emulator.
+1. Build the dev app: `yarn e2e:build:android:release`
+1. Install it: `adb install dev-app/android/app/build/outputs/apk/release/app-release.apk`
+1. Run the tests: `yarn e2e:test:android:release`
 
 ### iOS
 
-prereqs: Ensure AppleSimulatorUtils are installed
-
-```
-brew tap wix/brew
-brew install applesimutils
-```
-
-1. Create an iOS simulator with a name that matches the name found in `.detoxrc.json`
-1. Run `yarn detox build --configuration ios`
-1. launch the simulator
-1. Run `yarn e2e:test:ios`
+1. Boot an iOS simulator.
+1. Build the dev app: `yarn e2e:build:ios:release`
+1. Install it: `xcrun simctl install Booted dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app`
+1. Run the tests: `yarn e2e:test:ios:release`

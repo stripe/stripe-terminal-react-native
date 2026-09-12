@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   TouchableOpacity,
   Text,
-  PermissionsAndroid,
   Platform,
   Alert,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 import {
   StripeTerminalProvider,
   useStripeTerminal,
+  requestNeededAndroidPermissions,
 } from 'stripe-terminal-react-native';
 import {
   fetchConnectionToken,
@@ -48,15 +48,8 @@ export default function App() {
   useEffect(() => {
     async function init() {
       try {
-        const granted = await PermissionsAndroid.request(
-          'android.permission.ACCESS_FINE_LOCATION',
-          {
-            title: 'Location Permission',
-            message: 'Stripe Terminal needs access to your location',
-            buttonPositive: 'Accept',
-          }
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        const { error } = await requestNeededAndroidPermissions();
+        if (!error) {
           console.log('You can use the Location');
           setPermissionsGranted(true);
         } else {

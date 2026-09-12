@@ -643,11 +643,21 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         let requestPartialAuthorization = paymentMethodOptions["requestPartialAuthorization"] as? String
         let requestReauthorization = paymentMethodOptions["requestReauthorization"] as? String
         let cardPresentCaptureMethod = paymentMethodOptions["captureMethod"] as? String
+        let captureDelayDays = paymentMethodOptions["captureDelayDays"] as? Int
         let requestMulticapture = paymentMethodOptions["requestMulticapture"] as? String
         let captureMethod = params["captureMethod"] as? String
 
+        let resolvedCaptureMethod: CaptureMethod = {
+            switch captureMethod {
+            case "automatic":
+                return .automatic
+            default:
+                return .manual
+            }
+        }()
+
         let paymentParamsBuilder = PaymentIntentParametersBuilder(amount: UInt(truncating: amount),currency: currency)
-            .setCaptureMethod(captureMethod == "automatic" ? .automatic : .manual)
+            .setCaptureMethod(resolvedCaptureMethod)
             .setSetupFutureUsage(setupFutureUsage)
             .setOnBehalfOf(onBehalfOf)
             .setTransferDataDestination(transferDataDestination)
@@ -698,8 +708,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
               cardPresentParamsBuilder.setCaptureMethod(CardPresentCaptureMethod.manual)
           case "manual_preferred":
               cardPresentParamsBuilder.setCaptureMethod(CardPresentCaptureMethod.manualPreferred)
+          case "automatic_delayed":
+              cardPresentParamsBuilder.setCaptureMethod(CardPresentCaptureMethod.automaticDelayed)
           default:
               break
+        }
+
+        if let captureDelayDays = captureDelayDays {
+            cardPresentParamsBuilder.setCaptureDelayDays(captureDelayDays)
         }
 
         switch requestMulticapture {
@@ -1615,18 +1631,30 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(setReaderSettings:resolver:rejecter:)
     func setReaderSettings(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let invalidParams = Errors.validateRequiredParameters(params: params, requiredParams: ["textToSpeechViaSpeakers"])
-
-        guard invalidParams == nil else {
-            resolve(Errors.createErrorFromRnCodeEnum(rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER, message: "You must provide \(invalidParams!) parameters."))
+        let readerSettingsParameters = Mappers.mapToReaderSettingsParameters(params)
+        if case let .invalid(message) = readerSettingsParameters {
+            resolve(Errors.createErrorFromRnCodeEnum(
+                rnCode: Errors.RNErrorCode.INVALID_REQUIRED_PARAMETER,
+                message: message
+            ))
+            return
+        }
+        if case let .nativeError(error) = readerSettingsParameters {
+            resolve(Errors.createErrorFromNSError(nsError: error as NSError))
             return
         }
 
-        let textToSpeechViaSpeakers = params["textToSpeechViaSpeakers"] as? Bool ?? false
         Task {
             do {
-                let readerSettingsParameters = try ReaderAccessibilityParametersBuilder().setTextToSpeechViaSpeakers(textToSpeechViaSpeakers).build()
-                let result = try await Terminal.shared.setReaderSettings(readerSettingsParameters)
+                let result: ReaderSettings
+                switch readerSettingsParameters {
+                case let .accessibility(parameters):
+                    result = try await Terminal.shared.setReaderSettings(parameters)
+                case let .buzzerVolume(parameters):
+                    result = try await Terminal.shared.setReaderSettings(parameters)
+                case .invalid, .nativeError:
+                    return
+                }
                 resolve(Mappers.mapFromReaderSettings(result))
             } catch {
                 resolve(Errors.createErrorFromNSError(nsError: error as NSError))
@@ -1657,7 +1685,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             resolve(["readerSupportResult": true])
             break
         case .failure(let error):
-            resolve(["readerSupportResult": false])
+            resolve([
+                "readerSupportResult": false,
+                "error": Errors.mapToStripeErrorObject(nsError: error as NSError),
+            ])
             break
         }
     }
