@@ -22,8 +22,11 @@ module.exports = {
       return {
         visitor: {
           ImportDeclaration(path) {
-            // Catches ES6 imports like: `import pkg from '../package.json';`
-            if (path.node.source.value === '../package.json') {
+            // Inline package metadata from both src/ and src/logger/ imports.
+            if (
+              path.node.source.value === '../package.json' ||
+              path.node.source.value === '../../package.json'
+            ) {
               const importSpecifier = path.node.specifiers[0];
               if (importSpecifier) {
                 const importedName = importSpecifier.local.name;
