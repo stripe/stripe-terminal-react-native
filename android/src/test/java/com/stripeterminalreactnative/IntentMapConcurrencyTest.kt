@@ -48,8 +48,10 @@ import kotlin.test.assertTrue
  * 1426-1705 retained). A lost entry means a PaymentIntent the app was already told
  * about, and was already holding as `sdkUuid`, can no longer be resolved by
  * `getPaymentIntentFromParams`, so the follow-up confirm fails with
- * "No PaymentIntent was found with the sdkUuid ...". The maps are now
- * `ConcurrentHashMap`.
+ * "No PaymentIntent was found with the sdkUuid ...". The maps are now backed by
+  * `Collections.synchronizedMap(HashMap())`, which synchronises each individual map
+  * operation. A `ConcurrentHashMap` was tried first and rejected: a cancelled intent is
+  * deliberately retained as a key with a null value, which it cannot represent.
  *
  * Unrelated to stripe-terminal-android#747, which concerns duplicate forwarding
  * inside the closed native SDK.
@@ -176,9 +178,9 @@ class IntentMapConcurrencyTest {
         //
         // `clearCachedCredentials` clears the caches on the RN thread. An SDK create
         // that was already in flight then completes and writes its PaymentIntent back.
-        // A `ConcurrentHashMap` makes `clear()` atomic with respect to other map
-        // operations, but it cannot - and should not - discard a write from an
-        // operation that legitimately completed afterwards.
+        // Synchronising each map operation makes `clear()` atomic with respect to
+        // other operations, but no amount of synchronisation can - and should not -
+        // discard a write from an operation that legitimately completed afterwards.
         //
         // Suppressing that write would mean `createPaymentIntent` resolves to JS with
         // an `sdkUuid` that can never be confirmed, turning a recoverable situation
