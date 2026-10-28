@@ -1,9 +1,24 @@
 import {
   checkIfObjectIsStripeError,
   createStripeError,
+  createInternalStripeError,
+  normalizeError,
   rehydrateBridgeError,
 } from '../StripeErrorHelpers';
 import { ErrorCode } from '../ErrorCodes';
+import { InternalStripeError } from '../InternalStripeError';
+
+function expectPublicErrorFields(error: any) {
+  for (const field of ['error_source', 'errorSource', 'stripeError']) {
+    expect(error).not.toHaveProperty(field);
+    expect(Object.keys(error)).not.toContain(field);
+    expect({ ...error }).not.toHaveProperty(field);
+    expect(JSON.parse(JSON.stringify(error))).not.toHaveProperty(field);
+  }
+  expect(Object.getOwnPropertyDescriptor(error, 'message')?.enumerable).toBe(
+    false
+  );
+}
 
 describe('StripeErrorHelpers', () => {
   describe('checkIfObjectIsStripeError', () => {
@@ -214,10 +229,223 @@ describe('StripeErrorHelpers', () => {
     });
   });
 
+  describe('InternalStripeError', () => {
+    it('keeps the original StripeError identity in a separate container', () => {
+      const stripeError = createStripeError({
+        code: ErrorCode.INVALID_REQUIRED_PARAMETER,
+        message: 'Location ID is required',
+      });
+
+      const internalError = new InternalStripeError(stripeError, 'rn');
+
+      expect(internalError).not.toBeInstanceOf(Error);
+      expect(internalError.stripeError).toBe(stripeError);
+      expect(internalError.stripeError).toBeInstanceOf(Error);
+      expect(Object.keys(internalError)).toEqual([
+        'stripeError',
+        'errorSource',
+      ]);
+      expect({ ...internalError }).toEqual({ stripeError, errorSource: 'rn' });
+      expect(checkIfObjectIsStripeError(internalError)).toBe(false);
+      expect(checkIfObjectIsStripeError(internalError.stripeError)).toBe(true);
+      expectPublicErrorFields(stripeError);
+      expect(Object.keys(stripeError)).toEqual([
+        'name',
+        'code',
+        'nativeErrorCode',
+        'metadata',
+      ]);
+      expect(Object.getOwnPropertySymbols(stripeError)).toEqual([]);
+    });
+
+    it('preserves createStripeError fallbacks with explicit RN source', () => {
+      const internalError = createInternalStripeError(
+        {
+          code: ErrorCode.READER_BUSY,
+          message: 'Reader is busy',
+        },
+        'rn'
+      );
+
+      expect(internalError).toBeInstanceOf(InternalStripeError);
+      expect(internalError).not.toBeInstanceOf(Error);
+      expect(internalError.errorSource).toBe('rn');
+      expect(internalError.stripeError).toBeInstanceOf(Error);
+      expect(internalError.stripeError).toMatchObject({
+        name: 'StripeError',
+        code: ErrorCode.READER_BUSY,
+        message: 'Reader is busy',
+        nativeErrorCode: ErrorCode.READER_BUSY,
+        metadata: {},
+      });
+      expectPublicErrorFields(internalError.stripeError);
+    });
+
+    it.each(['rn', 'native'] as const)(
+      'keeps explicit %s source separate from the same error code',
+      (source) => {
+        const init = {
+          code: ErrorCode.INVALID_REQUIRED_PARAMETER,
+          message: 'Location ID is required',
+          nativeErrorCode: 'INVALID_REQUIRED_PARAMETER',
+          metadata: { parameter: 'locationId' },
+        };
+
+        const internalError = createInternalStripeError(init, source);
+
+        expect(internalError.errorSource).toBe(source);
+        expect(internalError.stripeError).toMatchObject(init);
+        expect(internalError.stripeError.metadata).toBe(init.metadata);
+        expectPublicErrorFields(internalError.stripeError);
+      }
+    );
+  });
+
+  describe('normalizeError', () => {
+    it.each(['rn', 'native'] as const)(
+      'preserves an existing internal error with %s source',
+      (source) => {
+        const original = createInternalStripeError(
+          {
+            code: ErrorCode.READER_BUSY,
+            message: 'Reader is busy',
+          },
+          source
+        );
+        const stripeError = original.stripeError;
+
+        const normalized = normalizeError(original);
+
+        expect(normalized).toBe(original);
+        expect(normalized.stripeError).toBe(stripeError);
+        expect(normalized.stripeError.code).toBe(ErrorCode.READER_BUSY);
+        expect(normalized.errorSource).toBe(source);
+      }
+    );
+
+    it.each([
+      { name: 'no cause', cause: undefined },
+      { name: 'a string cause', cause: 'Connection interrupted' },
+      { name: 'an Error cause', cause: new Error('Connection interrupted') },
+    ])('wraps a common Error with $name without changing it', ({ cause }) => {
+      const original = Object.assign(
+        new TypeError(
+          'Network request failed',
+          cause === undefined ? undefined : { cause }
+        ),
+        { metadata: { orderId: 'order_123' } }
+      );
+      const originalDescriptors = Object.getOwnPropertyDescriptors(original);
+
+      const normalized = normalizeError(original);
+
+      expect(normalized).toBeInstanceOf(InternalStripeError);
+      expect(normalized.errorSource).toBe('rn');
+      expect(normalized.stripeError).toBeInstanceOf(Error);
+      expect(normalized.stripeError).not.toBe(original);
+      expect(normalized.stripeError).toMatchObject({
+        name: 'StripeError',
+        code: ErrorCode.UNEXPECTED_SDK_ERROR,
+        nativeErrorCode: ErrorCode.UNEXPECTED_SDK_ERROR,
+        message: original.message,
+        metadata: {},
+      });
+      expect(normalized.stripeError.metadata).toEqual({});
+      expect(normalized.stripeError.cause).toBe(original);
+      expect(original.cause).toBe(cause);
+      expect(Object.getOwnPropertyDescriptors(original)).toEqual(
+        originalDescriptors
+      );
+      expectPublicErrorFields(normalized.stripeError);
+    });
+
+    it('uses the factory fallback for an empty Error message', () => {
+      const original = new Error('');
+
+      const normalized = normalizeError(original);
+
+      expect(normalized.stripeError.message).toBe(
+        ErrorCode.UNEXPECTED_SDK_ERROR
+      );
+      expect(normalized.stripeError.cause).toBe(original);
+      expect(original.message).toBe('');
+    });
+
+    it.each([
+      ['null', null],
+      [
+        'a plain object',
+        {
+          code: ErrorCode.READER_BUSY,
+          message: 'Reader is busy',
+          error_source: 'native',
+        },
+      ],
+    ])('uses only generic fields for %s', (_name, input) => {
+      const normalized = normalizeError(input);
+
+      expect(normalized).toBeInstanceOf(InternalStripeError);
+      expect(normalized.errorSource).toBe('rn');
+      expect(normalized.stripeError).toBeInstanceOf(Error);
+      expect(normalized.stripeError).toMatchObject({
+        name: 'StripeError',
+        code: ErrorCode.UNEXPECTED_SDK_ERROR,
+        nativeErrorCode: ErrorCode.UNEXPECTED_SDK_ERROR,
+        message: ErrorCode.UNEXPECTED_SDK_ERROR,
+        metadata: {},
+      });
+      expect(normalized.stripeError).not.toHaveProperty('cause');
+      expectPublicErrorFields(normalized.stripeError);
+    });
+  });
+
   describe('rehydrateBridgeError', () => {
+    it.each([
+      ['native', 'native'],
+      ['rn', 'rn'],
+      [undefined, 'rn'],
+    ] as const)(
+      'keeps wire source %s only in the container',
+      (source, expected) => {
+        const rawError = {
+          code: 'INVALID_REQUIRED_PARAMETER',
+          nativeErrorCode: 'INVALID_REQUIRED_PARAMETER',
+          message: 'Location ID is required',
+          metadata: {},
+          ...(source === undefined ? {} : { error_source: source }),
+        };
+
+        const internalError = rehydrateBridgeError(rawError);
+
+        expect(internalError).toBeInstanceOf(InternalStripeError);
+        expect(internalError).not.toBeInstanceOf(Error);
+        expect(internalError.errorSource).toBe(expected);
+        expect(internalError.stripeError).toBeInstanceOf(Error);
+        expect(internalError.stripeError.code).toBe(rawError.code);
+        expect(internalError.stripeError.message).toBe(rawError.message);
+        expectPublicErrorFields(internalError.stripeError);
+        expect(rawError.error_source).toBe(source);
+      }
+    );
+
+    it('keeps unmarked JavaScript exceptions on the RN source path', () => {
+      const internalError = rehydrateBridgeError(
+        new TypeError('Network request failed')
+      );
+
+      expect(internalError.errorSource).toBe('rn');
+      expect(internalError.stripeError).toBeInstanceOf(Error);
+      expect(internalError.stripeError.underlyingError).toEqual({
+        code: 'TypeError',
+        message: 'Network request failed',
+      });
+      expectPublicErrorFields(internalError.stripeError);
+    });
+
     it('should normalize Android error structure', () => {
       // GIVEN the flat structure Android produces via mapToStripeErrorObject
       const rawAndroidError = {
+        error_source: 'native',
         name: 'StripeError',
         code: 'DECLINED_BY_STRIPE_API',
         nativeErrorCode: 'STRIPE_API_ERROR',
@@ -231,7 +459,10 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawAndroidError);
+      const internalError = rehydrateBridgeError(rawAndroidError);
+      const normalizedError = internalError.stripeError;
+      expect(internalError.errorSource).toBe('native');
+      expectPublicErrorFields(normalizedError);
 
       // THEN it should create a proper StripeError with apiError populated
       expect(normalizedError.name).toBe('StripeError');
@@ -270,7 +501,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN all apiError fields should be accessible on StripeError.apiError
       expect(normalizedError.apiError).toEqual({
@@ -291,6 +522,7 @@ describe('StripeErrorHelpers', () => {
     it('should normalize iOS error structure', () => {
       // GIVEN the flat structure iOS produces via mapToStripeErrorObject
       const rawIOSError = {
+        error_source: 'native',
         name: 'StripeError',
         code: 'BLUETOOTH_ERROR',
         nativeErrorCode: '1200',
@@ -303,7 +535,10 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawIOSError);
+      const internalError = rehydrateBridgeError(rawIOSError);
+      const normalizedError = internalError.stripeError;
+      expect(internalError.errorSource).toBe('native');
+      expectPublicErrorFields(normalizedError);
 
       // THEN it should create a proper StripeError
       expect(normalizedError.name).toBe('StripeError');
@@ -322,7 +557,7 @@ describe('StripeErrorHelpers', () => {
       const rawError = {};
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN it should use fallback values
       expect(normalizedError.name).toBe('StripeError');
@@ -342,7 +577,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN nativeErrorCode should fallback to code
       expect(normalizedError.nativeErrorCode).toBe('READER_BUSY');
@@ -355,7 +590,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN message should fallback to code
       expect(normalizedError.message).toBe('READER_BUSY');
@@ -373,7 +608,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN setupIntent should be included
       expect(normalizedError.setupIntent).toEqual({ id: 'seti_test' });
@@ -382,17 +617,21 @@ describe('StripeErrorHelpers', () => {
     it('should handle null or undefined raw error', () => {
       // GIVEN null and undefined values
       // WHEN normalizing them
-      const nullResult = rehydrateBridgeError(null);
-      const undefinedResult = rehydrateBridgeError(undefined);
+      const nullResult = rehydrateBridgeError(null).stripeError;
+      const undefinedResult = rehydrateBridgeError(undefined).stripeError;
 
       // THEN they should use fallback values
       expect(nullResult.code).toBe('UNEXPECTED_SDK_ERROR');
-      expect(nullResult.message).toBe('UNEXPECTED_SDK_ERROR');
+      expect(nullResult.message).toBe(
+        'Expected an error object from the native bridge, but received null.'
+      );
       expect(nullResult.nativeErrorCode).toBe('UNEXPECTED_SDK_ERROR');
       expect(nullResult.metadata).toEqual({});
 
       expect(undefinedResult.code).toBe('UNEXPECTED_SDK_ERROR');
-      expect(undefinedResult.message).toBe('UNEXPECTED_SDK_ERROR');
+      expect(undefinedResult.message).toBe(
+        'Expected an error object from the native bridge, but received undefined.'
+      );
       expect(undefinedResult.nativeErrorCode).toBe('UNEXPECTED_SDK_ERROR');
       expect(undefinedResult.metadata).toEqual({});
     });
@@ -416,7 +655,7 @@ describe('StripeErrorHelpers', () => {
       };
 
       // WHEN normalizing the error
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN complex metadata should be preserved
       expect(normalizedError.metadata).toEqual({
@@ -439,7 +678,7 @@ describe('StripeErrorHelpers', () => {
         message: 'Network request failed',
       };
 
-      const normalizedError = rehydrateBridgeError(bridgeError);
+      const normalizedError = rehydrateBridgeError(bridgeError).stripeError;
 
       expect(normalizedError).toBeInstanceOf(Error);
       expect(normalizedError.code).toBe('EUNSPECIFIED');
@@ -461,7 +700,7 @@ describe('StripeErrorHelpers', () => {
         },
       };
 
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       // THEN native underlyingError is preserved; preserveUnexpectedErrorInfo does not overwrite it
       expect(normalizedError.underlyingError).toEqual({
@@ -480,7 +719,7 @@ describe('StripeErrorHelpers', () => {
         refund: { id: 're_test', amount: 500, status: 'failed' },
       };
 
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       expect(normalizedError.refund).toEqual({
         id: 're_test',
@@ -489,13 +728,13 @@ describe('StripeErrorHelpers', () => {
       });
     });
 
-    it('should return an instance of Error', () => {
+    it('should keep the rehydrated stripeError an instance of Error', () => {
       const rawError = {
         code: 'CANCELED',
         message: 'The operation was canceled.',
       };
 
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       expect(normalizedError).toBeInstanceOf(Error);
     });
@@ -506,7 +745,7 @@ describe('StripeErrorHelpers', () => {
         message: 'The operation was canceled.',
       };
 
-      const normalizedError = rehydrateBridgeError(rawError);
+      const normalizedError = rehydrateBridgeError(rawError).stripeError;
 
       expect(normalizedError.code).toBe('CANCELED');
       expect(normalizedError.underlyingError).toBeUndefined();

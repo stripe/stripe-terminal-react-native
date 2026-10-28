@@ -1,6 +1,12 @@
 import React from 'react';
 import { useStripeTerminal } from '../index';
 
+/**
+ * Public SDK functions and state returned by {@link useStripeTerminal} and
+ * injected by {@link withStripeTerminal}. Use inside {@link StripeTerminalProvider}.
+ *
+ * @interface
+ */
 export type WithStripeTerminalProps = ReturnType<typeof useStripeTerminal>;
 
 /**

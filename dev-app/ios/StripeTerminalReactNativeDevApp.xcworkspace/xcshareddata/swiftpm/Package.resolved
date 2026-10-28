@@ -1,0 +1,15 @@
+{
+  "originHash" : "321a334dba44f887da1ddfc95430d1da6be7a8978d0d395c9773bf95ebee6512",
+  "pins" : [
+    {
+      "identity" : "stripe-terminal-ios-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stripe/stripe-terminal-ios-spm",
+      "state" : {
+        "revision" : "638c96fbc080ded9c79c52ab773d379697756fc7",
+        "version" : "6.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

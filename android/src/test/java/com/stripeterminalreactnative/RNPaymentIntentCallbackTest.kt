@@ -13,6 +13,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.test.assertEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
@@ -81,7 +82,10 @@ class RNPaymentIntentCallbackTest {
         val exception = mockTerminalException()
         val callback = RNPaymentIntentCallback(promise, uuid)
         callback.onFailure(exception)
-        verify(exactly = 1) { promise.resolve(any()) }
+        val resolved = slot<Any>()
+        verify(exactly = 1) { promise.resolve(capture(resolved)) }
+        val error = (resolved.captured as JavaOnlyMap).getMap("error")
+        assertEquals("native", error?.getString("error_source"))
     }
 
     @Test

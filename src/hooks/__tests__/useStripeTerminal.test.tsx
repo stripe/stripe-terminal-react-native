@@ -294,6 +294,14 @@ describe('useStripeTerminal.test.tsx', () => {
         reader: undefined,
       });
       expect(initResult.error).toBeInstanceOf(Error);
+      for (const field of ['error_source', 'errorSource', 'stripeError']) {
+        expect(initResult.error).not.toHaveProperty(field);
+        expect(Object.keys(initResult.error!)).not.toContain(field);
+        expect({ ...initResult.error }).not.toHaveProperty(field);
+        expect(JSON.parse(JSON.stringify(initResult.error))).not.toHaveProperty(
+          field
+        );
+      }
     });
 
     it('should return UNEXPECTED_SDK_ERROR when initialize is not a function', async () => {
@@ -321,6 +329,14 @@ describe('useStripeTerminal.test.tsx', () => {
         reader: undefined,
       });
       expect(initResult.error).toBeInstanceOf(Error);
+      for (const field of ['error_source', 'errorSource', 'stripeError']) {
+        expect(initResult.error).not.toHaveProperty(field);
+        expect(Object.keys(initResult.error!)).not.toContain(field);
+        expect({ ...initResult.error }).not.toHaveProperty(field);
+        expect(JSON.parse(JSON.stringify(initResult.error))).not.toHaveProperty(
+          field
+        );
+      }
     });
 
     it('public methods are called when it is initialized', () => {

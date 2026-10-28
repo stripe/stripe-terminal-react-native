@@ -9,6 +9,7 @@ enum class ReactNativeConstants(val listenerName: String) {
     REQUEST_READER_DISPLAY_MESSAGE("didRequestReaderDisplayMessage"),
     REQUEST_READER_INPUT("didRequestReaderInput"),
     REPORT_AVAILABLE_UPDATE("didReportAvailableUpdate"),
+    UPDATE_REQUIREMENTS_AVAILABLE("didUpdateRequirementsAvailable"),
     REPORT_UPDATE_PROGRESS("didReportReaderSoftwareUpdateProgress"),
     START_INSTALLING_UPDATE("didStartInstallingUpdate"),
     UPDATE_DISCOVERED_READERS("didUpdateDiscoveredReaders"),
@@ -24,6 +25,13 @@ enum class ReactNativeConstants(val listenerName: String) {
     REPORT_READER_EVENT("didReportReaderEvent"),
     PAYMENT_METHOD_SELECTION_REQUIRED("onPaymentMethodSelectionRequired"),
     QR_CODE_DISPLAY_REQUIRED("onQrCodeDisplayRequired"),
+}
+
+internal enum class ReactNativeBatteryStatus(val value: String) {
+    CRITICAL("critical"),
+    LOW("low"),
+    NOMINAL("nominal"),
+    UNKNOWN("unknown"),
 }
 
 enum class DeviceSerialName(val serialName: String) {

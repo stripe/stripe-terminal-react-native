@@ -5,6 +5,7 @@ import com.stripe.stripeterminal.external.CollectData
 import com.stripe.stripeterminal.external.callable.CollectedDataCallback
 import com.stripe.stripeterminal.external.models.CollectedData
 import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripeterminalreactnative.ErrorSource
 import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromCollectedData
 import com.stripeterminalreactnative.nativeMapOf
@@ -22,6 +23,6 @@ class RNCollectedDataCallback(
     }
 
     override fun onFailure(e: TerminalException) {
-        promise.resolve(createError(e))
+        promise.resolve(createError(e, ErrorSource.NATIVE))
     }
 }

@@ -3,29 +3,32 @@ import type {
   Charge,
   OfflineDetails,
   PaymentMethod,
-  PaymentMethodOptions,
+  PaymentMethodType,
+  PaymentMethodOptionsResponse,
   NextAction,
   ApiErrorInformation,
 } from './';
 
 export namespace PaymentIntent {
   export interface Type {
-    id: string;
+    id?: string;
     amount: number;
     amountCapturable?: number;
     amountDetails?: AmountDetails;
     amountReceived?: number;
     amountRequested?: number;
     amountTip?: number;
+    application?: string;
     applicationFeeAmount?: number;
     canceledAt?: string;
     cancellationReason?: string;
-    captureMethod: string;
-    charges: Charge[];
+    captureMethod?: string;
+    latestCharge?: Charge;
+    latestChargeId?: string;
     clientSecret?: string;
     confirmationMethod?: string;
     created: string;
-    currency: string;
+    currency?: string;
     customer?: string;
     description?: string;
     livemode: boolean;
@@ -35,9 +38,10 @@ export namespace PaymentIntent {
     onBehalfOf?: string;
     paymentMethod?: PaymentMethod.Type;
     paymentMethodId?: string;
-    paymentMethodOptions?: PaymentMethodOptions;
-    paymentMethodTypes?: number[];
+    paymentMethodOptions?: PaymentMethodOptionsResponse;
+    paymentMethodTypes?: PaymentMethodType[];
     receiptEmail?: string;
+    review?: string;
     lastPaymentError?: ApiErrorInformation;
     sdkUuid: string;
     setupFutureUsage?: string;

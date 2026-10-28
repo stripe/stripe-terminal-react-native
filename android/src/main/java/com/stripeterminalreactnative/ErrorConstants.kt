@@ -20,6 +20,7 @@ internal object ErrorConstants {
     const val MESSAGE_KEY = "message"
     const val CODE_KEY = "code"
     const val NATIVE_ERROR_CODE_KEY = "nativeErrorCode"
+    const val ERROR_SOURCE_KEY = "error_source"
 
     // Error name values
     const val STRIPE_ERROR_NAME = "StripeError"

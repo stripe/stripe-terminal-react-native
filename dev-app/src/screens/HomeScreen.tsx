@@ -12,6 +12,7 @@ import {
   Alert,
   NativeModules,
   ActivityIndicator,
+  DevSettings,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { colors } from '../colors';
@@ -138,7 +139,7 @@ export default function HomeScreen() {
         reason: 'Reader disconnected with reason ' + reason,
       });
     },
-    onDidStartReaderReconnect(reason) {
+    onDidStartReaderReconnect(_reader, reason) {
       console.log('onDidStartReaderReconnect ' + reason);
       Alert.alert(
         'Reconnecting...',
@@ -748,22 +749,42 @@ export default function HomeScreen() {
                 </Text>
               </List>
             )}
-            <List title="Version">
-              <ListItem
-                title="SDK Version"
-                rightElement={
-                  <Text style={styles.versionText}>{getSdkVersion()}</Text>
-                }
-              />
-              <ListItem
-                title="Native SDK Version"
-                rightElement={
-                  <Text style={styles.versionText}>{innerSdkVersion}</Text>
-                }
-              />
-            </List>
           </>
         )}
+
+        {__DEV__ && (
+          <List title="RELOAD TEST">
+            <ListItem
+              title="Reload React"
+              testID="reload-react-button"
+              color={colors.blue}
+              onPress={() =>
+                DevSettings.reload(
+                  'Test connection token fetch after React reload'
+                )
+              }
+            />
+            <Text style={styles.infoText}>
+              Reloads React in the same app process. Connect a simulated reader,
+              reload, then disconnect and connect again.
+            </Text>
+          </List>
+        )}
+
+        <List title="Version">
+          <ListItem
+            title="SDK Version"
+            rightElement={
+              <Text style={styles.versionText}>{getSdkVersion()}</Text>
+            }
+          />
+          <ListItem
+            title="Native SDK Version"
+            rightElement={
+              <Text style={styles.versionText}>{innerSdkVersion}</Text>
+            }
+          />
+        </List>
       </KeyboardAwareScrollView>
 
       <AlertDialog

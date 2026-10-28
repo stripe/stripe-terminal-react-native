@@ -141,7 +141,6 @@ export default function App() {
       {permissionsGranted ? (
         // {{ INTEGRATION-BUILDER START: #2f }}
         <StripeTerminalProvider
-          logLevel="verbose"
           tokenProvider={fetchConnectionToken}
           // {{ INTEGRATION-BUILDER START: #2f }}
         >

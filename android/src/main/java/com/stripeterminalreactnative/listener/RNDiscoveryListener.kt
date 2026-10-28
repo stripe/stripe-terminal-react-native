@@ -6,6 +6,7 @@ import com.stripe.stripeterminal.external.callable.Callback
 import com.stripe.stripeterminal.external.callable.DiscoveryListener
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripeterminalreactnative.ErrorSource
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.callback.NoOpCallback
@@ -41,7 +42,7 @@ internal class RNDiscoveryListener(
     override fun onFailure(e: TerminalException) {
         noOpCallback.onFailure(e)
         context.sendEvent(ReactNativeConstants.FINISH_DISCOVERING_READERS.listenerName) {
-            putMap("result", createError(e))
+            putMap("result", createError(e, ErrorSource.NATIVE))
         }
         onComplete()
     }

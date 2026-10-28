@@ -19,6 +19,17 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapFromLocationStatus(.notSet), "notSet")
     }
 
+    func testMapToTogglesAllowsMissingOptionalText() throws {
+        let toggles = try Mappers.mapToToggles([
+            ["defaultValue": "enabled"] as NSDictionary
+        ])
+
+        let toggle = try XCTUnwrap(toggles.first)
+        XCTAssertNil(toggle.title)
+        XCTAssertNil(toggle.stripeDescription)
+        XCTAssertEqual(toggle.defaultValue, .enabled)
+    }
+
     func testMapFromRequestPartialAuthorization() {
         XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.ifAvailable.rawValue), "if_available")
         XCTAssertEqual(Mappers.mapFromRequestPartialAuthorization(CardPresentRequestPartialAuthorization.never.rawValue), "never")
@@ -96,6 +107,93 @@ final class MappersTests: XCTestCase {
             Mappers.mapPaymentIntentPaymentMethodTypes([]),
             []
         )
+    }
+
+    func testMapFromPaymentMethodOptionsOmitsAbsentInstallments() throws {
+        let cardPresentParameters = try CardPresentParametersBuilder().build()
+        let options = try PaymentMethodOptionsParametersBuilder(
+            cardPresentParameters: cardPresentParameters
+        ).build()
+
+        let result = try XCTUnwrap(Mappers.mapFromPaymentMethodOptions(options))
+        let cardPresent = try XCTUnwrap(result["cardPresent"] as? NSDictionary)
+
+        XCTAssertNil(cardPresent["installments"])
+    }
+
+    func testMapFromInstallmentDetailsMapsEmptyPlans() throws {
+        let details = try makeInstallmentsParameters(enabled: true, availablePlans: [])
+
+        let result = try XCTUnwrap(Mappers.mapFromInstallmentDetails(details))
+        let plans = try XCTUnwrap(result["availablePlans"] as? [NSDictionary])
+
+        XCTAssertTrue(plans.isEmpty)
+        XCTAssertNil(result["plan"])
+    }
+
+    func testMapFromInstallmentDetailsMapsMultiplePlansAndSelectedPlan() throws {
+        let firstPlan = try makeInstallmentPlan(type: InstallmentPlanType.fixedCount.rawValue, count: 3, interval: InstallmentPlanInterval.month.rawValue)
+        let secondPlan = try makeInstallmentPlan(type: InstallmentPlanType.fixedCount.rawValue, count: 6, interval: InstallmentPlanInterval.month.rawValue)
+        let details = try makeInstallmentsParameters(
+            enabled: true,
+            availablePlans: [firstPlan, secondPlan],
+            plan: secondPlan
+        )
+
+        let result = try XCTUnwrap(Mappers.mapFromInstallmentDetails(details))
+        let plans = try XCTUnwrap(result["availablePlans"] as? [NSDictionary])
+
+        XCTAssertEqual(plans.count, 2)
+        XCTAssertEqual(plans[0]["type"] as? String, "fixed_count")
+        XCTAssertEqual(plans[0]["count"] as? Int, 3)
+        XCTAssertEqual(plans[0]["interval"] as? String, "month")
+        XCTAssertEqual(plans[1]["count"] as? Int, 6)
+        XCTAssertEqual((result["plan"] as? NSDictionary)?["count"] as? Int, 6)
+    }
+
+    func testMapFromInstallmentDetailsOmitsAbsentSelectedPlan() throws {
+        let plan = try makeInstallmentPlan(type: InstallmentPlanType.fixedCount.rawValue, count: 3, interval: InstallmentPlanInterval.month.rawValue)
+        let details = try makeInstallmentsParameters(enabled: false, availablePlans: [plan])
+
+        let result = try XCTUnwrap(Mappers.mapFromInstallmentDetails(details))
+
+        XCTAssertEqual(result["enabled"] as? Bool, false)
+        XCTAssertNil(result["plan"])
+    }
+
+    func testMapFromInstallmentPlanDetailsOmitsUnknownTypeAndInterval() throws {
+        let unknownType = try makeInstallmentPlan(type: 99, count: 3, interval: 99)
+        let knownTypeUnknownInterval = try makeInstallmentPlan(
+            type: InstallmentPlanType.fixedCount.rawValue,
+            count: 3,
+            interval: 99
+        )
+
+        XCTAssertNil(Mappers.mapFromInstallmentPlanDetails(unknownType))
+        let mapped = try XCTUnwrap(Mappers.mapFromInstallmentPlanDetails(knownTypeUnknownInterval))
+        XCTAssertEqual(mapped["type"] as? String, "fixed_count")
+        XCTAssertEqual(mapped["count"] as? Int, 3)
+        XCTAssertNil(mapped["interval"])
+    }
+
+    private func makeInstallmentPlan(type: UInt, count: Int, interval: UInt) throws -> InstallmentPlanDetails {
+        let plan = try XCTUnwrap(ObjCRuntimeHelper.createInstance(className: "SCPInstallmentPlanDetails"))
+        plan.setValue(NSNumber(value: type), forKey: "type")
+        plan.setValue(NSNumber(value: count), forKey: "count")
+        plan.setValue(NSNumber(value: interval), forKey: "interval")
+        return try XCTUnwrap(plan as? InstallmentPlanDetails)
+    }
+
+    private func makeInstallmentsParameters(
+        enabled: Bool,
+        availablePlans: [InstallmentPlanDetails],
+        plan: InstallmentPlanDetails? = nil
+    ) throws -> InstallmentsParameters {
+        let details = try XCTUnwrap(ObjCRuntimeHelper.createInstance(className: "SCPInstallmentsParameters"))
+        details.setValue(enabled, forKey: "enabled")
+        details.setValue(availablePlans, forKey: "availablePlans")
+        details.setValue(plan, forKey: "plan")
+        return try XCTUnwrap(details as? InstallmentsParameters)
     }
 
     func testCollectInputsReturnsMapper() {
@@ -317,6 +415,13 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(enable, .enableIfAvailable)
         let disable = Mappers.mapToCustomerCancellation("disableIfAvailable")
         XCTAssertEqual(disable, .disableIfAvailable)
+    }
+
+    func testMapToCollectDataType() {
+        XCTAssertEqual(Mappers.mapToCollectDataType("magstripe"), .magstripe)
+        XCTAssertEqual(Mappers.mapToCollectDataType("nfcUid"), .nfcUid)
+        XCTAssertNil(Mappers.mapToCollectDataType("unknown"))
+        XCTAssertNil(Mappers.mapToCollectDataType("unsupported"))
     }
 
     func testMapToMotoConfiguration() {
@@ -833,6 +938,7 @@ final class MappersTests: XCTestCase {
         XCTAssertNil(mapped["receiptNumber"])
         XCTAssertNil(mapped["sourceTransferReversal"])
         XCTAssertNil(mapped["transferReversal"])
+        XCTAssertNil(mapped["nextAction"])
     }
 
     func testMapFromRefund_mapsOptionalFields() {
@@ -882,10 +988,48 @@ final class MappersTests: XCTestCase {
         XCTAssertNotNil(mapped["created"])
     }
 
+    func testMapFromRefund_mapsNextAction() {
+        let json: NSDictionary = [
+            "id": "re_test_next_action",
+            "amount": 1000,
+            "currency": "usd",
+            "created": 1700000000,
+            "payment_intent": "pi_test",
+            "status": "requires_action",
+            "next_action": [
+                "type": "display_details",
+                "display_details": [
+                    "expires_at": 1700000100,
+                    "email_sent": [
+                        "email_sent_at": 1700000000,
+                        "email_sent_to": "customer@example.com"
+                    ]
+                ]
+            ]
+        ]
+        guard let typedRefund = ObjCRuntimeHelper.decodeRefund(json: json) else {
+            XCTFail("Could not decode SCPRefund via Obj-C runtime")
+            return
+        }
+
+        let mapped = Mappers.mapFromRefund(typedRefund)
+        let mappedNextAction = mapped["nextAction"] as? NSDictionary
+        let mappedDisplayDetails = mappedNextAction?["displayDetails"] as? NSDictionary
+        let mappedEmailSent = mappedDisplayDetails?["emailSent"] as? NSDictionary
+
+        XCTAssertEqual(mapped["status"] as? String, "requiresAction")
+        XCTAssertEqual(mappedNextAction?["type"] as? String, "display_details")
+        XCTAssertEqual(mappedDisplayDetails?["expiresAt"] as? String, "1700000100000")
+        XCTAssertEqual(mappedEmailSent?["emailSentAt"] as? String, "1700000000000")
+        XCTAssertEqual(mappedEmailSent?["emailSentTo"] as? String, "customer@example.com")
+    }
+
     func testMapFromRefundStatus() {
         XCTAssertEqual(Mappers.mapFromRefundStatus(.succeeded), "succeeded")
         XCTAssertEqual(Mappers.mapFromRefundStatus(.pending), "pending")
         XCTAssertEqual(Mappers.mapFromRefundStatus(.failed), "failed")
+        XCTAssertEqual(Mappers.mapFromRefundStatus(.canceled), "canceled")
+        XCTAssertEqual(Mappers.mapFromRefundStatus(.requiresAction), "requiresAction")
         XCTAssertEqual(Mappers.mapFromRefundStatus(.unknown), "unknown")
     }
 
@@ -904,7 +1048,10 @@ final class MappersTests: XCTestCase {
         si.setValue(true, forKey: "livemode")
         si.setValue(NSNumber(value: SetupIntentStatus.requiresConfirmation.rawValue), forKey: "status")
         si.setValue(NSNumber(value: SetupIntentUsage.offSession.rawValue), forKey: "usage")
-        si.setValue([] as [NSNumber], forKey: "paymentMethodTypes")
+        si.setValue([
+            NSNumber(value: PaymentMethodType.cardPresent.rawValue),
+            NSNumber(value: PaymentMethodType.wechatPay.rawValue)
+        ], forKey: "paymentMethodTypes")
         si.setValue("cus_test", forKey: "customer")
         si.setValue("Test setup intent", forKey: "stripeDescription")
         si.setValue("app_test", forKey: "application")
@@ -914,7 +1061,16 @@ final class MappersTests: XCTestCase {
         si.setValue("mandate_test", forKey: "mandate")
         si.setValue(["meta_key": "meta_val"], forKey: "metadata")
         si.setValue("acct_test", forKey: "onBehalfOf")
-        si.setValue("pm_test", forKey: "paymentMethod")
+        si.setValue("pm_test", forKey: "paymentMethodId")
+        guard let paymentMethod = ObjCRuntimeHelper.createInstance(className: "SCPPaymentMethod") else {
+            XCTFail("Could not create SCPPaymentMethod instance via Obj-C runtime")
+            return
+        }
+        paymentMethod.setValue("pm_test", forKey: "stripeId")
+        paymentMethod.setValue(NSNumber(value: PaymentMethodType.cardPresent.rawValue), forKey: "type")
+        paymentMethod.setValue([:] as [String: String], forKey: "metadata")
+        paymentMethod.setValue(false, forKey: "livemode")
+        si.setValue(paymentMethod, forKey: "paymentMethod")
         si.setValue("sum_test", forKey: "singleUseMandate")
 
         guard let typedSI = si as? SetupIntent else {
@@ -937,7 +1093,9 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(mapped["mandate"] as? String, "mandate_test")
         XCTAssertEqual(mapped["onBehalfOf"] as? String, "acct_test")
         XCTAssertEqual(mapped["paymentMethodId"] as? String, "pm_test")
+        XCTAssertEqual((mapped["paymentMethod"] as? NSDictionary)?["id"] as? String, "pm_test")
         XCTAssertEqual(mapped["singleUseMandate"] as? String, "sum_test")
+        XCTAssertEqual(mapped["paymentMethodTypes"] as? [String], ["cardPresent", "wechatPay"])
 
         guard let metadata = mapped["metadata"] as? NSDictionary else {
             XCTFail("metadata should be an NSDictionary")
@@ -973,6 +1131,86 @@ final class MappersTests: XCTestCase {
         XCTAssertNil(mapped["customer"])
         XCTAssertNil(mapped["latestAttempt"])
         XCTAssertNil(mapped["lastSetupError"])
+    }
+
+    func testMapFromPaymentIntent_mapsLatestChargeIdWithoutExpandedCharge() {
+        guard let pi = ObjCRuntimeHelper.createInstance(className: "SCPPaymentIntent") else {
+            XCTFail("Could not create SCPPaymentIntent instance via Obj-C runtime")
+            return
+        }
+
+        pi.setValue(100, forKey: "amount")
+        pi.setValue(NSNumber(value: CaptureMethod.automaticAsync.rawValue), forKey: "captureMethod")
+        pi.setValue(Date(timeIntervalSince1970: 1700000000), forKey: "created")
+        pi.setValue("usd", forKey: "currency")
+        pi.setValue(false, forKey: "livemode")
+        pi.setValue(NSNumber(value: PaymentIntentStatus.succeeded.rawValue), forKey: "status")
+        pi.setValue("ch_latest", forKey: "latestChargeId")
+        pi.setValue("ca_test", forKey: "application")
+        pi.setValue("prv_test", forKey: "review")
+        pi.setValue([
+            NSNumber(value: PaymentMethodType.interacPresent.rawValue),
+            NSNumber(value: PaymentMethodType.wechatPay.rawValue)
+        ], forKey: "paymentMethodTypes")
+
+        guard let typedPI = pi as? PaymentIntent else {
+            XCTFail("SCPPaymentIntent instance could not be cast to PaymentIntent")
+            return
+        }
+        let mapped = Mappers.mapFromPaymentIntent(typedPI, uuid: "uuid")
+
+        XCTAssertEqual(mapped["latestChargeId"] as? String, "ch_latest")
+        XCTAssertEqual(mapped["application"] as? String, "ca_test")
+        XCTAssertEqual(mapped["review"] as? String, "prv_test")
+        XCTAssertEqual(mapped["paymentMethodTypes"] as? [String], ["interacPresent", "wechatPay"])
+        XCTAssertNil(mapped["latestCharge"])
+    }
+
+    func testMapFromCardPresent_mapsStringReadMethod() {
+        guard let details = ObjCRuntimeHelper.createInstance(className: "SCPCardPresentDetails") else {
+            XCTFail("Could not create SCPCardPresentDetails instance via Obj-C runtime")
+            return
+        }
+
+        details.setValue("4242", forKey: "last4")
+        details.setValue(12, forKey: "expMonth")
+        details.setValue(2030, forKey: "expYear")
+        details.setValue("visa", forKey: "brand")
+        details.setValue("contact_emv", forKey: "readMethod")
+        details.setValue("par_test", forKey: "paymentAccountReference")
+
+        guard let typedDetails = details as? CardPresentDetails else {
+            XCTFail("SCPCardPresentDetails instance could not be cast to CardPresentDetails")
+            return
+        }
+        let mapped = Mappers.mapFromCardPresent(typedDetails)
+
+        XCTAssertEqual(mapped["readMethod"] as? String, "contact_emv")
+        XCTAssertEqual(mapped["paymentAccountReference"] as? String, "par_test")
+    }
+
+    func testMapFromReceiptDetails_usesCanonicalTerminalVerificationResultKey() {
+        guard let receipt = ObjCRuntimeHelper.createInstance(className: "SCPReceiptDetails") else {
+            XCTFail("Could not create SCPReceiptDetails instance via Obj-C runtime")
+            return
+        }
+
+        receipt.setValue("Visa", forKey: "applicationPreferredName")
+        receipt.setValue("A0000000031010", forKey: "dedicatedFileName")
+        receipt.setValue("00", forKey: "authorizationResponseCode")
+        receipt.setValue("cryptogram", forKey: "applicationCryptogram")
+        receipt.setValue("tvr-value", forKey: "terminalVerificationResults")
+        receipt.setValue("tsi-value", forKey: "transactionStatusInformation")
+        receipt.setValue("signature", forKey: "cardholderVerificationMethod")
+
+        guard let typedReceipt = receipt as? ReceiptDetails else {
+            XCTFail("SCPReceiptDetails instance could not be cast to ReceiptDetails")
+            return
+        }
+        let mapped = Mappers.mapFromReceiptDetails(typedReceipt)
+
+        XCTAssertEqual(mapped["terminalVerificationResult"] as? String, "tvr-value")
+        XCTAssertNil(mapped["terminalVerificationResults"])
     }
 
     // MARK: - mapFromSetupAttempt Tests
@@ -1323,6 +1561,7 @@ final class MappersTests: XCTestCase {
         let error = try XCTUnwrap(mappedBuzzerVolume["error"] as? NSDictionary)
 
         XCTAssertEqual(error["message"] as? String, "Unsupported")
+        XCTAssertEqual(error["error_source"] as? String, "native")
     }
 
     func testMapFromReaderSettingsOmitsAccessibilityStatusOnError() throws {
@@ -1357,7 +1596,9 @@ final class MappersTests: XCTestCase {
         let mappedAccessibility = try XCTUnwrap(result["accessibility"] as? NSDictionary)
 
         XCTAssertNil(mappedAccessibility["textToSpeechStatus"])
-        XCTAssertNotNil(mappedAccessibility["error"])
+        let error = try XCTUnwrap(mappedAccessibility["error"] as? NSDictionary)
+        XCTAssertEqual(error["error_source"] as? String, "native")
+        XCTAssertEqual(error["message"] as? String, "Unsupported")
     }
 
     func testMapFromReaderSettingsMapsUnknownAccessibilityStatusToError() throws {
@@ -1391,6 +1632,7 @@ final class MappersTests: XCTestCase {
 
         XCTAssertNil(mappedAccessibility["textToSpeechStatus"])
         XCTAssertEqual(accessibilityError["code"] as? String, "UNEXPECTED_SDK_ERROR")
+        XCTAssertEqual(accessibilityError["error_source"] as? String, "rn")
         XCTAssertEqual(mappedBuzzerVolume["currentVolume"] as? Int, 3)
         XCTAssertEqual(mappedBuzzerVolume["maxVolume"] as? Int, 5)
         XCTAssertNil(result["error"])
@@ -1418,6 +1660,7 @@ final class MappersTests: XCTestCase {
         let error = try XCTUnwrap(result["error"] as? NSDictionary)
 
         XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
+        XCTAssertEqual(error["error_source"] as? String, "rn")
     }
 }
 
@@ -1464,6 +1707,16 @@ struct TestableSignatureResult : stripe_terminal_react_native.SignatureResult {
 /// These are Obj-C classes (NSObject subclasses) so we can use the runtime to
 /// allocate + init them, then use KVC (setValue:forKey:) to set properties.
 private enum ObjCRuntimeHelper {
+    static func decodeRefund(json: NSDictionary) -> Refund? {
+        guard let cls = NSClassFromString("SCPRefund") as? NSObject.Type else {
+            return nil
+        }
+        return cls.perform(
+            NSSelectorFromString("decodedObjectFromJSON:"),
+            with: json
+        )?.takeUnretainedValue() as? Refund
+    }
+
     static func createInstance(className: String) -> NSObject? {
         guard let cls = NSClassFromString(className) as? NSObject.Type else {
             return nil

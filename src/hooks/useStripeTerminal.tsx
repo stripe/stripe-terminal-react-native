@@ -88,7 +88,7 @@ import { NativeModules } from 'react-native';
 //@ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
-import { createStripeError } from '../Errors/StripeErrorHelpers';
+import { createInternalStripeError } from '../Errors/StripeErrorHelpers';
 import { ErrorCode } from '../Errors/ErrorCodes';
 
 export const {
@@ -100,6 +100,7 @@ export const {
   REQUEST_READER_DISPLAY_MESSAGE,
   REQUEST_READER_INPUT,
   REPORT_AVAILABLE_UPDATE,
+  UPDATE_REQUIREMENTS_AVAILABLE,
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
@@ -152,7 +153,6 @@ export function useStripeTerminal(props?: Props) {
     discoveredReaders,
     loading,
     emitter,
-    log,
   } = useContext(StripeTerminalContext);
 
   const _isInitialized = useCallback(
@@ -165,6 +165,7 @@ export function useStripeTerminal(props?: Props) {
     onFinishDiscoveringReaders,
     onDidFinishInstallingUpdate,
     onDidReportAvailableUpdate,
+    onDidUpdateRequirementsAvailable,
     onDidReportReaderSoftwareUpdateProgress,
     onDidStartInstallingUpdate,
     onDidRequestReaderInput,
@@ -224,15 +225,28 @@ export function useStripeTerminal(props?: Props) {
     [onDidReportAvailableUpdate]
   );
 
+  const didUpdateRequirementsAvailable = useCallback(
+    ({ result }: EventResult<Reader.TapToPayUpdateRequirement[]>) => {
+      onDidUpdateRequirementsAvailable?.(result);
+    },
+    [onDidUpdateRequirementsAvailable]
+  );
+
   const didStartInstallingUpdate = useCallback(
-    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
-      onDidStartInstallingUpdate?.(result);
+    ({
+      result,
+      reader,
+    }: {
+      result: Reader.SoftwareUpdate;
+      reader?: Reader.Type;
+    }) => {
+      onDidStartInstallingUpdate?.(result, reader);
     },
     [onDidStartInstallingUpdate]
   );
 
   const didReportReaderSoftwareUpdateProgress = useCallback(
-    ({ result }: EventResult<{ progress: string }>) => {
+    ({ result }: EventResult<{ progress: number }>) => {
       onDidReportReaderSoftwareUpdateProgress?.(result.progress);
     },
     [onDidReportReaderSoftwareUpdateProgress]
@@ -241,20 +255,12 @@ export function useStripeTerminal(props?: Props) {
   const didFinishInstallingUpdate = useCallback(
     ({
       result,
-    }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
-      if ((result as { error: StripeError }).error) {
-        const { error } = result as { error: StripeError };
-
-        onDidFinishInstallingUpdate?.({
-          update: undefined,
-          error: error,
-        });
-      } else {
-        onDidFinishInstallingUpdate?.({
-          update: result as Reader.SoftwareUpdate,
-          error: undefined,
-        });
-      }
+      error,
+    }: {
+      result?: Reader.SoftwareUpdate;
+      error?: StripeError;
+    }) => {
+      onDidFinishInstallingUpdate?.(result, error);
     },
     [onDidFinishInstallingUpdate]
   );
@@ -293,7 +299,7 @@ export function useStripeTerminal(props?: Props) {
       reason,
     }: {
       reader: Reader.Type;
-      reason?: Reader.DisconnectReason;
+      reason: Reader.DisconnectReason;
     }) => {
       onDidStartReaderReconnect?.(reader, reason);
     },
@@ -326,21 +332,21 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const didForwardPaymentIntent = useCallback(
-    ({ result, error }: { result: PaymentIntent.Type; error: StripeError }) => {
+    ({ result, error }: { result: PaymentIntent.Type; error?: StripeError }) => {
       onDidForwardPaymentIntent?.(result, error);
     },
     [onDidForwardPaymentIntent]
   );
 
   const didReportForwardingError = useCallback(
-    ({ result }: { result?: { error?: StripeError } }) => {
-      onDidForwardingFailure?.(result?.error);
+    ({ result }: { result: { error: StripeError } }) => {
+      onDidForwardingFailure?.(result.error);
     },
     [onDidForwardingFailure]
   );
 
   const didDisconnect = useCallback(
-    ({ reason }: { reason?: Reader.DisconnectReason }) => {
+    ({ reason }: { reason: Reader.DisconnectReason }) => {
       onDidDisconnect?.(reason);
       setConnectedReader(null);
       setDiscoveredReaders([]);
@@ -371,6 +377,7 @@ export function useStripeTerminal(props?: Props) {
   }, [onDidAcceptTermsOfService]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
+  useListener(UPDATE_REQUIREMENTS_AVAILABLE, didUpdateRequirementsAvailable);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
   useListener(FINISH_INSTALLING_UPDATE, didFinishInstallingUpdate);
@@ -402,19 +409,21 @@ export function useStripeTerminal(props?: Props) {
     if (!initialize || typeof initialize !== 'function') {
       const errorMessage =
         'StripeTerminalProvider component is not found, has not been mounted properly or SDK has not been initialized properly';
-      log('Failed', errorMessage);
 
       return {
-        error: createStripeError({
-          code: ErrorCode.UNEXPECTED_SDK_ERROR,
-          message: errorMessage,
-        }),
+        error: createInternalStripeError(
+          {
+            code: ErrorCode.UNEXPECTED_SDK_ERROR,
+            message: errorMessage,
+          },
+          'rn'
+        ).stripeError,
         reader: undefined,
       };
     }
 
     return await initialize();
-  }, [initialize, log]);
+  }, [initialize]);
 
   const _cancelDiscovering = useCallback(async () => {
     if (!_isInitialized()) {

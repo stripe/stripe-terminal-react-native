@@ -2,6 +2,7 @@ package com.stripeterminalreactnative
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import com.facebook.react.bridge.JavaOnlyArray
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.ReadableArray
@@ -9,10 +10,13 @@ import com.facebook.react.bridge.ReadableMap
 import com.stripe.stripeterminal.external.DonationApi
 import com.stripe.stripeterminal.external.models.AllowRedisplay
 import com.stripe.stripeterminal.external.models.AmountDetails
+import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.BuzzerVolumeLevel
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.MulticaptureStatus
+import com.stripe.stripeterminal.external.models.CardPresentOptions
+import com.stripe.stripeterminal.external.models.CollectDataType
 import com.stripe.stripeterminal.external.models.CollectSetupIntentConfiguration
 import com.stripe.stripeterminal.external.models.AppTransitionAnimation
 import com.stripe.stripeterminal.external.models.AppTransitionPreset
@@ -25,6 +29,11 @@ import com.stripe.stripeterminal.external.models.EasyConnectConfiguration
 import com.stripe.stripeterminal.external.models.LocaleConfig
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentMethodType
+import com.stripe.stripeterminal.external.models.InstallmentDetails
+import com.stripe.stripeterminal.external.models.InstallmentPlanDetails
+import com.stripe.stripeterminal.external.models.InstallmentPlanInterval
+import com.stripe.stripeterminal.external.models.InstallmentPlanType
+import com.stripe.stripeterminal.external.models.PaymentMethodOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.ReaderAccessibility
 import com.stripe.stripeterminal.external.models.ReaderBuzzerVolume
@@ -40,6 +49,7 @@ import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult
 import com.stripe.stripeterminal.external.models.TestReaderUpdate
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
+import com.stripe.stripeterminal.external.models.TapToPayUpdateRequirement
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -64,6 +74,19 @@ class MapperTest {
         @ClassRule
         @JvmField
         val typeReplacer = ReactNativeTypeReplacementRule()
+    }
+
+    @Test
+    fun `optional primitive readers treat null as omitted`() {
+        val params = JavaOnlyMap().apply {
+            putNull("optionalBoolean")
+            putNull("optionalInt")
+        }
+
+        assertNull(params.getBooleanSafely("optionalBoolean"))
+        assertFalse(getBoolean(params, "optionalBoolean"))
+        assertTrue(getBoolean(params, "optionalBoolean", defaultValue = true))
+        assertNull(getInt(params, "optionalInt"))
     }
 
     @Test
@@ -165,6 +188,14 @@ class MapperTest {
     }
 
     @Test
+    fun `test mapFromBatteryStatus transform`() {
+        assertEquals("critical", mapFromBatteryStatus(BatteryStatus.CRITICAL))
+        assertEquals("low", mapFromBatteryStatus(BatteryStatus.LOW))
+        assertEquals("nominal", mapFromBatteryStatus(BatteryStatus.NOMINAL))
+        assertEquals("unknown", mapFromBatteryStatus(BatteryStatus.UNKNOWN))
+    }
+
+    @Test
     fun `test mapFromSetupAttempt transform`() {
         val setupAttempt = mockSetupAttempt()
         val result = mapFromSetupAttempt(setupAttempt)
@@ -173,11 +204,100 @@ class MapperTest {
     }
 
     @Test
+    fun `test mapFromSetupIntentPaymentMethodDetails includes normalized type`() {
+        val result = mapFromSetupIntentPaymentMethodDetails(
+            mockSetupIntentPaymentMethodDetails()
+        )
+
+        assertEquals("cardPresent", result.getString("type"))
+    }
+
+    @Test
     fun `test mapFromPaymentIntent transform`() {
         val paymentIntent = mockPaymentIntent()
         val result = mapFromPaymentIntent(paymentIntent, "aa")
         val expected = expectedPaymentIntent()
         assertEquals(result, expected)
+    }
+
+    @Test
+    fun `test mapFromPaymentMethodOptions omits absent installments`() {
+        val cardPresent = mockk<CardPresentOptions>(relaxed = true)
+        every { cardPresent.installments } returns null
+        val options = mockk<PaymentMethodOptions>(relaxed = true)
+        every { options.cardPresent } returns cardPresent
+
+        val result = mapFromPaymentMethodOptions(options)
+        val cardPresentMap = result?.getMap("cardPresent")
+
+        assertFalse(cardPresentMap?.hasKey("installments") == true)
+    }
+
+    @Test
+    fun `test mapFromInstallmentDetails maps empty available plans`() {
+        val details = InstallmentDetails(enabled = true, availablePlans = emptyList())
+        val result = mapFromInstallmentDetails(details)
+
+        assertEquals(true, result?.getBoolean("enabled"))
+        assertEquals(0, result?.getArray("availablePlans")?.size())
+        assertFalse(result?.hasKey("plan") == true)
+    }
+
+    @Test
+    fun `test mapFromInstallmentAvailablePlans maps one plan`() {
+        val plan = InstallmentPlanDetails(
+            type = InstallmentPlanType.FIXED_COUNT,
+            count = 3,
+            interval = InstallmentPlanInterval.MONTH,
+        )
+
+        val result = mapFromInstallmentAvailablePlans(listOf(plan))
+
+        assertEquals(1, result.size())
+        assertEquals("fixed_count", result.getMap(0)?.getString("type"))
+    }
+
+    @Test
+    fun `test mapFromInstallmentDetails maps multiple available plans and selected plan`() {
+        val firstPlan = InstallmentPlanDetails(
+            type = InstallmentPlanType.FIXED_COUNT,
+            count = 3,
+            interval = InstallmentPlanInterval.MONTH,
+        )
+        val secondPlan = firstPlan.copy(count = 6)
+        val details = InstallmentDetails(
+            enabled = true,
+            availablePlans = listOf(firstPlan, secondPlan),
+            plan = secondPlan,
+        )
+
+        val result = mapFromInstallmentDetails(details)
+        val plans = result?.getArray("availablePlans")
+
+        assertEquals(2, plans?.size())
+        assertEquals("fixed_count", plans?.getMap(0)?.getString("type"))
+        assertEquals(3, plans?.getMap(0)?.getInt("count"))
+        assertEquals("month", plans?.getMap(0)?.getString("interval"))
+        assertEquals(6, result?.getMap("plan")?.getInt("count"))
+    }
+
+    @Test
+    fun `test mapFromInstallmentDetails omits selected plan when absent`() {
+        val details = InstallmentDetails(
+            enabled = false,
+            availablePlans = listOf(
+                InstallmentPlanDetails(
+                    type = InstallmentPlanType.FIXED_COUNT,
+                    count = 3,
+                    interval = InstallmentPlanInterval.MONTH,
+                )
+            ),
+        )
+
+        val result = mapFromInstallmentDetails(details)
+
+        assertEquals(false, result?.getBoolean("enabled"))
+        assertFalse(result?.hasKey("plan") == true)
     }
 
     @Test
@@ -202,6 +322,143 @@ class MapperTest {
         val result = mapFromCharge(charge)
         val expected = expectedCharge()
         assertEquals(result, expected)
+    }
+
+    @Test
+    fun `test optional PaymentIntent fields are omitted when null`() {
+        val offlineDetails = mockOfflineDetails()
+        every { offlineDetails.cardPresentDetails } returns null
+        every { offlineDetails.amountDetails } returns null
+        val paymentIntent = mockPaymentIntent()
+        every { paymentIntent.id } returns null
+        every { paymentIntent.captureMethod } returns null
+        every { paymentIntent.currency } returns null
+        every { paymentIntent.offlineDetails } returns offlineDetails
+
+        val result = mapFromPaymentIntent(paymentIntent, "aa")
+
+        assertFalse(result.hasKey("id"))
+        assertFalse(result.hasKey("captureMethod"))
+        assertFalse(result.hasKey("currency"))
+        val mappedOfflineDetails = assertNotNull(result.getMap("offlineDetails"))
+        assertFalse(mappedOfflineDetails.hasKey("cardPresentDetails"))
+        assertFalse(mappedOfflineDetails.hasKey("amountDetails"))
+    }
+
+    @Test
+    fun `test optional SetupIntent fields are omitted when null`() {
+        val setupIntent = mockSetupIntent()
+        every { setupIntent.id } returns null
+        val setupIntentResult = mapFromSetupIntent(setupIntent, "aa")
+
+        val cardPresentDetails = mockSetupIntentCardPresentDetails()
+        every { cardPresentDetails.emvAuthData } returns null
+        every { cardPresentDetails.generatedCard } returns null
+        val cardPresentResult = assertNotNull(
+            mapFromSetupIntentCardPresentDetails(cardPresentDetails)
+        )
+
+        assertFalse(setupIntentResult.hasKey("id"))
+        assertFalse(cardPresentResult.hasKey("emvAuthData"))
+        assertFalse(cardPresentResult.hasKey("generatedCard"))
+    }
+
+    @Test
+    fun `test optional Charge and card present fields are omitted when null`() {
+        val cardPresentDetails = mockCardPresentDetails()
+        every { cardPresentDetails.brand } returns null
+        every { cardPresentDetails.last4 } returns null
+        every { cardPresentDetails.readMethod } returns null
+        every { cardPresentDetails.receiptDetails } returns null
+        val paymentMethodDetails = mockPaymentMethodDetails()
+        every { paymentMethodDetails.cardPresentDetails } returns cardPresentDetails
+        val charge = mockCharge()
+        every { charge.currency } returns null
+        every { charge.paymentMethodDetails } returns paymentMethodDetails
+
+        val result = mapFromCharge(charge)
+        val mappedPaymentMethodDetails = assertNotNull(result.getMap("paymentMethodDetails"))
+        val mappedCardPresentDetails = assertNotNull(
+            mappedPaymentMethodDetails.getMap("cardPresentDetails")
+        )
+
+        assertFalse(result.hasKey("currency"))
+        assertFalse(mappedCardPresentDetails.hasKey("brand"))
+        assertFalse(mappedCardPresentDetails.hasKey("last4"))
+        assertFalse(mappedCardPresentDetails.hasKey("readMethod"))
+        assertFalse(mappedCardPresentDetails.hasKey("receipt"))
+    }
+
+    @Test
+    fun `test optional offline card present fields are omitted when null`() {
+        val cardPresentDetails = mockOfflineCardPresentDetails()
+        every { cardPresentDetails.brand } returns null
+        every { cardPresentDetails.cardholderName } returns null
+        every { cardPresentDetails.last4 } returns null
+        every { cardPresentDetails.readMethod } returns null
+        every { cardPresentDetails.receiptDetails } returns null
+        val offlineDetails = mockOfflineDetails()
+        every { offlineDetails.cardPresentDetails } returns cardPresentDetails
+        val paymentIntent = mockPaymentIntent()
+        every { paymentIntent.offlineDetails } returns offlineDetails
+
+        val result = mapFromPaymentIntent(paymentIntent, "aa")
+        val mappedOfflineDetails = assertNotNull(result.getMap("offlineDetails"))
+        val mappedCardPresentDetails = assertNotNull(
+            mappedOfflineDetails.getMap("cardPresentDetails")
+        )
+
+        assertFalse(mappedCardPresentDetails.hasKey("brand"))
+        assertFalse(mappedCardPresentDetails.hasKey("cardholderName"))
+        assertFalse(mappedCardPresentDetails.hasKey("last4"))
+        assertFalse(mappedCardPresentDetails.hasKey("readMethod"))
+        assertFalse(mappedCardPresentDetails.hasKey("receiptDetails"))
+    }
+
+    @Test
+    fun `test optional ReceiptDetails fields are omitted when null`() {
+        assertNull(mapFromReceiptDetails(null))
+
+        val receiptDetails = mockReceiptDetails()
+        every { receiptDetails.accountType } returns null
+        every { receiptDetails.applicationCryptogram } returns null
+        every { receiptDetails.applicationPreferredName } returns null
+        every { receiptDetails.authorizationCode } returns null
+        every { receiptDetails.authorizationResponseCode } returns null
+        every { receiptDetails.cvm } returns null
+        every { receiptDetails.dedicatedFileName } returns null
+        every { receiptDetails.tsi } returns null
+        every { receiptDetails.tvr } returns null
+
+        val result = assertNotNull(mapFromReceiptDetails(receiptDetails))
+
+        listOf(
+            "accountType",
+            "applicationCryptogram",
+            "applicationPreferredName",
+            "authorizationCode",
+            "authorizationResponseCode",
+            "cvm",
+            "dedicatedFileName",
+            "transactionStatusInformation",
+            "terminalVerificationResult"
+        ).forEach { assertFalse(result.hasKey(it)) }
+    }
+
+    @Test
+    fun `test optional Location and QR code fields are omitted when null`() {
+        val location = mockLocation()
+        every { location.id } returns null
+        every { location.livemode } returns null
+        val locationResult = assertNotNull(mapFromLocation(location))
+
+        val qrCodeDisplayData = mockQrCodeDisplayData()
+        every { qrCodeDisplayData.qrCodeImageUrlSvg } returns null
+        val qrCodeResult = mapFromQrCodeDisplayData(qrCodeDisplayData)
+
+        assertFalse(locationResult.hasKey("id"))
+        assertFalse(locationResult.hasKey("livemode"))
+        assertFalse(qrCodeResult.hasKey("imageUrlSvg"))
     }
 
     @Test
@@ -297,6 +554,54 @@ class MapperTest {
     }
 
     @Test
+    fun `test mapToTheme transform and system default`() {
+        assertEquals(TapToPayUxConfiguration.Theme.DARK, mapToTheme("dark"))
+        assertEquals(TapToPayUxConfiguration.Theme.LIGHT, mapToTheme("light"))
+        assertEquals(TapToPayUxConfiguration.Theme.SYSTEM, mapToTheme("system"))
+        assertEquals(TapToPayUxConfiguration.Theme.SYSTEM, mapToTheme(null))
+        assertEquals(TapToPayUxConfiguration.Theme.SYSTEM, mapToTheme("unknown"))
+    }
+
+    @Test
+    fun `hexToArgb maps invalid colors to an invalid parameter error`() {
+        mockkStatic(Color::class)
+        every { Color.parseColor("not-a-color") } throws IllegalArgumentException()
+
+        listOf("", "not-a-color").forEach { color ->
+            val exception = assertFailsWith<TerminalException> { hexToArgb(color) }
+
+            assertEquals(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, exception.errorCode)
+            assertEquals("Invalid ARGB hex format", exception.message)
+        }
+    }
+
+    @Test
+    fun `mapToTapToPayColor maps invalid types to an invalid parameter error`() {
+        val colorScheme = JavaOnlyMap().apply { putInt("primary", 123) }
+
+        val exception = assertFailsWith<TerminalException> {
+            mapToTapToPayColor(colorScheme, "primary")
+        }
+
+        assertEquals(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, exception.errorCode)
+        assertEquals("Invalid ARGB hex format", exception.message)
+    }
+
+    @Test
+    fun `mapToTapToPayColor maps missing and null colors to default`() {
+        val colorScheme = JavaOnlyMap().apply { putNull("primary") }
+
+        assertEquals(
+            TapToPayUxConfiguration.Color.Default,
+            mapToTapToPayColor(colorScheme, "primary")
+        )
+        assertEquals(
+            TapToPayUxConfiguration.Color.Default,
+            mapToTapToPayColor(colorScheme, "success")
+        )
+    }
+
+    @Test
     fun `test mapToCustomerCancellation transform`() {
         assertEquals(
             mapToCustomerCancellation("enableIfAvailable"),
@@ -306,6 +611,14 @@ class MapperTest {
             mapToCustomerCancellation("disableIfAvailable"),
             CustomerCancellation.DISABLE_IF_AVAILABLE
         )
+    }
+
+    @Test
+    fun `test mapFromCollectDataType transform`() {
+        assertEquals(CollectDataType.MAGSTRIPE, mapFromCollectDataType("magstripe"))
+        assertEquals(CollectDataType.NFC_UID, mapFromCollectDataType("nfcUid"))
+        assertNull(mapFromCollectDataType("unknown"))
+        assertNull(mapFromCollectDataType("unsupported"))
     }
 
     @Test
@@ -410,6 +723,12 @@ class MapperTest {
                 putBoolean("skipCvc", true)
             })?.skipCvc,
             true
+        )
+        assertEquals(
+            mapToMotoConfiguration(JavaOnlyMap().apply {
+                putNull("skipCvc")
+            })?.skipCvc,
+            false
         )
     }
 
@@ -1065,6 +1384,29 @@ class MapperTest {
     }
 
     @Test
+    fun `test mapFromTapToPayUpdateRequirement transform`() {
+        val operatingSystem = mapFromTapToPayUpdateRequirement(
+            TapToPayUpdateRequirement.OperatingSystem(apiLevel = 35, requiredAtMs = 123L)
+        )
+        val securityPatch = mapFromTapToPayUpdateRequirement(
+            TapToPayUpdateRequirement.SecurityPatch(version = "2026-09-01", requiredAtMs = 456L)
+        )
+        val terminalSdk = mapFromTapToPayUpdateRequirement(
+            TapToPayUpdateRequirement.TerminalSdk(version = "6.1.0", requiredAtMs = 789L)
+        )
+
+        assertEquals("operatingSystem", operatingSystem.getString("type"))
+        assertEquals(35, operatingSystem.getInt("apiLevel"))
+        assertEquals("123", operatingSystem.getString("requiredAt"))
+        assertEquals("securityPatch", securityPatch.getString("type"))
+        assertEquals("2026-09-01", securityPatch.getString("version"))
+        assertEquals("456", securityPatch.getString("requiredAt"))
+        assertEquals("terminalSdk", terminalSdk.getString("type"))
+        assertEquals("6.1.0", terminalSdk.getString("version"))
+        assertEquals("789", terminalSdk.getString("requiredAt"))
+    }
+
+    @Test
     fun `test mapToTestReaderUpdate available`() {
         val map = JavaOnlyMap().apply {
             putString("type", "available")
@@ -1312,21 +1654,6 @@ class MapperTest {
     }
 
     @Test
-    fun `mapFromReaderSupportResult returns false and NonStripeError when NotSupported with generic Throwable`() {
-        val throwable = RuntimeException("NFC hardware unavailable")
-        val readerSupportResult = mockk<ReaderSupportResult> {
-            every { isSupported } returns false
-            every { error } returns throwable
-        }
-        val result = mapFromReaderSupportResult(readerSupportResult) as JavaOnlyMap
-        assertFalse(result.getBoolean("readerSupportResult"))
-        val error = result.getMap("error") as JavaOnlyMap
-        assertNotNull(error)
-        assertEquals("NonStripeError", error.getString("name"))
-        assertEquals("NFC hardware unavailable", error.getString("message"))
-    }
-
-    @Test
     fun `mapToReaderSettingsParameters maps accessibility settings`() {
         val params = JavaOnlyMap().apply {
             putBoolean("textToSpeechViaSpeakers", true)
@@ -1452,6 +1779,7 @@ class MapperTest {
         assertFalse(buzzerVolume.hasKey("error"))
         assertFalse(result.hasKey("error"))
         assertFalse(accessibility.hasKey("textToSpeechStatus"))
+        assertEquals("native", accessibility.getMap("error")?.getString("error_source"))
         assertEquals(
             "Accessibility is not supported",
             accessibility.getMap("error")?.getString("message")
@@ -1473,6 +1801,7 @@ class MapperTest {
 
         assertEquals("NonStripeError", error.getString("name"))
         assertEquals("Buzzer volume is not supported", error.getString("message"))
+        assertEquals("native", error.getString("error_source"))
     }
 }
 

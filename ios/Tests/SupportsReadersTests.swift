@@ -33,7 +33,7 @@ final class SupportsReadersTests: XCTestCase {
         // WHEN building the failure resolve dict (mirrors the modified .failure branch)
         let resolveDict: [String: Any] = [
             "readerSupportResult": false,
-            "error": Errors.mapToStripeErrorObject(nsError: nsError),
+            "error": Errors.mapToStripeErrorObject(nsError: nsError, source: .native),
         ]
 
         // THEN readerSupportResult is false
@@ -50,7 +50,7 @@ final class SupportsReadersTests: XCTestCase {
         // WHEN building the failure resolve dict
         let resolveDict: [String: Any] = [
             "readerSupportResult": false,
-            "error": Errors.mapToStripeErrorObject(nsError: nsError),
+            "error": Errors.mapToStripeErrorObject(nsError: nsError, source: .native),
         ]
 
         // THEN error is present with name, code, and message at the top level
@@ -69,7 +69,7 @@ final class SupportsReadersTests: XCTestCase {
         // WHEN building the failure resolve dict with mapToStripeErrorObject (not createErrorFromNSError)
         let resolveDict: [String: Any] = [
             "readerSupportResult": false,
-            "error": Errors.mapToStripeErrorObject(nsError: nsError),
+            "error": Errors.mapToStripeErrorObject(nsError: nsError, source: .native),
         ]
 
         // THEN resolveDict["error"] is the StripeError object itself — not a wrapper with an inner "error" key.

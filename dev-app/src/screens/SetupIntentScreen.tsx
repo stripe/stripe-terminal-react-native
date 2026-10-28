@@ -14,10 +14,10 @@ import {
   type CollectionReason,
   type CustomerCancellation,
   type MotoConfiguration,
+  type CreateSetupIntentParams,
 } from '@stripe/stripe-terminal-react-native';
 import { colors } from '../colors';
 import { LogContext } from '../components/LogContext';
-import { AppContext } from '../AppContext';
 import { DevAppError } from '../errors/DevAppError';
 
 import type { RouteParamList } from '../App';
@@ -26,10 +26,8 @@ import List from '../components/List';
 import ListItem from '../components/ListItem';
 import { Picker } from '@react-native-picker/picker';
 import type { NavigationProp } from '@react-navigation/native';
-import type { CreateSetupIntentParams } from 'lib/typescript/src';
 
 const ALLOW_REDISPLAY = [
-  { value: 'unspecified', label: 'unspecified' },
   { value: 'limited', label: 'limited' },
   { value: 'always', label: 'always' },
 ];
@@ -47,7 +45,6 @@ const COLLECTION_REASON = [
 ];
 
 export default function SetupIntentScreen() {
-  const { api } = useContext(AppContext);
   const { addLogs, clearLogs } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
@@ -62,6 +59,13 @@ export default function SetupIntentScreen() {
 
   const [allowRedisplay, setAllowRedisplay] =
     useState<AllowRedisplay>('always');
+
+  // Customer lookup requires internet access. Leave the optional customer unset
+  // so the SDK can create SetupIntents while offline.
+  const setupIntentParams: CreateSetupIntentParams =
+    motoConfiguration != undefined
+      ? { paymentMethodTypes: [PaymentMethodType.Card] }
+      : {};
 
   const {
     createSetupIntent,
@@ -207,37 +211,7 @@ export default function SetupIntentScreen() {
     let setupIntent: SetupIntent.Type | undefined;
     let setupIntentError: StripeError | undefined;
 
-    const resp = await api.lookupOrCreateExampleCustomer();
-
-    if ('error' in resp) {
-      console.log(resp.error);
-      addLogs({
-        name: 'Lookup / Create Customer',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.lookupOrCreateExampleCustomer',
-            metadata: {
-              errorCode: resp.error.code,
-              errorMessage: resp.error.message,
-            },
-          },
-        ],
-      });
-      return;
-    }
-    let parameter: CreateSetupIntentParams;
-    if (motoConfiguration != undefined) {
-      parameter = {
-        customer: resp.id,
-        paymentMethodTypes: [PaymentMethodType.Card],
-      };
-    } else {
-      parameter = {
-        customer: resp.id,
-      };
-    }
-    const createdSetupIntentResponse = await createSetupIntent(parameter);
+    const createdSetupIntentResponse = await createSetupIntent(setupIntentParams);
     setupIntent = createdSetupIntentResponse.setupIntent;
     setupIntentError = createdSetupIntentResponse.error;
 
@@ -334,37 +308,7 @@ export default function SetupIntentScreen() {
     let setupIntent: SetupIntent.Type | undefined;
     let setupIntentError: StripeError | undefined;
 
-    const resp = await api.lookupOrCreateExampleCustomer();
-
-    if ('error' in resp) {
-      console.log(resp.error);
-      addLogs({
-        name: 'Lookup / Create Customer',
-        events: [
-          {
-            name: 'Failed',
-            description: 'terminal.lookupOrCreateExampleCustomer',
-            metadata: {
-              errorCode: resp.error.code,
-              errorMessage: resp.error.message,
-            },
-          },
-        ],
-      });
-      return;
-    }
-    let parameter: CreateSetupIntentParams;
-    if (motoConfiguration != undefined) {
-      parameter = {
-        customer: resp.id,
-        paymentMethodTypes: [PaymentMethodType.Card],
-      };
-    } else {
-      parameter = {
-        customer: resp.id,
-      };
-    }
-    const response = await createSetupIntent(parameter);
+    const response = await createSetupIntent(setupIntentParams);
     setupIntent = response.setupIntent;
     setupIntentError = response.error;
 

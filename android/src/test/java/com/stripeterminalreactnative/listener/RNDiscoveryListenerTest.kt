@@ -13,10 +13,12 @@ import com.stripeterminalreactnative.ReactNativeTypeReplacementRule
 import com.stripeterminalreactnative.hasEmptyResult
 import com.stripeterminalreactnative.hasError
 import com.stripeterminalreactnative.hasValue
+import com.stripeterminalreactnative.toJavaOnlyMap
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
@@ -93,5 +95,7 @@ class RNDiscoveryListenerTest {
         verify(exactly = 1) { mockOnComplete.invoke() }
 
         assertTrue(typeReplacer.sendEventSlot.captured.hasError())
+        val error = typeReplacer.sendEventSlot.captured.toJavaOnlyMap().getMap("result")?.getMap("error")
+        assertEquals("native", error?.getString("error_source"))
     }
 }

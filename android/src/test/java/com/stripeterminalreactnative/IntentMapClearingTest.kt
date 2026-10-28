@@ -293,7 +293,7 @@ class IntentMapClearingTest {
         module.setupIntents["other_uuid"] = mockSetupIntent()
 
         val cbSlot = slot<SetupIntentCallback>()
-        every { terminal.processSetupIntent(any(), any(), any(), capture(cbSlot)) } answers {
+        every { terminal.processSetupIntent(any(), any(), capture(cbSlot)) } answers {
             cbSlot.captured.onSuccess(processedSi); mockCancelable
         }
         module.processSetupIntent(buildSetupIntentMethodParams(uuid), mockk(relaxed = true))
@@ -358,7 +358,7 @@ class IntentMapClearingTest {
         module.setupIntents[uuid] = existingSi
 
         val cbSlot = slot<SetupIntentCallback>()
-        every { terminal.processSetupIntent(any(), any(), any(), capture(cbSlot)) } answers {
+        every { terminal.processSetupIntent(any(), any(), capture(cbSlot)) } answers {
             cbSlot.captured.onFailure(mockTerminalExceptionWithSI(updatedSi)); mockCancelable
         }
         module.processSetupIntent(buildSetupIntentMethodParams(uuid), mockk(relaxed = true))
@@ -418,7 +418,7 @@ class IntentMapClearingTest {
         module.setupIntents[uuid] = existingSi
 
         val cbSlot = slot<SetupIntentCallback>()
-        every { terminal.processSetupIntent(any(), any(), any(), capture(cbSlot)) } answers {
+        every { terminal.processSetupIntent(any(), any(), capture(cbSlot)) } answers {
             cbSlot.captured.onFailure(mockTerminalException()); mockCancelable
         }
         module.processSetupIntent(buildSetupIntentMethodParams(uuid), mockk(relaxed = true))
@@ -486,7 +486,7 @@ class IntentMapClearingTest {
 
         val collectedSi = mockSetupIntent()
         val cbSlot = slot<SetupIntentCallback>()
-        every { terminal.collectSetupIntentPaymentMethod(any(), any(), any(), capture(cbSlot)) } answers {
+        every { terminal.collectSetupIntentPaymentMethod(any(), any(), capture(cbSlot)) } answers {
             cbSlot.captured.onSuccess(collectedSi); mockCancelable
         }
         module.collectSetupIntentPaymentMethod(
@@ -521,7 +521,7 @@ class IntentMapClearingTest {
         module.setupIntents[uuid] = originalSi
 
         val cbSlot = slot<SetupIntentCallback>()
-        every { terminal.collectSetupIntentPaymentMethod(any(), any(), any(), capture(cbSlot)) } answers {
+        every { terminal.collectSetupIntentPaymentMethod(any(), any(), capture(cbSlot)) } answers {
             cbSlot.captured.onFailure(mockTerminalExceptionWithSI(mockSetupIntent())); mockCancelable
         }
         module.collectSetupIntentPaymentMethod(

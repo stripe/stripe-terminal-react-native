@@ -12,7 +12,6 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
   "CollectDataType": {
     "MAGSTRIPE": "magstripe",
     "NFC_UID": "nfcUid",
-    "UNKNOWN": "unknown",
   },
   "DarkMode": {
     "DARK": "dark",
@@ -37,6 +36,7 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "BLUETOOTH_RECONNECT_STARTED": "BLUETOOTH_RECONNECT_STARTED",
     "BLUETOOTH_SCAN_TIMED_OUT": "BLUETOOTH_SCAN_TIMED_OUT",
     "CANCELED": "CANCELED",
+    "CANCELED_BY_READER": "CANCELED_BY_READER",
     "CANCELED_DUE_TO_INTEGRATION_ERROR": "CANCELED_DUE_TO_INTEGRATION_ERROR",
     "CANCEL_FAILED": "CANCEL_FAILED",
     "CARD_INSERT_NOT_READ": "CARD_INSERT_NOT_READ",
@@ -62,6 +62,7 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "GENERIC_READER_ERROR": "GENERIC_READER_ERROR",
     "INTERAC_NOT_SUPPORTED_OFFLINE": "INTERAC_NOT_SUPPORTED_OFFLINE",
     "INVALID_CLIENT_SECRET": "INVALID_CLIENT_SECRET",
+    "INVALID_INSTALLMENT_PLAN": "INVALID_INSTALLMENT_PLAN",
     "INVALID_MOTO_CONFIGURATION": "INVALID_MOTO_CONFIGURATION",
     "INVALID_OFFLINE_CURRENCY": "INVALID_OFFLINE_CURRENCY",
     "INVALID_REQUIRED_PARAMETER": "INVALID_REQUIRED_PARAMETER",
@@ -90,11 +91,11 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "PRINTER_BUSY": "PRINTER_BUSY",
     "PRINTER_COVER_OPEN": "PRINTER_COVER_OPEN",
     "PRINTER_ERROR": "PRINTER_ERROR",
-    "PRINTER_LOW_BATTERY": "PRINTER_LOW_BATTERY",
     "PRINTER_OUT_OF_PAPER": "PRINTER_OUT_OF_PAPER",
     "PRINTER_PAPERJAM": "PRINTER_PAPERJAM",
     "PRINTER_UNAVAILABLE": "PRINTER_UNAVAILABLE",
     "READER_BATTERY_CRITICALLY_LOW": "READER_BATTERY_CRITICALLY_LOW",
+    "READER_BATTERY_LOW": "READER_BATTERY_LOW",
     "READER_BUSY": "READER_BUSY",
     "READER_COMMUNICATION_ERROR": "READER_COMMUNICATION_ERROR",
     "READER_COMMUNICATION_SSL_ERROR": "READER_COMMUNICATION_SSL_ERROR",
@@ -153,6 +154,14 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "SIGNATURE": "signature",
     "TEXT": "text",
   },
+  "InstallmentPlanInterval": {
+    "Month": "month",
+  },
+  "InstallmentPlanType": {
+    "Bonus": "bonus",
+    "FixedCount": "fixed_count",
+    "Revolving": "revolving",
+  },
   "PaymentIntent": undefined,
   "PaymentMethod": undefined,
   "PaymentMethodType": {
@@ -189,13 +198,9 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "IOS_READER_MESSAGE": "readerMessage",
     "IOS_STRIPE_API_FAILURE_REASON": "stripeAPIFailureReason",
     "IOS_STRIPE_API_REQUEST_ID": "stripeAPIRequestId",
+    "IOS_TAP_TO_PAY_READER_ERROR_NAME": "tapToPayReaderErrorName",
   },
   "StripeTerminalProvider": [Function],
-  "StripeTerminalSdk": {
-    "addListener": [MockFunction],
-    "getConstants": [Function],
-    "removeListeners": [MockFunction],
-  },
   "ToggleResult": {
     "DISABLED": "disabled",
     "ENABLED": "enabled",
@@ -206,6 +211,7 @@ exports[`index.ts Public API snapshot ensure there are no unexpected changes to 
     "ENABLED": "enabled",
   },
   "UPDATE_DISCOVERED_READERS": "UPDATE_DISCOVERED_READERS",
+  "UPDATE_REQUIREMENTS_AVAILABLE": "UPDATE_REQUIREMENTS_AVAILABLE",
   "UpdateComponent": {
     "CONFIG": "config",
     "FIRMWARE": "firmware",

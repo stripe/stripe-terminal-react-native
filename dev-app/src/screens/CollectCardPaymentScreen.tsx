@@ -20,6 +20,7 @@ import {
   useStripeTerminal,
   PaymentMethodType,
   type PaymentIntent,
+  type CreatePaymentIntentParams,
   type StripeError,
   type AllowRedisplay,
   type CustomerCancellation,
@@ -55,6 +56,7 @@ const CURRENCIES = [
   { value: 'hkd', label: 'HKD' },
   { value: 'huf', label: 'HUF' },
   { value: 'jpy', label: 'JPY' },
+  { value: 'mxn', label: 'MXN' },
   { value: 'myr', label: 'MYR' },
   { value: 'nok', label: 'NOK' },
   { value: 'nzd', label: 'NZD' },
@@ -64,9 +66,26 @@ const CURRENCIES = [
   { value: 'sgd', label: 'SGD' },
 ];
 
-const CAPTURE_METHODS = [
-  { value: 'automatic', label: 'automatic' },
-  { value: 'manual', label: 'manual' },
+type CaptureMethod = NonNullable<CreatePaymentIntentParams['captureMethod']>;
+type CaptureMethodSelection = CaptureMethod | 'default';
+
+const CAPTURE_METHODS: {
+  value: CaptureMethodSelection;
+  label: string;
+  testID: string;
+}[] = [
+  {
+    value: 'default',
+    label: 'default (automatic_async)',
+    testID: 'capture-method-default',
+  },
+  { value: 'automatic', label: 'automatic', testID: 'automatic' },
+  {
+    value: 'automatic_async',
+    label: 'automatic_async',
+    testID: 'automatic_async',
+  },
+  { value: 'manual', label: 'manual', testID: 'manual' },
 ];
 
 const CUSTOMER_CANCELLATION = [
@@ -138,7 +157,7 @@ export default function CollectCardPaymentScreen() {
     requestPartialAuthorization?: string;
     requestMulticapture?: 'if_available' | 'never';
     requestReauthorization?: 'if_available' | 'never';
-    captureMethod: 'automatic' | 'manual';
+    captureMethod: CaptureMethodSelection;
     requestedPriority: 'domestic' | 'international' | '';
     offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
     offlineModeTransactionLimit: string;
@@ -156,6 +175,7 @@ export default function CollectCardPaymentScreen() {
   });
   const [testCardNumber, setTestCardNumber] = useState('4242424242424242');
   const [enableInterac, setEnableInterac] = useState(false);
+  const [enableInstallments, setEnableInstallments] = useState(false);
   const [enableConnect, setEnableConnect] = useState(false);
   const [skipTipping, setSkipTipping] = useState(false);
   const [enableUpdatePaymentIntent, setEnableUpdatePaymentIntent] =
@@ -303,12 +323,18 @@ export default function CollectCardPaymentScreen() {
         requestPartialAuthorization: inputValues.requestPartialAuthorization,
         requestMulticapture: inputValues.requestMulticapture,
         requestReauthorization: inputValues.requestReauthorization,
+        installments: enableInstallments
+          ? { enabled: true }
+          : undefined,
         captureMethod: inputValues?.cardPresentCaptureMethod,
         captureDelayDays: inputValues?.captureDelayDays
           ? Number(inputValues.captureDelayDays)
           : undefined,
       },
-      captureMethod: inputValues?.captureMethod,
+      captureMethod:
+        inputValues.captureMethod === 'default'
+          ? undefined
+          : inputValues.captureMethod,
       offlineBehavior: inputValues?.offlineBehavior,
     });
     paymentIntent = response.paymentIntent;
@@ -448,12 +474,18 @@ export default function CollectCardPaymentScreen() {
         requestPartialAuthorization: inputValues.requestPartialAuthorization,
         requestMulticapture: inputValues.requestMulticapture,
         requestReauthorization: inputValues.requestReauthorization,
+        installments: enableInstallments
+          ? { enabled: true }
+          : undefined,
         captureMethod: inputValues?.cardPresentCaptureMethod,
         captureDelayDays: inputValues?.captureDelayDays
           ? Number(inputValues.captureDelayDays)
           : undefined,
       },
-      captureMethod: inputValues?.captureMethod,
+      captureMethod:
+        inputValues.captureMethod === 'default'
+          ? undefined
+          : inputValues.captureMethod,
       offlineBehavior: inputValues?.offlineBehavior,
     });
     paymentIntent = response.paymentIntent;
@@ -588,27 +620,42 @@ export default function CollectCardPaymentScreen() {
               },
             ],
           });
-          if (recollectAfterCardBrandDecline) {
-            await cancelCollectPaymentMethod();
-            await _collectPaymentMethod(pi);
-            return;
-          } else {
-            let result = await cancelCollectPaymentMethod();
-            if (!result.error) {
-              addLogs({
-                name: 'Collect Payment Method',
-                events: [
-                  {
-                    name: 'Canceled',
-                    description: 'terminal.cancelCollectPaymentMethod',
-                    onBack: cancelCollectPaymentMethod,
-                    metadata: { paymentIntentId: pi.id },
-                  },
-                ],
-              });
-            }
+          // A completed collect can still leave a transaction session on the
+          // reader. Only recollect after the SDK confirms it was canceled.
+          const { error: cancelError } = await cancelCollectPaymentMethod();
+          if (cancelError) {
+            addLogs({
+              name: 'Cancel Collect Payment Method',
+              events: [
+                {
+                  name: 'Failed',
+                  description: 'terminal.cancelCollectPaymentMethod',
+                  onBack: cancelCollectPaymentMethod,
+                  metadata: DevAppError.fromStripeError(cancelError, {
+                    paymentIntentId: paymentIntent.id,
+                    cardBrand,
+                    recollectAfterCardBrandDecline,
+                  }).toJSON(),
+                },
+              ],
+            });
             return;
           }
+          addLogs({
+            name: 'Cancel Collect Payment Method',
+            events: [
+              {
+                name: 'Canceled',
+                description: 'terminal.cancelCollectPaymentMethod',
+                onBack: cancelCollectPaymentMethod,
+                metadata: { paymentIntentId: paymentIntent.id },
+              },
+            ],
+          });
+          if (recollectAfterCardBrandDecline) {
+            await _collectPaymentMethod(paymentIntent);
+          }
+          return;
         }
       }
       addLogs({
@@ -620,9 +667,6 @@ export default function CollectCardPaymentScreen() {
             description: 'terminal.collectPaymentMethod',
             metadata: {
               paymentIntentId: paymentIntent.id,
-              multicaptureStatus:
-                paymentIntent.paymentMethod?.cardPresentDetails
-                  ?.multicaptureStatus ?? 'not present',
               pi: JSON.stringify(paymentIntent, undefined, 2),
             },
           },
@@ -692,8 +736,8 @@ export default function CollectCardPaymentScreen() {
           description: 'terminal.confirmPaymentIntent',
           metadata: {
             paymententIntentId: paymentIntent.id ? paymentIntent.id : 'null',
-            chargeId: paymentIntent?.charges[0]?.id
-              ? paymentIntent.charges[0].id
+            chargeId: paymentIntent?.latestCharge?.id
+              ? paymentIntent.latestCharge.id
               : 'null',
             pi: JSON.stringify(paymentIntent, undefined, 2),
           },
@@ -702,9 +746,11 @@ export default function CollectCardPaymentScreen() {
     });
 
     // Set last successful charge Id in context for refunding later
-    if (paymentIntent?.charges[0]?.id) {
-      setLastSuccessfulChargeId(paymentIntent.charges[0].id);
-      setLastSuccessfulPaymentIntentId(paymentIntent.id);
+    if (paymentIntent?.latestCharge?.id) {
+      setLastSuccessfulChargeId(paymentIntent.latestCharge.id);
+      if (paymentIntent.id) {
+        setLastSuccessfulPaymentIntentId(paymentIntent.id);
+      }
       setLastSuccessfulPaymentClientSecret(paymentIntent.clientSecret || '');
       setLastSuccessfulAmount(paymentIntent.amount.toString());
     }
@@ -794,8 +840,8 @@ export default function CollectCardPaymentScreen() {
           description: 'terminal.processPaymentIntent',
           metadata: {
             paymententIntentId: paymentIntent.id ? paymentIntent.id : 'null',
-            chargeId: paymentIntent?.charges[0]?.id
-              ? paymentIntent.charges[0].id
+            chargeId: paymentIntent?.latestCharge?.id
+              ? paymentIntent.latestCharge.id
               : 'null',
             pi: JSON.stringify(paymentIntent, undefined, 2),
           },
@@ -804,9 +850,11 @@ export default function CollectCardPaymentScreen() {
     });
 
     // Set last successful charge Id in context for refunding later
-    if (paymentIntent?.charges[0]?.id) {
-      setLastSuccessfulChargeId(paymentIntent.charges[0].id);
-      setLastSuccessfulPaymentIntentId(paymentIntent.id);
+    if (paymentIntent?.latestCharge?.id) {
+      setLastSuccessfulChargeId(paymentIntent.latestCharge.id);
+      if (paymentIntent.id) {
+        setLastSuccessfulPaymentIntentId(paymentIntent.id);
+      }
       setLastSuccessfulPaymentClientSecret(paymentIntent.clientSecret || '');
       setLastSuccessfulAmount(paymentIntent.amount.toString());
     }
@@ -948,9 +996,9 @@ export default function CollectCardPaymentScreen() {
           >
             {CAPTURE_METHODS.map((a) => (
               <Picker.Item
-                key={a.value}
+                key={a.testID}
                 label={a.label}
-                testID={a.value}
+                testID={a.testID}
                 value={a.value}
               />
             ))}
@@ -1246,6 +1294,19 @@ export default function CollectCardPaymentScreen() {
                     requestIncrementalAuthorizationSupport: value,
                   }))
                 }
+              />
+            }
+          />
+        </List>
+
+        <List bolded={false} topSpacing={false} title="INSTALLMENTS">
+          <ListItem
+            title="Enable Installments"
+            rightElement={
+              <Switch
+                testID="enable-installments"
+                value={enableInstallments}
+                onValueChange={setEnableInstallments}
               />
             }
           />

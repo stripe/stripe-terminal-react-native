@@ -1,7 +1,7 @@
 PODS:
-  - EXConstants (56.0.23):
+  - EXConstants (56.0.27):
     - ExpoModulesCore
-  - Expo (56.0.19):
+  - Expo (56.0.23):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -27,11 +27,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoAsset (56.0.22):
+  - ExpoAsset (56.0.25):
     - ExpoModulesCore
   - ExpoDomWebView (56.0.6):
     - ExpoModulesCore
-  - ExpoFileSystem (56.0.9):
+  - ExpoFileSystem (56.0.11):
     - ExpoModulesCore
   - ExpoFont (56.0.7):
     - ExpoModulesCore
@@ -39,7 +39,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLogBox (56.0.14):
     - React-Core
-  - ExpoModulesCore (56.0.23):
+  - ExpoModulesCore (56.0.27):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -63,13 +63,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoModulesJSI (56.0.12):
+  - ExpoModulesJSI (56.0.14):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (56.0.23):
+  - ExpoModulesWorklets (56.0.27):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (56.0.23):
+  - ExpoModulesWorkletsAdapter (56.0.27):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
@@ -2143,7 +2143,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-terminal-react-native (0.0.1-beta.32):
+  - stripe-terminal-react-native (0.0.1-beta.33):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2164,9 +2164,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - StripeTerminal (~> 5.7.0)
+    - StripeTerminal (~> 5.8.0)
     - Yoga
-  - StripeTerminal (5.7.0)
+  - StripeTerminal (5.8.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2468,21 +2468,21 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: 2b9b16a805cf5bce697037611890e5d73090077e
-  Expo: 6d733b51db0aa9d540fd2fd986b60764bfddd10b
-  ExpoAsset: 16c1d38758be9a8d2f781f8e5f8a352f5ecb3626
+  EXConstants: 387170f4d3327f54e6d8c5f93bfd6af0a374338f
+  Expo: 36947676060fa7361383092483dde7adedae061c
+  ExpoAsset: 7c4bd2b39dabb8418bacb8af87ed7ddfe36931fe
   ExpoDomWebView: fc6ec6e9a8e1ea00e6b13511768e70ffc7a71e04
-  ExpoFileSystem: 7cebe8a361ad7ec3e77321a68acf8288030ed50e
+  ExpoFileSystem: 06e017fa5765ba13dd9667a2b038fbd483fa557e
   ExpoFont: fac52e4d28848a270f198ec8d7bfa45dde9752c6
   ExpoKeepAwake: edf05a0a5cdeddbb9fe705b49243ec6aef9cfded
   ExpoLogBox: c611a5bdbeaa4110d3c9a6494039b4e8d2c9a4ea
-  ExpoModulesCore: 01585925ab542241332d597210e330c1637786ff
-  ExpoModulesJSI: 420a2dee5f7c1fa87f4a610b550b7671b5d33266
-  ExpoModulesWorklets: c28b609c3a7779575c1d7f8030948e7aa3d57e70
-  ExpoModulesWorkletsAdapter: ff29e1e33b3b0d5d2399f876093f196c08241994
+  ExpoModulesCore: 95080c0597e510fc972543a003424dbf6b8b5126
+  ExpoModulesJSI: 73cb13b28f86cea98c77ecfd92cbf5617a92bd6e
+  ExpoModulesWorklets: 7b1024920cff1fb7b8f8811ddba7556674242876
+  ExpoModulesWorkletsAdapter: e365fa92db3f614976479c6a857f6f4a22544d0a
   ExpoSplashScreen: 467b928715ab988ea8192799f9b32ed5d25cc087
   FBLazyVector: 24e62c765683b8d89006a88a2c8f5cf019f0074d
-  hermes-engine: 88424461466db3f61212d0c2306ebb6c5acd1ae1
+  hermes-engine: 756ab76e9ada1b348d2320bdfce2545a84778e98
   RCTDeprecation: a4c521821fab57cbb125b36effe84d897d0dfa12
   RCTRequired: 9f3a7e5645d4bc3f551593de7550bb66ab6e42bc
   RCTSwiftUI: 239ed2eb9e73de5a6f518810630f0c95e01c8702
@@ -2491,7 +2491,7 @@ SPEC CHECKSUMS:
   React: e2dc35338068bbd299c66f043ae0d7f25de8499e
   React-callinvoker: 28b25d21b124c26cebaea713ba7d801b9351dc48
   React-Core: f90d375d3bab515ad00df30605ce1bf02e6db12f
-  React-Core-prebuilt: 30391e8ddf0b90936a21eb4c644413204974e011
+  React-Core-prebuilt: f0b862ab9ca4327846325cbb2091d199990160e8
   React-CoreModules: da4f80202ef954bdfb926ca4c9ac5f685900aa5c
   React-cxxreact: 1d1d2a28a5f10e4e2e7cf2bfd54dc9c92c68c672
   React-debug: 92944dc4d89f56d640e75498266cbde557a48189
@@ -2555,17 +2555,17 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: a54c0c9b976766e1b6d5e2bb4d1ad0d15913e9e1
   ReactCodegen: 9af5798e943781fd2318dab7b60f25337388047c
   ReactCommon: 3ec2a55999d296af90c24beb66c8a77dc660d3ef
-  ReactNativeDependencies: 19a42518e631480f948887b06b613928b6dd4dab
+  ReactNativeDependencies: cd475897ff56a6de5244c2e0a7ec1395a0a8899f
   RNCAsyncStorage: 0f84413588571e74ef9cff6e3b669346e3abf9cb
   RNCMaskedView: 48989935d9665d97d87fa7e44f486b4d22cd5b9f
   RNCPicker: 5850b195903c126967b2dffcf9500299c8581177
   RNGestureHandler: acf7db8499c11193d9b4b6b1cc1439ff4f01a693
   RNScreens: dcd5c85a822d9cbb21fc321bbbbcf918f3d48c23
   RNWorklets: 32b9ca9e0588b838ce3202a9ea3971f553c9011c
-  stripe-terminal-react-native: 03dde836ab66c6a2995ba724cbec52bec23b175b
-  StripeTerminal: eb4b4a85efe1365f562dab7e589cfa77ec2bdc99
+  stripe-terminal-react-native: d76d91682ea6f764f7f8ca08893d4d11543c2914
+  StripeTerminal: 93b5d9ae383058c38940f6730ca734937b6043db
   Yoga: 77dfa8673de2874e1855002ae59c68b8be9b007b
 
-PODFILE CHECKSUM: 5b00abd3454125140674b786b5eceaacddafb295
+PODFILE CHECKSUM: 60c5f82a769ff01c047af610a7f96175ba195ac7
 
 COCOAPODS: 1.16.2

@@ -11,6 +11,6 @@ object TestConstants {
     const val EXCEPTION_CLASS_KEY = "exceptionClass"
     const val PAYMENT_INTENT_KEY = "paymentIntent"
     const val SETUP_INTENT_KEY = "setupIntent"
+    const val REFUND_KEY = "refund"
     // endregion
 }
-

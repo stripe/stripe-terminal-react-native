@@ -1641,6 +1641,13 @@
     "@types/react" "*"
     react-native "*"
 
+"@types/react-test-renderer@^19.1.0":
+  version "19.3.0"
+  resolved "https://registry.npmjs.org/@types/react-test-renderer/-/react-test-renderer-19.3.0.tgz#719edd157d3982cbd905826e6a019d23709fc063"
+  integrity sha512-TX4p2D4Z2oigM3SXU7+QyLSUnSR0vR1S1Pfxm/qFL9nHQ3jclgi6ioGoWQmlIr1DeKRVmPJrmNlhgM0JlWlLUg==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react@*":
   version "19.2.7"
   resolved "https://registry.npmjs.org/@types/react/-/react-19.2.7.tgz#84e62c0f23e8e4e5ac2cadcea1ffeacccae7f62f"
@@ -4633,12 +4640,13 @@ react-native-canvas@^0.1.40:
   dependencies:
     ctx-polyfill "^1.1.4"
 
-react-native-gesture-handler@^2.29.0:
-  version "2.29.1"
-  resolved "https://registry.npmjs.org/react-native-gesture-handler/-/react-native-gesture-handler-2.29.1.tgz#d13041f739b9da91a7a8b8e66b840c7396037fe0"
-  integrity sha512-du3qmv0e3Sm7qsd9SfmHps+AggLiylcBBQ8ztz7WUtd8ZjKs5V3kekAbi9R2W9bRLSg47Ntp4GGMYZOhikQdZA==
+react-native-gesture-handler@^2.31.0:
+  version "2.33.0"
+  resolved "https://registry.npmjs.org/react-native-gesture-handler/-/react-native-gesture-handler-2.33.0.tgz#a86e79cd262f64450469a239c1935250ee600587"
+  integrity sha512-aFMjweXGrsDKwxjAiH7Kl+nc7qAudl0MF6Bqlxf9QQEUNDWBpsQ5WXA7sF6eLFaeRQGEq4ERKr6iuD+GfmunFA==
   dependencies:
     "@egjs/hammerjs" "^2.0.17"
+    "@types/react-test-renderer" "^19.1.0"
     hoist-non-react-statics "^3.3.0"
     invariant "^2.2.4"
 

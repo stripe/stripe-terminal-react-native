@@ -7,6 +7,7 @@ import com.stripe.stripeterminal.Terminal
 import com.stripe.stripeterminal.external.callable.PaymentIntentCallback
 import com.stripe.stripeterminal.external.models.CardPresentCaptureMethod
 import com.stripe.stripeterminal.external.models.CardPresentParameters
+import com.stripe.stripeterminal.external.models.CaptureMethod
 import com.stripe.stripeterminal.external.models.PaymentIntentParameters
 import io.mockk.every
 import io.mockk.mockk
@@ -69,6 +70,47 @@ class CreatePaymentIntentTest {
     }
 
     @Test
+    fun `createPaymentIntent treats null optional primitives as omitted`() {
+        val params = JavaOnlyMap().apply {
+            putInt("amount", 5000)
+            putString("currency", "usd")
+            putArray("paymentMethodTypes", JavaOnlyArray())
+            putNull("applicationFeeAmount")
+            putMap("paymentMethodOptions", JavaOnlyMap().apply {
+                putNull("requestExtendedAuthorization")
+                putNull("requestIncrementalAuthorizationSupport")
+                putNull("captureDelayDays")
+                putMap("installments", JavaOnlyMap().apply {
+                    putNull("enabled")
+                })
+            })
+        }
+
+        val cbSlot = slot<PaymentIntentCallback>()
+        every { terminal.createPaymentIntent(any(), capture(cbSlot), any()) } answers {
+            cbSlot.captured.onSuccess(mockPaymentIntent())
+        }
+
+        module.createPaymentIntent(params, mockk(relaxed = true))
+
+        assertEquals(1, module.paymentIntents.size)
+    }
+
+    @Test
+    fun `createPaymentIntent maps automatic_async capture method`() {
+        val capturedParams = capturePaymentIntentParameters("automatic_async")
+
+        assertEquals(CaptureMethod.AutomaticAsync, capturedParams.captureMethod)
+    }
+
+    @Test
+    fun `createPaymentIntent preserves automatic_async default when capture method is omitted`() {
+        val capturedParams = capturePaymentIntentParameters(null)
+
+        assertEquals(CaptureMethod.AutomaticAsync, capturedParams.captureMethod)
+    }
+
+    @Test
     fun `createPaymentIntent maps automatic_delayed to CardPresentCaptureMethod AutomaticDelayed with captureDelayDays`() {
         val params = JavaOnlyMap().apply {
             putInt("amount", 5000)
@@ -117,5 +159,82 @@ class CreatePaymentIntentTest {
         val cardPresentParams = capturedParams.paymentMethodOptionsParameters?.cardPresentParameters
         assertEquals(CardPresentCaptureMethod.AutomaticDelayed, cardPresentParams?.captureMethod)
         assertNull(cardPresentParams?.captureDelayDays)
+    }
+
+    @Test
+    fun `createPaymentIntent omits installments when paymentMethodOptions is absent`() {
+        val cardPresentParams = createPaymentIntentWithInstallments()
+
+        assertNull(cardPresentParams?.installments)
+    }
+
+    @Test
+    fun `createPaymentIntent omits installments when paymentMethodOptions is empty`() {
+        val cardPresentParams = createPaymentIntentWithInstallments(
+            includeEmptyPaymentMethodOptions = true,
+        )
+
+        assertNull(cardPresentParams?.installments)
+    }
+
+    @Test
+    fun `createPaymentIntent maps enabled installments`() {
+        val cardPresentParams = createPaymentIntentWithInstallments(enabled = true)
+
+        assertEquals(true, cardPresentParams?.installments?.enabled)
+    }
+
+    @Test
+    fun `createPaymentIntent preserves explicitly disabled installments`() {
+        val cardPresentParams = createPaymentIntentWithInstallments(enabled = false)
+
+        assertEquals(false, cardPresentParams?.installments?.enabled)
+    }
+
+    private fun capturePaymentIntentParameters(captureMethod: String?): PaymentIntentParameters {
+        val params = JavaOnlyMap().apply {
+            putInt("amount", 5000)
+            putString("currency", "usd")
+            putArray("paymentMethodTypes", JavaOnlyArray())
+            captureMethod?.let { putString("captureMethod", it) }
+        }
+
+        val intentParamsSlot = slot<PaymentIntentParameters>()
+        val cbSlot = slot<PaymentIntentCallback>()
+        every { terminal.createPaymentIntent(capture(intentParamsSlot), capture(cbSlot), any()) } answers {
+            cbSlot.captured.onSuccess(mockPaymentIntent())
+        }
+
+        module.createPaymentIntent(params, mockk(relaxed = true))
+        return intentParamsSlot.captured
+    }
+
+    private fun createPaymentIntentWithInstallments(
+        enabled: Boolean? = null,
+        includeEmptyPaymentMethodOptions: Boolean = false,
+    ): CardPresentParameters? {
+        val params = JavaOnlyMap().apply {
+            putInt("amount", 5000)
+            putString("currency", "mxn")
+            putArray("paymentMethodTypes", JavaOnlyArray())
+            when {
+                enabled != null -> putMap("paymentMethodOptions", JavaOnlyMap().apply {
+                    putMap("installments", JavaOnlyMap().apply {
+                        putBoolean("enabled", enabled)
+                    })
+                })
+                includeEmptyPaymentMethodOptions -> putMap("paymentMethodOptions", JavaOnlyMap())
+            }
+        }
+
+        val intentParamsSlot = slot<PaymentIntentParameters>()
+        val cbSlot = slot<PaymentIntentCallback>()
+        every { terminal.createPaymentIntent(capture(intentParamsSlot), capture(cbSlot), any()) } answers {
+            cbSlot.captured.onSuccess(mockPaymentIntent())
+        }
+
+        module.createPaymentIntent(params, mockk(relaxed = true))
+
+        return intentParamsSlot.captured.paymentMethodOptionsParameters?.cardPresentParameters
     }
 }

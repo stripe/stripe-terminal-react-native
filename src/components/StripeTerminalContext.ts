@@ -13,7 +13,7 @@ type ContextType = {
   setConnectedReader(value: Reader.Type | null): void;
   setDiscoveredReaders(value: Reader.Type[]): void;
   initialize?(): Promise<InitializeResultType>;
-  log(code: string, message?: any): void;
+  log(code: string): void;
 };
 
 export const StripeTerminalContext = createContext<ContextType>({

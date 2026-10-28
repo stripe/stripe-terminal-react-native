@@ -28,9 +28,9 @@ export default function UpdateReaderScreen() {
       onDidReportReaderSoftwareUpdateProgress: (progress) => {
         setCurrentProgress((Number(progress) * 100).toFixed(0).toString());
       },
-      onDidFinishInstallingUpdate: (result) => {
-        if (result.error) {
-          showErrorAlert(result.error);
+      onDidFinishInstallingUpdate: (_update, error) => {
+        if (error) {
+          showErrorAlert(error);
         } else {
           params?.onDidUpdate();
         }

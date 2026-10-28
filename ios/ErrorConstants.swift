@@ -20,6 +20,7 @@ struct ErrorConstants {
     static let rnErrorMessage = "message"
     static let rnErrorCode = "code"
     static let rnErrorNativeErrorCode = "nativeErrorCode"
+    static let rnErrorSource = "error_source"
 
     // MARK: - RN Error Name Values
     static let rnStripeErrorName = "StripeError"
@@ -62,6 +63,7 @@ struct ErrorConstants {
     static let rnMetadataStripeAPIRequestId     = "stripeAPIRequestId"
     static let rnMetadataStripeAPIFailureReason = "stripeAPIFailureReason"
     static let rnMetadataOfflineDeclineReason   = "offlineDeclineReason"
+    static let rnMetadataTapToPayReaderErrorName = "tapToPayReaderErrorName"
 
     // MARK: - NSError UserInfo Keys (from Stripe Terminal SDK)
     // These keys are directly imported from StripeTerminal SDK as ErrorKey enum values.
@@ -71,6 +73,7 @@ struct ErrorConstants {
     // Tap to Pay specific
     static let deviceBannedUntilDate = ErrorKey.deviceBannedUntilDate.rawValue
     static let prepareFailedReason = ErrorKey.prepareFailedReason.rawValue
+    static let tapToPayReaderErrorName = ErrorKey.tapToPayReaderErrorName.rawValue
 
     // API error related
     static let httpStatusCode = ErrorKey.httpStatusCode.rawValue

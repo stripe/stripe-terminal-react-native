@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		24C7E187271805C30025FC13 /* Empty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E186271805C30025FC13 /* Empty.swift */; };
+		2B282E241950700EB4FBC071 /* StripeTerminal in Frameworks */ = {isa = PBXBuildFile; productRef = D0FA31396E0A35C02B5B6699 /* StripeTerminal */; };
 		3B5A4C9A2EA9314800C2F001 /* DevAppRestart.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B5A4C992EA9314800C2F001 /* DevAppRestart.m */; };
 		4C39C56BAD484C67AA576FFA /* libPods-StripeTerminalReactNativeDevApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA3E69C5B9553B26FBA2DF04 /* libPods-StripeTerminalReactNativeDevApp.a */; };
 		4E3334442DF12A0000534394 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3334432DF129FA00534394 /* AppDelegate.swift */; };
@@ -85,6 +86,7 @@
 			files = (
 				4C39C56BAD484C67AA576FFA /* libPods-StripeTerminalReactNativeDevApp.a in Frameworks */,
 				4EF8ED712E0A79BD005B85E3 /* IOKit.framework in Frameworks */,
+				2B282E241950700EB4FBC071 /* StripeTerminal in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +219,9 @@
 				4EF8ED5B2E0A710C005B85E3 /* PBXTargetDependency */,
 			);
 			name = StripeTerminalReactNativeDevApp;
+			packageProductDependencies = (
+				D0FA31396E0A35C02B5B6699 /* StripeTerminal */,
+			);
 			productName = StripeTerminalReactNativeDevApp;
 			productReference = 13B07F961A680F5B00A75B9A /* StripeTerminalReactNativeDevApp.app */;
 			productType = "com.apple.product-type.application";
@@ -263,6 +268,9 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				7B44007471ED83DF5361FBA3 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -411,7 +419,7 @@
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
 				INFOPLIST_FILE = StripeTerminalReactNativeDevApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -440,7 +448,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Y28TH9SHX7;
 				INFOPLIST_FILE = StripeTerminalReactNativeDevApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -475,7 +483,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = Y28TH9SHX7;
-				DRIVERKIT_DEPLOYMENT_TARGET = 20.4;
+				DRIVERKIT_DEPLOYMENT_TARGET = 21.0;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -527,7 +535,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = Y28TH9SHX7;
-				DRIVERKIT_DEPLOYMENT_TARGET = 20.0;
+				DRIVERKIT_DEPLOYMENT_TARGET = 21.0;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -605,7 +613,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -680,7 +688,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -740,6 +748,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7B44007471ED83DF5361FBA3 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-terminal-ios-spm";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D0FA31396E0A35C02B5B6699 /* StripeTerminal */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B44007471ED83DF5361FBA3 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */;
+			productName = StripeTerminal;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }

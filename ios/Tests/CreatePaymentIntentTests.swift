@@ -17,20 +17,49 @@ final class CreatePaymentIntentTests: XCTestCase {
         super.tearDown()
     }
 
-    func testUnsetCaptureMethodResolvesToManual() {
-        // Mirrors the switch in StripeTerminalReactNative.createPaymentIntent
-        let resolveCapture: (String?) -> CaptureMethod = { captureMethod in
-            switch captureMethod {
-            case "automatic":
-                return .automatic
-            default:
-                return .manual
-            }
-        }
+    func testCaptureMethodMapping() {
+        XCTAssertNil(Mappers.mapToCaptureMethod(nil), "nil should preserve the SDK's automatic-async default")
+        XCTAssertEqual(Mappers.mapToCaptureMethod("automatic"), .automatic)
+        XCTAssertEqual(Mappers.mapToCaptureMethod("automatic_async"), .automaticAsync)
+        XCTAssertEqual(Mappers.mapToCaptureMethod("manual"), .manual)
+        XCTAssertNil(Mappers.mapToCaptureMethod("unknown_value"))
 
-        XCTAssertEqual(resolveCapture(nil), .manual, "nil should resolve to .manual")
-        XCTAssertEqual(resolveCapture("automatic"), .automatic)
-        XCTAssertEqual(resolveCapture("manual"), .manual)
-        XCTAssertEqual(resolveCapture("unknown_value"), .manual, "Unknown values should fall through to .manual")
+        XCTAssertEqual(Mappers.mapFromCaptureMethod(.automatic), "automatic")
+        XCTAssertEqual(Mappers.mapFromCaptureMethod(.automaticAsync), "automatic_async")
+        XCTAssertEqual(Mappers.mapFromCaptureMethod(.manual), "manual")
+    }
+
+    func testInstallmentsInputIsAbsentWhenPaymentMethodOptionsAreAbsent() throws {
+        let installments = try sut.mapToInstallmentsParameters(nil)
+
+        XCTAssertNil(installments)
+    }
+
+    func testEmptyPaymentMethodOptionsOmitsInstallments() throws {
+        let installments = try sut.mapToInstallmentsParameters([:])
+
+        XCTAssertNil(installments)
+    }
+
+    func testEnabledInstallmentsInputBuildsAnEnabledNativeModel() throws {
+        let installments = try sut.mapToInstallmentsParameters([
+            "installments": ["enabled": true]
+        ])
+
+        XCTAssertEqual(installments?.enabled, true)
+    }
+
+    func testDisabledInstallmentsInputPreservesFalseInTheNativeModel() throws {
+        let installments = try sut.mapToInstallmentsParameters([
+            "installments": ["enabled": false]
+        ])
+
+        XCTAssertEqual(installments?.enabled, false)
+    }
+
+    func testInvalidInstallmentsEnabledInputThrows() {
+        XCTAssertThrowsError(try sut.mapToInstallmentsParameters([
+            "installments": ["enabled": "true"]
+        ]))
     }
 }

@@ -16,8 +16,9 @@ import { initialize, setConnectionToken } from '../functions';
 import { useListener } from '../hooks/useListener';
 import { NativeModules } from 'react-native';
 import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
-import { createStripeError } from '../Errors/StripeErrorHelpers';
+import { createInternalStripeError } from '../Errors/StripeErrorHelpers';
 import { ErrorCode } from '../Errors/ErrorCodes';
+import Logger from '../logger';
 
 const {
   FETCH_TOKEN_PROVIDER,
@@ -28,6 +29,7 @@ const {
   REQUEST_READER_DISPLAY_MESSAGE,
   REQUEST_READER_INPUT,
   REPORT_AVAILABLE_UPDATE,
+  UPDATE_REQUIREMENTS_AVAILABLE,
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,
@@ -60,7 +62,10 @@ const TOKEN_PROVIDER_ERROR_MESSAGE =
  * @example
  * ```ts
  * import { AppsOnDevicesConnectionTokenProvider } from '@stripe/stripe-terminal-react-native';
- * <StripeTerminalProvider tokenProvider={AppsOnDevicesConnectionTokenProvider}>
+ * <StripeTerminalProvider
+ *   tokenProvider={AppsOnDevicesConnectionTokenProvider}
+ *   localeConfig={{ type: 'cardLanguagePreferenceIfAvailable' }}
+ * >
  *   <App />
  * </StripeTerminalProvider>
  * ```
@@ -83,14 +88,16 @@ const initializeWithTokenProvider = async (
 ) => {
   try {
     await tokenProvider();
-  } catch (error) {
+  } catch {
     console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
-    console.error(error);
     return {
-      error: createStripeError({
-        code: ErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR,
-        message: TOKEN_PROVIDER_ERROR_MESSAGE,
-      }),
+      error: createInternalStripeError(
+        {
+          code: ErrorCode.CONNECTION_TOKEN_PROVIDER_ERROR,
+          message: TOKEN_PROVIDER_ERROR_MESSAGE,
+        },
+        'rn'
+      ),
     };
   }
 
@@ -120,7 +127,7 @@ export interface Props {
    */
   tokenProvider: () => Promise<string>;
   logLevel?: LogLevel;
-  localeConfig?: LocaleConfig;
+  localeConfig: LocaleConfig;
 }
 
 /**
@@ -129,13 +136,19 @@ export interface Props {
  * @example
  * ```ts
  * // Using a custom token provider (standard setup)
- * <StripeTerminalProvider tokenProvider={fetchTokenProvider}>
+ * <StripeTerminalProvider
+ *   tokenProvider={fetchTokenProvider}
+ *   localeConfig={{ type: 'cardLanguagePreferenceIfAvailable' }}
+ * >
  *   <App />
  * </StripeTerminalProvider>
  *
  * // Using Apps-on-Devices serverless mode (Android only, on Stripe smart readers)
  * import { AppsOnDevicesConnectionTokenProvider } from '@stripe/stripe-terminal-react-native';
- * <StripeTerminalProvider tokenProvider={AppsOnDevicesConnectionTokenProvider}>
+ * <StripeTerminalProvider
+ *   tokenProvider={AppsOnDevicesConnectionTokenProvider}
+ *   localeConfig={{ type: 'cardLanguagePreferenceIfAvailable' }}
+ * >
  *   <App />
  * </StripeTerminalProvider>
  * ```
@@ -158,9 +171,9 @@ export function StripeTerminalProvider({
   const [discoveredReaders, setDiscoveredReaders] = useState<Reader.Type[]>([]);
 
   const log = useCallback(
-    (code: string, message?: any) => {
+    (code: string) => {
       if (logLevel === 'verbose') {
-        console.log(`[Stripe terminal]: ${code}`, message);
+        console.log(`[Stripe terminal] ${code}`);
       }
     },
     [logLevel]
@@ -168,7 +181,7 @@ export function StripeTerminalProvider({
 
   const didUpdateDiscoveredReaders = useCallback(
     ({ readers }: { readers: Reader.Type[] }) => {
-      log('didUpdateDiscoveredReaders', readers);
+      log('didUpdateDiscoveredReaders');
       emitter?.emit(UPDATE_DISCOVERED_READERS, readers);
     },
     [log]
@@ -176,7 +189,7 @@ export function StripeTerminalProvider({
 
   const didFinishDiscoveringReaders = useCallback(
     ({ result }: EventResult<{ error?: StripeError }>) => {
-      log('didFinishDiscoveringReaders', result);
+      log('didFinishDiscoveringReaders');
       // result.error is already rehydrated by useListener when present
       emitter?.emit(FINISH_DISCOVERING_READERS, result.error);
     },
@@ -185,23 +198,37 @@ export function StripeTerminalProvider({
 
   const didReportAvailableUpdate = useCallback(
     ({ result }: EventResult<Reader.SoftwareUpdate>) => {
-      log('didReportAvailableUpdate', result);
+      log('didReportAvailableUpdate');
       emitter?.emit(REPORT_AVAILABLE_UPDATE, result);
     },
     [log]
   );
 
+  const didUpdateRequirementsAvailable = useCallback(
+    ({ result }: EventResult<Reader.TapToPayUpdateRequirement[]>) => {
+      log('didUpdateRequirementsAvailable');
+      emitter?.emit(UPDATE_REQUIREMENTS_AVAILABLE, result);
+    },
+    [log]
+  );
+
   const didStartInstallingUpdate = useCallback(
-    ({ result }: EventResult<Reader.SoftwareUpdate>) => {
-      log('didStartInstallingUpdate', result);
-      emitter?.emit(START_INSTALLING_UPDATE, result);
+    ({
+      result,
+      reader,
+    }: {
+      result: Reader.SoftwareUpdate;
+      reader?: Reader.Type;
+    }) => {
+      log('didStartInstallingUpdate');
+      emitter?.emit(START_INSTALLING_UPDATE, result, reader);
     },
     [log]
   );
 
   const didReportReaderSoftwareUpdateProgress = useCallback(
-    ({ result }: EventResult<{ progress: string }>) => {
-      log('didReportReaderSoftwareUpdateProgress', result);
+    ({ result }: EventResult<{ progress: number }>) => {
+      log('didReportReaderSoftwareUpdateProgress');
       emitter?.emit(REPORT_UPDATE_PROGRESS, result.progress);
     },
     [log]
@@ -210,23 +237,20 @@ export function StripeTerminalProvider({
   const didFinishInstallingUpdate = useCallback(
     ({
       result,
-    }: EventResult<Reader.SoftwareUpdate | { error: StripeError }>) => {
-      log('didFinishInstallingUpdate', result);
-      const raw = result as { error?: StripeError };
-      if (raw.error) {
-        emitter?.emit(FINISH_INSTALLING_UPDATE, {
-          error: raw.error,
-        });
-      } else {
-        emitter?.emit(FINISH_INSTALLING_UPDATE, result);
-      }
+      error,
+    }: {
+      result?: Reader.SoftwareUpdate;
+      error?: StripeError;
+    }) => {
+      log('didFinishInstallingUpdate');
+      emitter?.emit(FINISH_INSTALLING_UPDATE, result, error);
     },
     [log]
   );
 
   const didRequestReaderInput = useCallback(
     ({ result }: EventResult<Reader.InputOptions[]>) => {
-      log('didRequestReaderInput', result);
+      log('didRequestReaderInput');
       emitter?.emit(REQUEST_READER_INPUT, result);
     },
     [log]
@@ -234,7 +258,7 @@ export function StripeTerminalProvider({
 
   const didRequestReaderDisplayMessage = useCallback(
     ({ result }: EventResult<Reader.DisplayMessage>) => {
-      log('didRequestReaderDisplayMessage', result);
+      log('didRequestReaderDisplayMessage');
       emitter?.emit(REQUEST_READER_DISPLAY_MESSAGE, result);
     },
     [log]
@@ -242,7 +266,7 @@ export function StripeTerminalProvider({
 
   const didChangePaymentStatus = useCallback(
     ({ result }: EventResult<PaymentStatus>) => {
-      log('didChangePaymentStatus', result);
+      log('didChangePaymentStatus');
       emitter?.emit(CHANGE_PAYMENT_STATUS, result);
     },
     [log]
@@ -250,16 +274,22 @@ export function StripeTerminalProvider({
 
   const didChangeConnectionStatus = useCallback(
     ({ result }: EventResult<Reader.ConnectionStatus>) => {
-      log('didChangeConnectionStatus', result);
+      log('didChangeConnectionStatus');
       emitter?.emit(CHANGE_CONNECTION_STATUS, result);
     },
     [log]
   );
 
   const didStartReaderReconnect = useCallback(
-    ({ reason }: { reason: Reader.DisconnectReason }) => {
-      log('didStartReaderReconnect', reason);
-      emitter?.emit(START_READER_RECONNECT, reason);
+    ({
+      reader,
+      reason,
+    }: {
+      reader: Reader.Type;
+      reason: Reader.DisconnectReason;
+    }) => {
+      log('didStartReaderReconnect');
+      emitter?.emit(START_READER_RECONNECT, reader, reason);
     },
     [log]
   );
@@ -273,41 +303,41 @@ export function StripeTerminalProvider({
   );
 
   const didFailReaderReconnect = useCallback(
-    ({ error }: { error?: StripeError }) => {
+    ({ reader }: { reader: Reader.Type }) => {
       log('didFailReaderReconnect');
-      emitter?.emit(READER_RECONNECT_FAIL, error);
+      emitter?.emit(READER_RECONNECT_FAIL, reader);
     },
     [log]
   );
 
   const didChangeOfflineStatus = useCallback(
     ({ result }: { result?: OfflineStatus }) => {
-      log('didChangeOfflineStatus', result);
+      log('didChangeOfflineStatus');
       emitter?.emit(CHANGE_OFFLINE_STATUS, result);
     },
     [log]
   );
 
   const didForwardPaymentIntent = useCallback(
-    ({ result, error }: { result: PaymentIntent.Type; error: StripeError }) => {
-      log('didForwardPaymentIntent', { ...result, ...error });
+    ({ result, error }: { result: PaymentIntent.Type; error?: StripeError }) => {
+      log('didForwardPaymentIntent');
       emitter?.emit(FORWARD_PAYMENT_INTENT, result, error);
     },
     [log]
   );
 
   const didReportForwardingError = useCallback(
-    ({ result }: { result?: { error?: StripeError } }) => {
-      const error = result?.error;
-      log('didReportForwardingError', error);
+    ({ result }: { result: { error: StripeError } }) => {
+      const error = result.error;
+      log('didReportForwardingError');
       emitter?.emit(REPORT_FORWARDING_ERROR, error);
     },
     [log]
   );
 
   const didDisconnect = useCallback(
-    ({ reason }: { reason?: Reader.DisconnectReason }) => {
-      log('didDisconnect', reason);
+    ({ reason }: { reason: Reader.DisconnectReason }) => {
+      log('didDisconnect');
       emitter?.emit(DISCONNECT, reason);
     },
     [log]
@@ -315,7 +345,7 @@ export function StripeTerminalProvider({
 
   const didUpdateBatteryLevel = useCallback(
     ({ result }: { result?: Reader.BatteryLevel }) => {
-      log('didUpdateBatteryLevel', result);
+      log('didUpdateBatteryLevel');
       emitter?.emit(UPDATE_BATTERY_LEVEL, result);
     },
     [log]
@@ -323,7 +353,7 @@ export function StripeTerminalProvider({
 
   const didReportLowBatteryWarning = useCallback(
     ({ result }: { result?: string }) => {
-      log('didReportLowBatteryWarning', result);
+      log('didReportLowBatteryWarning');
       emitter?.emit(REPORT_LOW_BATTERY_WARNING, result);
     },
     [log]
@@ -331,7 +361,7 @@ export function StripeTerminalProvider({
 
   const didReportReaderEvent = useCallback(
     ({ result }: EventResult<ReaderEvent>) => {
-      log('didReportReaderEvent', result);
+      log('didReportReaderEvent');
       emitter?.emit(REPORT_READER_EVENT, result);
     },
     [log]
@@ -343,6 +373,7 @@ export function StripeTerminalProvider({
   }, [log]);
 
   useListener(REPORT_AVAILABLE_UPDATE, didReportAvailableUpdate);
+  useListener(UPDATE_REQUIREMENTS_AVAILABLE, didUpdateRequirementsAvailable);
   useListener(START_INSTALLING_UPDATE, didStartInstallingUpdate);
   useListener(REPORT_UPDATE_PROGRESS, didReportReaderSoftwareUpdateProgress);
   useListener(FINISH_INSTALLING_UPDATE, didFinishInstallingUpdate);
@@ -370,18 +401,17 @@ export function StripeTerminalProvider({
   useListener(REPORT_READER_EVENT, didReportReaderEvent);
   useListener(ACCEPT_TERMS_OF_SERVICE, didAcceptTermsOfService);
 
-  const tokenProviderHandler = async () => {
+  const tokenProviderHandler = useCallback(async () => {
     try {
       const connectionToken = await tokenProvider();
 
       setConnectionToken(connectionToken, undefined);
-    } catch (error) {
+    } catch {
       setConnectionToken(undefined, TOKEN_PROVIDER_ERROR_MESSAGE);
 
-      console.error(error);
       console.error(TOKEN_PROVIDER_ERROR_MESSAGE);
     }
-  };
+  }, [tokenProvider]);
 
   useListener(FETCH_TOKEN_PROVIDER, tokenProviderHandler);
 
@@ -389,17 +419,19 @@ export function StripeTerminalProvider({
     const initParams: InitParams = { logLevel, localeConfig };
 
     setLoading(true);
-    log('initialize', `tokenProvider mode: ${isAppsOnDevicesMode ? 'AppsOnDevicesConnectionTokenProvider' : 'StandardConnectionTokenProvider'}`);
+    log('initialize');
 
-    const response = isAppsOnDevicesMode
-      ? await initializeWithServerlessAppsOnDevices(initParams)
-      : await initializeWithTokenProvider(initParams, tokenProvider);
+    const response = await Logger.traceSdkMethod(async () => {
+      return isAppsOnDevicesMode
+        ? initializeWithServerlessAppsOnDevices(initParams)
+        : initializeWithTokenProvider(initParams, tokenProvider);
+    }, 'initialize')();
 
     if (response.error) {
-      log(response.error.code, response.error.message);
+      log(response.error.code);
     } else {
       if (response.reader) {
-        log('Connected to the reader: ', response.reader);
+        log('Connected to the reader');
         setConnectedReader(response.reader);
       }
       isInitializedRef.current = true;

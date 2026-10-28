@@ -11,6 +11,8 @@
 
 import type { StripeError } from '../types/StripeError';
 import { ErrorCode } from './ErrorCodes';
+import { InternalStripeError } from './InternalStripeError';
+import type { ErrorSource } from './InternalStripeError';
 
 const VALID_ERROR_CODES = new Set<string>(Object.values(ErrorCode));
 
@@ -29,7 +31,7 @@ function extractMetadata(obj: Record<string, unknown>): Record<string, unknown> 
     : {};
 }
 
-function isValidErrorCode(code: string): code is ErrorCode {
+export function isValidErrorCode(code: string): code is ErrorCode {
   return VALID_ERROR_CODES.has(code);
 }
 
@@ -119,9 +121,37 @@ export function createStripeError(
   return stripeError;
 }
 
+/** Creates an internal container around the existing public error. @internal */
+export function createInternalStripeError(
+  init: Parameters<typeof createStripeError>[0],
+  source: ErrorSource
+): InternalStripeError {
+  return new InternalStripeError(createStripeError(init), source);
+}
+
+/** Normalizes operation errors while preserving internal errors and Error causes. @internal */
+export function normalizeError(error: unknown): InternalStripeError {
+  if (error instanceof InternalStripeError) {
+    return error;
+  }
+
+  const internalError = createInternalStripeError(
+    {
+      code: ErrorCode.UNEXPECTED_SDK_ERROR,
+      message:
+        error instanceof Error ? error.message : ErrorCode.UNEXPECTED_SDK_ERROR,
+    },
+    'rn'
+  );
+  if (error instanceof Error) {
+    internalError.stripeError.cause = error;
+  }
+  return internalError;
+}
+
 /**
  * Rehydrates a plain object from the React Native bridge into a proper
- * StripeError instance (with Error.prototype in its prototype chain).
+ * StripeError instance, held in an internal container with its source.
  *
  * The RN bridge serializes native errors (iOS NSDictionary / Android WritableMap)
  * into plain JS objects, losing the Error prototype. This function reconstructs
@@ -133,12 +163,17 @@ export function createStripeError(
  *
  * @internal
  */
-export function rehydrateBridgeError(raw: unknown): StripeError {
+export function rehydrateBridgeError(raw: unknown): InternalStripeError {
   if (!raw || typeof raw !== 'object') {
-    return createStripeError({
-      code: ErrorCode.UNEXPECTED_SDK_ERROR,
-      message: ErrorCode.UNEXPECTED_SDK_ERROR,
-    });
+    return createInternalStripeError(
+      {
+        code: ErrorCode.UNEXPECTED_SDK_ERROR,
+        message: `Expected an error object from the native bridge, but received ${
+          raw === null ? 'null' : typeof raw
+        }.`,
+      },
+      'rn'
+    );
   }
 
   const obj = raw as Record<string, unknown>;
@@ -149,12 +184,16 @@ export function rehydrateBridgeError(raw: unknown): StripeError {
   const metadata = extractMetadata(obj);
 
   // Don't validate code - it may be from a newer SDK version not in our enum
-  const error = createStripeError({
-    code: code as ErrorCode,
-    nativeErrorCode,
-    message,
-    metadata,
-  });
+  const internalError = createInternalStripeError(
+    {
+      code: code as ErrorCode,
+      nativeErrorCode,
+      message,
+      metadata,
+    },
+    obj.error_source === 'native' ? 'native' : 'rn'
+  );
+  const error = internalError.stripeError;
 
   if (obj.paymentIntent) {
     error.paymentIntent = obj.paymentIntent as StripeError['paymentIntent'];
@@ -174,5 +213,5 @@ export function rehydrateBridgeError(raw: unknown): StripeError {
 
   preserveUnexpectedErrorInfo(error, obj);
 
-  return error;
+  return internalError;
 }

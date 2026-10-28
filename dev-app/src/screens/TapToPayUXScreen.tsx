@@ -114,8 +114,8 @@ export default function TapToPayUXScreen() {
         if (inputValues.overrideColor) {
             configuration = {
                 tapZone: buildTapZone(),
-                darkMode: buildDarkMode(),
-                colors: buildColors(),
+                theme: buildDarkMode(),
+                colorScheme: buildColors(),
             }
         } else {
             configuration = {

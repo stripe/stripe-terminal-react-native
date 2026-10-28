@@ -8,42 +8,53 @@ import com.stripe.stripeterminal.external.models.SetupError
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 
+/** Identifies who supplied the error instance, independent of its code or exception type. */
+internal enum class ErrorSource(val value: String) {
+    RN("rn"),
+    NATIVE("native")
+}
+
 /**
  * Creates an error response from a throwable
  *
  * @param throwable The throwable to convert to an error response
+ * @param source The provider of the error instance
  * @return ReadableMap containing the error structure
  */
-internal fun createError(throwable: Throwable): ReadableMap = nativeMapOf { putError(throwable) }
+internal fun createError(throwable: Throwable, source: ErrorSource): ReadableMap =
+    nativeMapOf { putError(throwable, source) }
 
 /**
  * Creates an error response from a throwable with a UUID
  *
  * @param throwable The throwable to convert to an error response
+ * @param source The provider of the error instance
  * @param uuid The UUID to associate with response objects (PaymentIntent, SetupIntent)
  * @return ReadableMap containing the error structure
  */
-internal fun createError(throwable: Throwable, uuid: String): ReadableMap = nativeMapOf { putError(throwable, uuid) }
+internal fun createError(throwable: Throwable, uuid: String, source: ErrorSource): ReadableMap =
+    nativeMapOf { putError(throwable, source, uuid) }
 
 /**
  * Populates this WritableMap with error structure
  *
- * Adds both the error object and any associated response objects (PaymentIntent, SetupIntent)
- * to the root level of the response.
+ * Adds the error object, including any associated response objects (PaymentIntent, SetupIntent,
+ * Refund), to the root level of the response.
  *
  * @param throwable The throwable to convert to an error
+ * @param source The provider of the error instance
  * @param uuid Optional UUID to associate with response objects
  * @return This WritableMap for chaining
  */
-internal fun WritableMap.putError(throwable: Throwable, uuid: String? = null): ReadableMap = apply {
+internal fun WritableMap.putError(throwable: Throwable, source: ErrorSource, uuid: String? = null): ReadableMap = apply {
     putMap(
         ErrorConstants.ERROR_KEY,
         nativeMapOf {
             putErrorContents(throwable)
+            putString(ErrorConstants.ERROR_SOURCE_KEY, source.value)
+            addResponseObjects(throwable, uuid)
         }
     )
-
-    addResponseObjects(throwable, uuid)
 }
 
 /**
@@ -100,7 +111,7 @@ private fun WritableMap.putNonStripeErrorContents(throwable: Throwable?) {
 /**
  * Adds response objects that may accompany an error (paymentIntent, setupIntent, refund)
  *
- * These objects are placed at the top-level alongside the error object.
+ * These objects are placed directly on the error object.
  * They represent the state of resources even when the operation fails (partial success).
  *
  * Example: A payment may be declined (error), but the PaymentIntent was still created
@@ -291,7 +302,7 @@ internal fun <T> requireNonNullParameter(input: T?, lazyMessage: () -> String): 
 /**
  * Executes a block and resolves promise with error if TerminalException is thrown
  *
- * Provides a convenient way to wrap SDK operations and automatically handle exceptions.
+ * Resolves RN bridge exceptions; SDK errors must supply their source at the SDK boundary.
  *
  * @param promise The React Native promise to resolve with error if exception occurs
  * @param block The block to execute
@@ -300,14 +311,14 @@ internal fun withExceptionResolver(promise: Promise, block: () -> Unit) {
     try {
         block()
     } catch (e: TerminalException) {
-        promise.resolve(createError(e))
+        promise.resolve(createError(e, ErrorSource.RN))
     }
 }
 
 /**
  * Executes a suspending block and resolves promise with error if TerminalException is thrown
  *
- * Provides a convenient way to wrap suspending SDK operations and automatically handle exceptions.
+ * Resolves RN bridge exceptions; SDK errors must supply their source at the SDK boundary.
  *
  * @param promise The React Native promise to resolve with error if exception occurs
  * @param block The suspending block to execute
@@ -316,7 +327,7 @@ internal suspend fun withSuspendExceptionResolver(promise: Promise, block: suspe
     try {
         block()
     } catch (e: TerminalException) {
-        promise.resolve(createError(e))
+        promise.resolve(createError(e, ErrorSource.RN))
     }
 }
 
@@ -361,6 +372,7 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
 
     // User-like
     TerminalErrorCode.CANCELED -> "CANCELED"
+    TerminalErrorCode.CANCELED_BY_READER -> "CANCELED_BY_READER"
     TerminalErrorCode.LOCATION_SERVICES_DISABLED -> "LOCATION_SERVICES_DISABLED"
     TerminalErrorCode.BLUETOOTH_SCAN_TIMED_OUT -> "BLUETOOTH_SCAN_TIMED_OUT"
     TerminalErrorCode.BLUETOOTH_LOW_ENERGY_UNSUPPORTED -> "BLUETOOTH_LOW_ENERGY_UNSUPPORTED"
@@ -386,6 +398,7 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     TerminalErrorCode.USB_RECONNECT_STARTED -> "USB_RECONNECT_STARTED"
     TerminalErrorCode.READER_CONNECTED_TO_ANOTHER_DEVICE -> "READER_CONNECTED_TO_ANOTHER_DEVICE"
     TerminalErrorCode.READER_BATTERY_CRITICALLY_LOW -> "READER_BATTERY_CRITICALLY_LOW"
+    TerminalErrorCode.READER_BATTERY_LOW -> "READER_BATTERY_LOW"
     TerminalErrorCode.READER_SOFTWARE_UPDATE_FAILED -> "READER_SOFTWARE_UPDATE_FAILED"
     TerminalErrorCode.READER_SOFTWARE_UPDATE_FAILED_READER_ERROR -> "READER_SOFTWARE_UPDATE_FAILED_READER_ERROR"
     TerminalErrorCode.READER_SOFTWARE_UPDATE_FAILED_SERVER_ERROR -> "READER_SOFTWARE_UPDATE_FAILED_SERVER_ERROR"
@@ -399,6 +412,7 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     // Payment
     TerminalErrorCode.DECLINED_BY_STRIPE_API -> "DECLINED_BY_STRIPE_API"
     TerminalErrorCode.DECLINED_BY_READER -> "DECLINED_BY_READER"
+    TerminalErrorCode.INVALID_INSTALLMENT_PLAN -> "INVALID_INSTALLMENT_PLAN"
 
     // Network
     TerminalErrorCode.REQUEST_TIMED_OUT -> "REQUEST_TIMED_OUT"
@@ -456,7 +470,6 @@ fun TerminalErrorCode.convertToReactNativeErrorCode(): String = when (this) {
     TerminalErrorCode.PRINTER_ABSENT -> "PRINTER_ABSENT"
     TerminalErrorCode.PRINTER_UNAVAILABLE -> "PRINTER_UNAVAILABLE"
     TerminalErrorCode.PRINTER_ERROR -> "PRINTER_ERROR"
-    TerminalErrorCode.PRINTER_LOW_BATTERY -> "PRINTER_LOW_BATTERY"
     TerminalErrorCode.INVALID_MOTO_CONFIGURATION -> "INVALID_MOTO_CONFIGURATION"
 
     // Barcode

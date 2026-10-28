@@ -5,8 +5,10 @@ import com.stripe.stripeterminal.external.callable.Cancelable
 import com.stripe.stripeterminal.external.callable.MobileReaderListener
 import com.stripe.stripeterminal.external.callable.ReaderDisconnectListener
 import com.stripe.stripeterminal.external.callable.ReaderReconnectionListener
+import com.stripe.stripeterminal.external.callable.ReaderPaymentInteractionListener
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
+import com.stripe.stripeterminal.external.models.PaymentInteraction
 import com.stripe.stripeterminal.external.models.PaymentOption
 import com.stripe.stripeterminal.external.models.QrCodeDisplayData
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
@@ -15,6 +17,7 @@ import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
+import com.stripeterminalreactnative.ErrorSource
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.mapFromBatteryStatus
@@ -42,7 +45,7 @@ class RNMobileReaderListener(
     private val isQrCodeDisplayHandlerRegistered: () -> Boolean,
     private val onStartInstallingUpdate: (cancelable: Cancelable?) -> Unit
 ) : MobileReaderListener, ReaderDisconnectListener by readerDisconnectListener,
-    ReaderReconnectionListener by readerReconnectionListener {
+    ReaderReconnectionListener by readerReconnectionListener, ReaderPaymentInteractionListener {
 
     override fun onReportAvailableUpdate(update: ReaderSoftwareUpdate) {
         context.sendEvent(ReactNativeConstants.REPORT_AVAILABLE_UPDATE.listenerName) {
@@ -65,7 +68,7 @@ class RNMobileReaderListener(
             putMap(
                 "result",
                 nativeMapOf {
-                    putString("progress", progress.toString())
+                    putDouble("progress", progress.toDouble())
                 }
             )
         }
@@ -76,11 +79,8 @@ class RNMobileReaderListener(
         e: TerminalException?
     ) {
         context.sendEvent(ReactNativeConstants.FINISH_INSTALLING_UPDATE.listenerName) {
-            val result = update?.let { mapFromReaderSoftwareUpdate(update) } ?: nativeMapOf()
-            e?.let {
-                result.putError(e)
-            }
-            putMap("result", result)
+            update?.let { putMap("result", mapFromReaderSoftwareUpdate(it)) }
+            e?.let { putError(it, ErrorSource.NATIVE) }
         }
     }
 
@@ -129,42 +129,33 @@ class RNMobileReaderListener(
      * Called when payment method selection is required (e.g., card vs qr based payment).
      * If JS has registered a handler, emit event and wait. Otherwise, default to card immediately.
      */
-    override fun onPaymentMethodSelectionRequired(
-        paymentIntent: PaymentIntent,
-        availablePaymentOptions: List<PaymentOption>,
-        callback: PaymentMethodSelectionCallback
-    ) {
-        if (isPaymentMethodSelectionHandlerRegistered()) {
-            paymentMethodSelectionCallback.set(callback)
-            context.sendEvent(ReactNativeConstants.PAYMENT_METHOD_SELECTION_REQUIRED.listenerName) {
-                putMap("paymentIntent", mapFromPaymentIntent(paymentIntent, ""))
-                putArray("availablePaymentOptions", mapFromPaymentOptions(availablePaymentOptions))
+    override fun onInteractionRequired(interaction: PaymentInteraction) {
+        when (interaction) {
+            is PaymentInteraction.PaymentMethodSelection -> {
+                if (isPaymentMethodSelectionHandlerRegistered()) {
+                    paymentMethodSelectionCallback.set(interaction.callback)
+                    context.sendEvent(ReactNativeConstants.PAYMENT_METHOD_SELECTION_REQUIRED.listenerName) {
+                        putMap("paymentIntent", mapFromPaymentIntent(interaction.paymentIntent, ""))
+                        putArray("availablePaymentOptions", mapFromPaymentOptions(interaction.availableOptions))
+                    }
+                } else {
+                    interaction.callback.onSuccess(PaymentOption.CardPayment)
+                }
             }
-        } else {
-            callback.onSuccess(PaymentOption.CardPayment)
-        }
-    }
-
-    /**
-     * Called when a QR code needs to be displayed to the customer.
-     * If JS has registered a handler, emit event and wait. Otherwise, fail immediately.
-     */
-    override fun onQrCodeDisplayRequired(
-        paymentIntent: PaymentIntent,
-        qrData: QrCodeDisplayData,
-        callback: QrCodeDisplayCallback
-    ) {
-        if (isQrCodeDisplayHandlerRegistered()) {
-            qrCodeDisplayCallback.set(callback)
-            context.sendEvent(ReactNativeConstants.QR_CODE_DISPLAY_REQUIRED.listenerName) {
-                putMap("paymentIntent", mapFromPaymentIntent(paymentIntent, ""))
-                putMap("qrData", mapFromQrCodeDisplayData(qrData))
+            is PaymentInteraction.QrCodeDisplay -> {
+                if (isQrCodeDisplayHandlerRegistered()) {
+                    qrCodeDisplayCallback.set(interaction.callback)
+                    context.sendEvent(ReactNativeConstants.QR_CODE_DISPLAY_REQUIRED.listenerName) {
+                        putMap("paymentIntent", mapFromPaymentIntent(interaction.paymentIntent, ""))
+                        putMap("qrData", mapFromQrCodeDisplayData(interaction.qrData))
+                    }
+                } else {
+                    interaction.callback.onFailure(TerminalException(
+                        TerminalErrorCode.CANCELED,
+                        "QR code display requires implementing onQrCodeDisplayRequired callback"
+                    ))
+                }
             }
-        } else {
-            callback.onFailure(TerminalException(
-                TerminalErrorCode.CANCELED,
-                "QR code display requires implementing onQrCodeDisplayRequired callback"
-            ))
         }
     }
 }

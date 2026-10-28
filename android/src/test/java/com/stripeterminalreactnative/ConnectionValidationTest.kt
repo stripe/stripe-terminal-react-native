@@ -5,9 +5,11 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.stripeterminal.Terminal
+import com.stripe.stripeterminal.external.callable.ReaderCallback
 import com.stripe.stripeterminal.external.models.Reader
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
+import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.TestConstants.STRIPE_ERROR
 import io.mockk.every
 import io.mockk.mockk
@@ -34,7 +36,7 @@ class ConnectionValidationTest {
     }
 
     private val context = mockk<ReactApplicationContext>(relaxed = true)
-    private val terminal = mockk<Terminal>(relaxed = true)
+    private val terminal = mockk<Terminal>()
     private lateinit var module: StripeTerminalReactNativeModule
     private var simulatorConfiguration = SimulatorConfiguration()
 
@@ -68,7 +70,7 @@ class ConnectionValidationTest {
 
     @Test
     fun `connectReader resolves invalid parameter error when tap to pay testReaderUpdate is provided`() {
-        val reader = mockk<Reader>(relaxed = true) {
+        val reader = mockk<Reader> {
             every { serialNumber } returns "rdr_123"
         }
         setDiscoveredReaders(listOf(reader))
@@ -85,6 +87,42 @@ class ConnectionValidationTest {
                 })
             },
             expectedMessage = "testReaderUpdate is not supported for Tap to Pay on Android"
+        )
+    }
+
+    @Test
+    fun `connectReader resolves SDK callback failure as native exactly once`() {
+        val reader = mockk<Reader> {
+            every { serialNumber } returns "rdr_123"
+        }
+        setDiscoveredReaders(listOf(reader))
+        val exception = TerminalException(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, "SDK rejected parameter")
+        every { terminal.connectReader(reader, any(), any()) } answers {
+            thirdArg<ReaderCallback>().onFailure(exception)
+        }
+        val promise = mockk<Promise>(relaxed = true)
+
+        module.connectReader(JavaOnlyMap().apply {
+            putString("discoveryMethod", "internet")
+            putMap("reader", JavaOnlyMap().apply {
+                putString("serialNumber", "rdr_123")
+            })
+        }, promise)
+
+        val resolved = slot<ReadableMap>()
+        verify(timeout = 1_000, exactly = 1) { promise.resolve(capture(resolved)) }
+        val error = (resolved.captured as JavaOnlyMap).requireMap("error")
+        assertEquals("native", error.getString("error_source"))
+        assertEquals("INVALID_REQUIRED_PARAMETER", error.getString("code"))
+        assertEquals("SDK rejected parameter", error.getString("message"))
+        verify(exactly = 1) { terminal.connectReader(reader, any(), any()) }
+    }
+
+    @Test
+    fun `connectReader missing reader resolves RN validation before calling SDK`() {
+        assertConnectReaderValidationError(
+            JavaOnlyMap().apply { putString("discoveryMethod", "internet") },
+            "You must provide a reader"
         )
     }
 
@@ -108,6 +146,7 @@ class ConnectionValidationTest {
             error.getString("code")
         )
         assertEquals(expectedMessage, error.getString("message"))
+        assertEquals("rn", error.getString("error_source"))
     }
 
     private fun assertConnectReaderValidationError(
@@ -130,6 +169,7 @@ class ConnectionValidationTest {
             error.getString("code")
         )
         assertEquals(expectedMessage, error.getString("message"))
+        assertEquals("rn", error.getString("error_source"))
     }
 
     private fun setDiscoveredReaders(readers: List<Reader>) {

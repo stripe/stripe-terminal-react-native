@@ -101,10 +101,10 @@ export default function DiscoverReadersScreen() {
       }
       setDiscoveringLoading(false);
     },
-    onDidStartInstallingUpdate: (update) => {
+    onDidStartInstallingUpdate: (update, reader) => {
       navigation.navigate('UpdateReaderScreen', {
         update,
-        reader: connectingReader!,
+        reader: reader ?? connectingReader,
         onDidUpdate: () => {
           setPendingUpdateInfo(null);
           setTimeout(() => {

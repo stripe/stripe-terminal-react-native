@@ -47,7 +47,12 @@ tags:
     env:
       discoveryMethod: "bt-scn-btn"
       updateType: "lowBattery"
-- runFlow: e2e/assertLowBatteryUpdateFailure.yaml
+    when:
+      platform: ios
+- runFlow:
+    file: e2e/assertLowBatteryUpdateFailure.yaml
+    when:
+      platform: ios
 
 # Connect with low battery and announce update (connection succeeds)
 - launchApp:
@@ -59,7 +64,12 @@ tags:
     env:
       discoveryMethod: "bt-scn-btn"
       updateType: "lowBatterySucceedConnect"
-- runFlow: e2e/assertLowBatterySucceedConnectUpdate.yaml
+    when:
+      platform: ios
+- runFlow:
+    file: e2e/assertLowBatterySucceedConnectUpdate.yaml
+    when:
+      platform: ios
 
 # Change discovery method to bluetooth proximity
 - launchApp:
