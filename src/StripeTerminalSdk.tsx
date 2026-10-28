@@ -26,6 +26,7 @@ import type {
   ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
+  GetConnectedReaderType,
   ConfirmPaymentMethodParams,
   ProcessPaymentIntentParams,
   ConfirmSetupIntentMethodParams,
@@ -60,9 +61,11 @@ export interface StripeTerminalSdkType {
   // Set connection token
   setConnectionToken(params: SetConnectionTokenParams): Promise<void>;
   // Discover readers by connection type
-  discoverReaders(params: DiscoverReadersParams): DiscoverReadersResultType;
+  discoverReaders(
+    params: DiscoverReadersParams
+  ): Promise<DiscoverReadersResultType>;
   // Cancel discovering readers
-  cancelDiscovering(): CancelDiscoveringResultType;
+  cancelDiscovering(): Promise<CancelDiscoveringResultType>;
   // Easy connect to reader
   easyConnect(param: EasyConnectParams): Promise<ConnectReaderResultType>;
   // Cancel easy connect
@@ -178,7 +181,9 @@ export interface StripeTerminalSdkType {
   getOfflineStatus(): Promise<OfflineStatus>;
   getPaymentStatus(): Promise<PaymentStatus>;
   getConnectionStatus(): Promise<ConnectionStatus>;
-  getConnectedReader(): Promise<Reader.Type>;
+  getConnectedReader(): Promise<{
+    reader: GetConnectedReaderType;
+  }>;
   getReaderSettings(): Promise<Reader.ReaderSettings>;
   setReaderSettings(
     params: Reader.ReaderSettingsParameters

@@ -5,8 +5,6 @@ export { checkIfObjectIsStripeError } from './Errors/StripeErrorHelpers';
 
 export { StripeErrorMetadataKeys } from './types/ErrorMetadataKeys';
 
-export * from './StripeTerminalSdk';
-export { default as StripeTerminalSdk } from './StripeTerminalSdk';
 import * as PackageJson from '../package.json';
 
 export const getSdkVersion = () => {
@@ -25,6 +23,7 @@ export {
   REQUEST_READER_DISPLAY_MESSAGE,
   REQUEST_READER_INPUT,
   REPORT_AVAILABLE_UPDATE,
+  UPDATE_REQUIREMENTS_AVAILABLE,
   REPORT_UPDATE_PROGRESS,
   START_INSTALLING_UPDATE,
   UPDATE_DISCOVERED_READERS,

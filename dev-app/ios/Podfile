@@ -4,7 +4,7 @@ require Pod::Executable.execute_command('node', ['-p',
     "react-native/scripts/react_native_pods.rb",
     {paths: [process.argv[1]]},
   )', __dir__]).strip
-platform :ios, '15.1'
+platform :ios, '16.0'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -35,5 +35,14 @@ target 'StripeTerminalReactNativeDevApp' do
       # :ccache_enabled => true
     )
 
+    # Xcode rejects the outdated deployment targets resource bundles inherit from their pods.
+    installer.target_installation_results.pod_target_installation_results
+      .each do |pod_name, target_installation_result|
+      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+        resource_bundle_target.build_configurations.each do |config|
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+        end
+      end
+    end
   end
 end

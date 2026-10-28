@@ -42,6 +42,7 @@ import com.stripe.stripeterminal.external.models.CreateConfiguration
 import com.stripe.stripeterminal.external.models.DiscoveryConfiguration
 import com.stripe.stripeterminal.external.models.EmailInput
 import com.stripe.stripeterminal.external.models.Input
+import com.stripe.stripeterminal.external.models.InstallmentsParameters
 import com.stripe.stripeterminal.external.models.ListLocationsParameters
 import com.stripe.stripeterminal.external.models.NumericInput
 import com.stripe.stripeterminal.external.models.OfflineBehavior
@@ -52,7 +53,7 @@ import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PhoneInput
 import com.stripe.stripeterminal.external.models.PrintContent
 import com.stripe.stripeterminal.external.models.Reader
-import com.stripe.stripeterminal.external.models.RefundParameters
+import com.stripe.stripeterminal.external.models.ProcessRefundParameters
 import com.stripe.stripeterminal.external.models.RoutingPriority
 import com.stripe.stripeterminal.external.models.SelectionButton
 import com.stripe.stripeterminal.external.models.SelectionButtonStyle
@@ -61,10 +62,10 @@ import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationParameters
 import com.stripe.stripeterminal.external.models.SignatureInput
 import com.stripe.stripeterminal.external.models.SimulatedCard
-import com.stripe.stripeterminal.external.models.SimulateReaderUpdate
 import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TestReaderUpdate
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
+import com.stripe.stripeterminal.external.models.TapUseCase
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripe.stripeterminal.external.models.TextInput
@@ -166,28 +167,39 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     fun initialize(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
         UiThreadUtil.runOnUiThread { onCreate(context.applicationContext as Application) }
 
+        val localeParams = requireNonNullParameter(params.getMap("localeConfig")) {
+            "You must provide a localeConfig"
+        }
+        val localeConfig = try {
+            mapToLocaleConfig(localeParams)
+        } catch (e: TerminalException) {
+            // The native locale builder validates hardcoded BCP 47 language tags.
+            promise.resolve(createError(e, ErrorSource.NATIVE))
+            return@withExceptionResolver
+        }
+        val requiredLocaleConfig = requireNonNullParameter(localeConfig) {
+            "You must provide a valid localeConfig"
+        }
+
         val result = if (!Terminal.isInitialized()) {
             val tokenProviderToUse = TokenProviderFactory.createTokenProvider(params, tokenProvider)
-            val localeConfig = mapToLocaleConfig(params.getMap("localeConfig"))
+            val applicationContext = context.applicationContext
+            val logLevel = mapToLogLevel(params.getString("logLevel"))
+            val terminalListener = RNTerminalListener(context)
+            val offlineListener = RNOfflineListener(context)
 
-            if (localeConfig == null) {
-                // Let the native Android SDK own its default locale behavior.
+            try {
                 Terminal.init(
-                    this.context.applicationContext,
-                    mapToLogLevel(params.getString("logLevel")),
+                    applicationContext,
+                    logLevel,
                     tokenProviderToUse,
-                    RNTerminalListener(context),
-                    RNOfflineListener(context)
+                    terminalListener,
+                    offlineListener,
+                    requiredLocaleConfig
                 )
-            } else {
-                Terminal.init(
-                    this.context.applicationContext,
-                    mapToLogLevel(params.getString("logLevel")),
-                    tokenProviderToUse,
-                    RNTerminalListener(context),
-                    RNOfflineListener(context),
-                    localeConfig
-                )
+            } catch (e: TerminalException) {
+                promise.resolve(createError(e, ErrorSource.NATIVE))
+                return@withExceptionResolver
             }
             NativeTypeFactory.writableNativeMap()
         } else {
@@ -261,9 +273,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setSimulatedCard(cardNumber: String, promise: Promise) {
-        terminal.simulatorConfiguration = SimulatorConfiguration(
-            terminal.simulatorConfiguration.update,
-            SimulatedCard(testCardNumber = cardNumber)
+        terminal.simulatorConfiguration = terminal.simulatorConfiguration.copy(
+            simulatedCard = SimulatedCard(testCardNumber = cardNumber)
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
     }
@@ -271,8 +282,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun setSimulatedOfflineMode(simulatedOffline: Boolean, promise: Promise) {
-        terminal.simulatorConfiguration = SimulatorConfiguration(
-            update = terminal.simulatorConfiguration.update,
+        terminal.simulatorConfiguration = terminal.simulatorConfiguration.copy(
             offlineEnabled = simulatedOffline
         )
         promise.resolve(NativeTypeFactory.writableNativeMap())
@@ -345,7 +355,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         easyConnectCancelable = terminal.easyConnect(configuration, object : ReaderCallback {
             override fun onFailure(e: TerminalException) {
                 easyConnectCancelable = null
-                promise.resolve(createError(e))
+                promise.resolve(createError(e, ErrorSource.NATIVE))
             }
 
             override fun onSuccess(reader: Reader) {
@@ -400,16 +410,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    private fun clearSimulatedUpdateFallback() {
-        val simulatorConfiguration = terminal.simulatorConfiguration
-        terminal.simulatorConfiguration = SimulatorConfiguration(
-            update = SimulateReaderUpdate.NONE,
-            simulatedCard = simulatorConfiguration.simulatedCard,
-            offlineEnabled = simulatorConfiguration.offlineEnabled,
-            simulatedCollectInputsResult = simulatorConfiguration.simulatedCollectInputsResult
-        )
-    }
-
     private fun getConnectionConfig(
         discoveryMethod: DiscoveryMethod,
         locationId: String?,
@@ -420,10 +420,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         testReaderUpdate: TestReaderUpdate? = null,
         animationParams: ReadableMap? = null
     ): ConnectionConfiguration {
-        // Clear the deprecated shared simulator fallback. Per-connection
-        // testReaderUpdate should be the only source of simulated update behavior.
-        clearSimulatedUpdateFallback()
-
         val disconnectListener = RNReaderDisconnectListener(context)
         return when (discoveryMethod) {
             DiscoveryMethod.BLUETOOTH_SCAN -> {
@@ -446,6 +442,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     locationId = locationId,
                     autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
                     bluetoothReaderListener = listener,
+                    readerPaymentInteractionListener = listener,
                     testReaderUpdate = testReaderUpdate
                 )
             }
@@ -463,9 +460,9 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                 val reconnectionListener = RNReaderReconnectionListener(context) {
                     cancelReaderConnectionCancellable = it
                 }
-                val listener = RNTapToPayReaderListener(disconnectListener, reconnectionListener)
+                val listener = RNTapToPayReaderListener(context, disconnectListener, reconnectionListener)
                 ConnectionConfiguration.TapToPayConnectionConfiguration(
-                    locationId = locationId,
+                    useCase = TapUseCase.Pay(locationId),
                     autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
                     tapToPayReaderListener = listener
                 )
@@ -506,6 +503,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     locationId = locationId,
                     autoReconnectOnUnexpectedDisconnect = autoReconnectOnUnexpectedDisconnect,
                     usbReaderListener = listener,
+                    readerPaymentInteractionListener = listener,
                     testReaderUpdate = testReaderUpdate
                 )
             }
@@ -552,7 +550,12 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     testReaderUpdate = testReaderUpdate,
                     animationParams = params.getMap("appTransitionAnimation")
                 )
-                val connectedReader = terminal.connectReader(selectedReader, connConfig)
+                val connectedReader = try {
+                    terminal.connectReader(selectedReader, connConfig)
+                } catch (e: TerminalException) {
+                    promise.resolve(createError(e, ErrorSource.NATIVE))
+                    return@withSuspendExceptionResolver
+                }
                 promise.resolve(
                     nativeMapOf {
                         putMap("reader", mapFromReader(connectedReader))
@@ -588,7 +591,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         mapToDiscoveryMethod(discoveryMethod)?.let {
             innerConnectReader(params, it, promise)
         }
-            ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod")))
+            ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod"), ErrorSource.RN))
     }
 
     @ReactMethod
@@ -602,7 +605,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(e))
+                promise.resolve(createError(e, ErrorSource.NATIVE))
             }
         })
     }
@@ -618,7 +621,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
 
             override fun onFailure(e: TerminalException) {
-                promise.resolve(createError(e))
+                promise.resolve(createError(e, ErrorSource.NATIVE))
             }
         })
     }
@@ -661,6 +664,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val cardPresentCaptureMethod = paymentMethodOptions?.getString("captureMethod")
         val captureDelayDays = paymentMethodOptions?.let { getInt(it, "captureDelayDays") }
         val requestMulticapture = paymentMethodOptions?.getString("requestMulticapture")
+        val installments = paymentMethodOptions?.getMap("installments")
         val captureMethod = params.getString("captureMethod")
         val offlineBehavior = params.getString("offlineBehavior")
 
@@ -753,6 +757,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                     else -> {}
                 }
             }
+            installments?.let { installmentsMap ->
+                InstallmentsParameters.Builder().apply {
+                    installmentsMap.getBooleanSafely("enabled")?.let(::setEnabled)
+                }.build().let { setInstallments(it) }
+            }
         }
 
         intentParams.setPaymentMethodOptionsParameters(
@@ -764,7 +773,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         captureMethod?.let {
             when (it) {
                 "manual" -> intentParams.setCaptureMethod(CaptureMethod.Manual)
-                else -> intentParams.setCaptureMethod(CaptureMethod.Automatic)
+                "automatic" -> intentParams.setCaptureMethod(CaptureMethod.Automatic)
+                "automatic_async" -> intentParams.setCaptureMethod(CaptureMethod.AutomaticAsync)
             }
         }
 
@@ -833,7 +843,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = getPaymentIntentFromParams(params)
         val uuid = getUuidFromPaymentIntentParams(params)
 
-        val config = buildConfirmPaymentIntentConfiguration(params)
+        val config = try {
+            buildConfirmPaymentIntentConfiguration(params)
+        } catch (e: TerminalException) {
+            // Only the SDK surcharge builder supplies TerminalException from this configuration path.
+            promise.resolve(createError(e, ErrorSource.NATIVE))
+            return@withExceptionResolver
+        }
 
         confirmPaymentIntentCancelable = terminal.confirmPaymentIntent(
             paymentIntent,
@@ -854,7 +870,13 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         val paymentIntent = getPaymentIntentFromParams(params)
         val uuid = getUuidFromPaymentIntentParams(params)
 
-        val confirmPaymentIntentConfig = buildConfirmPaymentIntentConfiguration(params)
+        val confirmPaymentIntentConfig = try {
+            buildConfirmPaymentIntentConfiguration(params)
+        } catch (e: TerminalException) {
+            // Only the SDK surcharge builder supplies TerminalException from this configuration path.
+            promise.resolve(createError(e, ErrorSource.NATIVE))
+            return@withExceptionResolver
+        }
         val collectPaymentIntentConfig = buildCollectPaymentIntentConfiguration(params)
 
         processPaymentIntentCancelable = terminal.processPaymentIntent(
@@ -1004,13 +1026,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         withExceptionResolver(promise) {
             val setupIntent = getSetupIntentFromParams(params)
             val uuid = getUuidFromSetupIntentParams(params)
-            val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
-
             val configuration = buildCollectSetupIntentConfiguration(params)
 
             collectSetupIntentCancelable = terminal.collectSetupIntentPaymentMethod(
                 setupIntent,
-                allowRedisplay,
                 configuration,
                 RNSetupIntentCallback(promise, uuid, onSetupIntentSuccess = { setupIntents[uuid] = it })
             )
@@ -1099,13 +1118,10 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val setupIntent = getSetupIntentFromParams(params)
             val uuid = getUuidFromSetupIntentParams(params)
 
-            val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
-
             val collectConfiguration = buildCollectSetupIntentConfiguration(params)
 
             processSetupIntentCancelable = terminal.processSetupIntent(
                 setupIntent,
-                allowRedisplay,
                 collectConfiguration,
                 RNSetupIntentCallback(
                     promise,
@@ -1145,14 +1161,14 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             val metadata = params.getMap("metadata")?.toHashMap()?.toMap() as? Map<String, String>
             val intentParamsBuild =
                 if (!paymentIntentId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
-                    RefundParameters.ByPaymentIntentId(
+                    ProcessRefundParameters.ByPaymentIntentId(
                         paymentIntentId,
                         clientSecret,
                         amount,
                         currency
                     )
                 } else if (!chargeId.isNullOrBlank()) {
-                    RefundParameters.ByChargeId(chargeId, amount, currency)
+                    ProcessRefundParameters.ByChargeId(chargeId, amount, currency)
                 } else {
                     throw TerminalException(
                         TerminalErrorCode.INVALID_REQUIRED_PARAMETER,
@@ -1244,7 +1260,16 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     @Suppress("unused")
     fun getConnectedReader(promise: Promise) {
-        promise.resolve(terminal.connectedReader?.let { mapFromReader(it) })
+        val result = try {
+            // Keep the bridge envelope non-null even when there is no connected reader.
+            nativeMapOf {
+                putMap("reader", terminal.connectedReader?.let { mapFromReader(it) })
+            }
+        } catch (e: Exception) {
+            // The JavaScript getter rehydrates and throws this error to the integration.
+            createError(e, ErrorSource.RN)
+        }
+        promise.resolve(result)
     }
 
     @ReactMethod
@@ -1309,7 +1334,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         listInput.add(
                             TextInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description") ?: "")
-                                .setRequired(it.getBoolean("required"))
+                                .setRequired(getBoolean(it, "required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
                                 .setToggles(toggles)
@@ -1326,7 +1351,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         listInput.add(
                             NumericInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
-                                .setRequired(it.getBoolean("required"))
+                                .setRequired(getBoolean(it, "required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
                                 .setToggles(toggles)
@@ -1343,7 +1368,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         listInput.add(
                             EmailInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
-                                .setRequired(it.getBoolean("required"))
+                                .setRequired(getBoolean(it, "required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
                                 .setToggles(toggles)
@@ -1360,7 +1385,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         listInput.add(
                             PhoneInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
-                                .setRequired(it.getBoolean("required"))
+                                .setRequired(getBoolean(it, "required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
                                 .setToggles(toggles)
@@ -1377,7 +1402,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         listInput.add(
                             SignatureInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description"))
-                                .setRequired(it.getBoolean("required"))
+                                .setRequired(getBoolean(it, "required"))
                                 .setSkipButtonText(it.getString("skipButtonText"))
                                 .setSubmitButtonText(it.getString("submitButtonText"))
                                 .setToggles(toggles)
@@ -1412,7 +1437,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
                         listInput.add(
                             SelectionInput.Builder(it.getString("title") ?: "")
                                 .setDescription(it.getString("description") ?: "")
-                                .setRequired(it.getBoolean("required"))
+                                .setRequired(getBoolean(it, "required"))
                                 .setSkipButtonText(it.getString("skipButtonText") ?: "")
                                 .setSelectionButtons(listSelectionButtons)
                                 .setToggles(toggles)
@@ -1499,18 +1524,18 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             tapToPayUxConfigurationBuilder.tapZone(tapZone)
 
-            val colorsParam = params.getMap("colors")
-            colorsParam?.let {
+            val colorSchemeParam = params.getMap("colorScheme")
+            colorSchemeParam?.let {
                 val colorSchemeBuilder = TapToPayUxConfiguration.ColorScheme.Builder()
                 colorSchemeBuilder.apply {
-                    primary(it.getString("primary").toTapToPayColor())
-                    success(it.getString("success").toTapToPayColor())
-                    error(it.getString("error").toTapToPayColor())
+                    primary(mapToTapToPayColor(it, "primary"))
+                    success(mapToTapToPayColor(it, "success"))
+                    error(mapToTapToPayColor(it, "error"))
                 }
-                tapToPayUxConfigurationBuilder.colors(colorSchemeBuilder.build())
+                tapToPayUxConfigurationBuilder.colorScheme(colorSchemeBuilder.build())
             }
 
-            tapToPayUxConfigurationBuilder.darkMode(mapToDarkMode(params.getString("darkMode")))
+            tapToPayUxConfigurationBuilder.theme(mapToTheme(params.getString("theme")))
 
             terminal.setTapToPayUxConfiguration(tapToPayUxConfigurationBuilder.build())
             promise.resolve(NativeTypeFactory.writableNativeMap())
@@ -1520,12 +1545,6 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun getNativeSdkVersion(promise: Promise) {
         promise.resolve(BuildConfig.SDK_VERSION_NAME)
-    }
-
-    private fun String?.toTapToPayColor(): TapToPayUxConfiguration.Color {
-        return this
-            ?.let { TapToPayUxConfiguration.Color.Value(hexToArgb(it)) }
-            ?: TapToPayUxConfiguration.Color.Default
     }
 
     @ReactMethod

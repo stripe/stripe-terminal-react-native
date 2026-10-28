@@ -23,7 +23,7 @@ import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.BuzzerVolumeLevel
 import com.stripe.stripeterminal.external.models.CardDetails
-import com.stripe.stripeterminal.external.models.CardPresentDetails
+import com.stripe.stripeterminal.external.models.CardNetworks
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.CardPresentRequestReauthorization
 import com.stripe.stripeterminal.external.models.CartLineItem
@@ -46,6 +46,10 @@ import com.stripe.stripeterminal.external.models.EasyConnectConfiguration
 import com.stripe.stripeterminal.external.models.EasyConnectConfiguration.*
 import com.stripe.stripeterminal.external.models.EmailResult
 import com.stripe.stripeterminal.external.models.GeneratedFrom
+import com.stripe.stripeterminal.external.models.InstallmentDetails
+import com.stripe.stripeterminal.external.models.InstallmentPlanDetails
+import com.stripe.stripeterminal.external.models.InstallmentPlanInterval
+import com.stripe.stripeterminal.external.models.InstallmentPlanType
 import com.stripe.stripeterminal.external.models.KlarnaDetails
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.LocationStatus
@@ -84,16 +88,19 @@ import com.stripe.stripeterminal.external.models.ReauthorizationStatus
 import com.stripe.stripeterminal.external.models.ReceiptDetails
 import com.stripe.stripeterminal.external.models.RedirectUrl
 import com.stripe.stripeterminal.external.models.Refund
+import com.stripe.stripeterminal.external.models.RefundNextAction
+import com.stripe.stripeterminal.external.models.RefundNextActionDisplayDetails
+import com.stripe.stripeterminal.external.models.RefundNextActionDisplayDetailsEmailSent
 import com.stripe.stripeterminal.external.models.SelectionResult
 import com.stripe.stripeterminal.external.models.SetupAttempt
 import com.stripe.stripeterminal.external.models.SetupAttemptStatus
 import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationReason
-import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
+import com.stripe.stripeterminal.external.models.SetupAttemptCardPresentDetails
 import com.stripe.stripeterminal.external.models.SetupIntentNextAction
 import com.stripe.stripeterminal.external.models.SetupIntentOfflineDetails
 import com.stripe.stripeterminal.external.models.SetupIntentParameters
-import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
+import com.stripe.stripeterminal.external.models.SetupAttemptPaymentMethodDetails
 import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SignatureResult
@@ -104,6 +111,7 @@ import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehav
 import com.stripe.stripeterminal.external.models.SurchargeConfiguration
 import com.stripe.stripeterminal.external.models.SurchargeConsent
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
+import com.stripe.stripeterminal.external.models.TapToPayUpdateRequirement
 import com.stripe.stripeterminal.external.models.TestReaderUpdate
 import com.stripe.stripeterminal.external.models.TextResult
 import com.stripe.stripeterminal.external.models.TippingConfiguration
@@ -119,8 +127,7 @@ import com.stripe.stripeterminal.log.LogLevel
 import java.util.Base64
 import com.stripe.stripeterminal.external.models.SurchargeConsentCollection as NativeSurchargeConsentCollection
 
-internal fun getInt(map: ReadableMap, key: String): Int? =
-    if (map.hasKey(key)) map.getInt(key) else null
+internal fun getInt(map: ReadableMap, key: String): Int? = map.getIntSafely(key)
 
 internal fun ReadableMap.getIntSafely(key: String): Int? {
     if (!hasKey(key)) return null
@@ -155,11 +162,17 @@ internal fun ReadableMap.getLongSafely(key: String): Long? {
     }
 }
 
+internal fun ReadableMap.getBooleanSafely(key: String): Boolean? {
+    if (!hasKey(key) || isNull(key) || getType(key) != ReadableType.Boolean) return null
+
+    return getBoolean(key)
+}
+
 internal fun getBoolean(map: ReadableMap?, key: String): Boolean =
-    if (map?.hasKey(key) == true) map.getBoolean(key) else false
+    map?.getBooleanSafely(key) ?: false
 
 internal fun getBoolean(map: ReadableMap?, key: String, defaultValue: Boolean): Boolean =
-    if (map?.hasKey(key) == true) map.getBoolean(key) else defaultValue
+    map?.getBooleanSafely(key) ?: defaultValue
 
 internal fun mapToLocaleConfig(map: ReadableMap?): LocaleConfig? {
     if (map == null) {
@@ -384,9 +397,7 @@ internal fun mapToCustomerCancellation(cancellation: String?): CustomerCancellat
 internal fun mapToMotoConfiguration(configurationMap: ReadableMap?): MotoConfiguration? {
     return if (configurationMap != null) {
         MotoConfiguration.Builder().apply {
-            if (configurationMap.hasKey("skipCvc")) {
-                setSkipCvc(configurationMap.getBoolean("skipCvc"))
-            }
+            configurationMap.getBooleanSafely("skipCvc")?.let(::setSkipCvc)
         }.build()
     } else {
         null
@@ -404,7 +415,7 @@ internal fun mapToSetupIntentCollectionReason(reason: String?): CollectSetupInte
 
 internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): ReadableMap =
     nativeMapOf {
-        putString("id", paymentIntent.id)
+        paymentIntent.id?.let { putString("id", it) }
         putInt("amount", paymentIntent.amount.toInt())
         putInt("amountCapturable", paymentIntent.amountCapturable.toInt())
         putMap("amountDetails", mapFromAmountDetails(paymentIntent.amountDetails))
@@ -413,15 +424,17 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
             putInt("amountRequested", amountRequested)
         }
         putInt("amountTip", paymentIntent.amountTip?.toInt() ?: 0)
+        putString("application", paymentIntent.application)
         putInt("applicationFeeAmount", paymentIntent.applicationFeeAmount.toInt())
         putString("canceledAt", convertToUnixTimestamp(paymentIntent.canceledAt))
         putString("cancellationReason", paymentIntent.cancellationReason)
-        putString("captureMethod", paymentIntent.captureMethod)
-        putArray("charges", mapFromChargesList(paymentIntent.getCharges()))
+        paymentIntent.captureMethod?.let { putString("captureMethod", it) }
+        putMap("latestCharge", paymentIntent.latestCharge?.let { mapFromCharge(it) })
+        putString("latestChargeId", paymentIntent.latestChargeId)
         putString("clientSecret", paymentIntent.clientSecret)
         putString("confirmationMethod", paymentIntent.confirmationMethod)
         putString("created", convertToUnixTimestamp(paymentIntent.created))
-        putString("currency", paymentIntent.currency)
+        paymentIntent.currency?.let { putString("currency", it) }
         putString("customer", paymentIntent.customer)
         putString("description", paymentIntent.description)
         paymentIntent.lastPaymentError?.let {
@@ -445,7 +458,16 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
             "paymentMethodOptions",
             mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions)
         )
+        putArray(
+            "paymentMethodTypes",
+            nativeArrayOf {
+                paymentIntent.paymentMethodTypes.forEach { type ->
+                    pushString(mapFromPaymentMethodDetailsType(type))
+                }
+            }
+        )
         putString("receiptEmail", paymentIntent.receiptEmail)
+        putString("review", paymentIntent.review)
         putString("sdkUuid", uuid)
         putString("setupFutureUsage", paymentIntent.setupFutureUsage)
         putString("statementDescriptor", paymentIntent.statementDescriptor)
@@ -475,10 +497,56 @@ internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOpti
                     mapFromRequestReauthorization(it.cardPresent?.requestReauthorization)?.let {
                         putString("requestReauthorization", it)
                     }
+                    it.cardPresent?.installments?.let { installments ->
+                        putMap("installments", mapFromInstallmentDetails(installments))
+                    }
                 }
             )
         }
     }
+
+internal fun mapFromInstallmentDetails(installmentDetails: InstallmentDetails?): ReadableMap? =
+    installmentDetails?.let { details ->
+        nativeMapOf {
+            details.enabled?.let { putBoolean("enabled", it) }
+            putArray("availablePlans", mapFromInstallmentAvailablePlans(details.availablePlans))
+            mapFromInstallmentPlanDetails(details.plan)?.let {
+                putMap("plan", it)
+            }
+        }
+    }
+
+internal fun mapFromInstallmentAvailablePlans(plans: List<InstallmentPlanDetails>): ReadableArray =
+    nativeArrayOf {
+        plans.mapNotNull(::mapFromInstallmentPlanDetails).forEach {
+            pushMap(it)
+        }
+    }
+
+internal fun mapFromInstallmentPlanDetails(plan: InstallmentPlanDetails?): ReadableMap? {
+    val nonNullPlan = plan ?: return null
+    val type = mapFromInstallmentPlanType(nonNullPlan.type) ?: return null
+
+    return nativeMapOf {
+        putString("type", type)
+        putIntIfNotNull(this, "count", nonNullPlan.count)
+        mapFromInstallmentPlanInterval(nonNullPlan.interval)?.let {
+            putString("interval", it)
+        }
+    }
+}
+
+internal fun mapFromInstallmentPlanType(type: InstallmentPlanType?): String? = when (type) {
+    InstallmentPlanType.FIXED_COUNT -> "fixed_count"
+    InstallmentPlanType.BONUS -> "bonus"
+    InstallmentPlanType.REVOLVING -> "revolving"
+    else -> null
+}
+
+internal fun mapFromInstallmentPlanInterval(interval: InstallmentPlanInterval?): String? = when (interval) {
+    InstallmentPlanInterval.MONTH -> "month"
+    else -> null
+}
 
 internal fun mapFromRequestPartialAuthorization(partialAuth: CardPresentRequestPartialAuthorization?): String {
     return partialAuth?.typeName.orEmpty()
@@ -509,7 +577,7 @@ internal fun mapFromReauthorizationStatus(status: ReauthorizationStatus?): Strin
 }
 
 internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): ReadableMap = nativeMapOf {
-    putString("id", setupIntent.id)
+    setupIntent.id?.let { putString("id", it) }
     putString("sdkUuid", uuid)
     putString("application", setupIntent.applicationId)
     putString(
@@ -537,7 +605,17 @@ internal fun mapFromSetupIntent(setupIntent: SetupIntent, uuid: String): Readabl
     putMap("paymentMethod", mapFromPaymentMethod(setupIntent.paymentMethod))
     putString("paymentMethodId", setupIntent.paymentMethodId)
     putMap("paymentMethodOptions", mapFromPaymentMethodOptions(setupIntent.paymentMethodOptions))
-    putArray("paymentMethodTypes", convertListToReadableArray(setupIntent.paymentMethodTypes))
+    putArray(
+        "paymentMethodTypes",
+        nativeArrayOf {
+            setupIntent.paymentMethodTypes.forEach { type ->
+                pushString(
+                    mapToPaymentMethodDetailsType(type)?.let(::mapFromPaymentMethodDetailsType)
+                        ?: "unknown"
+                )
+            }
+        }
+    )
     putString("singleUseMandate", setupIntent.singleUseMandateId)
     putString("status", mapFromSetupIntentStatus(setupIntent.status))
     putString("usage", mapFromSetupIntentUsage(setupIntent.usage))
@@ -584,18 +662,19 @@ internal fun mapFromSetupAttempt(attempt: SetupAttempt?): ReadableMap? = attempt
 }
 
 internal fun mapFromSetupIntentPaymentMethodDetails(
-    details: SetupIntentPaymentMethodDetails
+    details: SetupAttemptPaymentMethodDetails
 ): ReadableMap = nativeMapOf {
+    putString("type", mapFromPaymentMethodDetailsType(details.type))
     putMap("cardPresent", mapFromSetupIntentCardPresentDetails(details.cardPresentDetails))
     putMap("interacPresent", mapFromSetupIntentCardPresentDetails(details.interacPresentDetails))
 }
 
 internal fun mapFromSetupIntentCardPresentDetails(
-    details: SetupIntentCardPresentDetails?
+    details: SetupAttemptCardPresentDetails?
 ): ReadableMap? = details?.let {
     nativeMapOf {
-        putString("emvAuthData", it.emvAuthData)
-        putString("generatedCard", it.generatedCard)
+        it.emvAuthData?.let { emvAuthData -> putString("emvAuthData", emvAuthData) }
+        it.generatedCard?.let { generatedCard -> putString("generatedCard", generatedCard) }
     }
 }
 
@@ -616,9 +695,6 @@ internal fun mapFromSetupAttemptStatus(method: SetupAttemptStatus): String {
         SetupAttemptStatus.SUCCEEDED -> "succeeded"
     }
 }
-
-internal fun mapFromChargesList(charges: List<Charge>): ReadableArray =
-    charges.collectToWritableArray { mapFromCharge(it) }
 
 internal fun mapFromListLocations(locations: List<Location>): ReadableArray =
     locations.collectToWritableArray { mapFromLocation(it) }
@@ -669,7 +745,7 @@ internal fun mapFromCharge(charge: Charge): ReadableMap = nativeMapOf {
     putBoolean("captured", charge.captured)
     putString("calculatedStatementDescriptor", charge.calculatedStatementDescriptor)
     putString("created", convertToUnixTimestamp(charge.created))
-    putString("currency", charge.currency)
+    charge.currency?.let { putString("currency", it) }
     putString("customer", charge.customer)
     putString("description", charge.description)
     putBoolean("livemode", charge.livemode)
@@ -695,7 +771,7 @@ internal fun mapFromCharge(charge: Charge): ReadableMap = nativeMapOf {
 
 internal fun mapFromLocation(location: Location?): ReadableMap? = location?.let {
     nativeMapOf {
-        putString("id", it.id)
+        it.id?.let { id -> putString("id", id) }
         putString("displayName", it.displayName)
 
         putMap("address", mapFromAddress(it.address))
@@ -843,8 +919,29 @@ internal fun mapFromReaderSoftwareUpdate(update: ReaderSoftwareUpdate?): Writabl
                     pushString(mapFromUpdateComponent(component))
                 }
             })
+            putBoolean("isTestUpdate", it.isTestUpdate)
         }
     }
+
+internal fun mapFromTapToPayUpdateRequirement(
+    requirement: TapToPayUpdateRequirement
+): ReadableMap = nativeMapOf {
+    putString("requiredAt", requirement.requiredAtMs.toString())
+    when (requirement) {
+        is TapToPayUpdateRequirement.OperatingSystem -> {
+            putString("type", "operatingSystem")
+            putInt("apiLevel", requirement.apiLevel)
+        }
+        is TapToPayUpdateRequirement.SecurityPatch -> {
+            putString("type", "securityPatch")
+            putString("version", requirement.version)
+        }
+        is TapToPayUpdateRequirement.TerminalSdk -> {
+            putString("type", "terminalSdk")
+            putString("version", requirement.version)
+        }
+    }
+}
 
 internal fun mapFromUpdateTimeEstimate(time: ReaderSoftwareUpdate.UpdateDurationEstimate): String {
     return when (time) {
@@ -895,8 +992,38 @@ internal fun mapFromRefund(refund: Refund): ReadableMap = nativeMapOf {
     putString("reason", refund.reason)
     putString("receiptNumber", refund.receiptNumber)
     putString("sourceTransferReversal", refund.sourceTransferReversal)
-    putString("status", refund.status)
+    putString("status", mapFromRefundStatus(refund.status))
     putString("transferReversal", refund.transferReversal)
+    refund.nextAction?.let {
+        putMap("nextAction", mapFromRefundNextAction(it))
+    }
+}
+
+internal fun mapFromRefundStatus(status: String?): String? =
+    when (status) {
+        "requires_action" -> "requiresAction"
+        else -> status
+    }
+
+internal fun mapFromRefundNextAction(nextAction: RefundNextAction): ReadableMap = nativeMapOf {
+    putString("type", nextAction.type)
+    nextAction.displayDetails?.let {
+        putMap("displayDetails", mapFromRefundNextActionDisplayDetails(it))
+    }
+}
+
+internal fun mapFromRefundNextActionDisplayDetails(
+    displayDetails: RefundNextActionDisplayDetails
+): ReadableMap = nativeMapOf {
+    putMap("emailSent", mapFromRefundNextActionDisplayDetailsEmailSent(displayDetails.emailSent))
+    putString("expiresAt", convertToUnixTimestamp(displayDetails.expiresAt))
+}
+
+internal fun mapFromRefundNextActionDisplayDetailsEmailSent(
+    emailSent: RefundNextActionDisplayDetailsEmailSent
+): ReadableMap = nativeMapOf {
+    putString("emailSentAt", convertToUnixTimestamp(emailSent.emailSentAt))
+    putString("emailSentTo", emailSent.emailSentTo)
 }
 
 internal fun mapFromCardDetails(cardDetails: CardDetails?): ReadableMap = nativeMapOf {
@@ -907,6 +1034,7 @@ internal fun mapFromCardDetails(cardDetails: CardDetails?): ReadableMap = native
     putString("funding", cardDetails?.funding)
     putMap("generatedFrom", mapFromGeneratedFrom(cardDetails?.generatedFrom))
     putString("last4", cardDetails?.last4)
+    putString("authorizationCode", cardDetails?.authorizationCode)
 }
 
 internal fun mapFromGeneratedFrom(generatedFrom: GeneratedFrom?): ReadableMap? {
@@ -929,11 +1057,11 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
         nativeMapOf {
             putMap(
                 "cardPresentDetails",
-                mapFromCardPresentDetails(it.cardPresentDetails)
+                mapFromPaymentMethodCardPresentDetails(it.cardPresentDetails)
             )
             putMap(
                 "interacPresentDetails",
-                mapFromCardPresentDetails(it.interacPresentDetails)
+                mapFromPaymentMethodCardPresentDetails(it.interacPresentDetails)
             )
             putMap(
                 "wechatPayDetails",
@@ -1067,10 +1195,43 @@ internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
     }
 }
 
-private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): ReadableMap? =
+private fun mapFromPaymentMethodCardPresentDetails(
+    cardPresentDetails: PaymentMethod.CardPresent?
+): ReadableMap? = cardPresentDetails?.let {
+    nativeMapOf {
+        putString("brand", it.brand)
+        putString("brandProduct", it.brandProduct)
+        putString("cardholderName", it.cardholderName)
+        putString("country", it.country)
+        putIntIfNotNull(this, "expMonth", it.expMonth)
+        putIntIfNotNull(this, "expYear", it.expYear)
+        putString("funding", it.funding)
+        putString("last4", it.last4)
+        putString("readMethod", it.readMethod)
+        putString("issuer", it.issuer)
+        putString("iin", it.iin)
+        putString("description", it.description)
+        putMap("networks", mapFromCardNetworks(it.networks))
+        putString("paymentAccountReference", it.paymentAccountReference)
+        putMap("wallet", mapFromWallet(it.wallet))
+        putArray(
+            "preferredLocales",
+            convertListToReadableArray(it.preferredLocales)
+        )
+    }
+}
+
+private fun mapFromCardNetworks(networks: CardNetworks?): ReadableMap? = networks?.let {
+    nativeMapOf {
+        putArray("available", convertListToReadableArray(it.available))
+        putString("preferred", it.preferred)
+    }
+}
+
+private fun mapFromCardPresentDetails(cardPresentDetails: Charge.CardPresent?): ReadableMap? =
     cardPresentDetails?.let {
         nativeMapOf {
-            putString("brand", it.brand)
+            it.brand?.let { brand -> putString("brand", brand) }
             putString("cardholderName", it.cardholderName)
             putString("country", it.country)
             putString("emvAuthData", it.emvAuthData)
@@ -1078,9 +1239,11 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             putIntIfNotNull(this, "expYear", it.expYear)
             putString("funding", it.funding)
             putString("generatedCard", it.generatedCard)
-            putString("last4", it.last4)
-            putString("readMethod", it.readMethod)
-            putMap("receipt", mapFromReceiptDetails(it.receiptDetails))
+            it.last4?.let { last4 -> putString("last4", last4) }
+            it.readMethod?.let { readMethod -> putString("readMethod", readMethod) }
+            mapFromReceiptDetails(it.receiptDetails)?.let { receipt ->
+                putMap("receipt", receipt)
+            }
             putString("issuer", it.issuer)
             putString("iin", it.iin)
             putString("network", it.network)
@@ -1092,6 +1255,7 @@ private fun mapFromCardPresentDetails(cardPresentDetails: CardPresentDetails?): 
             )
             putString("location", it.location)
             putString("reader", it.reader)
+            putString("paymentAccountReference", it.paymentAccountReference)
             putString("multicaptureStatus", mapFromMulticaptureStatus(it.multicapture?.status))
             putString("reauthorizationStatus", mapFromReauthorizationStatus(it.reauthorization?.status))
             it.captureBefore?.let { captureBefore ->
@@ -1151,10 +1315,9 @@ private fun mapFromSetupIntentOfflineDetails(offlineDetails: SetupIntentOfflineD
         nativeMapOf {
             putString("storedAtMs", offlineDetails.storedAtMs.toString())
             putBoolean("requiresUpload", offlineDetails.requiresUpload)
-            putMap(
-                "cardPresentDetails",
-                mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails)
-            )
+            mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails)?.let { details ->
+                putMap("cardPresentDetails", details)
+            }
         }
     }
 
@@ -1163,11 +1326,12 @@ private fun mapFromOfflineDetails(offlineDetails: OfflineDetails?): ReadableMap?
         nativeMapOf {
             putString("storedAtMs", offlineDetails.storedAtMs.toString())
             putBoolean("requiresUpload", offlineDetails.requiresUpload)
-            putMap(
-                "cardPresentDetails",
-                mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails)
-            )
-            putMap("amountDetails", mapFromAmountDetails(offlineDetails.amountDetails))
+            mapFromOfflineCardPresentDetails(offlineDetails.cardPresentDetails)?.let { details ->
+                putMap("cardPresentDetails", details)
+            }
+            mapFromAmountDetails(offlineDetails.amountDetails)?.let { details ->
+                putMap("amountDetails", details)
+            }
         }
     }
 
@@ -1280,16 +1444,19 @@ private fun mapFromAmountDetails(amountDetails: AmountDetails?): ReadableMap? =
 private fun mapFromOfflineCardPresentDetails(offlineCardPresentDetails: OfflineCardPresentDetails?): ReadableMap? =
     offlineCardPresentDetails?.let {
         nativeMapOf {
-            putString("brand", offlineCardPresentDetails.brand)
-            putString("cardholderName", offlineCardPresentDetails.cardholderName)
+            offlineCardPresentDetails.brand?.let { brand -> putString("brand", brand) }
+            offlineCardPresentDetails.cardholderName?.let { cardholderName ->
+                putString("cardholderName", cardholderName)
+            }
             putIntIfNotNull(this, "expMonth", offlineCardPresentDetails.expMonth)
             putIntIfNotNull(this, "expYear", offlineCardPresentDetails.expYear)
-            putString("last4", offlineCardPresentDetails.last4)
-            putString("readMethod", offlineCardPresentDetails.readMethod)
-            putMap(
-                "receiptDetails",
-                mapFromReceiptDetails(offlineCardPresentDetails.receiptDetails)
-            )
+            offlineCardPresentDetails.last4?.let { last4 -> putString("last4", last4) }
+            offlineCardPresentDetails.readMethod?.let { readMethod ->
+                putString("readMethod", readMethod)
+            }
+            mapFromReceiptDetails(offlineCardPresentDetails.receiptDetails)?.let { receiptDetails ->
+                putMap("receiptDetails", receiptDetails)
+            }
         }
     }
 
@@ -1308,17 +1475,33 @@ internal fun convertListToReadableArray(list: List<String>?): ReadableArray? {
     }
 }
 
-fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap =
-    nativeMapOf {
-        putString("accountType", receiptDetails?.accountType)
-        putString("applicationCryptogram", receiptDetails?.applicationCryptogram)
-        putString("applicationPreferredName", receiptDetails?.applicationPreferredName)
-        putString("authorizationCode", receiptDetails?.authorizationCode)
-        putString("authorizationResponseCode", receiptDetails?.authorizationResponseCode)
-        putString("cvm", receiptDetails?.cvm)
-        putString("dedicatedFileName", receiptDetails?.dedicatedFileName)
-        putString("transactionStatusInformation", receiptDetails?.tsi)
-        putString("terminalVerificationResult", receiptDetails?.tvr)
+fun mapFromReceiptDetails(receiptDetails: ReceiptDetails?): ReadableMap? =
+    receiptDetails?.let {
+        nativeMapOf {
+            it.accountType?.let { accountType -> putString("accountType", accountType) }
+            it.applicationCryptogram?.let { applicationCryptogram ->
+                putString("applicationCryptogram", applicationCryptogram)
+            }
+            it.applicationPreferredName?.let { applicationPreferredName ->
+                putString("applicationPreferredName", applicationPreferredName)
+            }
+            it.authorizationCode?.let { authorizationCode ->
+                putString("authorizationCode", authorizationCode)
+            }
+            it.authorizationResponseCode?.let { authorizationResponseCode ->
+                putString("authorizationResponseCode", authorizationResponseCode)
+            }
+            it.cvm?.let { cvm -> putString("cvm", cvm) }
+            it.dedicatedFileName?.let { dedicatedFileName ->
+                putString("dedicatedFileName", dedicatedFileName)
+            }
+            it.tsi?.let { transactionStatusInformation ->
+                putString("transactionStatusInformation", transactionStatusInformation)
+            }
+            it.tvr?.let { terminalVerificationResult ->
+                putString("terminalVerificationResult", terminalVerificationResult)
+            }
+        }
     }
 
 internal fun mapFromNetworkStatus(status: NetworkStatus): String {
@@ -1506,7 +1689,7 @@ internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
                     )
                 }
                 is ReaderAccessibility.Error -> {
-                    putError(readerAccessibility.error)
+                    putError(readerAccessibility.error, ErrorSource.NATIVE)
                 }
             }
         }
@@ -1518,7 +1701,7 @@ internal fun mapFromReaderSettings(settings: ReaderSettings): ReadableMap {
                 putInt("maxVolume", readerBuzzerVolume.maxVolume)
             }
             is ReaderBuzzerVolume.Error -> nativeMapOf {
-                putError(readerBuzzerVolume.error)
+                putError(readerBuzzerVolume.error, ErrorSource.NATIVE)
             }
         }
         putMap("buzzerVolume", buzzerVolume)
@@ -1656,21 +1839,21 @@ fun mapFromReaderSupportResult(readerSupportResult: ReaderSupportResult): Readab
     return nativeMapOf {
         putBoolean("readerSupportResult", readerSupportResult.isSupported)
         readerSupportResult.error?.let { error ->
-            putError(error)
+            putError(error, ErrorSource.NATIVE)
         }
     }
 }
 
 fun mapFromBatteryStatus(status: BatteryStatus): String {
     return when (status) {
-        BatteryStatus.CRITICAL -> "CRITICAL"
-        BatteryStatus.LOW -> "LOW"
-        BatteryStatus.NOMINAL -> "NOMINAL"
-        BatteryStatus.UNKNOWN -> "UNKNOWN"
+        BatteryStatus.CRITICAL -> ReactNativeBatteryStatus.CRITICAL
+        BatteryStatus.LOW -> ReactNativeBatteryStatus.LOW
+        BatteryStatus.NOMINAL -> ReactNativeBatteryStatus.NOMINAL
+        BatteryStatus.UNKNOWN -> ReactNativeBatteryStatus.UNKNOWN
         else -> {
-            "UNKNOWN"
+            ReactNativeBatteryStatus.UNKNOWN
         }
-    }
+    }.value
 }
 
 fun mapFromCollectedData(collectData: CollectedData): ReadableMap {
@@ -1730,23 +1913,41 @@ fun mapToTapZone(
     }
 }
 
-fun mapToDarkMode(mode: String?): TapToPayUxConfiguration.DarkMode {
-    return when (mode) {
-        "dark" -> TapToPayUxConfiguration.DarkMode.DARK
-        "light" -> TapToPayUxConfiguration.DarkMode.LIGHT
-        "system" -> TapToPayUxConfiguration.DarkMode.SYSTEM
-        else -> TapToPayUxConfiguration.DarkMode.LIGHT
+fun mapToTheme(theme: String?): TapToPayUxConfiguration.Theme {
+    return when (theme) {
+        "dark" -> TapToPayUxConfiguration.Theme.DARK
+        "light" -> TapToPayUxConfiguration.Theme.LIGHT
+        "system" -> TapToPayUxConfiguration.Theme.SYSTEM
+        else -> TapToPayUxConfiguration.Theme.SYSTEM
     }
 }
 
 fun hexToArgb(color: String): Int {
+    if (color.isEmpty()) {
+        throw TerminalException(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, "Invalid ARGB hex format")
+    }
     return try {
         Color.parseColor(color)
     } catch (e: IllegalArgumentException) {
-        throw IllegalArgumentException("Invalid ARGB hex format", e)
+        throw TerminalException(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, "Invalid ARGB hex format")
     }
 }
 
+internal fun mapToTapToPayColor(
+    colorScheme: ReadableMap,
+    key: String
+): TapToPayUxConfiguration.Color {
+    if (!colorScheme.hasKey(key) || colorScheme.isNull(key)) {
+        return TapToPayUxConfiguration.Color.Default
+    }
+    val color = requireNonNullParameter(
+        when (colorScheme.getType(key)) {
+            ReadableType.String -> colorScheme.getString(key)
+            else -> null
+        }
+    ) { "Invalid ARGB hex format" }
+    return TapToPayUxConfiguration.Color.Value(hexToArgb(color))
+}
 
 @OptIn(Surcharging::class)
 internal fun mapToSurchargeConfiguration(surchargeMap: ReadableMap): SurchargeConfiguration? {
@@ -1838,7 +2039,8 @@ internal fun buildCollectSetupIntentConfiguration(params: ReadableMap): CollectS
     val motoConfiguration = mapToMotoConfiguration(params.getMap("motoConfiguration"))
     val collectionReason = mapToSetupIntentCollectionReason(params.getString("collectionReason"))
 
-    val configurationBuilder = CollectSetupIntentConfiguration.Builder()
+    val allowRedisplay = mapToAllowRedisplay(params.getString("allowRedisplay"))
+    val configurationBuilder = CollectSetupIntentConfiguration.Builder(allowRedisplay)
     if (customerCancellation != null) {
         configurationBuilder.setCustomerCancellation(customerCancellation)
     }
@@ -1895,7 +2097,7 @@ internal fun mapFromPaymentOptions(paymentOptions: List<PaymentOption>): Readabl
 internal fun mapFromQrCodeDisplayData(qrData: QrCodeDisplayData): ReadableMap =
     nativeMapOf {
         putString("imageUrlPng", qrData.qrCodeImageUrlPng)
-        putString("imageUrlSvg", qrData.qrCodeImageUrlSvg)
+        qrData.qrCodeImageUrlSvg?.let { putString("imageUrlSvg", it) }
         putDouble("expiresAtMs", qrData.expiresAtMs.toDouble())
         putString("paymentMethodType", mapFromPaymentMethodDetailsType(qrData.paymentMethodType))
     }

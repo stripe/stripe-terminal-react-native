@@ -1,6 +1,12 @@
 import StripeTerminal
 import Foundation
 
+/// The layer that supplied the error, independent of its code or NSError domain.
+enum ErrorSource: String {
+    case rn
+    case native
+}
+
 class Errors {
     enum RNErrorCode: String {
         case CANCEL_FAILED = "CANCEL_FAILED"
@@ -20,6 +26,7 @@ class Errors {
         case INVALID_MOTO_CONFIGURATION = "INVALID_MOTO_CONFIGURATION"
 
         case CANCELED = "CANCELED"
+        case CANCELED_BY_READER = "CANCELED_BY_READER"
         case LOCATION_SERVICES_DISABLED = "LOCATION_SERVICES_DISABLED"
         case BLUETOOTH_SCAN_TIMED_OUT = "BLUETOOTH_SCAN_TIMED_OUT"
         case BLUETOOTH_LOW_ENERGY_UNSUPPORTED = "BLUETOOTH_LOW_ENERGY_UNSUPPORTED"
@@ -41,6 +48,7 @@ class Errors {
         case USB_DISCONNECTED = "USB_DISCONNECTED"
         case READER_CONNECTED_TO_ANOTHER_DEVICE = "READER_CONNECTED_TO_ANOTHER_DEVICE"
         case READER_BATTERY_CRITICALLY_LOW = "READER_BATTERY_CRITICALLY_LOW"
+        case READER_BATTERY_LOW = "READER_BATTERY_LOW"
         case READER_SOFTWARE_UPDATE_FAILED = "READER_SOFTWARE_UPDATE_FAILED"
         case READER_SOFTWARE_UPDATE_FAILED_READER_ERROR = "READER_SOFTWARE_UPDATE_FAILED_READER_ERROR"
         case READER_SOFTWARE_UPDATE_FAILED_SERVER_ERROR = "READER_SOFTWARE_UPDATE_FAILED_SERVER_ERROR"
@@ -110,7 +118,6 @@ class Errors {
         case PRINTER_ABSENT = "PRINTER_ABSENT"
         case PRINTER_UNAVAILABLE = "PRINTER_UNAVAILABLE"
         case PRINTER_ERROR = "PRINTER_ERROR"
-        case PRINTER_LOW_BATTERY = "PRINTER_LOW_BATTERY"
 
         case READER_TAMPERED = "READER_TAMPERED"
         case READER_MISSING_ENCRYPTION_KEYS = "READER_MISSING_ENCRYPTION_KEYS"
@@ -195,20 +202,23 @@ class Errors {
     ///   - nativeErrorCode: The native SDK error code
     ///   - message: The error message
     ///   - metadata: Platform-specific metadata
+    ///   - source: The layer that supplied the error
     /// - Returns: The error object dictionary
     private class func stripeErrorObject(
         name: String = "StripeError",
         code: String,
         nativeErrorCode: String,
         message: String,
-        metadata: [String: Any]
+        metadata: [String: Any],
+        source: ErrorSource
     ) -> [String: Any] {
         return [
             ErrorConstants.rnErrorName: name,
             ErrorConstants.rnErrorMessage: message.isEmpty ? ErrorConstants.unknownErrorMessage : message,
             ErrorConstants.rnErrorCode: code,
             ErrorConstants.rnErrorNativeErrorCode: nativeErrorCode,
-            ErrorConstants.rnMetadata: metadata
+            ErrorConstants.rnMetadata: metadata,
+            ErrorConstants.rnErrorSource: source.rawValue
         ]
     }
 
@@ -218,13 +228,15 @@ class Errors {
     ///   - code: The React Native error code
     ///   - nativeErrorCode: The native SDK error code
     ///   - message: The error message
+    ///   - source: The layer that supplied the error
     /// - Returns: A dictionary with the error wrapped under the "error" key
-    private class func createWrappedError(code: String, nativeErrorCode: String, message: String) -> [String: Any] {
+    private class func createWrappedError(code: String, nativeErrorCode: String, message: String, source: ErrorSource) -> [String: Any] {
         let error = stripeErrorObject(
             code: code,
             nativeErrorCode: nativeErrorCode,
             message: message,
-            metadata: [:]
+            metadata: [:],
+            source: source
         )
         return [ErrorConstants.rnError: error]
     }
@@ -239,7 +251,7 @@ class Errors {
     /// - Returns: A dictionary containing the wrapped error structure
     class func createErrorFromCode(code: ErrorCode.Code, message: String) -> [String: Any] {
         let rn = convertToReactNativeErrorCode(from: code)
-        return createWrappedError(code: rn, nativeErrorCode: code.stringValue, message: message)
+        return createWrappedError(code: rn, nativeErrorCode: code.stringValue, message: message, source: .rn)
     }
 
     /// Creates an error response from a React Native error code enum.
@@ -249,45 +261,50 @@ class Errors {
     ///   - message: The error message to include
     /// - Returns: A dictionary containing the wrapped error structure
     class func createErrorFromRnCodeEnum(rnCode: RNErrorCode, message: String) -> [String: Any] {
-        return createWrappedError(code: rnCode.rawValue, nativeErrorCode: rnCode.rawValue, message: message)
+        return createWrappedError(code: rnCode.rawValue, nativeErrorCode: rnCode.rawValue, message: message, source: .rn)
     }
 
     /// Creates an error response from an NSError instance.
     ///
     /// Converts an iOS NSError into the unified error structure used across the React Native bridge.
-    /// Response objects (PaymentIntent, SetupIntent, Refund) are placed at the top level alongside the error.
+    /// Response objects (PaymentIntent, SetupIntent, Refund) are placed directly on the error object.
     ///
-    /// - Parameter nsError: The NSError to convert
-    /// - Returns: A dictionary containing the wrapped error structure with response objects at top level
-    class func createErrorFromNSError(nsError: NSError) -> [String: Any] {
-        return createErrorFromNSError(nsError: nsError, uuid: nil)
+    /// - Parameters:
+    ///   - nsError: The NSError to convert
+    ///   - source: The layer that supplied the error
+    /// - Returns: A dictionary containing the wrapped error structure
+    class func createErrorFromNSError(nsError: NSError, source: ErrorSource) -> [String: Any] {
+        return createErrorFromNSError(nsError: nsError, uuid: nil, source: source)
     }
 
     /// Converts an iOS NSError into the unified error structure with UUID for response objects.
     ///
     /// This overload is used when the error may contain PaymentIntent, SetupIntent, or Refund
-    /// that need to be tracked with a UUID for later retrieval (matching Android behavior).
+    /// that need to be tracked with a UUID for later retrieval.
     ///
-    /// Response objects are placed at the top level alongside the error object:
+    /// Response objects are placed directly on the error object:
     /// ```
     /// {
-    ///   "error": {...},
-    ///   "paymentIntent": {...},  // Optional, at top level
-    ///   "setupIntent": {...},    // Optional, at top level
-    ///   "refund": {...}          // Optional, at top level
+    ///   "error": {
+    ///     ...,
+    ///     "paymentIntent": {...},  // Optional
+    ///     "setupIntent": {...},    // Optional
+    ///     "refund": {...}          // Optional
+    ///   }
     /// }
     /// ```
     ///
     /// - Parameters:
     ///   - nsError: The NSError to convert
     ///   - uuid: The UUID to associate with response objects (PaymentIntent, SetupIntent, Refund)
-    /// - Returns: A dictionary containing the wrapped error structure with response objects at top level
-    class func createErrorFromNSError(nsError: NSError, uuid: String?) -> [String: Any] {
-        var result: [String: Any] = [ErrorConstants.rnError: mapToStripeErrorObject(nsError: nsError)]
+    ///   - source: The layer that supplied the error
+    /// - Returns: A dictionary containing the wrapped error structure
+    class func createErrorFromNSError(nsError: NSError, uuid: String?, source: ErrorSource) -> [String: Any] {
+        var error = mapToStripeErrorObject(nsError: nsError, source: source)
 
-        addResponseObjectsToTopLevel(from: nsError, to: &result, uuid: uuid ?? "")
+        addResponseObjects(from: nsError, to: &error, uuid: uuid ?? "")
 
-        return result
+        return [ErrorConstants.rnError: error]
     }
 
     // MARK: - Error Mapping
@@ -297,30 +314,38 @@ class Errors {
     /// Extracts error information, API error details, response objects, underlying error,
     /// and platform-specific metadata from the NSError.
     ///
-    /// - Parameter nsError: The NSError to convert
+    /// - Parameters:
+    ///   - nsError: The NSError to convert
+    ///   - source: The layer that supplied the error
     /// - Returns: A dictionary containing the complete StripeError structure (without top-level "error" key)
-    class func mapToStripeErrorObject(nsError: NSError) -> [String: Any] {
-        return mapToStripeErrorObject(nsError: nsError, uuid: nil)
+    class func mapToStripeErrorObject(nsError: NSError, source: ErrorSource) -> [String: Any] {
+        return mapToStripeErrorObject(nsError: nsError, uuid: nil, source: source)
     }
 
     /// Maps an NSError to the unified StripeError object structure with optional UUID for response objects.
     ///
-    /// Returns only the error object itself (without PI/SI/Refund). Response objects should be added
-    /// at the top level by the caller using addResponseObjectsToTopLevel().
+    /// Returns only the error object itself (without PI/SI/Refund). Response objects are added by
+    /// createErrorFromNSError before the wrapped response is returned.
     ///
     /// - Parameters:
     ///   - nsError: The NSError to convert
     ///   - uuid: Optional UUID (unused, kept for backwards compatibility)
+    ///   - source: The layer that supplied the error
     /// - Returns: A dictionary containing the complete StripeError structure (without top-level "error" key or response objects)
-    class func mapToStripeErrorObject(nsError: NSError, uuid: String?) -> [String: Any] {
+    class func mapToStripeErrorObject(nsError: NSError, uuid: String?, source: ErrorSource) -> [String: Any] {
         let errorInfo = extractErrorInformation(from: nsError)
+        var message = nsError.localizedDescription
+        if let suggestion = nsError.localizedRecoverySuggestion, !suggestion.isEmpty {
+            message += " \(suggestion)"
+        }
 
         var result = stripeErrorObject(
             name: errorInfo.errorName,
             code: errorInfo.code,
             nativeErrorCode: errorInfo.nativeErrorCode,
-            message: nsError.localizedDescription,
-            metadata: [:]
+            message: message,
+            metadata: [:],
+            source: source
         )
 
         if errorInfo.isStripeError {
@@ -520,9 +545,9 @@ class Errors {
 
     // MARK: - Response Objects
 
-    /// Adds response objects to the top level of the error response (matching Android structure).
+    /// Adds response objects directly to the error object (matching Android structure).
     ///
-    /// These objects are placed at the top-level alongside the error object.
+    /// These objects are placed directly on the error object.
     /// They represent the state of resources even when the operation fails (partial success).
     ///
     /// Example: A payment may be declined (error), but the PaymentIntent was still created
@@ -530,43 +555,41 @@ class Errors {
     ///
     /// - Parameters:
     ///   - nsError: The NSError that may contain response objects
-    ///   - result: The top-level result dictionary (contains "error" key)
+    ///   - error: The error dictionary to populate
     ///   - uuid: The UUID to associate with response objects for tracking
-    private class func addResponseObjectsToTopLevel(from nsError: NSError, to result: inout [String: Any], uuid: String) {
+    private class func addResponseObjects(from nsError: NSError, to error: inout [String: Any], uuid: String) {
         if let confirmError = nsError as? ConfirmPaymentIntentError, let paymentIntent = confirmError.paymentIntent {
-            result[ErrorConstants.rnPaymentIntent] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+            error[ErrorConstants.rnPaymentIntent] = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
         } else if let confirmError = nsError as? ConfirmSetupIntentError, let setupIntent = confirmError.setupIntent {
-            result[ErrorConstants.rnSetupIntent] = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+            error[ErrorConstants.rnSetupIntent] = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
         } else if let confirmError = nsError as? ConfirmRefundError, let refund = confirmError.refund {
-            result[ErrorConstants.rnRefund] = Mappers.mapFromRefund(refund)
+            error[ErrorConstants.rnRefund] = Mappers.mapFromRefund(refund)
         }
     }
 
     /// Extracts underlying error information from NSError and adds it to the result dictionary.
     ///
-    /// Maps iOS NSError underlying error + localized information to the unified underlyingError structure.
-    /// Includes domain, code, message, failure reason, and recovery suggestion.
+    /// Maps the immediate underlying NSError to the unified underlyingError structure.
+    /// Omits underlyingError when no underlying NSError exists.
     ///
     /// - Parameters:
     ///   - nsError: The NSError containing underlying error information
     ///   - result: The result dictionary to populate (modified in place)
     private class func extractUnderlyingErrorToTopLevel(from nsError: NSError, to result: inout [String: Any]) {
-        var underlyingError: [String: Any] = [:]
-
-        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-            underlyingError[ErrorConstants.rnUnderlyingErrorCode] = String(underlying.code)
-            underlyingError[ErrorConstants.rnUnderlyingErrorMessage] = underlying.localizedDescription
-            underlyingError[ErrorConstants.rnUnderlyingErrorIosDomain] = underlying.domain
-        } else {
-            underlyingError[ErrorConstants.rnUnderlyingErrorCode] = String(nsError.code)
-            underlyingError[ErrorConstants.rnUnderlyingErrorMessage] = nsError.localizedDescription
-            underlyingError[ErrorConstants.rnUnderlyingErrorIosDomain] = nsError.domain
+        guard let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError else {
+            return
         }
 
-        if let failure = nsError.localizedFailureReason, !failure.isEmpty {
+        var underlyingError: [String: Any] = [
+            ErrorConstants.rnUnderlyingErrorCode: String(underlying.code),
+            ErrorConstants.rnUnderlyingErrorMessage: underlying.localizedDescription,
+            ErrorConstants.rnUnderlyingErrorIosDomain: underlying.domain
+        ]
+
+        if let failure = underlying.localizedFailureReason, !failure.isEmpty {
             underlyingError[ErrorConstants.rnUnderlyingErrorIosLocalizedFailureReason] = failure
         }
-        if let suggestion = nsError.localizedRecoverySuggestion, !suggestion.isEmpty {
+        if let suggestion = underlying.localizedRecoverySuggestion, !suggestion.isEmpty {
             underlyingError[ErrorConstants.rnUnderlyingErrorIosLocalizedRecoverySuggestion] = suggestion
         }
 
@@ -591,6 +614,7 @@ class Errors {
         metadata[ErrorConstants.rnMetadataStripeAPIRequestId] = nsError.userInfo[ErrorConstants.stripeAPIRequestId] as? String
         metadata[ErrorConstants.rnMetadataStripeAPIFailureReason] = nsError.userInfo[ErrorConstants.stripeAPIFailureReason] as? String
         metadata[ErrorConstants.rnMetadataOfflineDeclineReason] = nsError.userInfo[ErrorConstants.offlineDeclineReason] as? String
+        metadata[ErrorConstants.rnMetadataTapToPayReaderErrorName] = nsError.userInfo[ErrorConstants.tapToPayReaderErrorName] as? String
 
         return metadata
     }
@@ -609,6 +633,7 @@ class Errors {
     private class func convertToReactNativeErrorCode(from code: ErrorCode.Code) -> String {
         switch code {
         case .canceled: return RNErrorCode.CANCELED.rawValue
+        case .canceledByReader: return RNErrorCode.CANCELED_BY_READER.rawValue
         case .notConnectedToReader: return RNErrorCode.NOT_CONNECTED_TO_READER.rawValue
         case .alreadyConnectedToReader: return RNErrorCode.ALREADY_CONNECTED_TO_READER.rawValue
         case .bluetoothDisabled: return RNErrorCode.BLUETOOTH_PERMISSION_DENIED.rawValue
@@ -748,7 +773,7 @@ class Errors {
         case .printerAbsent: return RNErrorCode.PRINTER_ABSENT.rawValue
         case .printerUnavailable: return RNErrorCode.PRINTER_UNAVAILABLE.rawValue
         case .printerError: return RNErrorCode.PRINTER_ERROR.rawValue
-        case .printerLowBattery: return RNErrorCode.PRINTER_LOW_BATTERY.rawValue
+        case .readerBatteryLow: return RNErrorCode.READER_BATTERY_LOW.rawValue
         case .readerConnectedToAnotherDevice: return RNErrorCode.READER_CONNECTED_TO_ANOTHER_DEVICE.rawValue
         case .readerTampered: return RNErrorCode.READER_TAMPERED.rawValue
         case .genericReaderError: return RNErrorCode.GENERIC_READER_ERROR.rawValue
@@ -768,7 +793,6 @@ class Errors {
         case .tapToPayReaderOfflineModeSessionInvalidated: return RNErrorCode.TAP_TO_PAY_READER_OFFLINE_MODE_SESSION_INVALIDATED.rawValue
         case .tapToPayReaderOfflineModeTokenIssuerChanged: return RNErrorCode.TAP_TO_PAY_READER_OFFLINE_MODE_TOKEN_ISSUER_CHANGED.rawValue
         case .simulatedOfflineModeNotAvailableInLivemode: return RNErrorCode.SIMULATED_OFFLINE_MODE_NOT_AVAILABLE_IN_LIVEMODE.rawValue
-        case .simulatedOfflineModeNotAvailableForAccount: return RNErrorCode.UNSUPPORTED_OPERATION.rawValue
         // NOTE: No default case - this ensures that any new ErrorCode cases
         // added to the Stripe Terminal SDK will cause a COMPILER ERROR,
         // forcing us to explicitly handle new cases and preventing silent mapping failures.

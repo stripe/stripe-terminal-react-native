@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.stripe.stripeterminal.external.callable.LocationListCallback
 import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripeterminalreactnative.ErrorSource
 import com.stripeterminalreactnative.createError
 import com.stripeterminalreactnative.mapFromListLocations
 import com.stripeterminalreactnative.nativeMapOf
@@ -21,6 +22,6 @@ class RNLocationListCallback(
     }
 
     override fun onFailure(e: TerminalException) {
-        promise.resolve(createError(e))
+        promise.resolve(createError(e, ErrorSource.NATIVE))
     }
 }

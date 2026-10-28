@@ -7,14 +7,19 @@ import com.stripe.stripeterminal.external.api.ApiErrorType
 import com.stripe.stripeterminal.external.models.AffirmDetails
 import com.stripe.stripeterminal.external.models.AmountDetails
 import com.stripe.stripeterminal.external.models.CardDetails
-import com.stripe.stripeterminal.external.models.CardPresentDetails
+import com.stripe.stripeterminal.external.models.CardNetworks
 import com.stripe.stripeterminal.external.models.CardPresentOptions
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
 import com.stripe.stripeterminal.external.models.CardPresentRequestReauthorization
 import com.stripe.stripeterminal.external.models.Charge
 import com.stripe.stripeterminal.external.models.Donation
 import com.stripe.stripeterminal.external.models.GeneratedFrom
+import com.stripe.stripeterminal.external.models.InstallmentDetails
+import com.stripe.stripeterminal.external.models.InstallmentPlanDetails
+import com.stripe.stripeterminal.external.models.InstallmentPlanInterval
+import com.stripe.stripeterminal.external.models.InstallmentPlanType
 import com.stripe.stripeterminal.external.models.KlarnaDetails
+import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.NextAction
 import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
 import com.stripe.stripeterminal.external.models.OfflineDetails
@@ -27,18 +32,23 @@ import com.stripe.stripeterminal.external.models.PaymentMethodType
 import com.stripe.stripeterminal.external.models.PaynowDetails
 import com.stripe.stripeterminal.external.models.PaypayDetails
 import com.stripe.stripeterminal.external.models.ReceiptDetails
+import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
+import com.stripe.stripeterminal.external.models.QrCodeDisplayData
 import com.stripe.stripeterminal.external.models.RedirectUrl
 import com.stripe.stripeterminal.external.models.Refund
+import com.stripe.stripeterminal.external.models.RefundNextAction
+import com.stripe.stripeterminal.external.models.RefundNextActionDisplayDetails
+import com.stripe.stripeterminal.external.models.RefundNextActionDisplayDetailsEmailSent
 import com.stripe.stripeterminal.external.models.SetupAttempt
 import com.stripe.stripeterminal.external.models.SetupAttemptStatus
 import com.stripe.stripeterminal.external.models.SetupError
 import com.stripe.stripeterminal.external.models.SetupErrorType
 import com.stripe.stripeterminal.external.models.SetupIntent
 import com.stripe.stripeterminal.external.models.SetupIntentCancellationReason
-import com.stripe.stripeterminal.external.models.SetupIntentCardPresentDetails
+import com.stripe.stripeterminal.external.models.SetupAttemptCardPresentDetails
 import com.stripe.stripeterminal.external.models.SetupIntentNextAction
 import com.stripe.stripeterminal.external.models.SetupIntentOfflineDetails
-import com.stripe.stripeterminal.external.models.SetupIntentPaymentMethodDetails
+import com.stripe.stripeterminal.external.models.SetupAttemptPaymentMethodDetails
 import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SurchargeDetails
@@ -50,6 +60,14 @@ import com.stripe.stripeterminal.external.models.WechatPayDetails
 import com.stripe.stripeterminal.external.models.WechatPayDisplayQrCode
 import io.mockk.every
 import io.mockk.mockk
+
+fun mockReaderSoftwareUpdate() = mockk<ReaderSoftwareUpdate>(relaxed = true) {
+    every { version } returns "1"
+    every { durationEstimate } returns ReaderSoftwareUpdate.UpdateDurationEstimate.ONE_TO_TWO_MINUTES
+    every { requiredAtMs } returns 0
+    every { components } returns setOf(ReaderSoftwareUpdate.UpdateComponent.CONFIG)
+    every { isTestUpdate } returns true
+}
 
 fun mockRefund() = mockk<Refund>(relaxed = true) {
     every { id } returns "myId"
@@ -67,8 +85,9 @@ fun mockRefund() = mockk<Refund>(relaxed = true) {
     every { reason } returns "myReason"
     every { receiptNumber } returns "myReceiptNumber"
     every { sourceTransferReversal } returns "mySourceTransferReversal"
-    every { status } returns "myStatus"
+    every { status } returns "requires_action"
     every { transferReversal } returns "myTransferReversal"
+    every { nextAction } returns mockRefundNextAction()
 }
 
 fun expectedRefund() = JavaOnlyMap().apply {
@@ -87,8 +106,40 @@ fun expectedRefund() = JavaOnlyMap().apply {
     putString("reason", "myReason")
     putString("receiptNumber", "myReceiptNumber")
     putString("sourceTransferReversal", "mySourceTransferReversal")
-    putString("status", "myStatus")
+    putString("status", "requiresAction")
     putString("transferReversal", "myTransferReversal")
+    putMap("nextAction", expectedRefundNextAction())
+}
+
+fun mockRefundNextAction() = mockk<RefundNextAction>(relaxed = true) {
+    every { type } returns "display_details"
+    every { displayDetails } returns mockRefundNextActionDisplayDetails()
+}
+
+fun expectedRefundNextAction() = JavaOnlyMap().apply {
+    putString("type", "display_details")
+    putMap("displayDetails", expectedRefundNextActionDisplayDetails())
+}
+
+fun mockRefundNextActionDisplayDetails() = mockk<RefundNextActionDisplayDetails>(relaxed = true) {
+    every { emailSent } returns mockRefundNextActionDisplayDetailsEmailSent()
+    every { expiresAt } returns 1_762_154_053L
+}
+
+fun expectedRefundNextActionDisplayDetails() = JavaOnlyMap().apply {
+    putMap("emailSent", expectedRefundNextActionDisplayDetailsEmailSent())
+    putString("expiresAt", "1762154053000")
+}
+
+fun mockRefundNextActionDisplayDetailsEmailSent() =
+    mockk<RefundNextActionDisplayDetailsEmailSent>(relaxed = true) {
+        every { emailSentAt } returns 1_762_154_000L
+        every { emailSentTo } returns "customer@example.com"
+    }
+
+fun expectedRefundNextActionDisplayDetailsEmailSent() = JavaOnlyMap().apply {
+    putString("emailSentAt", "1762154000000")
+    putString("emailSentTo", "customer@example.com")
 }
 
 fun mockOfflineCardPresentDetails() = mockk<OfflineCardPresentDetails>(relaxed = true) {
@@ -142,6 +193,15 @@ fun mockCardPresentOptions() = mockk<CardPresentOptions>(relaxed = true) {
     every { requestIncrementalAuthorizationSupport } returns false
     every { requestPartialAuthorization } returns CardPresentRequestPartialAuthorization.NEVER
     every { requestReauthorization } returns CardPresentRequestReauthorization.IF_AVAILABLE
+    every { installments } returns InstallmentDetails(
+        enabled = true,
+        availablePlans = emptyList(),
+        plan = InstallmentPlanDetails(
+            type = InstallmentPlanType.FIXED_COUNT,
+            count = 0,
+            interval = InstallmentPlanInterval.MONTH,
+        ),
+    )
 }
 
 fun expectedCardPresentOptions() = JavaOnlyMap().apply {
@@ -149,6 +209,15 @@ fun expectedCardPresentOptions() = JavaOnlyMap().apply {
     putBoolean("requestIncrementalAuthorizationSupport", false)
     putString("requestPartialAuthorization", "never")
     putString("requestReauthorization", "if_available")
+    putMap("installments", JavaOnlyMap().apply {
+        putBoolean("enabled", true)
+        putArray("availablePlans", JavaOnlyArray())
+        putMap("plan", JavaOnlyMap().apply {
+            putString("type", "fixed_count")
+            putInt("count", 0)
+            putString("interval", "month")
+        })
+    })
 }
 
 fun mockPaymentMethodOptions() = mockk<PaymentMethodOptions>(relaxed = true) {
@@ -160,8 +229,8 @@ fun expectedPaymentMethodOptions() = JavaOnlyMap().apply {
 }
 
 fun mockPaymentMethod() = mockk<PaymentMethod>(relaxed = true) {
-    every { cardPresentDetails } returns mockCardPresentDetails()
-    every { interacPresentDetails } returns mockCardPresentDetails()
+    every { cardPresentDetails } returns mockPaymentMethodCardPresentDetails()
+    every { interacPresentDetails } returns mockPaymentMethodCardPresentDetails()
     every { wechatPayDetails } returns mockWechatPayDetails()
     every { affirmDetails } returns mockAffirmDetails()
     every { paynowDetails } returns mockPaynowDetails()
@@ -176,8 +245,8 @@ fun mockPaymentMethod() = mockk<PaymentMethod>(relaxed = true) {
 }
 
 fun expectedPaymentMethod() = JavaOnlyMap().apply {
-    putMap("cardPresentDetails", expectedCardPresentDetails())
-    putMap("interacPresentDetails", expectedCardPresentDetails())
+    putMap("cardPresentDetails", expectedPaymentMethodCardPresentDetails())
+    putMap("interacPresentDetails", expectedPaymentMethodCardPresentDetails())
     putMap("wechatPayDetails", expectedWechatPayDetails())
     putMap("affirmDetails", expectedAffirmDetails())
     putMap("paynowDetails", expectedPaynowDetails())
@@ -209,7 +278,7 @@ fun mockSetupIntent() = mockk<SetupIntent>(relaxed = true) {
     every { paymentMethod } returns mockPaymentMethod()
     every { paymentMethodId } returns "myPaymentMethodId"
     every { paymentMethodOptions } returns mockPaymentMethodOptions()
-    every { paymentMethodTypes } returns listOf("a", "b")
+    every { paymentMethodTypes } returns listOf("card_present", "interac_present")
     every { singleUseMandateId } returns "mySingleUseMandate"
     every { status } returns SetupIntentStatus.SUCCEEDED
     every { usage } returns SetupIntentUsage.ON_SESSION
@@ -236,8 +305,8 @@ fun expectedSetupIntent() = JavaOnlyMap().apply {
     putString("paymentMethodId", "myPaymentMethodId")
     putMap("paymentMethodOptions", expectedPaymentMethodOptions())
     putArray("paymentMethodTypes", JavaOnlyArray().apply {
-        pushString("a")
-        pushString("b")
+        pushString("cardPresent")
+        pushString("interacPresent")
     })
     putString("singleUseMandate", "mySingleUseMandate")
     putString("status", "succeeded")
@@ -303,6 +372,7 @@ fun mockPaymentIntent() = mockk<PaymentIntent>(relaxed = true) {
     every { amountReceived } returns 345
     every { amountRequested } returns 456
     every { amountTip } returns 567
+    every { application } returns "myApplication"
     every { applicationFeeAmount } returns 678
     every { canceledAt } returns 1762154053426L
     every { cancellationReason } returns "myCancellationReason"
@@ -314,6 +384,8 @@ fun mockPaymentIntent() = mockk<PaymentIntent>(relaxed = true) {
     every { customer } returns "myCustomer"
     every { description } returns "myDescription"
     every { lastPaymentError } returns mockApiError()
+    every { latestCharge } returns null
+    every { latestChargeId } returns "myLatestChargeId"
     every { livemode } returns true
     every { metadata } returns mockMetadata()
     every { nextAction } returns mockNextAction()
@@ -322,7 +394,12 @@ fun mockPaymentIntent() = mockk<PaymentIntent>(relaxed = true) {
     every { paymentMethod } returns mockPaymentMethod()
     every { paymentMethodId } returns "myPaymentMethodId"
     every { paymentMethodOptions } returns mockPaymentMethodOptions()
+    every { paymentMethodTypes } returns listOf(
+        PaymentMethodType.CARD_PRESENT,
+        PaymentMethodType.WECHAT_PAY
+    )
     every { receiptEmail } returns "myReceiptEmail"
+    every { review } returns "myReview"
     every { setupFutureUsage } returns "mySetupFutureUsage"
     every { statementDescriptor } returns "myStatementDescriptor"
     every { statementDescriptorSuffix } returns "myStatementDescriptorSuffix"
@@ -338,11 +415,13 @@ fun expectedPaymentIntent() = JavaOnlyMap().apply {
     putInt("amountReceived", 345)
     putInt("amountRequested", 456)
     putInt("amountTip", 567)
+    putString("application", "myApplication")
     putInt("applicationFeeAmount", 678)
     putString("canceledAt", "1762154053426000")
     putString("cancellationReason", "myCancellationReason")
     putString("captureMethod", "myCaptureMethod")
-    putArray("charges", JavaOnlyArray())
+    putMap("latestCharge", null)
+    putString("latestChargeId", "myLatestChargeId")
     putString("clientSecret", "myClientSecret")
     putString("confirmationMethod", "myConfirmationMethod")
     putString("created", "1762154053427000")
@@ -358,7 +437,12 @@ fun expectedPaymentIntent() = JavaOnlyMap().apply {
     putMap("paymentMethod", expectedPaymentMethod())
     putString("paymentMethodId", "myPaymentMethodId")
     putMap("paymentMethodOptions", expectedPaymentMethodOptions())
+    putArray("paymentMethodTypes", JavaOnlyArray().apply {
+        pushString("cardPresent")
+        pushString("wechatPay")
+    })
     putString("receiptEmail", "myReceiptEmail")
+    putString("review", "myReview")
     putString("sdkUuid", "aa")
     putString("setupFutureUsage", "mySetupFutureUsage")
     putString("statementDescriptor", "myStatementDescriptor")
@@ -467,6 +551,7 @@ fun mockCardDetails() = mockk<CardDetails>(relaxed = true) {
     every { funding } returns "funding"
     every { generatedFrom } returns mockGeneratedFromNoPaymentMethodDetails()
     every { last4 } returns "last4"
+    every { authorizationCode } returns "authorizationCode"
 }
 
 fun expectedCardDetails() = JavaOnlyMap().apply {
@@ -477,6 +562,7 @@ fun expectedCardDetails() = JavaOnlyMap().apply {
     putString("funding", "funding")
     putMap("generatedFrom", expectedGeneratedFromNoPaymentMethodDetails())
     putString("last4", "last4")
+    putString("authorizationCode", "authorizationCode")
 }
 
 // Identical to mockGeneratedFrom but avoid cycle, better way is add a flag as parameter but compile will fail
@@ -696,17 +782,70 @@ fun expectedSetupAttempt() = JavaOnlyMap().apply {
     putMap("setupError", expectedSetupError())
 }
 
-fun mockSetupIntentPaymentMethodDetails() = mockk<SetupIntentPaymentMethodDetails>(relaxed = true) {
+fun mockSetupIntentPaymentMethodDetails() = mockk<SetupAttemptPaymentMethodDetails>(relaxed = true) {
+    every { type } returns PaymentMethodType.CARD_PRESENT
     every { cardPresentDetails } returns mockSetupIntentCardPresentDetails()
     every { interacPresentDetails } returns mockSetupIntentCardPresentDetails()
 }
 
 fun expectedSetupIntentPaymentMethodDetails() = JavaOnlyMap().apply {
+    putString("type", "cardPresent")
     putMap("cardPresent", expectedSetupIntentCardPresentDetails())
     putMap("interacPresent", expectedSetupIntentCardPresentDetails())
 }
 
-fun mockCardPresentDetails() = mockk<CardPresentDetails>(relaxed = true) {
+fun mockPaymentMethodCardPresentDetails() = mockk<PaymentMethod.CardPresent>(relaxed = true) {
+    every { brand } returns "myBrand"
+    every { brandProduct } returns "myBrandProduct"
+    every { cardholderName } returns "myCardholderName"
+    every { country } returns "myCountry"
+    every { expMonth } returns 12
+    every { expYear } returns 2000
+    every { funding } returns "myFunding"
+    every { last4 } returns "myLast4"
+    every { readMethod } returns "myReadMethod"
+    every { issuer } returns "myIssuer"
+    every { iin } returns "myIin"
+    every { description } returns "myDescription"
+    every { networks } returns mockCardNetworks()
+    every { paymentAccountReference } returns "myPaymentAccountReference"
+    every { wallet } returns mockWallet()
+    every { preferredLocales } returns listOf()
+}
+
+fun expectedPaymentMethodCardPresentDetails() = JavaOnlyMap().apply {
+    putString("brand", "myBrand")
+    putString("brandProduct", "myBrandProduct")
+    putString("cardholderName", "myCardholderName")
+    putString("country", "myCountry")
+    putInt("expMonth", 12)
+    putInt("expYear", 2000)
+    putString("funding", "myFunding")
+    putString("last4", "myLast4")
+    putString("readMethod", "myReadMethod")
+    putString("issuer", "myIssuer")
+    putString("iin", "myIin")
+    putString("description", "myDescription")
+    putMap("networks", expectedCardNetworks())
+    putString("paymentAccountReference", "myPaymentAccountReference")
+    putMap("wallet", expectedWallet())
+    putArray("preferredLocales", JavaOnlyArray())
+}
+
+fun mockCardNetworks() = mockk<CardNetworks>(relaxed = true) {
+    every { available } returns listOf("visa", "cartes_bancaires")
+    every { preferred } returns "visa"
+}
+
+fun expectedCardNetworks() = JavaOnlyMap().apply {
+    putArray("available", JavaOnlyArray().apply {
+        pushString("visa")
+        pushString("cartes_bancaires")
+    })
+    putString("preferred", "visa")
+}
+
+fun mockCardPresentDetails() = mockk<Charge.CardPresent>(relaxed = true) {
     every { brand } returns "myBrand"
     every { cardholderName } returns "myCardholderName"
     every { country } returns "myCountry"
@@ -726,6 +865,7 @@ fun mockCardPresentDetails() = mockk<CardPresentDetails>(relaxed = true) {
     every { preferredLocales } returns listOf()
     every { location } returns "myLocation"
     every { reader } returns "myReader"
+    every { paymentAccountReference } returns "myPaymentAccountReference"
     every { captureBefore } returns 1000000
     every { reauthorizeBefore } returns 1100000
 }
@@ -750,6 +890,7 @@ fun expectedCardPresentDetails() = JavaOnlyMap().apply {
     putArray("preferredLocales", JavaOnlyArray())
     putString("location", "myLocation")
     putString("reader", "myReader")
+    putString("paymentAccountReference", "myPaymentAccountReference")
     putString("multicaptureStatus", "available")
     putString("reauthorizationStatus", "available")
     putString("captureBefore", "1000000000") // captureBefore is expressed in ms, so this is 1000x larger than the mock captureBefore
@@ -766,6 +907,20 @@ fun mockReceiptDetails() = mockk<ReceiptDetails>(relaxed = true) {
     every { dedicatedFileName } returns "myDedicatedFileName"
     every { tsi } returns "myTransactionStatusInformation"
     every { tvr } returns "myTerminalVerificationResult"
+}
+
+fun mockLocation() = mockk<Location>(relaxed = true) {
+    every { id } returns "tml_test"
+    every { displayName } returns "Test location"
+    every { address } returns null
+    every { livemode } returns true
+}
+
+fun mockQrCodeDisplayData() = mockk<QrCodeDisplayData>(relaxed = true) {
+    every { qrCodeImageUrlPng } returns "https://example.com/qr.png"
+    every { qrCodeImageUrlSvg } returns "https://example.com/qr.svg"
+    every { expiresAtMs } returns 123L
+    every { paymentMethodType } returns PaymentMethodType.CARD_PRESENT
 }
 
 fun expectedReceiptDetails() = JavaOnlyMap().apply {
@@ -788,7 +943,7 @@ fun expectedWallet() = JavaOnlyMap().apply {
     putString("type", "myType")
 }
 
-fun mockSetupIntentCardPresentDetails() = mockk<SetupIntentCardPresentDetails>(relaxed = true) {
+fun mockSetupIntentCardPresentDetails() = mockk<SetupAttemptCardPresentDetails>(relaxed = true) {
     every { emvAuthData } returns "myEmvAuthData"
     every { generatedCard } returns "myGeneratedCard"
 }

@@ -3,7 +3,6 @@ import StripeTerminalSdk from './StripeTerminalSdk';
 import * as PackageJson from '../package.json';
 import type {
   InitParams,
-  InitializeResultType,
   DiscoverReadersParams,
   DiscoverReadersResultType,
   EasyConnectParams,
@@ -29,6 +28,7 @@ import type {
   ICollectInputsResults,
   PaymentStatus,
   ConnectionStatus,
+  GetConnectedReaderType,
   ConfirmPaymentMethodParams,
   ProcessPaymentIntentParams,
   ConfirmSetupIntentMethodParams,
@@ -47,11 +47,13 @@ import type {
   PaymentOption,
 } from './types';
 import type { StripeError } from './types/StripeError';
+import type { InternalStripeError } from './Errors/InternalStripeError';
 import {
-  createStripeError,
+  createInternalStripeError,
   rehydrateBridgeError,
 } from './Errors/StripeErrorHelpers';
 import { ErrorCode } from './Errors/ErrorCodes';
+import { stripReaderSettingsErrorSource } from './Errors/stripReaderSettingsErrorSource';
 import { Platform, NativeModules, NativeEventEmitter } from 'react-native';
 
 const { StripeTerminalReactNative } = NativeModules;
@@ -68,6 +70,16 @@ let storedOnPaymentMethodSelectionRequired: PaymentMethodSelectionHandler | null
 let storedOnQrCodeDisplayRequired: QrCodeDisplayHandler | null = null;
 let paymentMethodSelectionSubscription: { remove: () => void } | null = null;
 let qrCodeDisplaySubscription: { remove: () => void } | null = null;
+
+function throwNullishBridgeResult(): never {
+  throw createInternalStripeError(
+    {
+      code: ErrorCode.UNEXPECTED_SDK_ERROR,
+      message: 'Native bridge returned null or undefined',
+    },
+    'rn'
+  );
+}
 
 function setupPaymentMethodSelectionListener() {
   if (paymentMethodSelectionSubscription) {
@@ -111,22 +123,29 @@ function setupQrCodeDisplayListener() {
 
 async function callBridge<T extends Record<string, unknown>>(
   method: () => Promise<T>
-): Promise<Omit<T, 'error'> & { error?: StripeError }> {
+): Promise<Omit<T, 'error'> & { error?: InternalStripeError }> {
   try {
     const result = await method();
     if (result == null) {
-      return { error: createStripeError({
-        code: ErrorCode.UNEXPECTED_SDK_ERROR,
-        message: 'Native bridge returned null or undefined',
-      })} as Omit<T, 'error'> & { error: StripeError };
+      return {
+        error: createInternalStripeError(
+          {
+            code: ErrorCode.UNEXPECTED_SDK_ERROR,
+            message: 'Native bridge returned null or undefined',
+          },
+          'rn'
+        ),
+      } as Omit<T, 'error'> & { error: InternalStripeError };
     }
     return {
       ...result,
-      error: result.error ? rehydrateBridgeError(result.error) : undefined,
+      error: result.error
+        ? rehydrateBridgeError(result.error)
+        : undefined,
     };
   } catch (error) {
     return { error: rehydrateBridgeError(error) } as Omit<T, 'error'> & {
-      error: StripeError;
+      error: InternalStripeError;
     };
   }
 }
@@ -134,21 +153,35 @@ async function callBridge<T extends Record<string, unknown>>(
 export async function initialize(params: {
   initParams: InitParams;
   useAppsOnDevicesConnectionTokenProvider: boolean;
-}): Promise<InitializeResultType> {
+}): Promise<{ reader?: Reader.Type; error?: InternalStripeError }> {
   Logger.setLogLevel(params.initParams.logLevel);
 
   const { localeConfig } = params.initParams;
+  if (!localeConfig) {
+    return {
+      error: createInternalStripeError(
+        {
+          code: ErrorCode.INVALID_REQUIRED_PARAMETER,
+          message: 'You must provide a localeConfig.',
+        },
+        'rn'
+      ),
+      reader: undefined,
+    };
+  }
   if (
-    localeConfig &&
     localeConfig.type !== 'hardcoded' &&
     localeConfig.type !== 'cardLanguagePreferenceIfAvailable'
   ) {
     return {
-      error: createStripeError({
-        code: ErrorCode.INVALID_REQUIRED_PARAMETER,
-        message:
-          "Invalid localeConfig.type. Expected 'hardcoded' or 'cardLanguagePreferenceIfAvailable'.",
-      }),
+      error: createInternalStripeError(
+        {
+          code: ErrorCode.INVALID_REQUIRED_PARAMETER,
+          message:
+            "Invalid localeConfig.type. Expected 'hardcoded' or 'cardLanguagePreferenceIfAvailable'.",
+        },
+        'rn'
+      ),
       reader: undefined,
     };
   }
@@ -176,8 +209,8 @@ export async function setConnectionToken(
 ): Promise<void> {
   try {
     await StripeTerminalSdk.setConnectionToken({ token, error });
-  } catch (e) {
-    console.warn('Unexpected error:', e);
+  } catch {
+    console.warn('Unexpected error setting connection token.');
   }
 }
 
@@ -210,7 +243,7 @@ export async function cancelEasyConnect(): Promise<CancelDiscoveringResultType> 
 export async function cancelDiscovering(): Promise<CancelDiscoveringResultType> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(() => StripeTerminalSdk.cancelDiscovering());
-  }, 'cancelDiscoverReaders')();
+  }, 'cancelDiscovering')();
 }
 
 export async function connectReader(
@@ -353,7 +386,7 @@ export async function selectPaymentOption(paymentOptionType: string): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(async () => { await StripeTerminalSdk.selectPaymentOption(paymentOptionType); return {}; });
-  }, 'selectPaymentOption')();
+  }, 'selectPaymentOption')(paymentOptionType);
 }
 
 export async function failPaymentMethodSelection(errorMessage?: string): Promise<{
@@ -361,7 +394,7 @@ export async function failPaymentMethodSelection(errorMessage?: string): Promise
 }> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(async () => { await StripeTerminalSdk.failPaymentMethodSelection(errorMessage); return {}; });
-  }, 'failPaymentMethodSelection')();
+  }, 'failPaymentMethodSelection')(errorMessage);
 }
 
 export async function confirmQrCodeDisplayed(): Promise<{
@@ -377,7 +410,7 @@ export async function failQrCodeDisplay(errorMessage?: string): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(async () => { await StripeTerminalSdk.failQrCodeDisplay(errorMessage); return {}; });
-  }, 'failQrCodeDisplay')();
+  }, 'failQrCodeDisplay')(errorMessage);
 }
 
 export async function installAvailableUpdate(): Promise<{
@@ -465,7 +498,7 @@ export async function processSetupIntent(
     const { setupIntent: processedSetupIntent, error } = await callBridge(() =>
       StripeTerminalSdk.processSetupIntent(innerparams)
     );
-    if (error) return { error, setupIntent: processedSetupIntent };
+    if (error) return { error };
     return { setupIntent: processedSetupIntent!, error: undefined };
   }, 'processSetupIntent')(params);
 }
@@ -572,45 +605,59 @@ export async function cancelProcessSetupIntent(): Promise<{
 
 export async function getOfflineStatus(): Promise<OfflineStatus> {
   return Logger.traceSdkMethod(async () => {
-    return callBridge(() => StripeTerminalSdk.getOfflineStatus());
+    let result: OfflineStatus;
+    try {
+      result = await StripeTerminalSdk.getOfflineStatus();
+    } catch (error) {
+      throw rehydrateBridgeError(error);
+    }
+    return result ?? throwNullishBridgeResult();
   }, 'getOfflineStatus')();
 }
 
 export async function getPaymentStatus(): Promise<PaymentStatus> {
   return Logger.traceSdkMethod(async () => {
+    let result: PaymentStatus;
     try {
-      const paymentStatus = await StripeTerminalSdk.getPaymentStatus();
-      return paymentStatus;
+      result = await StripeTerminalSdk.getPaymentStatus();
     } catch (error) {
-      return {
-        error: rehydrateBridgeError(error),
-      };
+      throw rehydrateBridgeError(error);
     }
+    return result ?? throwNullishBridgeResult();
   }, 'getPaymentStatus')();
 }
 
 export async function getConnectionStatus(): Promise<ConnectionStatus> {
   return Logger.traceSdkMethod(async () => {
+    let result: ConnectionStatus;
     try {
-      const connectionStatus = await StripeTerminalSdk.getConnectionStatus();
-      return connectionStatus;
+      result = await StripeTerminalSdk.getConnectionStatus();
     } catch (error) {
-      return {
-        error: rehydrateBridgeError(error),
-      };
+      throw rehydrateBridgeError(error);
     }
+    return result ?? throwNullishBridgeResult();
   }, 'getConnectionStatus')();
 }
 
-export async function getConnectedReader(): Promise<Reader.Type> {
+/** Returns the connected reader or null; rejects unexpected failures with StripeError. */
+export async function getConnectedReader(): Promise<GetConnectedReaderType> {
   return Logger.traceSdkMethod(async () => {
-    return callBridge(() => StripeTerminalSdk.getConnectedReader());
+    const { reader, error } = await callBridge(
+      () => StripeTerminalSdk.getConnectedReader()
+    );
+    if (error) throw error;
+    // A null reader is valid; a missing bridge value is not.
+    return reader === undefined ? throwNullishBridgeResult() : reader;
   }, 'getConnectedReader')();
 }
 
 export async function getReaderSettings(): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
-    return callBridge(() => StripeTerminalSdk.getReaderSettings());
+    const settings = await callBridge(() =>
+      StripeTerminalSdk.getReaderSettings()
+    );
+    if (settings.error) return settings;
+    return stripReaderSettingsErrorSource(settings as Reader.ReaderSettings);
   }, 'getReaderSettings')();
 }
 
@@ -618,8 +665,12 @@ export async function setReaderSettings(
   params: Reader.ReaderSettingsParameters
 ): Promise<Reader.ReaderSettings> {
   return Logger.traceSdkMethod(async () => {
-    return callBridge(() => StripeTerminalSdk.setReaderSettings(params));
-  }, 'setReaderSettings')();
+    const settings = await callBridge(() =>
+      StripeTerminalSdk.setReaderSettings(params)
+    );
+    if (settings.error) return settings;
+    return stripReaderSettingsErrorSource(settings as Reader.ReaderSettings);
+  }, 'setReaderSettings')(params);
 }
 
 export async function collectInputs(
@@ -627,7 +678,7 @@ export async function collectInputs(
 ): Promise<ICollectInputsResults> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(() => StripeTerminalSdk.collectInputs(params));
-  }, 'collectInputs')();
+  }, 'collectInputs')(params);
 }
 
 export async function cancelCollectInputs(): Promise<{
@@ -643,7 +694,7 @@ export async function collectData(
 ): Promise<CollectDataResultType> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(() => StripeTerminalSdk.collectData(params));
-  }, 'collectData')();
+  }, 'collectData')(params);
 }
 
 export async function cancelCollectData(): Promise<{
@@ -659,7 +710,7 @@ export async function print(content: PrintContent): Promise<{
 }> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(() => StripeTerminalSdk.print(content));
-  }, 'print')();
+  }, 'print')(content);
 }
 
 export async function cancelReaderReconnection(): Promise<{
@@ -675,7 +726,7 @@ export async function supportsReadersOfType(
 ): Promise<Reader.ReaderSupportResult> {
   return Logger.traceSdkMethod(async () => {
     return callBridge(() => StripeTerminalSdk.supportsReadersOfType(params));
-  }, 'supportsReadersOfType')();
+  }, 'supportsReadersOfType')(params);
 }
 
 export async function setTapToPayUxConfiguration(
@@ -683,21 +734,24 @@ export async function setTapToPayUxConfiguration(
 ): Promise<{
   error?: StripeError;
 }> {
-  if (Platform.OS === 'ios') {
-    return {
-      error: createStripeError({
-        message: "'setTapToPayUxConfiguration' is unsupported on iOS",
-        code: ErrorCode.UNSUPPORTED_OPERATION,
-      }),
-    };
-  }
-
   return Logger.traceSdkMethod(async () => {
+    if (Platform.OS === 'ios') {
+      return {
+        error: createInternalStripeError(
+          {
+            message: "'setTapToPayUxConfiguration' is unsupported on iOS",
+            code: ErrorCode.UNSUPPORTED_OPERATION,
+          },
+          'rn'
+        ),
+      };
+    }
+
     return callBridge(async () => {
       await StripeTerminalSdk.setTapToPayUxConfiguration(params);
       return {};
     });
-  }, 'setTapToPayUxConfiguration')();
+  }, 'setTapToPayUxConfiguration')(params);
 }
 
 export async function getNativeSdkVersion(): Promise<string> {

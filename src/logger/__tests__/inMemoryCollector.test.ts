@@ -12,6 +12,7 @@ const makeTrace = (method: string = 'getOfflineStatus'): Trace => ({
     service: 'StripeTerminalReactNative',
     method,
     request: '{}',
+    tags: { device_type: 'ios' },
     version_info: { client_type: 'RN_SDK', client_version: '0.0.0-test' },
     traces: [],
     additional_context: {

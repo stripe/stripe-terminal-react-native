@@ -13,6 +13,7 @@ import com.stripeterminalreactnative.TestConstants.EXCEPTION_CLASS_KEY
 import com.stripeterminalreactnative.TestConstants.METADATA_KEY
 import com.stripeterminalreactnative.TestConstants.NON_STRIPE_ERROR
 import com.stripeterminalreactnative.TestConstants.PAYMENT_INTENT_KEY
+import com.stripeterminalreactnative.TestConstants.REFUND_KEY
 import com.stripeterminalreactnative.TestConstants.SETUP_INTENT_KEY
 import com.stripeterminalreactnative.TestConstants.STRIPE_ERROR
 import com.stripeterminalreactnative.TestConstants.UNDERLYING_ERROR_KEY
@@ -61,6 +62,21 @@ class ErrorsTest {
     }
 
     @Test
+    fun `createError uses explicit source for the same TerminalException`() {
+        val exception = TerminalException(TerminalErrorCode.INVALID_REQUIRED_PARAMETER, "Invalid parameter")
+
+        val rn = (createError(exception, ErrorSource.RN) as JavaOnlyMap).requireMap("error")
+        val native = (createError(exception, ErrorSource.NATIVE) as JavaOnlyMap).requireMap("error")
+
+        assertEquals("rn", rn.getString("error_source"))
+        assertEquals("native", native.getString("error_source"))
+        assertEquals(
+            rn.toHashMap().filterKeys { it != "error_source" },
+            native.toHashMap().filterKeys { it != "error_source" }
+        )
+    }
+
+    @Test
     fun `TerminalErrorCode convertToReactNativeErrorCode returns enum name`() {
         // GIVEN no additional setup
         // WHEN mapping all TerminalErrorCode values
@@ -97,7 +113,7 @@ class ErrorsTest {
         )
 
         // WHEN creating the error map
-        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val errorWrapper = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
         // THEN the output should be a StripeError with apiError and underlyingError at top-level
@@ -151,7 +167,7 @@ class ErrorsTest {
         )
 
         // WHEN creating the error map
-        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val errorWrapper = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
         // THEN apiError should include the type field converted to string
@@ -168,7 +184,7 @@ class ErrorsTest {
         )
 
         // WHEN creating the error map
-        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val errorWrapper = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
         // THEN apiError and underlyingError should not be present
@@ -187,7 +203,7 @@ class ErrorsTest {
         val runtime = RuntimeException("top level", rootCause)
 
         // WHEN creating the error map
-        val errorWrapper = createError(runtime) as JavaOnlyMap
+        val errorWrapper = createError(runtime, ErrorSource.RN) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
         // THEN the result should describe a NonStripeError with underlyingError at top-level
@@ -212,7 +228,7 @@ class ErrorsTest {
         val runtime = RuntimeException("message only")
 
         // WHEN creating the error map
-        val error = (createError(runtime) as JavaOnlyMap).requireMap("error")
+        val error = (createError(runtime, ErrorSource.RN) as JavaOnlyMap).requireMap("error")
 
         // THEN underlyingError should not be present
         assertFalse(error.hasKey(UNDERLYING_ERROR_KEY), "underlyingError should not be present")
@@ -223,7 +239,7 @@ class ErrorsTest {
     }
 
     @Test
-    fun `createError includes paymentIntent at top-level when present`() {
+    fun `createError includes paymentIntent inside error when present`() {
         // GIVEN a TerminalException with paymentIntent data
         val paymentIntentMap = JavaOnlyMap().apply { putString("id", "pi_123") }
         every { mapFromPaymentIntent(any(), any()) } returns paymentIntentMap
@@ -235,12 +251,31 @@ class ErrorsTest {
         every { terminalException.paymentIntent } returns mockk()
 
         // WHEN creating the error wrapper
-        val result = createError(terminalException) as JavaOnlyMap
+        val result = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
 
-        // THEN paymentIntent should be present at top-level (outside error object)
-        val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(topLevelPaymentIntent)
-        assertEquals("pi_123", topLevelPaymentIntent.getString("id"))
+        // THEN paymentIntent should be present inside the error object only
+        val error = result.requireMap("error")
+        val paymentIntent = error.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(paymentIntent)
+        assertEquals("pi_123", paymentIntent.getString("id"))
+        assertFalse(result.hasKey(PAYMENT_INTENT_KEY))
+    }
+
+    @Test
+    fun `createError includes refund inside error when present`() {
+        // GIVEN a TerminalException with refund data
+        val terminalException = mockTerminalException(
+            TerminalErrorCode.CANCELED,
+            "cancelled"
+        )
+        every { terminalException.refund } returns mockRefund()
+
+        // WHEN creating the error wrapper
+        val result = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
+
+        // THEN refund should be present inside the error object only
+        assertNotNull(result.requireMap("error").getMap(REFUND_KEY))
+        assertFalse(result.hasKey(REFUND_KEY))
     }
 
     @Test
@@ -253,10 +288,11 @@ class ErrorsTest {
         every { terminalException.paymentIntent } returns null
 
         // WHEN creating the error wrapper
-        val result = createError(terminalException) as JavaOnlyMap
+        val result = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
 
-        // THEN paymentIntent key should be absent from top-level
+        // THEN paymentIntent key should be absent from both wrapper and error
         assertFalse(result.hasKey(PAYMENT_INTENT_KEY))
+        assertFalse(result.requireMap("error").hasKey(PAYMENT_INTENT_KEY))
     }
 
     @Test
@@ -286,22 +322,26 @@ class ErrorsTest {
         every { terminalException.setupIntent } returns mockk()
 
         // WHEN creating error with uuid
-        val result = createError(terminalException, testUuid) as JavaOnlyMap
+        val result = createError(terminalException, testUuid, ErrorSource.NATIVE) as JavaOnlyMap
+        assertEquals("native", result.requireMap("error").getString("error_source"))
 
         // THEN uuid should be passed to both mapper functions
         assertEquals(testUuid, paymentIntentSlot.captured)
         assertEquals(testUuid, setupIntentSlot.captured)
 
-        // AND paymentIntent and setupIntent should be at top-level with correct uuid
-        val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(topLevelPaymentIntent)
-        assertEquals("pi_test", topLevelPaymentIntent.getString("id"))
-        assertEquals(testUuid, topLevelPaymentIntent.getString("sdkUuid"))
+        // AND paymentIntent and setupIntent should be inside error with correct uuid
+        val error = result.requireMap("error")
+        val paymentIntent = error.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(paymentIntent)
+        assertEquals("pi_test", paymentIntent.getString("id"))
+        assertEquals(testUuid, paymentIntent.getString("sdkUuid"))
 
-        val topLevelSetupIntent = result.getMap(SETUP_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(topLevelSetupIntent)
-        assertEquals("seti_test", topLevelSetupIntent.getString("id"))
-        assertEquals(testUuid, topLevelSetupIntent.getString("sdkUuid"))
+        val setupIntent = error.getMap(SETUP_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(setupIntent)
+        assertEquals("seti_test", setupIntent.getString("id"))
+        assertEquals(testUuid, setupIntent.getString("sdkUuid"))
+        assertFalse(result.hasKey(PAYMENT_INTENT_KEY))
+        assertFalse(result.hasKey(SETUP_INTENT_KEY))
     }
 
     @Test
@@ -322,15 +362,16 @@ class ErrorsTest {
         every { terminalException.paymentIntent } returns mockk()
 
         // WHEN creating error without uuid
-        val result = createError(terminalException) as JavaOnlyMap
+        val result = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
 
         // THEN empty string should be passed to mapper function
         assertEquals("", uuidSlot.captured)
 
-        // AND paymentIntent should be at top-level with empty uuid
-        val topLevelPaymentIntent = result.getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
-        assertNotNull(topLevelPaymentIntent)
-        assertEquals("", topLevelPaymentIntent.getString("sdkUuid"))
+        // AND paymentIntent should be inside error with empty uuid
+        val paymentIntent = result.requireMap("error").getMap(PAYMENT_INTENT_KEY) as JavaOnlyMap?
+        assertNotNull(paymentIntent)
+        assertEquals("", paymentIntent.getString("sdkUuid"))
+        assertFalse(result.hasKey(PAYMENT_INTENT_KEY))
     }
 
     @Test
@@ -424,8 +465,9 @@ class ErrorsTest {
 
         // THEN promise.resolve should receive a StripeError map
         val captured = slot<ReadableMap>()
-        verify { promise.resolve(capture(captured)) }
+        verify(exactly = 1) { promise.resolve(capture(captured)) }
         val error = (captured.captured.getMap("error") as JavaOnlyMap)
+        assertEquals("rn", error.getString("error_source"))
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals(TerminalErrorCode.READER_BUSY.convertToReactNativeErrorCode(), error.getString("code"))
     }
@@ -460,8 +502,9 @@ class ErrorsTest {
 
         // THEN promise.resolve should be called with a StripeError map
         val captured = slot<ReadableMap>()
-        verify { promise.resolve(capture(captured)) }
+        verify(exactly = 1) { promise.resolve(capture(captured)) }
         val error = (captured.captured.getMap("error") as JavaOnlyMap)
+        assertEquals("rn", error.getString("error_source"))
         assertEquals(STRIPE_ERROR, error.getString("name"))
         assertEquals(TerminalErrorCode.STRIPE_API_ERROR.convertToReactNativeErrorCode(), error.getString("code"))
     }
@@ -508,7 +551,7 @@ class ErrorsTest {
         )
 
         // WHEN creating the error map
-        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val errorWrapper = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
 
         // THEN should be StripeError with immediate cause at top-level underlyingError
@@ -696,7 +739,7 @@ class ErrorsTest {
         )
 
         // WHEN creating error via createError (which uses addTopLevelApiError internally)
-        val errorWrapper = createError(terminalException) as JavaOnlyMap
+        val errorWrapper = createError(terminalException, ErrorSource.NATIVE) as JavaOnlyMap
         val error = errorWrapper.requireMap("error")
         val apiErrorFromCreateError = error.requireMap(API_ERROR_KEY)
 

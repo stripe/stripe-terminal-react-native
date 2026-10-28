@@ -38,7 +38,7 @@ export type QrCodeDisplayData = {
   /** URL to a PNG image of the QR code */
   imageUrlPng: string;
   /** URL to an SVG image of the QR code */
-  imageUrlSvg: string;
+  imageUrlSvg?: string;
   /** Unix timestamp (in milliseconds) when the QR code expires */
   expiresAtMs: number;
   /** The payment method type this QR code is for */
@@ -82,7 +82,7 @@ export type InitParams = {
    * To use a different locale config, restart the app and initialize the SDK
    * with the new value.
    */
-  localeConfig?: LocaleConfig;
+  localeConfig: LocaleConfig;
 };
 
 /**
@@ -332,13 +332,13 @@ export type InitializeResultType =
   }
   | { error: StripeError; reader?: undefined };
 
-export type DiscoverReadersResultType = Promise<{
+export type DiscoverReadersResultType = {
   error?: StripeError;
-}>;
+};
 
-export type CancelDiscoveringResultType = Promise<{
+export type CancelDiscoveringResultType = {
   error?: StripeError;
-}>;
+};
 
 export type ConnectReaderResultType =
   | {
@@ -348,27 +348,17 @@ export type ConnectReaderResultType =
   | { reader?: undefined; error: StripeError };
 
 export type DisconnectReaderResultType = {
-  error: StripeError;
+  error?: StripeError;
 };
 
 export type RebootReaderResultType = {
-  error: StripeError;
+  error?: StripeError;
 };
-
-export type UpdateSoftwareResultType =
-  | {
-      update: Reader.SoftwareUpdate;
-      error?: undefined;
-    }
-  | {
-      update?: undefined;
-      error: StripeError;
-    };
 
 export interface Location {
   displayName?: string;
-  id: string;
-  livemode: boolean;
+  id?: string;
+  livemode?: boolean;
   address?: Address;
 }
 
@@ -418,7 +408,7 @@ export interface Charge {
   captured: boolean;
   calculatedStatementDescriptor?: string;
   created?: string;
-  currency: string;
+  currency?: string;
   customer?: string;
   description?: string;
   generatedFrom?: GeneratedFrom;
@@ -457,7 +447,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   transferGroup?: string;
   metadata?: Record<string, string>;
   paymentMethodOptions?: PaymentMethodOptions;
-  captureMethod?: 'automatic' | 'manual';
+  captureMethod?: 'automatic' | 'automatic_async' | 'manual';
   offlineBehavior?: 'prefer_online' | 'require_online' | 'force_offline';
 };
 
@@ -480,6 +470,21 @@ export type PaymentMethodOptions = {
   captureMethod?: 'manual' | 'manual_preferred' | 'automatic_delayed';
   captureDelayDays?: number;
   requestMulticapture?: 'if_available' | 'never';
+  installments?: InstallmentsParameters;
+};
+
+export type InstallmentsParameters = {
+  enabled?: boolean;
+};
+
+export type PaymentMethodOptionsResponse = {
+  cardPresent: {
+    requestExtendedAuthorization: boolean;
+    requestIncrementalAuthorizationSupport: boolean;
+    requestPartialAuthorization: string;
+    requestReauthorization?: 'if_available' | 'never';
+    installments?: InstallmentDetails;
+  };
 };
 
 export type MotoConfiguration = {
@@ -553,7 +558,7 @@ export type CancelSetupIntentMethodParams = {
 };
 
 export type CollectSetupIntentPaymentMethodParams = {
-  allowRedisplay?: AllowRedisplay;
+  allowRedisplay: AllowRedisplay;
   customerCancellation?: CustomerCancellation;
   setupIntent: SetupIntent.Type;
   motoConfiguration?: MotoConfiguration;
@@ -562,7 +567,7 @@ export type CollectSetupIntentPaymentMethodParams = {
 
 export type ProcessSetupIntentParams = {
   setupIntent: SetupIntent.Type;
-  allowRedisplay?: AllowRedisplay;
+  allowRedisplay: AllowRedisplay;
   customerCancellation?: CustomerCancellation;
   motoConfiguration?: MotoConfiguration;
   collectionReason?: CollectionReason;
@@ -620,7 +625,7 @@ export type GetLocationsResultType =
   };
 
 export type ClearReaderDisplayResultType = {
-  error: StripeError;
+  error?: StripeError;
 };
 
 export type RefundParamsWithPaymentIntentId = {
@@ -652,28 +657,82 @@ export type MulticaptureStatus = 'unknown' | 'unavailable' | 'available';
 export type ReauthorizationStatus = 'unknown' | 'unavailable' | 'available';
 
 export type CardPresentDetails = {
-  last4: string;
-  expMonth: string;
-  expYear: string;
+  last4?: string;
+  expMonth: number;
+  expYear: number;
   cardholderName?: string;
-  funding: string;
-  brand: string;
+  funding?: string;
+  brand?: string;
   generatedCard?: string;
   receipt?: ReceiptDetails;
   emvAuthData?: string;
   country?: string;
-  preferredLocales: string[];
-  issuer: string;
-  iin: string;
-  network: string;
-  description: string;
-  wallet: Wallet;
+  preferredLocales?: string[];
+  issuer?: string;
+  iin?: string;
+  network?: string;
+  readMethod?: string;
+  description?: string;
+  wallet?: Wallet;
   location?: string;
   reader?: string;
   multicaptureStatus?: MulticaptureStatus;
   reauthorizationStatus?: ReauthorizationStatus;
   captureBefore?: string;
   reauthorizeBefore?: string;
+  paymentAccountReference?: string;
+};
+
+export type Networks = {
+  available?: string[];
+  preferred?: string;
+};
+
+export type PaymentMethodCardPresentDetails = {
+  brand?: string;
+  brandProduct?: string;
+  cardholderName?: string;
+  country?: string;
+  description?: string;
+  expMonth?: number;
+  expYear?: number;
+  funding?: string;
+  iin?: string;
+  issuer?: string;
+  last4?: string;
+  networks?: Networks;
+  paymentAccountReference?: string;
+  preferredLocales?: string[];
+  readMethod?: string;
+  wallet?: Wallet;
+};
+
+export type InstallmentDetails = {
+  enabled?: boolean;
+  availablePlans: InstallmentPlanDetails[];
+  plan?: InstallmentPlanDetails;
+};
+
+export const InstallmentPlanType = {
+  FixedCount: 'fixed_count',
+  Bonus: 'bonus',
+  Revolving: 'revolving',
+} as const;
+
+export type InstallmentPlanType =
+  (typeof InstallmentPlanType)[keyof typeof InstallmentPlanType];
+
+export const InstallmentPlanInterval = {
+  Month: 'month',
+} as const;
+
+export type InstallmentPlanInterval =
+  (typeof InstallmentPlanInterval)[keyof typeof InstallmentPlanInterval];
+
+export type InstallmentPlanDetails = {
+  type: InstallmentPlanType;
+  count?: number;
+  interval?: InstallmentPlanInterval;
 };
 
 export type WechatPayDetails = {
@@ -706,15 +765,15 @@ export type KlarnaDetails = {
 };
 
 export type ReceiptDetails = {
-  accountType: string;
-  applicationCryptogram: string;
-  applicationPreferredName: string;
-  authorizationCode: string;
-  authorizationResponseCode: string;
-  cvm: string;
-  dedicatedFileName: string;
-  terminalVerificationResult: string;
-  transactionStatusInformation: string;
+  accountType?: string;
+  applicationCryptogram?: string;
+  applicationPreferredName?: string;
+  authorizationCode?: string;
+  authorizationResponseCode?: string;
+  cvm?: string;
+  dedicatedFileName?: string;
+  terminalVerificationResult?: string;
+  transactionStatusInformation?: string;
 };
 
 export type Wallet = {
@@ -741,6 +800,7 @@ export type CardDetails = {
   funding?: string;
   generatedFrom?: GeneratedFrom;
   last4?: string;
+  authorizationCode?: string;
 };
 
 export type ProcessRefundResultType =
@@ -764,6 +824,9 @@ export type OfflineStatus = {
   reader?: OfflineStatusDetails;
 };
 
+/** The connected reader, or null when no reader is connected. */
+export type GetConnectedReaderType = Reader.Type | null;
+
 export type ReaderEvent = 'cardInserted' | 'cardRemoved';
 
 export type ConnectionStatus =
@@ -784,9 +847,26 @@ export type UserCallbacks = {
   onUpdateDiscoveredReaders?(readers: Reader.Type[]): void;
   onFinishDiscoveringReaders?(error?: StripeError): void;
   onDidReportAvailableUpdate?(update: Reader.SoftwareUpdate): void;
-  onDidStartInstallingUpdate?(update: Reader.SoftwareUpdate): void;
-  onDidReportReaderSoftwareUpdateProgress?(progress: string): void;
-  onDidFinishInstallingUpdate?(result: UpdateSoftwareResultType): void;
+  onDidUpdateRequirementsAvailable?(
+    requirements: Reader.TapToPayUpdateRequirement[]
+  ): void;
+  /**
+   * Called when a reader software update starts.
+   *
+   * On iOS, `reader` is the snapshot supplied by the native update callback. It
+   * can include the current software version before `connectReader` completes.
+   * Receiving it does not mean the reader is connected. Android currently does
+   * not supply this argument.
+   */
+  onDidStartInstallingUpdate?(
+    update: Reader.SoftwareUpdate,
+    reader?: Reader.Type
+  ): void;
+  onDidReportReaderSoftwareUpdateProgress?(progress: number): void;
+  onDidFinishInstallingUpdate?(
+    update?: Reader.SoftwareUpdate,
+    error?: StripeError
+  ): void;
 
   onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
   onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;
@@ -796,7 +876,7 @@ export type UserCallbacks = {
 
   onDidStartReaderReconnect?(
     reader: Reader.Type,
-    reason?: Reader.DisconnectReason
+    reason: Reader.DisconnectReason
   ): void;
   onDidSucceedReaderReconnect?(reader: Reader.Type): void;
   onDidFailReaderReconnect?(reader: Reader.Type): void;
@@ -804,11 +884,11 @@ export type UserCallbacks = {
   onDidChangeOfflineStatus?(status: OfflineStatus): void;
   onDidForwardPaymentIntent?(
     paymentIntent: PaymentIntent.Type,
-    error: StripeError
+    error?: StripeError
   ): void;
-  onDidForwardingFailure?(error?: StripeError): void;
+  onDidForwardingFailure?(error: StripeError): void;
 
-  onDidDisconnect?(reason?: Reader.DisconnectReason): void;
+  onDidDisconnect?(reason: Reader.DisconnectReason): void;
 
   onDidUpdateBatteryLevel?(result: Reader.BatteryLevel): void;
   onDidReportLowBatteryWarning?(): void;
@@ -821,11 +901,11 @@ export namespace PaymentMethod {
   export type Type = {
     type: PaymentMethodType;
     id: string;
-    customer: string;
-    interacPresentDetails: CardPresentDetails;
-    cardPresentDetails: CardPresentDetails;
-    wechatPayDetails: WechatPayDetails;
-    affirmDetails: AffirmDetails;
+    customer?: string;
+    interacPresentDetails?: PaymentMethodCardPresentDetails;
+    cardPresentDetails?: PaymentMethodCardPresentDetails;
+    wechatPayDetails?: WechatPayDetails;
+    affirmDetails?: AffirmDetails;
     paynowDetails?: PaynowDetails;
     paypayDetails?: PaypayDetails;
     klarnaDetails?: KlarnaDetails;
@@ -951,20 +1031,20 @@ export enum ToggleResult {
 }
 
 export type OfflineDetails = {
-  storedAtMs: string;
+  storedAtMs?: string;
   requiresUpload: boolean;
-  cardPresentDetails: OfflineCardPresentDetails;
-  amountDetails: AmountDetails;
+  cardPresentDetails?: OfflineCardPresentDetails;
+  amountDetails?: AmountDetails;
 };
 
 export type OfflineCardPresentDetails = {
-  brand: string;
-  cardholderName: string;
+  brand?: string;
+  cardholderName?: string;
   expMonth: number;
   expYear: number;
-  last4: string;
-  readMethod: string;
-  receiptDetails: ReceiptDetails;
+  last4?: string;
+  readMethod?: string;
+  receiptDetails?: ReceiptDetails;
 };
 
 export type AmountDetails = {
@@ -992,7 +1072,6 @@ export interface CollectDataParams {
 export enum CollectDataType {
   MAGSTRIPE = 'magstripe',
   NFC_UID = 'nfcUid',
-  UNKNOWN = 'unknown',
 }
 
 export type CollectDataResultType =
@@ -1012,8 +1091,8 @@ export type CustomerCancellation =
 
 export type TapToPayUxConfiguration = {
   tapZone?: TapZone;
-  darkMode?: DarkMode;
-  colors?: Colors;
+  theme?: DarkMode;
+  colorScheme?: Colors;
 };
 
 export type TapZone =

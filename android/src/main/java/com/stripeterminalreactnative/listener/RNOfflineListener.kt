@@ -6,6 +6,7 @@ import com.stripe.stripeterminal.external.callable.OfflineListener
 import com.stripe.stripeterminal.external.models.OfflineStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.TerminalException
+import com.stripeterminalreactnative.ErrorSource
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
 import com.stripeterminalreactnative.ReactNativeConstants
 import com.stripeterminalreactnative.createError
@@ -26,13 +27,13 @@ class RNOfflineListener(
     override fun onPaymentIntentForwarded(paymentIntent: PaymentIntent, e: TerminalException?) {
         context.sendEvent(ReactNativeConstants.FORWARD_PAYMENT_INTENT.listenerName) {
             putMap("result", mapFromPaymentIntent(paymentIntent, ""))
-            e?.let { putError(it) }
+            e?.let { putError(it, ErrorSource.NATIVE) }
         }
     }
 
     override fun onForwardingFailure(e: TerminalException) {
         context.sendEvent(ReactNativeConstants.REPORT_FORWARDING_ERROR.listenerName) {
-            putMap("result", createError(e))
+            putMap("result", createError(e, ErrorSource.NATIVE))
         }
     }
 }

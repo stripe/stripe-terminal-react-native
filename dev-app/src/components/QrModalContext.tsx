@@ -36,7 +36,7 @@ export function QrModalProvider({ children }: { children: React.ReactNode }) {
   const [qrData, setQrData] = useState<QrCodeDisplayData | null>(null);
   const callbackRef = useRef<QrCallback | null>(null);
 
-  useStripeTerminal({
+  const { cancelConfirmPaymentIntent } = useStripeTerminal({
     onDidChangePaymentStatus: (status) => {
       if (visible && (status === 'processing' || status === 'ready')) {
         setVisible(false);
@@ -69,9 +69,7 @@ const showQrModal = useCallback(async (data: QrCodeDisplayData, callback: QrCall
   };
 
   const handleCancelPayment = async () => {
-    if (callbackRef.current) {
-      await callbackRef.current.failQrCodeDisplay('User cancelled');
-    }
+    await cancelConfirmPaymentIntent();
     hideQrModal();
   };
 

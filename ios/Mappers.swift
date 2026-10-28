@@ -251,7 +251,17 @@ class Mappers {
         switch captureMethod {
         case CaptureMethod.manual: return "manual"
         case CaptureMethod.automatic: return "automatic"
+        case CaptureMethod.automaticAsync: return "automatic_async"
         @unknown default: return "unknown"
+        }
+    }
+
+    class func mapToCaptureMethod(_ captureMethod: String?) -> CaptureMethod? {
+        switch captureMethod {
+        case "automatic": return .automatic
+        case "automatic_async": return .automaticAsync
+        case "manual": return .manual
+        default: return nil
         }
     }
 
@@ -299,7 +309,8 @@ class Mappers {
         result["livemode"] = paymentIntent.livemode
         result["sdkUuid"] = uuid
         result["captureMethod"] = mapFromCaptureMethod(paymentIntent.captureMethod)
-        result["charges"] = mapFromCharges(paymentIntent.charges)
+        result["latestCharge"] = paymentIntent.latestCharge.map { mapFromCharge($0) }
+        result["latestChargeId"] = paymentIntent.latestChargeId
         result["status"] = mapFromPaymentIntentStatus(paymentIntent.status)
         result["amountDetails"] = mapFromAmountDetails(paymentIntent.amountDetails)
         result["nextAction"] = mapFromNextAction(paymentIntent.nextAction)
@@ -312,6 +323,7 @@ class Mappers {
         result["amountCapturable"] = paymentIntent.amountCapturable
         result["amountReceived"] = paymentIntent.amountReceived
         result["amountRequested"] = paymentIntent.amountRequested
+        result["application"] = paymentIntent.application
         result["applicationFeeAmount"] = paymentIntent.applicationFeeAmount
         result["canceledAt"] = convertDateToUnixTimestamp(date: paymentIntent.canceledAt)
         result["cancellationReason"] = paymentIntent.cancellationReason
@@ -327,8 +339,9 @@ class Mappers {
         result["paymentMethod"] = paymentIntent.paymentMethod.map { mapFromPaymentMethod($0) }
         result["paymentMethodId"] = paymentIntent.paymentMethodId
         result["paymentMethodOptions"] = mapFromPaymentMethodOptions(paymentIntent.paymentMethodOptions)
-        result["paymentMethodTypes"] = paymentIntent.paymentMethodTypes
+        result["paymentMethodTypes"] = paymentIntent.paymentMethodTypes.map(mapFromPaymentMethodDetailsType)
         result["receiptEmail"] = paymentIntent.receiptEmail
+        result["review"] = paymentIntent.review
         result["setupFutureUsage"] = paymentIntent.setupFutureUsage
         result["statementDescriptor"] = paymentIntent.statementDescriptor
         result["statementDescriptorSuffix"] = paymentIntent.statementDescriptorSuffix
@@ -347,8 +360,56 @@ class Mappers {
         cardPresentMap["requestIncrementalAuthorizationSupport"] = cardPresentParams.requestIncrementalAuthorizationSupport
         cardPresentMap["requestPartialAuthorization"] = mapFromRequestPartialAuthorization(cardPresentParams.requestPartialAuthorization?.uintValue)
         cardPresentMap["requestReauthorization"] = mapFromRequestReauthorization(cardPresentParams.requestReauthorization?.uintValue)
+        if let installments = cardPresentParams.installments {
+            cardPresentMap["installments"] = mapFromInstallmentDetails(installments)
+        }
 
         result["cardPresent"] = NSDictionary(dictionary: cardPresentMap)
+        return NSDictionary(dictionary: result)
+    }
+
+    class func mapFromInstallmentDetails(_ details: InstallmentsParameters?) -> NSDictionary? {
+        guard let details = details else { return nil }
+        var result: [String: Any] = [:]
+        if let enabled = details.enabled {
+            result["enabled"] = enabled.boolValue
+        }
+        result["availablePlans"] = (details.availablePlans ?? []).compactMap {
+            mapFromInstallmentPlanDetails($0)
+        }
+        if let plan = mapFromInstallmentPlanDetails(details.plan) {
+            result["plan"] = plan
+        }
+        return NSDictionary(dictionary: result)
+    }
+
+    class func mapFromInstallmentPlanDetails(_ plan: InstallmentPlanDetails?) -> NSDictionary? {
+        guard let plan = plan, let type = plan.type else { return nil }
+
+        let typeString: String
+        switch type.uintValue {
+        case InstallmentPlanType.fixedCount.rawValue:
+            typeString = "fixed_count"
+        case InstallmentPlanType.bonus.rawValue:
+            typeString = "bonus"
+        case InstallmentPlanType.revolving.rawValue:
+            typeString = "revolving"
+        default:
+            return nil
+        }
+
+        var result: [String: Any] = ["type": typeString]
+        if let count = plan.count {
+            result["count"] = count.intValue
+        }
+        if let interval = plan.interval {
+            switch interval.uintValue {
+            case InstallmentPlanInterval.month.rawValue:
+                result["interval"] = "month"
+            default:
+                break
+            }
+        }
         return NSDictionary(dictionary: result)
     }
 
@@ -450,7 +511,7 @@ class Mappers {
 
         result["sdkUuid"] = uuid
         result["livemode"] = setupIntent.livemode
-        result["paymentMethodTypes"] = setupIntent.paymentMethodTypes
+        result["paymentMethodTypes"] = setupIntent.paymentMethodTypes.map(mapFromPaymentMethodDetailsType)
         result["status"] = mapFromSetupIntentStatus(setupIntent.status)
         result["usage"] = mapFromSetupIntentUsage(setupIntent.usage)
         result["nextAction"] = mapFromNextAction(setupIntent.nextAction)
@@ -466,7 +527,8 @@ class Mappers {
         result["mandate"] = setupIntent.mandate
         result["metadata"] = setupIntent.metadata.map { NSDictionary(dictionary: $0) }
         result["onBehalfOf"] = setupIntent.onBehalfOf
-        result["paymentMethodId"] = setupIntent.paymentMethod
+        result["paymentMethodId"] = setupIntent.paymentMethodId
+        result["paymentMethod"] = setupIntent.paymentMethod.map { mapFromPaymentMethod($0) }
         result["paymentMethodOptions"] = mapFromPaymentMethodOptions(setupIntent.paymentMethodOptions)
         result["singleUseMandate"] = setupIntent.singleUseMandate
         result["lastSetupError"] = Errors.mapFromApiError(setupIntent.lastSetupError)
@@ -598,17 +660,6 @@ class Mappers {
         return mappedOptions
     }
 
-    class func mapFromCharges(_ charges: [Charge]) -> [NSDictionary] {
-        var list: [NSDictionary] = []
-
-        for charge in charges {
-            let result = mapFromCharge(charge)
-            list.append(result)
-        }
-
-        return list
-    }
-
     class func mapFromReaderSoftwareUpdate(_ update: ReaderSoftwareUpdate?) -> [AnyHashable:Any?]? {
         guard let unwrappedUpdate = update else {
             return nil
@@ -618,6 +669,7 @@ class Mappers {
             "estimatedUpdateTime": mapFromUpdateTimeEstimate(unwrappedUpdate.durationEstimate),
             "requiredAt": Mappers.convertDateToUnixTimestamp(date: unwrappedUpdate.requiredAt),
             "components": mapFromUpdateComponents(unwrappedUpdate.components),
+            "isTestUpdate": unwrappedUpdate.isTestUpdate,
         ]
         return result
     }
@@ -796,12 +848,13 @@ class Mappers {
         result["last4"] = cardPresent.last4
         result["expMonth"] = cardPresent.expMonth
         result["expYear"] = cardPresent.expYear
-        result["funding"] = mapFromCardPresentDetailsFunding(cardPresent.funding)
-        result["brand"] = mapFromCardPresentDetailsBrand(cardPresent.brand)
+        result["funding"] = cardPresent.funding
+        result["brand"] = cardPresent.brand
         result["issuer"] = cardPresent.issuer
         result["iin"] = cardPresent.iin
         result["description"] = cardPresent.stripeDescription
-        result["network"] = mapFromCardPresentDetailsNetwork(cardPresent.network ?? NSNumber(-1))
+        result["network"] = cardPresent.network
+        result["readMethod"] = cardPresent.readMethod
 
         // Optional fields
         result["cardholderName"] = cardPresent.cardholderName
@@ -813,10 +866,40 @@ class Mappers {
         result["wallet"] = cardPresent.wallet.map { mapFromCardPresentDetailsWallet($0) }
         result["location"] = cardPresent.location
         result["reader"] = cardPresent.reader
+        result["paymentAccountReference"] = cardPresent.paymentAccountReference
         result["multicaptureStatus"] = mapFromMulticaptureStatus(cardPresent.multicaptureStatus)
         result["reauthorizationStatus"] = mapFromReauthorizationStatus(cardPresent.reauthorizationStatus)
         result["captureBefore"] = convertDateToUnixTimestamp(date: cardPresent.captureBefore)
         result["reauthorizeBefore"] = convertDateToUnixTimestamp(date: cardPresent.reauthorizeBefore)
+
+        return NSDictionary(dictionary: result)
+    }
+
+    class func mapFromPaymentMethodCardPresent(_ cardPresent: PaymentMethodCardPresentDetails) -> NSDictionary {
+        var result: [String: Any] = [:]
+
+        result["last4"] = cardPresent.last4
+        result["expMonth"] = cardPresent.expMonth
+        result["expYear"] = cardPresent.expYear
+        result["funding"] = cardPresent.funding
+        result["brand"] = cardPresent.brand
+        result["brandProduct"] = cardPresent.brandProduct
+        result["issuer"] = cardPresent.issuer
+        result["iin"] = cardPresent.iin
+        result["description"] = cardPresent.stripeDescription
+        result["cardholderName"] = cardPresent.cardholderName
+        result["country"] = cardPresent.country
+        result["preferredLocales"] = cardPresent.preferredLocales
+        result["wallet"] = cardPresent.wallet.map { mapFromCardPresentDetailsWallet($0) }
+        result["readMethod"] = cardPresent.readMethod
+        result["paymentAccountReference"] = cardPresent.paymentAccountReference
+
+        if let networks = cardPresent.networks {
+            var mappedNetworks: [String: Any] = [:]
+            mappedNetworks["available"] = networks.available
+            mappedNetworks["preferred"] = networks.preferred
+            result["networks"] = NSDictionary(dictionary: mappedNetworks)
+        }
 
         return NSDictionary(dictionary: result)
     }
@@ -908,7 +991,7 @@ class Mappers {
         result["brand"] = offlineCardPresentDetails.brand
         result["expMonth"] = offlineCardPresentDetails.expMonth
         result["expYear"] = offlineCardPresentDetails.expYear
-        result["readMethod"] = mapFromReadMethod(offlineCardPresentDetails.readMethod)
+        result["readMethod"] = offlineCardPresentDetails.readMethod
 
         // Optional fields
         result["cardholderName"] = offlineCardPresentDetails.cardholderName
@@ -925,47 +1008,6 @@ class Mappers {
         return result
     }
 
-    class func mapFromCardPresentDetailsFunding(_ type: CardFundingType) -> String {
-        switch type {
-        case CardFundingType.debit: return "debit"
-        case CardFundingType.credit: return "credit"
-        case CardFundingType.prepaid: return "prepaid"
-        @unknown default: return "other"
-        }
-    }
-
-    class func mapFromCardPresentDetailsBrand(_ type: CardBrand) -> String {
-        switch type {
-        case CardBrand.visa: return "visa"
-        case CardBrand.amex: return "amex"
-        case CardBrand.masterCard: return "masterCard"
-        case CardBrand.discover: return "discover"
-        case CardBrand.JCB: return "JCB"
-        case CardBrand.dinersClub: return "dinersClub"
-        case CardBrand.interac: return "interac"
-        case CardBrand.unionPay: return "unionPay"
-        case CardBrand.eftposAu: return "eftposAu"
-        case CardBrand.cartesBancaires: return "cartesBancaires"
-        case CardBrand.girocard: return "girocard"
-        @unknown default: return "unknown"
-        }
-    }
-
-    class func mapFromCardPresentDetailsNetwork(_ type: NSNumber) -> String {
-        switch type {
-        case 0: return "visa"
-        case 1: return "amex"
-        case 2: return "masterCard"
-        case 3: return "discover"
-        case 4: return "JCB"
-        case 5: return "dinersClub"
-        case 6: return "interac"
-        case 7: return "unionPay"
-        case 8: return "eftposAu"
-        default: return "unknown"
-        }
-    }
-
     class func mapFromReceiptDetails(_ receiptDetails: ReceiptDetails) -> NSDictionary {
         let result: NSDictionary = [
             "accountType": receiptDetails.accountType,
@@ -974,7 +1016,7 @@ class Mappers {
             "authorizationCode": receiptDetails.authorizationCode,
             "authorizationResponseCode": receiptDetails.authorizationResponseCode,
             "dedicatedFileName": receiptDetails.dedicatedFileName,
-            "terminalVerificationResults": receiptDetails.terminalVerificationResults,
+            "terminalVerificationResult": receiptDetails.terminalVerificationResults,
             "transactionStatusInformation": receiptDetails.transactionStatusInformation,
             "cvm": receiptDetails.cardholderVerificationMethod
         ]
@@ -1038,6 +1080,7 @@ class Mappers {
         result["receiptNumber"] = refund.receiptNumber
         result["sourceTransferReversal"] = refund.sourceTransferReversal
         result["transferReversal"] = refund.transferReversal
+        result["nextAction"] = mapFromRefundNextAction(refund.nextAction)
 
         return NSDictionary(dictionary: result)
     }
@@ -1047,9 +1090,39 @@ class Mappers {
         case RefundStatus.failed: return "failed"
         case RefundStatus.pending: return "pending"
         case RefundStatus.succeeded: return "succeeded"
+        case RefundStatus.canceled: return "canceled"
+        case RefundStatus.requiresAction: return "requiresAction"
         case RefundStatus.unknown: return "unknown"
         @unknown default: return "unknown"
         }
+    }
+
+    class func mapFromRefundNextAction(_ nextAction: RefundNextAction?) -> NSDictionary? {
+        guard let nextAction else { return nil }
+        var result: [String: Any] = [:]
+        result["type"] = nextAction.type
+        result["displayDetails"] = mapFromRefundNextActionDisplayDetails(nextAction.displayDetails)
+        return NSDictionary(dictionary: result)
+    }
+
+    class func mapFromRefundNextActionDisplayDetails(
+        _ displayDetails: RefundNextActionDisplayDetails?
+    ) -> NSDictionary? {
+        guard let displayDetails else { return nil }
+        var result: [String: Any] = [:]
+        result["emailSent"] = mapFromRefundNextActionDisplayDetailsEmailSent(displayDetails.emailSent)
+        result["expiresAt"] = convertDateToUnixTimestamp(date: displayDetails.expiresAt)
+        return NSDictionary(dictionary: result)
+    }
+
+    class func mapFromRefundNextActionDisplayDetailsEmailSent(
+        _ emailSent: RefundNextActionDisplayDetailsEmailSent?
+    ) -> NSDictionary? {
+        guard let emailSent else { return nil }
+        var result: [String: Any] = [:]
+        result["emailSentAt"] = convertDateToUnixTimestamp(date: emailSent.emailSentAt)
+        result["emailSentTo"] = emailSent.emailSentTo
+        return NSDictionary(dictionary: result)
     }
 
     class func mapFromCardDetails(_ cardDetails: CardDetails) -> NSDictionary {
@@ -1114,9 +1187,9 @@ class Mappers {
         result["metadata"] = NSDictionary(dictionary: paymentMethod.metadata)
 
         // Optional fields
-        result["cardPresentDetails"] = paymentMethod.cardPresent.map { mapFromCardPresent($0) }
+        result["cardPresentDetails"] = paymentMethod.cardPresent.map { mapFromPaymentMethodCardPresent($0) }
         result["cardDetails"] = paymentMethod.card.map { mapFromCardDetails($0) }
-        result["interacPresentDetails"] = paymentMethod.interacPresent.map { mapFromCardPresent($0) }
+        result["interacPresentDetails"] = paymentMethod.interacPresent.map { mapFromPaymentMethodCardPresent($0) }
         result["wechatPayDetails"] = paymentMethod.wechatPay.map { mapFromWechatPay($0) }
         result["affirmDetails"] = paymentMethod.affirm.map { mapFromAffirm($0) }
         result["paynowDetails"] = paymentMethod.paynow.map { mapFromPaynow($0) }
@@ -1266,7 +1339,7 @@ class Mappers {
         let accessibilityError = readerSettings.accessibility.error as NSError?
         let accessibility: [String : Any]
         if let error = accessibilityError {
-            accessibility = ["error": Errors.mapToStripeErrorObject(nsError: error)]
+            accessibility = ["error": Errors.mapToStripeErrorObject(nsError: error, source: .native)]
         } else if let textToSpeechStatus = mapFromReaderTextToSpeechStatus(
             readerSettings.accessibility.textToSpeechStatus
         ) {
@@ -1288,7 +1361,7 @@ class Mappers {
                 "maxVolume": volume.maxVolume,
             ]
         case let (nil, error?):
-            buzzerVolume = ["error": Errors.mapToStripeErrorObject(nsError: error)]
+            buzzerVolume = ["error": Errors.mapToStripeErrorObject(nsError: error, source: .native)]
         default:
             return Errors.createErrorFromRnCodeEnum(
                 rnCode: Errors.RNErrorCode.UNEXPECTED_SDK_ERROR,
@@ -1318,14 +1391,21 @@ class Mappers {
         }
     }
 
-    class func mapFromReadMethod(_ readMethod: ReadMethod) -> String {
-        switch readMethod {
-        case ReadMethod.contactEMV: return "contactEMV"
-        case ReadMethod.contactlessEMV: return "contactlessEMV"
-        case ReadMethod.contactlessMagstripeMode: return "contactlessMagstripeMode"
-        case ReadMethod.magneticStripeFallback: return "magneticStripeFallback"
-        case ReadMethod.magneticStripeTrack2: return "magneticStripeTrack2"
-        @unknown default: return "unknown"
+    class func mapToToggles(_ toggleParams: [NSDictionary]?) throws -> [Toggle] {
+        return try (toggleParams ?? []).map { params in
+            let defaultValue: ToggleValue = params["defaultValue"] as? String == "enabled"
+                ? .enabled
+                : .disabled
+            let builder = ToggleBuilder(defaultValue: defaultValue)
+
+            if let title = params["title"] as? String {
+                builder.setTitle(title)
+            }
+            if let description = params["description"] as? String {
+                builder.setStripeDescription(description)
+            }
+
+            return try builder.build()
         }
     }
 
@@ -1410,7 +1490,6 @@ class Mappers {
 
     class func mapToCollectDataType(_ type: String) -> CollectDataType? {
         switch type {
-            case "unknown": return CollectDataType.unknown
             case "magstripe": return CollectDataType.magstripe
             case "nfcUid": return CollectDataType.nfcUid
             default: return nil
@@ -1587,7 +1666,8 @@ class Mappers {
         let customerCancellation = mapToCustomerCancellation(params["customerCancellation"] as? String)
         let motoConfiguration = params["motoConfiguration"] as? NSDictionary
 
-        let builder = CollectSetupIntentConfigurationBuilder()
+        let allowRedisplay = mapToAllowRedisplay(allowToredisplay: params["allowRedisplay"] as? String ?? "unspecified")
+        let builder = CollectSetupIntentConfigurationBuilder(allowRedisplay: allowRedisplay)
 
         if let customerCancellation {
             builder.setCustomerCancellation(customerCancellation)

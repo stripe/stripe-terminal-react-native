@@ -4,12 +4,12 @@ import type { StripeError } from './StripeError';
 export namespace Reader {
   export type DiscoveryMethod = IOS.DiscoveryMethod | Android.DiscoveryMethod;
 
-  export type Type = IOS.Type &
-    Android.Type & {
-      id: string;
+  export type Type = Partial<IOS.Type> &
+    Partial<Android.Type> & {
+      id?: string;
       label?: string;
       batteryLevel?: number;
-      serialNumber: string;
+      serialNumber?: string;
       locationId?: string;
       deviceSoftwareVersion?: string;
       simulated?: boolean;
@@ -25,7 +25,7 @@ export namespace Reader {
   export namespace IOS {
     export type Type = {
       batteryStatus: BatteryStatus;
-      isCharging?: number;
+      isCharging?: boolean;
     };
 
     /**
@@ -73,15 +73,29 @@ export namespace Reader {
     isCharging: boolean;
   };
 
-  export type NetworkStatus = 'offline' | 'online';
+  export type NetworkStatus = 'offline' | 'online' | 'unknown';
 
   export type SoftwareUpdate = {
     deviceSoftwareVersion: string;
     estimatedUpdateTime: EstimatedUpdateTime;
-    requiredAt?: string;
+    requiredAt: string;
     /** The update components (firmware, config, keys, incremental) included in this update. */
-    components?: UpdateComponent[];
+    components: UpdateComponent[];
+    /** Whether the SDK generated this update for a sandbox or test-mode connection. */
+    isTestUpdate: boolean;
   };
+
+  export type TapToPayUpdateRequirement =
+    | {
+        type: 'operatingSystem';
+        apiLevel: number;
+        requiredAt: string;
+      }
+    | {
+        type: 'securityPatch' | 'terminalSdk';
+        version: string;
+        requiredAt: string;
+      };
 
   export type EstimatedUpdateTime =
     | 'estimate1To2Minutes'
@@ -235,10 +249,18 @@ export namespace Reader {
     discoveryMethod: Reader.DiscoveryMethod;
   };
 
-  export type ReaderSupportResult = {
-    error?: StripeError;
-    readerSupportResult: boolean;
-  };
+  /**
+   * Native reports `true` without an error when the reader type is supported,
+   * and `false` with an error when it is not supported. RN validation or bridge
+   * failures can occur before native reports the boolean, so it remains
+   * optional on the error branch.
+   */
+  export type ReaderSupportResult =
+    | {
+        readerSupportResult: true;
+        error?: undefined;
+      }
+    | { readerSupportResult?: false; error: StripeError };
 }
 
 /** The component types that can be included in a reader software update. */

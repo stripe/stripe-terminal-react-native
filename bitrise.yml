@@ -100,8 +100,13 @@ workflows:
             - content: |-
                 node e2e/clean.js
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                ~/.maestro/bin/maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml
+                ~/.maestro/bin/maestro test --debug-output "$BITRISE_DEPLOY_DIR/maestro" --flatten-debug-output -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml
           title: install maestro & run tests
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/maestro
+          title: Upload Maestro debug output
     before_run:
       - prep_all
     after_run:
@@ -127,8 +132,13 @@ workflows:
                 node e2e/clean.js
                 xcrun simctl install Booted dev-app/ios/build/Build/Products/Release-iphonesimulator/StripeTerminalReactNativeDevApp.app
                 curl -fsSL "https://get.maestro.mobile.dev" | bash
-                ~/.maestro/bin/maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml
+                ~/.maestro/bin/maestro test --debug-output "$BITRISE_DEPLOY_DIR/maestro" --flatten-debug-output -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml
           title: install maestro & run tests
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/maestro
+          title: Upload Maestro debug output
     before_run:
       - prep_all
       - setup_cocoapods
@@ -167,9 +177,7 @@ workflows:
                 rbenv install --skip-existing 3.2.3
                 rbenv local 3.2.3
                 gem install cocoapods -v 1.16.2
-                cd example-app/ios
-                pod install
-          title: Pod install
+          title: Set up CocoaPods
       - yarn@0:
           inputs:
             - command: e2e:build:example:ios
@@ -224,8 +232,8 @@ workflows:
       - script@1:
           inputs:
             - content: |-
-                asdf install nodejs 20.19.4
-                asdf global nodejs 20.19.4
+                asdf install nodejs 26.10.0
+                asdf global nodejs 26.10.0
                 npm install -g yarn
                 echo 'export PATH="$PATH:~/project/node_modules/.bin:~/project/dev-app/node_modules/.bin"' >> $BASH_ENV
                 source $BASH_ENV
@@ -265,12 +273,11 @@ workflows:
                 set -e
                 rbenv install --skip-existing 3.2.3
                 rbenv local 3.2.3
-                cd dev-app && bundle install && \
-                cd ios && gem install cocoapods -v 1.16.2 && pod install && cd ../..
+                yarn pods
                 echo "Checking for diffs in pod lockfile, if this fails please ensure all dependencies are up to date"
                 # RN 0.85 prebuilt pods embed absolute paths in podspecs, making their
-                # SPEC CHECKSUMS path-dependent. Ignore diffs in only those three pods.
-                IGNORED_PODS="hermes-engine|React-Core-prebuilt|ReactNativeDependencies"
+                # SPEC CHECKSUMS path-dependent. Ignore diffs in only those four pods.
+                IGNORED_PODS="hermes-engine|ReactCodegen|React-Core-prebuilt|ReactNativeDependencies"
                 UNEXPECTED_DIFFS=$(git diff -- dev-app/ios/Podfile.lock | grep '^[+-]  ' | grep -Ev "^[+-]  ($IGNORED_PODS):" || true)
                 if [ -n "$UNEXPECTED_DIFFS" ]; then
                   echo "Unexpected diffs in Podfile.lock:"
@@ -343,7 +350,6 @@ workflows:
             - project_path: dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace
             - scheme: UnitTests
             - destination: platform=iOS Simulator,name=iPhone 17,OS=latest
-            - command: yarn unit-test:ios
             # - cache_local_deps: 'yes'
           title: xcodebuild iOS Unit Tests
     before_run:

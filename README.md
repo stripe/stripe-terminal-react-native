@@ -27,8 +27,24 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
 
 ### JS
 
-- The SDK uses TypeScript features available in Babel version `7.9.0` and above.
-  Alternatively use the `plugin-transform-typescript` plugin in your project.
+- Node.js 20.19.4 or above is required by
+  [React Native 0.83](https://github.com/facebook/react-native/blob/v0.83.0/packages/react-native/package.json).
+- Use the React version required by your installed React Native version. React
+  Native 0.83 accepts React `^19.2.0`, and its
+  [official template](https://github.com/react-native-community/template/blob/0.83-stable/template/package.json)
+  pins React `19.2.0`.
+- Keep Babel and Metro aligned with your installed React Native version. At the
+  minimum supported version, the React Native 0.83 template uses `@babel/core`
+  `^7.25.2`, `@react-native/babel-preset` `0.83.x`, and
+  `@react-native/metro-config` `0.83.x`.
+- See the [support lifecycle](SUPPORT.md#react-native-compatibility) for the
+  minimum, current development, and planned dependency versions.
+
+### React Native
+
+- React Native 0.83 or above is required. React Native 0.83 uses the New
+  Architecture only. The SDK's native module runs through React Native's
+  interoperability layer and is not a TurboModule implementation.
 
 ### Android
 
@@ -36,16 +52,56 @@ Updating to a newer version of the SDK? See our [release notes](https://github.c
   - Note that attempting to override minSdkVersion to decrease the minimum supported API level will not work due to internal runtime API level validation.
 - compileSdkVersion = 35
 - targetSdkVersion = 35
+- When using React Native 0.83, use Gradle
+  [9.0.0](https://github.com/react-native-community/template/blob/0.83-stable/template/android/gradle/wrapper/gradle-wrapper.properties)
+  and Android Gradle Plugin
+  [8.12.0](https://github.com/facebook/react-native/blob/v0.83.0/packages/gradle-plugin/gradle/libs.versions.toml).
+  Use Kotlin Gradle Plugin 2.2.0 or newer. Terminal Android SDK 6.0 depends on
+  Kotlin 2.3.21 libraries, whose metadata can be read by the Kotlin 2.2 compiler.
+  React Native 0.83 defaults to Kotlin Gradle Plugin 2.1.20, which cannot read
+  that metadata. Setting the `kotlinVersion` property alone does not select a
+  compatible compiler. Add the plugin explicitly to your app's root
+  `android/build.gradle`:
+
+  ```gradle
+  buildscript {
+      ext {
+          kotlinVersion = "2.2.0"
+      }
+      dependencies {
+          classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+      }
+  }
+  ```
+
+  For later React Native versions, use the toolchain versions specified by that
+  version's template when they include Kotlin Gradle Plugin 2.2.0 or newer;
+  otherwise, keep this override.
+
+  Compiler plugins used by your app must also support the selected Kotlin
+  version. For example, Expo 56's Pika 0.3.2 compiler plugin has a Kotlin 2.2.0
+  artifact but no Kotlin 2.3.21 artifact.
 
 ### iOS
 
-- Compatible with apps targeting iOS 15.1 or above.
+- Compatible with apps targeting iOS 16.0 or above.
+- [Xcode 16.1 or above](https://github.com/facebook/react-native/blob/v0.83.0/packages/react-native/scripts/cocoapods/helpers.rb)
+  is required.
+- When building with Xcode 26.4 or newer, use React Native 0.83.5 or newer.
+  React Native 0.83.0 through 0.83.4 include `fmt` 11.0.2, which is
+  incompatible with these Xcode versions. React Native 0.83.5 includes the
+  [upstream `fmt` 12.1.0 fix](https://github.com/facebook/react-native/pull/56099).
+- [CocoaPods 1.13 or above](https://github.com/react-native-community/template/blob/0.83-stable/template/Gemfile)
+  is required. React Native 0.83 excludes CocoaPods 1.15.0 and 1.15.1 because
+  of known compatibility issues.
+- The React Native module continues to use CocoaPods for autolinking, while the
+  native Stripe Terminal iOS SDK is resolved from its Swift package.
 
 ## Try the example app
 
 The React Native SDK includes an open-source example app, which you can use to familiarize yourself with the SDK and reader before starting your own integration.
 
-Because it uses Expo SDK 56, the iOS example app requires iOS 16.4 or later. The React Native SDK remains compatible with apps targeting iOS 15.1 or later.
+Because it uses Expo SDK 56, the iOS example app requires iOS 16.4 or later. The React Native SDK remains compatible with apps targeting iOS 16.0 or later.
 
 To build the example app from source, you'll need to:
 
@@ -66,6 +122,14 @@ or
 ```sh
 npm install @stripe/stripe-terminal-react-native
 ```
+
+For iOS, install pods by building the app with `npx expo run:ios` (Expo) or
+`yarn ios` (React Native Community CLI) after installing the package. React Native's
+CocoaPods integration adds the
+[`StripeTerminal`](https://github.com/stripe/stripe-terminal-ios-spm) Swift package
+to the generated Pods project and links its product to your app target so the
+dynamic framework is embedded automatically. Don't add a separate
+`StripeTerminal` pod or Swift package dependency to your app.
 
 ## Example code
 
@@ -96,8 +160,8 @@ function Root() {
 
   return (
     <StripeTerminalProvider
-      logLevel="verbose"
       tokenProvider={fetchTokenProvider}
+      localeConfig={{ type: 'cardLanguagePreferenceIfAvailable' }}
     >
       <App />
     </StripeTerminalProvider>

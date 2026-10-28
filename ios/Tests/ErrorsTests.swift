@@ -24,9 +24,279 @@ final class ErrorsTests: XCTestCase {
         return NSError(domain: domain, code: code, userInfo: info)
     }
 
+    func testNSErrorSourceIsProvidedByCallerWithoutChangingOtherFields() throws {
+        let nsError = makeNSError(
+            userInfo: [ErrorConstants.readerMessage: "Reader is in use"],
+            description: "Reader is busy"
+        )
+        var rnError = Errors.mapToStripeErrorObject(nsError: nsError, source: .rn)
+        var nativeError = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
+
+        XCTAssertEqual(rnError.removeValue(forKey: "error_source") as? String, "rn")
+        XCTAssertEqual(nativeError.removeValue(forKey: "error_source") as? String, "native")
+        XCTAssertEqual(rnError as NSDictionary, nativeError as NSDictionary)
+        XCTAssertEqual(nsError.code, ErrorCode.Code.readerBusy.rawValue)
+        XCTAssertNil(nsError.userInfo["error_source"])
+    }
+
+    func testCodeOnlyErrorsHaveRnSourceEvenForNativeErrorCodes() throws {
+        let nativeCodeResult = Errors.createErrorFromCode(code: .readerBusy, message: "Reader is busy")
+        let rnCodeResult = Errors.createErrorFromRnCodeEnum(rnCode: .READER_BUSY, message: "Reader is busy")
+
+        for result in [nativeCodeResult, rnCodeResult] {
+            let error = try XCTUnwrap(result["error"] as? [String: Any])
+            XCTAssertEqual(error["error_source"] as? String, "rn")
+            XCTAssertEqual(error["code"] as? String, "READER_BUSY")
+            XCTAssertEqual(error["message"] as? String, "Reader is busy")
+        }
+    }
+
+    func testGetConnectedReaderWithoutReaderResolvesExplicitNullInNonEmptyMap() throws {
+        if !Terminal.isInitialized() {
+            Terminal.initWithTokenProvider(TokenProvider.shared)
+        }
+        XCTAssertNil(Terminal.shared.connectedReader)
+
+        let sut = StripeTerminalReactNative()
+        var resolved: [String: Any]?
+        var rejected = false
+        sut.getConnectedReader(
+            resolver: { resolved = $0 as? [String: Any] },
+            rejecter: { _, _, _ in rejected = true }
+        )
+
+        XCTAssertFalse(rejected)
+        let result = try XCTUnwrap(resolved)
+        XCTAssertEqual(Array(result.keys), ["reader"])
+        XCTAssertTrue(result["reader"] is NSNull)
+    }
+
+    func testNSErrorOverloadsPreserveExplicitSource() throws {
+        let nsError = makeNSError(domain: "com.partner", code: 99, description: "Partner failure")
+        for source in [ErrorSource.rn, .native] {
+            let plain = Errors.createErrorFromNSError(nsError: nsError, source: source)
+            let withUuid = Errors.createErrorFromNSError(nsError: nsError, uuid: "intent-uuid", source: source)
+            let mappedWithUuid = Errors.mapToStripeErrorObject(nsError: nsError, uuid: "intent-uuid", source: source)
+            let error = try XCTUnwrap(plain["error"] as? [String: Any])
+
+            XCTAssertEqual(error["error_source"] as? String, source.rawValue)
+            XCTAssertEqual(error["name"] as? String, "NonStripeError")
+            XCTAssertEqual(plain as NSDictionary, withUuid as NSDictionary)
+            XCTAssertEqual(error as NSDictionary, mappedWithUuid as NSDictionary)
+        }
+    }
+
+    func testInitializeLocaleBuilderFailureHasNativeSource() throws {
+        let sut = StripeTerminalReactNative()
+        var results: [[String: Any]] = []
+        sut.initialize(
+            params: ["localeConfig": ["type": "hardcoded", "locale": "not_a_locale"]],
+            resolver: { results.append($0 as? [String: Any] ?? [:]) },
+            rejecter: { _, _, _ in XCTFail("The builder failure should resolve") }
+        )
+
+        XCTAssertEqual(results.count, 1)
+        let error = try XCTUnwrap(results.first?["error"] as? [String: Any])
+        XCTAssertEqual(error["error_source"] as? String, "native")
+    }
+
+    func testInitializeMissingLocaleConfigHasRnSource() throws {
+        let sut = StripeTerminalReactNative()
+        var results: [[String: Any]] = []
+
+        sut.initialize(
+            params: [:],
+            resolver: { results.append($0 as? [String: Any] ?? [:]) },
+            rejecter: { _, _, _ in XCTFail("Missing locale config should resolve") }
+        )
+
+        XCTAssertEqual(results.count, 1)
+        let error = try XCTUnwrap(results.first?["error"] as? [String: Any])
+        XCTAssertEqual(error["error_source"] as? String, "rn")
+        XCTAssertEqual(error["code"] as? String, "INVALID_REQUIRED_PARAMETER")
+        XCTAssertEqual(error["message"] as? String, "You must provide a localeConfig")
+    }
+
+    func testConnectionMissingLocationErrorsKeepRnSource() throws {
+        if !Terminal.isInitialized() {
+            Terminal.initWithTokenProvider(TokenProvider.shared)
+        }
+
+        let sut = StripeTerminalReactNative()
+        let readerClass = try XCTUnwrap(NSClassFromString("SCPReader") as? NSObject.Type)
+        let reader = try XCTUnwrap(readerClass.init() as? Reader)
+        reader.setValue("SIMULATED", forKey: "serialNumber")
+        sut.discoveredReadersList = [reader]
+        let methods = [
+            ("bluetoothScan", "Bluetooth"),
+            ("bluetoothProximity", "Bluetooth"),
+            ("tapToPay", "Tap to Pay"),
+            ("usb", "USB"),
+        ]
+
+        for (method, label) in methods {
+            let params: NSDictionary = [
+                "discoveryMethod": method,
+                "simulated": true,
+                "reader": ["serialNumber": "SIMULATED"],
+            ]
+            let expected = Errors.createErrorFromNSError(
+                nsError: NSError(
+                    domain: "StripeTerminal",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Location ID is required for \(label) connection"]
+                ),
+                source: .rn
+            )
+            var easyResults: [[String: Any]] = []
+            sut.easyConnect(
+                params: params,
+                resolver: { easyResults.append($0 as? [String: Any] ?? [:]) },
+                rejecter: { _, _, _ in XCTFail("Missing location should resolve") }
+            )
+            XCTAssertEqual(easyResults.count, 1, method)
+            XCTAssertEqual(easyResults.first as NSDictionary?, expected as NSDictionary, method)
+
+            var connectResults: [[String: Any]] = []
+            sut.connectReader(
+                params: params,
+                resolver: { connectResults.append($0 as? [String: Any] ?? [:]) },
+                rejecter: { _, _, _ in XCTFail("Missing location should resolve") }
+            )
+            XCTAssertEqual(connectResults.count, 1, method)
+            XCTAssertEqual(connectResults.first as NSDictionary?, expected as NSDictionary, method)
+        }
+    }
+
+    func testConnectionBuilderErrorsHaveNativeSource() throws {
+        if !Terminal.isInitialized() {
+            Terminal.initWithTokenProvider(TokenProvider.shared)
+        }
+        let sut = StripeTerminalReactNative()
+        // An empty configured location reaches the real SDK builder, unlike an omitted location.
+        let builderError: NSError
+        do {
+            _ = try BluetoothConnectionConfigurationBuilder(delegate: sut, locationId: "").build()
+            return XCTFail("The SDK builder must reject an empty location before invoking the bridge")
+        } catch {
+            builderError = error as NSError
+        }
+        let readerClass = try XCTUnwrap(NSClassFromString("SCPReader") as? NSObject.Type)
+        let reader = try XCTUnwrap(readerClass.init() as? Reader)
+        reader.setValue("SIMULATED", forKey: "serialNumber")
+        sut.discoveredReadersList = [reader]
+        let params: NSDictionary = [
+            "discoveryMethod": "bluetoothScan",
+            "simulated": true,
+            "locationId": "",
+            "reader": ["serialNumber": "SIMULATED"],
+        ]
+        var easyResults: [[String: Any]] = []
+        sut.easyConnect(
+            params: params,
+            resolver: { easyResults.append($0 as? [String: Any] ?? [:]) },
+            rejecter: { _, _, _ in XCTFail("SDK builder failure should resolve") }
+        )
+        var connectResults: [[String: Any]] = []
+        sut.connectReader(
+            params: params,
+            resolver: { connectResults.append($0 as? [String: Any] ?? [:]) },
+            rejecter: { _, _, _ in XCTFail("SDK builder failure should resolve") }
+        )
+        let expected = Errors.createErrorFromNSError(nsError: builderError, source: .native)
+        XCTAssertEqual(easyResults.count, 1)
+        XCTAssertEqual(connectResults.count, 1)
+        XCTAssertEqual(easyResults.first as NSDictionary?, expected as NSDictionary)
+        XCTAssertEqual(connectResults.first as NSDictionary?, expected as NSDictionary)
+    }
+
+    func testUnsupportedEasyConnectConfigurationHasRnSource() throws {
+        if !Terminal.isInitialized() {
+            Terminal.initWithTokenProvider(TokenProvider.shared)
+        }
+        let sut = StripeTerminalReactNative()
+        var results: [[String: Any]] = []
+        sut.easyConnect(
+            params: ["discoveryMethod": "bluetoothScan", "simulated": true, "locationId": "tml_test"],
+            resolver: { results.append($0 as? [String: Any] ?? [:]) },
+            rejecter: { _, _, _ in XCTFail("Unsupported configuration should resolve") }
+        )
+
+        XCTAssertEqual(results.count, 1)
+        let error = try XCTUnwrap(results.first?["error"] as? [String: Any])
+        XCTAssertEqual(error["error_source"] as? String, "rn")
+        XCTAssertEqual(error["nativeErrorCode"] as? String, "StripeTerminal:-1")
+        XCTAssertTrue((error["message"] as? String)?.hasPrefix("Easy connect is not supported for ") == true)
+    }
+
+    func testReaderUpdateDelegateErrorsHaveNativeSource() throws {
+        let sut = ErrorEventEmitter()
+        let readerClass = try XCTUnwrap(NSClassFromString("SCPReader") as? NSObject.Type)
+        let reader = try XCTUnwrap(readerClass.init() as? Reader)
+        let nsError = makeNSError(code: ErrorCode.Code.readerSoftwareUpdateFailed.rawValue)
+
+        sut.reader(reader, didFinishInstallingUpdate: nil, error: nsError)
+
+        XCTAssertEqual(sut.events.count, 1)
+        let expected = Errors.createErrorFromNSError(nsError: nsError, source: .native)
+        let expectedError = try XCTUnwrap(expected["error"] as? [String: Any])
+        for (name, body) in sut.events {
+            XCTAssertEqual(name, ReactNativeConstants.FINISH_INSTALLING_UPDATE.rawValue)
+            let error = try XCTUnwrap(body["error"] as? [String: Any])
+            XCTAssertEqual(error as NSDictionary, expectedError as NSDictionary)
+            XCTAssertNil(body["result"])
+        }
+    }
+
+    func testReaderUpdateStartIncludesCallbackReaderBeforeConnectionCompletes() throws {
+        if !Terminal.isInitialized() {
+            Terminal.initWithTokenProvider(TokenProvider.shared)
+        }
+        XCTAssertNil(Terminal.shared.connectedReader)
+
+        let sut = ErrorEventEmitter()
+        let readerClass = try XCTUnwrap(NSClassFromString("SCPReader") as? NSObject.Type)
+        let reader = try XCTUnwrap(readerClass.init() as? Reader)
+        reader.setValue("TEST_READER", forKey: "serialNumber")
+        reader.setValue("1.2.3", forKey: "deviceSoftwareVersion")
+        let updateClass = try XCTUnwrap(NSClassFromString("SCPReaderSoftwareUpdate") as? NSObject.Type)
+        let update = try XCTUnwrap(updateClass.init() as? ReaderSoftwareUpdate)
+        update.setValue(Date(timeIntervalSince1970: 0), forKey: "requiredAt")
+
+        sut.reader(reader, didStartInstallingUpdate: update, cancelable: nil)
+
+        XCTAssertEqual(sut.events.count, 1)
+        let (name, body) = try XCTUnwrap(sut.events.first)
+        XCTAssertEqual(name, ReactNativeConstants.START_INSTALLING_UPDATE.rawValue)
+        let mappedReader = try XCTUnwrap(body["reader"] as? [String: Any])
+        XCTAssertEqual(mappedReader["serialNumber"] as? String, "TEST_READER")
+        XCTAssertEqual(mappedReader["deviceSoftwareVersion"] as? String, "1.2.3")
+        XCTAssertNotNil(body["result"])
+        XCTAssertNil(Terminal.shared.connectedReader)
+    }
+
+    func testReaderUpdateProgressIsNumeric() throws {
+        let sut = ErrorEventEmitter()
+        let readerClass = try XCTUnwrap(NSClassFromString("SCPReader") as? NSObject.Type)
+        let reader = try XCTUnwrap(readerClass.init() as? Reader)
+
+        sut.reader(reader, didReportReaderSoftwareUpdateProgress: 0.5)
+
+        XCTAssertEqual(sut.events.count, 1)
+        let result = try XCTUnwrap(sut.events.first?.1["result"] as? [String: Any])
+        XCTAssertEqual(result["progress"] as? Float, 0.5)
+        XCTAssertNil(result["progress"] as? String)
+    }
+
     func testMapToStripeErrorObject_StripeDomain() {
         // GIVEN an NSError within the Stripe domain
-        let underlying = makeNSError(domain: "underlying.domain", code: 42, description: "Underlying failure")
+        let underlying = makeNSError(
+            domain: "underlying.domain",
+            code: 42,
+            description: "Underlying failure",
+            failureReason: "The underlying operation failed",
+            recoverySuggestion: "Retry the underlying operation"
+        )
         let nsError = makeNSError(
             code: ErrorCode.Code.readerBusy.rawValue,
             userInfo: [NSUnderlyingErrorKey: underlying],
@@ -36,13 +306,13 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN
         XCTAssertEqual(error["name"] as? String, "StripeError")
         XCTAssertEqual(error["code"] as? String, "READER_BUSY")
         XCTAssertEqual(error["nativeErrorCode"] as? String, String(ErrorCode.Code.readerBusy.rawValue))
-        XCTAssertEqual(error["message"] as? String, "Reader is busy")
+        XCTAssertEqual(error["message"] as? String, "Reader is busy Wait and retry")
 
         guard let underlyingInfo = error["underlyingError"] as? [String: Any] else {
             return XCTFail("underlyingError should be at top-level")
@@ -50,8 +320,8 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(underlyingInfo["iosDomain"] as? String, "underlying.domain")
         XCTAssertEqual(underlyingInfo["code"] as? String, "42")
         XCTAssertEqual(underlyingInfo["message"] as? String, "Underlying failure")
-        XCTAssertEqual(underlyingInfo["iosLocalizedFailureReason"] as? String, "The reader is currently in use")
-        XCTAssertEqual(underlyingInfo["iosLocalizedRecoverySuggestion"] as? String, "Wait and retry")
+        XCTAssertEqual(underlyingInfo["iosLocalizedFailureReason"] as? String, "The underlying operation failed")
+        XCTAssertEqual(underlyingInfo["iosLocalizedRecoverySuggestion"] as? String, "Retry the underlying operation")
 
         guard let metadata = error["metadata"] as? [String: Any] else {
             return XCTFail("Metadata should be present")
@@ -59,12 +329,49 @@ final class ErrorsTests: XCTestCase {
         XCTAssertNil(metadata["underlyingError"], "underlyingError should not be in metadata")
     }
 
+    func testMapToStripeErrorObject_underlyingErrorOmitsOuterLocalizedInfo() throws {
+        let underlying = makeNSError(domain: "underlying.domain", code: 42, description: "Underlying failure")
+        let nsError = makeNSError(
+            userInfo: [NSUnderlyingErrorKey: underlying],
+            failureReason: "The reader is currently in use",
+            recoverySuggestion: "Wait and retry"
+        )
+
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
+        let underlyingInfo = try XCTUnwrap(error["underlyingError"] as? [String: Any])
+
+        XCTAssertEqual(underlyingInfo["message"] as? String, "Underlying failure")
+        XCTAssertNil(underlyingInfo["iosLocalizedFailureReason"])
+        XCTAssertNil(underlyingInfo["iosLocalizedRecoverySuggestion"])
+    }
+
+    func testMapToStripeErrorObject_withoutRecoverySuggestionKeepsDescription() {
+        let underlying = makeNSError(
+            domain: "underlying.domain",
+            code: 42,
+            recoverySuggestion: "Retry the underlying operation"
+        )
+        let suggestions: [String?] = [nil, ""]
+
+        for suggestion in suggestions {
+            let nsError = makeNSError(
+                userInfo: [NSUnderlyingErrorKey: underlying],
+                description: "Reader is busy",
+                recoverySuggestion: suggestion
+            )
+
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
+
+            XCTAssertEqual(error["message"] as? String, "Reader is busy")
+        }
+    }
+
     func testMapToStripeErrorObject_NonStripeDomain() {
         // GIVEN an NSError from a non-Stripe domain
         let nsError = makeNSError(domain: "com.partner", code: 99, description: "Partner failure")
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN
         XCTAssertEqual(error["name"] as? String, "NonStripeError")
@@ -79,7 +386,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = makeNSError(code: ErrorCode.Code.readerBusy.rawValue)
 
         // WHEN createError is called
-        let wrapped = Errors.createErrorFromNSError(nsError: nsError)
+        let wrapped = Errors.createErrorFromNSError(nsError: nsError, source: .native)
 
         // THEN
         guard let error = wrapped["error"] as? [String: Any] else {
@@ -102,7 +409,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN
         XCTAssertNotNil(error["metadata"] as? [String: Any])
@@ -235,6 +542,31 @@ final class ErrorsTests: XCTestCase {
         XCTAssertNil(result)
     }
 
+    func testCollectInputsInvalidNestedStringsResolveInvalidRequiredParameter() throws {
+        let invalidInputs: [NSDictionary] = [
+            ["formType": "email", "title": 42],
+            [
+                "formType": "selection",
+                "title": "Choose",
+                "selectionButtons": [["text": "First"]]
+            ]
+        ]
+        let sut = StripeTerminalReactNative()
+
+        for input in invalidInputs {
+            var resolved: [String: Any]?
+            sut.collectInputs(
+                ["inputs": [input]],
+                resolver: { resolved = $0 as? [String: Any] },
+                rejecter: { _, _, _ in XCTFail("Invalid input should resolve") }
+            )
+
+            let error = try XCTUnwrap(resolved?["error"] as? [String: Any])
+            XCTAssertEqual(error["error_source"] as? String, "rn")
+            XCTAssertEqual(error["code"] as? String, "INVALID_REQUIRED_PARAMETER")
+        }
+    }
+
     // MARK: - Edge Cases and Boundary Tests
 
     func testMapToStripeErrorObject_emptyMessage() {
@@ -242,7 +574,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = makeNSError(description: "")
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN message should fallback to "Unknown error"
         XCTAssertEqual(error["message"] as? String, "Unknown error")
@@ -257,7 +589,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN basic error structure should be present
         XCTAssertEqual(error["name"] as? String, "StripeError")
@@ -283,7 +615,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = makeNSError(userInfo: complexUserInfo)
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN error structure should handle complex userInfo gracefully
         XCTAssertEqual(error["name"] as? String, "StripeError")
@@ -314,7 +646,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with integration ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -342,7 +674,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Bluetooth ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -377,7 +709,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Reader ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -405,7 +737,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Payment ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -433,7 +765,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Network ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -470,7 +802,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Offline ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -507,7 +839,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Miscellaneous ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -545,7 +877,7 @@ final class ErrorsTests: XCTestCase {
             (.printerAbsent, "PRINTER_ABSENT"),
             (.printerUnavailable, "PRINTER_UNAVAILABLE"),
             (.printerError, "PRINTER_ERROR"),
-            (.printerLowBattery, "PRINTER_LOW_BATTERY"),
+            (.readerBatteryLow, "READER_BATTERY_LOW"),
             (.readerConnectedToAnotherDevice, "READER_CONNECTED_TO_ANOTHER_DEVICE"),
             (.readerTampered, "READER_TAMPERED"),
             (.genericReaderError, "GENERIC_READER_ERROR"),
@@ -560,7 +892,7 @@ final class ErrorsTests: XCTestCase {
         for (errorCode, expectedRNCode) in testCases {
             // WHEN creating error with Additional ErrorCode
             let nsError = makeNSError(code: errorCode.rawValue)
-            let error = Errors.mapToStripeErrorObject(nsError: nsError)
+            let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
             // THEN it should map to correct RN error code
             XCTAssertEqual(error["code"] as? String, expectedRNCode,
@@ -581,7 +913,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = makeNSError(domain: "com.stripe-terminal", code: testCode.rawValue, description: "Test unmapped scenario")
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN should map correctly without unmappedErrorCode
         // (since all cases are now explicitly mapped)
@@ -598,7 +930,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = makeNSError(code: ErrorCode.Code.unexpectedSdkError.rawValue, description: "SDK error")
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN should map correctly
         XCTAssertEqual(error["code"] as? String, "UNEXPECTED_SDK_ERROR")
@@ -610,7 +942,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = NSError(domain: "", code: 0, userInfo: [:])
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN should handle gracefully as non-Stripe error
         XCTAssertEqual(error["name"] as? String, "NonStripeError")
@@ -633,7 +965,7 @@ final class ErrorsTests: XCTestCase {
                                   description: "Top error")
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: topError)
+        let error = Errors.mapToStripeErrorObject(nsError: topError, source: .native)
 
         // THEN should capture only the immediate underlying error at top-level
         guard let underlyingInfo = error["underlyingError"] as? [String: Any] else {
@@ -649,7 +981,7 @@ final class ErrorsTests: XCTestCase {
         let nsError = makeNSError(code: ErrorCode.Code.cardReadTimedOut.rawValue, description: "Card timeout")
 
         // WHEN creating error wrapper
-        let result = Errors.createErrorFromNSError(nsError: nsError)
+        let result = Errors.createErrorFromNSError(nsError: nsError, source: .native)
 
         // THEN should return proper wrapper structure
         XCTAssertNotNil(result["error"])
@@ -670,7 +1002,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error without UUID
-        let result = Errors.createErrorFromNSError(nsError: regularError)
+        let result = Errors.createErrorFromNSError(nsError: regularError, source: .native)
 
         // THEN should return structure with 'error' at top level,
         // and error object should have complete structure
@@ -699,7 +1031,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error with UUID
-        let result = Errors.createErrorFromNSError(nsError: regularError, uuid: "test-uuid-123")
+        let result = Errors.createErrorFromNSError(nsError: regularError, uuid: "test-uuid-123", source: .native)
 
         // THEN should still only have 'error' key (UUID doesn't matter for non-Confirm errors)
         XCTAssertEqual(result.count, 1, "Should only have 'error' key")
@@ -729,7 +1061,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error
-        let result = Errors.createErrorFromNSError(nsError: apiError)
+        let result = Errors.createErrorFromNSError(nsError: apiError, source: .native)
 
         // THEN should have apiError at top level within error object
         guard let error = result["error"] as? [String: Any] else {
@@ -755,7 +1087,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error
-        let result = Errors.createErrorFromNSError(nsError: stripeError)
+        let result = Errors.createErrorFromNSError(nsError: stripeError, source: .native)
 
         // THEN should NOT have apiError key (matching Android behavior when ApiError is null)
         guard let error = result["error"] as? [String: Any] else {
@@ -776,12 +1108,10 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error (without UUID, simulating failure case)
-        let result = Errors.createErrorFromNSError(nsError: confirmError)
+        let result = Errors.createErrorFromNSError(nsError: confirmError, source: .native)
 
-        // THEN top-level structure should match Android ('error' key with StripeError object,
-        // 'paymentIntent' would be added if real PI object existed), error object should have
-        // correct structure, apiError should be at top level within error (not nested deeper),
-        // PI/SI/Refund should NOT be nested inside error object, and should have metadata
+        // THEN the wrapper should match Android ('error' key with StripeError object), the error
+        // object should have the correct structure, and apiError should be directly on the error.
         XCTAssertNotNil(result["error"], "Must have 'error' at top level")
 
         guard let error = result["error"] as? [String: Any] else {
@@ -798,9 +1128,9 @@ final class ErrorsTests: XCTestCase {
         }
         XCTAssertEqual(apiError["declineCode"] as? String, "card_declined")
 
-        XCTAssertNil(error["paymentIntent"], "PaymentIntent should be at result top level, not inside error")
-        XCTAssertNil(error["setupIntent"], "SetupIntent should be at result top level, not inside error")
-        XCTAssertNil(error["refund"], "Refund should be at result top level, not inside error")
+        XCTAssertNil(error["paymentIntent"], "Mock error does not contain a PaymentIntent")
+        XCTAssertNil(error["setupIntent"], "Mock error does not contain a SetupIntent")
+        XCTAssertNil(error["refund"], "Mock error does not contain a Refund")
 
         XCTAssertNotNil(error["metadata"])
     }
@@ -813,10 +1143,9 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error with UUID
-        let result = Errors.createErrorFromNSError(nsError: confirmError, uuid: "si-uuid-456")
+        let result = Errors.createErrorFromNSError(nsError: confirmError, uuid: "si-uuid-456", source: .native)
 
-        // THEN top-level structure should match Android, apiError with declineCode should be present,
-        // and setupIntent should NOT be inside error object
+        // THEN the wrapper should match Android and apiError with declineCode should be present.
         XCTAssertNotNil(result["error"])
 
         guard let error = result["error"] as? [String: Any] else {
@@ -831,7 +1160,7 @@ final class ErrorsTests: XCTestCase {
         }
         XCTAssertEqual(apiError["declineCode"] as? String, "insufficient_funds")
 
-        XCTAssertNil(error["setupIntent"], "SetupIntent belongs at result top level")
+        XCTAssertNil(error["setupIntent"], "Mock error does not contain a SetupIntent")
     }
 
     func testCreateErrorFromNSError_confirmRefundError_structureAlignedWithAndroid() {
@@ -839,10 +1168,9 @@ final class ErrorsTests: XCTestCase {
         let confirmError = MockConfirmRefundError(requestError: nil)
 
         // WHEN creating error
-        let result = Errors.createErrorFromNSError(nsError: confirmError, uuid: "refund-uuid")
+        let result = Errors.createErrorFromNSError(nsError: confirmError, uuid: "refund-uuid", source: .native)
 
-        // THEN should have correct top-level structure
-        // and refund should NOT be inside error object
+        // THEN the wrapper should have the correct structure.
         XCTAssertNotNil(result["error"])
 
         guard let error = result["error"] as? [String: Any] else {
@@ -852,7 +1180,7 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(error["name"] as? String, "StripeError")
         XCTAssertNotNil(error["metadata"])
 
-        XCTAssertNil(error["refund"], "Refund belongs at result top level")
+        XCTAssertNil(error["refund"], "Mock error does not contain a Refund")
     }
 
     func testMapToStripeErrorObject_doesNotIncludeResponseObjects() {
@@ -864,11 +1192,10 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN using mapToStripeErrorObject (not createErrorFromNSError)
-        let error = Errors.mapToStripeErrorObject(nsError: confirmError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmError, source: .native)
 
-        // THEN the error object should NOT include response objects
-        // (mapToStripeErrorObject only returns the error object,
-        // createErrorFromNSError adds PI/SI/Refund at top level)
+        // THEN this lower-level mapper should NOT include response objects.
+        // createErrorFromNSError adds PI/SI/Refund before wrapping the error.
         XCTAssertNil(error["paymentIntent"], "mapToStripeErrorObject should NOT include paymentIntent")
         XCTAssertNil(error["setupIntent"], "mapToStripeErrorObject should NOT include setupIntent")
         XCTAssertNil(error["refund"], "mapToStripeErrorObject should NOT include refund")
@@ -907,27 +1234,26 @@ final class ErrorsTests: XCTestCase {
         }
     }
 
-    func testErrorObjectMetadata_optionalFieldHandling() {
-        // GIVEN an NSError with minimal userInfo
+    func testMapToStripeErrorObject_withoutUnderlyingError() {
+        // GIVEN an NSError with localized information but no underlying error
         let nsError = makeNSError(
-            userInfo: [:], // Empty userInfo
             description: "Simple error",
-            failureReason: nil, // No failure reason
-            recoverySuggestion: nil // No recovery suggestion
+            failureReason: "The reader is currently in use",
+            recoverySuggestion: "Wait and retry"
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN error structure should be present
         XCTAssertEqual(error["name"] as? String, "StripeError")
-        XCTAssertEqual(error["message"] as? String, "Simple error")
+        XCTAssertEqual(error["message"] as? String, "Simple error Wait and retry")
 
         // metadata should exist (can be empty)
         XCTAssertNotNil(error["metadata"] as? [String: Any])
 
-        // underlyingError should exist at top-level (not in metadata)
-        XCTAssertNotNil(error["underlyingError"] as? [String: Any])
+        // The outer NSError must not be copied into underlyingError
+        XCTAssertNil(error["underlyingError"])
     }
 
     // MARK: - Specialized Error Extraction Tests
@@ -941,7 +1267,7 @@ final class ErrorsTests: XCTestCase {
         let confirmRefundError = MockConfirmRefundError(requestError: mockRequestError)
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError, source: .native)
 
         // THEN basic error structure should be present
         XCTAssertEqual(error["name"] as? String, "StripeError")
@@ -955,7 +1281,7 @@ final class ErrorsTests: XCTestCase {
         let confirmRefundError = MockConfirmRefundError(requestError: nil)
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmRefundError, source: .native)
 
         // THEN basic error structure should be present
         XCTAssertEqual(error["name"] as? String, "StripeError")
@@ -975,7 +1301,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError, source: .native)
 
         // THEN should extract declineCode into apiError at top-level
         guard let apiError = error["apiError"] as? [String: Any] else {
@@ -995,7 +1321,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmPaymentIntentError, source: .native)
 
         // THEN apiError should NOT be present (matching Android behavior when ApiError is null)
         XCTAssertNil(error["apiError"], "apiError should not be present when no API error information exists")
@@ -1016,7 +1342,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError, source: .native)
 
         // THEN should extract declineCode into apiError at top-level
         guard let apiError = error["apiError"] as? [String: Any] else {
@@ -1036,7 +1362,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError)
+        let error = Errors.mapToStripeErrorObject(nsError: confirmSetupIntentError, source: .native)
 
         // THEN should extract declineCode into apiError
         guard let apiError = error["apiError"] as? [String: Any] else {
@@ -1054,7 +1380,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: regularError)
+        let error = Errors.mapToStripeErrorObject(nsError: regularError, source: .native)
 
         // THEN should have basic error structure
         XCTAssertEqual(error["name"] as? String, "StripeError")
@@ -1069,7 +1395,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN creating error wrapper (the public API used by RN bridge)
-        let wrapped = Errors.createErrorFromNSError(nsError: confirmPaymentIntentError)
+        let wrapped = Errors.createErrorFromNSError(nsError: confirmPaymentIntentError, source: .native)
 
         // THEN should have proper structure with declineCode in apiError
         guard let error = wrapped["error"] as? [String: Any] else {
@@ -1094,7 +1420,8 @@ final class ErrorsTests: XCTestCase {
             ErrorConstants.readerMessage: "Insert card",
             ErrorConstants.stripeAPIRequestId: "req_123abc",
             ErrorConstants.stripeAPIFailureReason: "API rate limit exceeded",
-            ErrorConstants.offlineDeclineReason: "Card expired"
+            ErrorConstants.offlineDeclineReason: "Card expired",
+            ErrorConstants.tapToPayReaderErrorName: "SessionExpired"
         ]
         let nsError = makeNSError(
             code: ErrorCode.Code.readerBusy.rawValue,
@@ -1103,7 +1430,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN all platform-specific fields should be in metadata
         guard let metadata = error["metadata"] as? [String: Any] else {
@@ -1117,6 +1444,7 @@ final class ErrorsTests: XCTestCase {
         XCTAssertEqual(metadata[ErrorConstants.rnMetadataStripeAPIRequestId] as? String, "req_123abc")
         XCTAssertEqual(metadata[ErrorConstants.rnMetadataStripeAPIFailureReason] as? String, "API rate limit exceeded")
         XCTAssertEqual(metadata[ErrorConstants.rnMetadataOfflineDeclineReason] as? String, "Card expired")
+        XCTAssertEqual(metadata[ErrorConstants.rnMetadataTapToPayReaderErrorName] as? String, "SessionExpired")
     }
 
     func testAddPlatformMetadata_withPartialFields() {
@@ -1132,7 +1460,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN only provided fields should be in metadata
         guard let metadata = error["metadata"] as? [String: Any] else {
@@ -1147,6 +1475,7 @@ final class ErrorsTests: XCTestCase {
         XCTAssertNil(metadata[ErrorConstants.rnMetadataReaderMessage])
         XCTAssertNil(metadata[ErrorConstants.rnMetadataStripeAPIFailureReason])
         XCTAssertNil(metadata[ErrorConstants.rnMetadataOfflineDeclineReason])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataTapToPayReaderErrorName])
     }
 
     func testAddPlatformMetadata_withNoSpecialFields() {
@@ -1158,7 +1487,7 @@ final class ErrorsTests: XCTestCase {
         )
 
         // WHEN mapping to stripe error object
-        let error = Errors.mapToStripeErrorObject(nsError: nsError)
+        let error = Errors.mapToStripeErrorObject(nsError: nsError, source: .native)
 
         // THEN metadata should exist (but be empty for iOS when no special fields)
         // and platform-specific fields should not be present
@@ -1173,6 +1502,7 @@ final class ErrorsTests: XCTestCase {
         XCTAssertNil(metadata[ErrorConstants.rnMetadataStripeAPIRequestId])
         XCTAssertNil(metadata[ErrorConstants.rnMetadataStripeAPIFailureReason])
         XCTAssertNil(metadata[ErrorConstants.rnMetadataOfflineDeclineReason])
+        XCTAssertNil(metadata[ErrorConstants.rnMetadataTapToPayReaderErrorName])
 
         XCTAssertEqual(metadata.count, 0, "Metadata should be empty when no platform-specific fields are present")
     }
@@ -1194,6 +1524,7 @@ final class ErrorsTests: XCTestCase {
         XCTAssertFalse(ErrorConstants.stripeAPIErrorParameter.isEmpty)
         XCTAssertFalse(ErrorConstants.readerMessage.isEmpty)
         XCTAssertFalse(ErrorConstants.offlineDeclineReason.isEmpty)
+        XCTAssertFalse(ErrorConstants.tapToPayReaderErrorName.isEmpty)
         XCTAssertFalse(ErrorConstants.stripeAPIDeclineCode.isEmpty)
         XCTAssertFalse(ErrorConstants.stripeAPICharge.isEmpty)
         XCTAssertFalse(ErrorConstants.stripeAPIError.isEmpty)
@@ -1208,7 +1539,7 @@ final class ErrorsTests: XCTestCase {
     /// This mirrors the callback pattern:
     /// ```
     /// if let error = processError as NSError? {
-    ///     var result = Errors.createErrorFromNSError(nsError: error)
+    ///     var result = Errors.createErrorFromNSError(nsError: error, source: .native)
     ///     resolve(result)  // result should NOT have paymentIntent for general errors
     /// }
     /// ```
@@ -1217,7 +1548,7 @@ final class ErrorsTests: XCTestCase {
         let generalError = makeNSError(code: ErrorCode.Code.readerBusy.rawValue, description: "Reader busy")
 
         // WHEN creating error response (simulating error path in callback)
-        let result = Errors.createErrorFromNSError(nsError: generalError)
+        let result = Errors.createErrorFromNSError(nsError: generalError, source: .native)
 
         // THEN result must have error but NOT paymentIntent
         XCTAssertNotNil(result[ErrorConstants.rnError])
@@ -1232,7 +1563,7 @@ final class ErrorsTests: XCTestCase {
         let generalError = makeNSError(code: ErrorCode.Code.readerBusy.rawValue, description: "Reader busy")
 
         // WHEN creating error response (simulating error path in callback)
-        let result = Errors.createErrorFromNSError(nsError: generalError)
+        let result = Errors.createErrorFromNSError(nsError: generalError, source: .native)
 
         // THEN result must have error but NOT setupIntent
         XCTAssertNotNil(result[ErrorConstants.rnError])
@@ -1390,3 +1721,10 @@ private class MockConfirmSetupIntentError: NSError {
     }
 }
 
+private final class ErrorEventEmitter: StripeTerminalReactNative {
+    var events: [(String, [String: Any])] = []
+
+    override func sendEvent(withName name: String!, body: Any!) {
+        events.append((name, body as? [String: Any] ?? [:]))
+    }
+}

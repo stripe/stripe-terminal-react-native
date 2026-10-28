@@ -32,6 +32,15 @@ appId: ${APP_ID}
             visible:
                 id: "discovery-readers-screen"
             timeout: 10000
+        - runFlow:
+            when:
+                true: ${updateType == "required"}
+            commands:
+                # Confirm the selection reached the connection screen before
+                # starting the one-shot required-update flow.
+                - extendedWaitUntil:
+                    visible: "Required \\(Config\\)"
+                    timeout: 10000
 
 - extendedWaitUntil:
     visible:
@@ -44,7 +53,9 @@ appId: ${APP_ID}
     when:
         true: ${updateType == "required"}
     commands:
+        # Reader activation and the update check can take longer than 16 seconds
+        # on CI. Match the timeout used by the other connection-stage checks.
         - extendedWaitUntil:
             visible:
                 id: "required-update-in-progress"
-            timeout: 16000
+            timeout: 60000

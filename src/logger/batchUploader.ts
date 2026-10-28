@@ -43,10 +43,7 @@ const getDeviceInfo = (deviceUuid: string) => ({
   host_os_version: Platform.Version.toString(),
   hardware_model: {
     pos_info: {
-      description: Platform.select({
-        ios: 'iOS',
-        android: 'Android',
-      })?.toString(),
+      description: Platform.OS,
     },
   },
 });
@@ -280,8 +277,8 @@ export class BatchUploader {
   private flushSafe = async (): Promise<void> => {
     try {
       await this.flush();
-    } catch (err) {
-      this._writer.warn('flush threw unexpectedly:', err);
+    } catch {
+      this._writer.warn('flush threw unexpectedly');
     } finally {
       this.scheduleNext();
     }

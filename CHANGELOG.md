@@ -2,6 +2,81 @@
 
 This document details changes made to the SDK by version.
 
+## 0.0.1-beta.34
+
+### New
+
+- **Preview:** Added support for Mexico installments (meses sin intereses, or MSI) for eligible card-present transactions. Set `paymentMethodOptions.installments.enabled` when creating a PaymentIntent. After payment method collection, `PaymentIntent.paymentMethodOptions.cardPresent.installments.availablePlans` contains the eligible installment plans; after confirmation, `PaymentIntent.paymentMethodOptions.cardPresent.installments.plan` contains the plan selected by the cardholder.
+  - To request access to this feature, please contact [Stripe Support](https://support.stripe.com/).
+- iOS: Added an optional `reader` argument to `onDidStartInstallingUpdate` and the `START_INSTALLING_UPDATE` event so integrations can read the reader's current software version while a required update is in progress.
+- Added the `CANCELED_BY_READER` error code for payment flows canceled from the reader.
+- Android: Added the `INVALID_INSTALLMENT_PLAN` error code.
+- Android: Added `onDidUpdateRequirementsAvailable` for upcoming Tap to Pay Android OS, security-patch, and SDK requirements.
+- Added `readMethod` to `CardPresentDetails`.
+- Added `paymentAccountReference` to charge `CardPresentDetails` when available.
+- Added `application` and `review` to `PaymentIntent` when available.
+- Android: Added `authorizationCode` to MOTO `CardDetails` when available.
+
+### Updates
+
+- **Breaking:** `getConnectedReader` now returns `null` when no reader is connected and rejects native bridge errors with `StripeError` instead of returning error objects.
+- **Breaking:** Removed `CollectDataType.UNKNOWN`. The `collectData` request now accepts only `CollectDataType.MAGSTRIPE` and `CollectDataType.NFC_UID`, matching the native SDK input contract.
+- **Breaking:** Corrected eight public result contracts. Discovery result aliases now describe resolved values instead of promises; successful `disconnectReader`, `rebootReader`, and `clearReaderDisplay` calls no longer require an error field; and `getOfflineStatus`, `getPaymentStatus`, and `getConnectionStatus` now reject unexpected errors with `StripeError` instead of resolving error objects, matching their existing return types.
+- **Breaking:** Aligned software-update callbacks and response fields with native SDK contracts.
+  - `onDidReportReaderSoftwareUpdateProgress` now receives a number between `0` and `1` instead of a string.
+  - `onDidFinishInstallingUpdate` now receives `(update, error)` as separate optional arguments. This preserves both values when an installation fails and permits both to be `undefined` when no update is available. The class-component event emitter uses the same arguments. The `UpdateSoftwareResultType` export has been removed.
+  - `Reader.SoftwareUpdate` now includes `isTestUpdate`; `requiredAt` and `components` are now required.
+- **Breaking:** Android: Renamed `TapToPayUxConfiguration.darkMode` to `theme` and `colors` to `colorScheme`. When `theme` is omitted, the Tap to Pay UI now follows the system theme instead of defaulting to light mode.
+- **Breaking:** Removed the `StripeTerminalSdk` runtime export from the package entry point. Use `StripeTerminalProvider` with `useStripeTerminal` or `withStripeTerminal` instead.
+- **Breaking:** Removed the `StripeTerminalSdkType` export. Use `WithStripeTerminalProps` for the public SDK methods and state.
+- **Breaking:** React Native 0.83 or newer and React 19.2 or newer are now required.
+- **Breaking:** iOS apps must now target iOS 16.0 or later.
+- **Breaking:** Android apps must now use `compileSdkVersion` 35 or later.
+- **Breaking:** Android apps must now use Kotlin Gradle Plugin 2.2.0 or later. See the [Android requirements](README.md#android) for configuration.
+- **Breaking:** Renamed the `PRINTER_LOW_BATTERY` error code to `READER_BATTERY_LOW`.
+- **Breaking:** PaymentIntent responses now expose the latest charge as `latestCharge` and `latestChargeId` instead of the `charges` array.
+- **Breaking:** PaymentMethod `cardPresentDetails` and `interacPresentDetails` now use `PaymentMethodCardPresentDetails` instead of `CardPresentDetails`. Transaction-only fields remain on `Charge.paymentMethodDetails`; the new type exposes `brandProduct`, `networks`, and `paymentAccountReference`. Payment-method-specific detail objects, `customer`, and nullable card fields are now optional.
+- **Breaking:** `collectSetupIntentPaymentMethod` and `processSetupIntent` now require `allowRedisplay` to be `always` or `limited`, matching the native SDK 6.0 SetupIntent collection contract.
+- **Breaking:** `CardPresentDetails.expMonth` and `expYear` now use numbers, matching native SDK values. `preferredLocales`, `issuer`, `iin`, `description`, and `wallet` are now optional because native SDK responses may omit them.
+- **Breaking:** `Refund.id` is now optional because native SDK 6.0 can return a Refund before Stripe assigns an ID.
+- **Breaking:** `CreatePaymentIntentParams.captureMethod` now accepts and defaults to `automatic_async` instead of `manual`. Integrations that require separate capture must explicitly set `manual`.
+- **Breaking:** `ReceiptDetails.accountType` and `ReceiptDetails.authorizationCode` are now optional because native SDK responses may omit them.
+- **Breaking:** `PaymentIntent.paymentMethodOptions` and `SetupIntent.paymentMethodOptions` now use `PaymentMethodOptionsResponse`, which exposes response values under `cardPresent`. `PaymentMethodOptions` remains the flat input type for `CreatePaymentIntentParams.paymentMethodOptions`.
+- **Breaking:** `SetupIntent.latestAttempt.paymentMethodDetails` is now optional, as are its `cardPresent` and `interacPresent` fields, because native SDK responses omit unavailable details. On Android, `paymentMethodDetails.type` now uses React Native payment method type values such as `cardPresent` and `interacPresent`.
+- **Breaking:** Reader responses now align with native platform values: `id` and `serialNumber` are optional, `batteryStatus` is optional on the shared reader type, `isCharging` is a `boolean` instead of a `number`, and `Reader.NetworkStatus` can be `unknown` when connectivity cannot be determined.
+- **Breaking:** Corrected reader reconnection, reader disconnection, and offline payment forwarding callback types to match their native values: `onDidStartReaderReconnect` and `onDidDisconnect` now always receive a `reason`, `onDidForwardingFailure` always receives an `error`, and the `error` argument of `onDidForwardPaymentIntent` is now optional because it's only set when forwarding fails.
+- **Breaking:** Class components using the `StripeTerminalProvider` event emitter now receive `START_READER_RECONNECT` as `(reader, reason)` instead of `(reason)`, and `READER_RECONNECT_FAIL` as `(reader)` instead of `(error)`. Update listeners to read the new first argument.
+- Verbose JavaScript console logs from `StripeTerminalProvider` now include only the SDK operation or event name and omit payload details. Public setup examples no longer enable verbose logging by default.
+- Updated the bundled iOS and Android Terminal SDKs to version 6.0.0.
+- iOS: The native Stripe Terminal SDK is now resolved with Swift Package Manager instead of the CocoaPods trunk. Continue running `pod install` normally; the React Native CocoaPods integration configures and embeds the Swift package automatically.
+
+### Fixes
+
+- iOS: Fixed `cancelInstallingUpdate` and `cancelReaderReconnection` remaining pending when called without an active operation. They now return `CANCEL_FAILED`. 
+- iOS: Retrying a failed `processPaymentIntent` or `processSetupIntent` now uses the updated intent returned in the error, when available.
+- Android: Fixed invalid Tap to Pay UX color values causing an uncaught native exception. They now return an error with the `INVALID_REQUIRED_PARAMETER` code.
+- iOS: Fixed `collectInputs` crashing when an input title or selection button style or text is missing or has the wrong type. It now returns an error with the `INVALID_REQUIRED_PARAMETER` code.
+- Android: Fixed builds failing when using Android Gradle Plugin 9's built-in Kotlin support.
+- Android: Fixed concurrent access to PaymentIntent and SetupIntent state, which could cause an intent returned by the SDK to become unavailable to a later SDK call.
+- Fixed the `ReaderSupportResult` return type to distinguish supported readers, unsupported readers with a native error, and error-only parameter validation or native bridge failures from `supportsReadersOfType`.
+- Android: Fixed a crash when a `collectInputs` input omitted its optional `required` field or set it to `null`. Other optional boolean and numeric parameters now also treat `null` as omitted instead of causing a native type error.
+- Android: Fixed `onDidUpdateBatteryLevel.batteryStatus` returning uppercase values. The callback now returns the documented lowercase `Reader.BatteryStatus` values: `critical`, `low`, `nominal`, or `unknown`.
+- Fixed response types to allow fields that native SDK 6.0 may omit, and fixed Android responses to omit those fields when unavailable. (from native 6.0.0)
+- Fixed `PaymentIntent.paymentMethodTypes` and `SetupIntent.paymentMethodTypes` responses to consistently return React Native `PaymentMethodType` string values on both platforms.
+- iOS: Fixed receipt responses omitting `ReceiptDetails.terminalVerificationResult`.
+- Fixed Refund responses to preserve `canceled` and `requiresAction` statuses and expose required next-action details. (from native 6.0.0)
+- iOS: Fixed payment method selection and QR code display callbacks for mobile and Tap to Pay readers with native SDK 6.0.
+- iOS: Fixed `SetupIntent.paymentMethod` and `paymentMethodId` returning the wrong values with native SDK 6.0.
+- Fixed a missing `package.json` error during Expo web export, including for apps that only use Terminal on native platforms. Fixes [#1136](https://github.com/stripe/stripe-terminal-react-native/issues/1136).
+- iOS: Fixed `collectInputs` crashing when a toggle omits its optional `title` or `description`.
+- Stopped logging raw errors from `tokenProvider` during SDK initialization and subsequent connection token requests, and when passing connection tokens to the native SDK.
+- Stopped logging raw errors when diagnostic uploads fail unexpectedly.
+- Fixed intermittent SDK initialization or reader connection failures where a configured `tokenProvider` was not invoked.
+- Improved redaction of SDK diagnostic request, response, and exception logs and prevented diagnostic logging from interrupting SDK calls when values cannot be serialized.
+- iOS: Fixed Tap to Pay reader error names being omitted from `StripeError.metadata`, including offline-mode failures. Use `StripeErrorMetadataKeys.IOS_TAP_TO_PAY_READER_ERROR_NAME` to read the value. (from native 5.5.0)
+- iOS: Fixed `failQrCodeDisplay` and `failPaymentMethodSelection` reporting the failure as `UNEXPECTED_SDK_ERROR`, which made a deliberate cancellation indistinguishable from an internal error. Both now report `CANCELED`.
+- Fixed `PaymentIntent`, `SetupIntent`, and `Refund` state attached to failed native operations being omitted from `StripeError`. Associated resources are now available as `error.paymentIntent`, `error.setupIntent`, or `error.refund` so integrations can inspect their state before retrying or canceling.
+
 ## 0.0.1-beta.33
 
 Includes iOS native SDK [5.8.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/5.8.0) and Android native SDK [5.8.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#580---2026-08-17).

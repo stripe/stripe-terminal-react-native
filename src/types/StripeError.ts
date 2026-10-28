@@ -74,9 +74,10 @@ export interface LocalizationResult {
 }
 
 /**
- * Underlying error information
+ * Native error information for the immediate underlying cause.
+ * Native mappers omit this field when no underlying error exists.
  * - Android: From TerminalException.cause
- * - iOS: From NSError.userInfo[NSUnderlyingErrorKey] + localized info
+ * - iOS: From NSError.userInfo[NSUnderlyingErrorKey]
  */
 export interface UnderlyingErrorInformation {
   /** Underlying error code (Android: exception class, iOS: NSError.code) */
@@ -88,10 +89,10 @@ export interface UnderlyingErrorInformation {
   /** iOS error domain (iOS only) */
   iosDomain?: string;
 
-  /** iOS localized failure reason (iOS only) */
+  /** Underlying NSError's localized failure reason (iOS only) */
   iosLocalizedFailureReason?: string;
 
-  /** iOS localized recovery suggestion (iOS only) */
+  /** Underlying NSError's localized recovery suggestion (iOS only) */
   iosLocalizedRecoverySuggestion?: string;
 }
 
@@ -119,4 +120,3 @@ export interface StripeError extends Error {
   /** Underlying error information (unified structure) */
   underlyingError?: UnderlyingErrorInformation;
 }
-

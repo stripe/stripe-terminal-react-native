@@ -7,7 +7,8 @@ podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties
 ENV['RCT_NEW_ARCH_ENABLED'] = '0' if podfile_properties['newArchEnabled'] == 'false'
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 
-platform :ios, podfile_properties['ios.deploymentTarget'] || '16.4'
+ios_deployment_target = podfile_properties['ios.deploymentTarget'] || '16.4'
+platform :ios, ios_deployment_target
 install! 'cocoapods',
   :deterministic_uuids => false
 
@@ -50,13 +51,14 @@ target 'exampleapp' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    # This is necessary for Xcode 14, because it signs resource bundles by default
-    # when building for devices.
+    # Xcode signs resource bundles by default when building for devices, and
+    # rejects the outdated deployment targets they inherit from their pods.
     installer.target_installation_results.pod_target_installation_results
       .each do |pod_name, target_installation_result|
       target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
         resource_bundle_target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = ios_deployment_target
         end
       end
     end

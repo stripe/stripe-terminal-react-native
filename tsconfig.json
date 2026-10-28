@@ -24,7 +24,6 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
-    "typeRoots": ["./node_modules/@types"],
     "types": ["jest", "node", "react", "react-native", "react-test-renderer"]
   }
 }

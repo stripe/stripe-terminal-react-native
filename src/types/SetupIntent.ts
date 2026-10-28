@@ -1,14 +1,14 @@
 import type {
   NextAction,
   PaymentMethod,
-  PaymentMethodOptions,
+  PaymentMethodOptionsResponse,
   PaymentMethodType,
   ApiErrorInformation,
 } from './';
 
 export namespace SetupIntent {
   export type Type = {
-    id: string;
+    id?: string;
     sdkUuid: string;
     application?: string;
     cancellationReason?: string;
@@ -24,7 +24,7 @@ export namespace SetupIntent {
     onBehalfOf?: string;
     paymentMethodId?: string;
     paymentMethod?: PaymentMethod.Type;
-    paymentMethodOptions?: PaymentMethodOptions;
+    paymentMethodOptions?: PaymentMethodOptionsResponse;
     paymentMethodTypes?: PaymentMethodType[];
     singleUseMandate?: string;
     status?: Status;
@@ -50,7 +50,7 @@ export namespace SetupIntent {
     customer?: string;
     livemode: boolean;
     onBehalfOfId?: string;
-    paymentMethodDetails: SetupAttemptPaymentMethodDetails;
+    paymentMethodDetails?: SetupAttemptPaymentMethodDetails;
     paymentMethodId?: string;
     setupIntentId?: string;
     status: string;
@@ -59,13 +59,13 @@ export namespace SetupIntent {
   };
 
   export interface SetupAttemptPaymentMethodDetails {
-    cardPresent: SetupAttemptCardPresentDetails;
-    interacPresent: SetupAttemptCardPresentDetails;
+    cardPresent?: SetupAttemptCardPresentDetails;
+    interacPresent?: SetupAttemptCardPresentDetails;
     type: PaymentMethodType;
   }
 
   export interface SetupAttemptCardPresentDetails {
-    emvAuthData: string;
-    generatedCard: string;
+    emvAuthData?: string;
+    generatedCard?: string;
   }
 }

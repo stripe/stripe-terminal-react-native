@@ -65,4 +65,11 @@ export const StripeErrorMetadataKeys = {
    * Available when: Offline payment is declined
    */
   IOS_OFFLINE_DECLINE_REASON: 'offlineDeclineReason',
+
+  /**
+   * iOS only - Tap to Pay
+   * Error name reported by the Tap to Pay reader for debugging
+   * Available when: A Tap to Pay reader operation fails
+   */
+  IOS_TAP_TO_PAY_READER_ERROR_NAME: 'tapToPayReaderErrorName',
 } as const;

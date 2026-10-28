@@ -35,8 +35,8 @@ export default function Root() {
         }}
       >
         <StripeTerminalProvider
-          logLevel="verbose"
           tokenProvider={fetchTokenProvider}
+          localeConfig={{ type: 'cardLanguagePreferenceIfAvailable' }}
         >
           <App />
         </StripeTerminalProvider>

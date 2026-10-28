@@ -10,7 +10,6 @@ import com.stripe.stripeterminal.external.models.DisconnectReason
 import com.stripe.stripeterminal.external.models.ReaderDisplayMessage
 import com.stripe.stripeterminal.external.models.ReaderInputOptions
 import com.stripe.stripeterminal.external.models.ReaderInputOptions.ReaderInputOption
-import com.stripe.stripeterminal.external.models.ReaderSoftwareUpdate
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.ReactExtensions.sendEvent
@@ -21,18 +20,19 @@ import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_DISPLAY
 import com.stripeterminalreactnative.ReactNativeConstants.REQUEST_READER_INPUT
 import com.stripeterminalreactnative.ReactNativeConstants.START_INSTALLING_UPDATE
 import com.stripeterminalreactnative.ReactNativeTypeReplacementRule
-import com.stripeterminalreactnative.hasError
 import com.stripeterminalreactnative.hasResult
+import com.stripeterminalreactnative.hasValue
+import com.stripeterminalreactnative.mockReaderSoftwareUpdate
+import com.stripeterminalreactnative.toJavaOnlyMap
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -48,17 +48,7 @@ class RNMobileReaderListenerTest {
     }
 
     private val context = mockk<ReactApplicationContext>()
-    private val update = mockk<ReaderSoftwareUpdate>(relaxed = true) {
-        every {
-            version
-        } returns "1"
-        every {
-            durationEstimate
-        } returns ReaderSoftwareUpdate.UpdateDurationEstimate.ONE_TO_TWO_MINUTES
-        every {
-            requiredAtMs
-        } returns 0
-    }
+    private val update = mockReaderSoftwareUpdate()
 
     // Helper to create listener with default test mocks
     private fun createListener(
@@ -88,6 +78,10 @@ class RNMobileReaderListenerTest {
         verify(exactly = 1) { context.sendEvent(REPORT_AVAILABLE_UPDATE.listenerName, any()) }
 
         assertTrue(typeReplacer.sendEventSlot.captured.hasResult())
+        val result = typeReplacer.sendEventSlot.captured.toJavaOnlyMap().getMap("result")
+        assertEquals(true, result?.getBoolean("isTestUpdate"))
+        assertEquals("0", result?.getString("requiredAt"))
+        assertEquals(1, result?.getArray("components")?.size())
     }
 
     @Test
@@ -110,7 +104,8 @@ class RNMobileReaderListenerTest {
 
         verify(exactly = 1) { context.sendEvent(REPORT_UPDATE_PROGRESS.listenerName, any()) }
 
-        assertTrue(typeReplacer.sendEventSlot.captured.hasResult())
+        val result = typeReplacer.sendEventSlot.captured.toJavaOnlyMap().getMap("result")
+        assertEquals(1.0, result?.getDouble("progress"))
     }
 
     @Test
@@ -120,14 +115,14 @@ class RNMobileReaderListenerTest {
 
         verify(exactly = 1) { context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName, any()) }
 
-        assertFalse(typeReplacer.sendEventSlot.captured.hasError())
+        assertFalse(typeReplacer.sendEventSlot.captured.hasValue("error"))
         assertFalse(typeReplacer.sendEventSlot.captured.hasResult())
 
         listener.onFinishInstallingUpdate(update)
 
         verify(exactly = 2) { context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName, any()) }
 
-        assertFalse(typeReplacer.sendEventSlot.captured.hasError())
+        assertFalse(typeReplacer.sendEventSlot.captured.hasValue("error"))
         assertTrue(typeReplacer.sendEventSlot.captured.hasResult())
     }
 
@@ -138,7 +133,7 @@ class RNMobileReaderListenerTest {
 
         verify(exactly = 1) { context.sendEvent(FINISH_INSTALLING_UPDATE.listenerName, any()) }
 
-        assertTrue(typeReplacer.sendEventSlot.captured.hasError())
+        assertTrue(typeReplacer.sendEventSlot.captured.hasValue("error"))
         assertTrue(typeReplacer.sendEventSlot.captured.hasResult())
     }
 

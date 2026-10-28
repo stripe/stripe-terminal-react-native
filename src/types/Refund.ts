@@ -2,7 +2,7 @@ import type { PaymentMethodDetails } from './';
 
 export namespace Refund {
   export type Props = {
-    id: string;
+    id?: string;
     amount?: number;
     balanceTransaction?: string;
     chargeId?: string;
@@ -19,7 +19,29 @@ export namespace Refund {
     sourceTransferReversal?: string;
     status?: Status;
     transferReversal?: string;
+    nextAction?: NextAction;
   };
 
-  export type Status = 'succeeded' | 'failed' | 'pending' | 'unknown';
+  export type Status =
+    | 'succeeded'
+    | 'failed'
+    | 'pending'
+    | 'canceled'
+    | 'requiresAction'
+    | 'unknown';
+
+  export type NextAction = {
+    type?: string;
+    displayDetails?: NextActionDisplayDetails;
+  };
+
+  export type NextActionDisplayDetails = {
+    emailSent?: NextActionDisplayDetailsEmailSent;
+    expiresAt?: string;
+  };
+
+  export type NextActionDisplayDetailsEmailSent = {
+    emailSentAt?: string;
+    emailSentTo?: string;
+  };
 }

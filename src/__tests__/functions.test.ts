@@ -1,15 +1,15 @@
-jest.mock('../logger', () => ({
-  __esModule: true,
-  default: {
-    setLogLevel: () => {},
-    traceSdkMethod: (fn: (...args: any[]) => any | Promise<any>) => {
-      return function (this: any, ...args: any[]) {
-        const response = fn.apply(this, args);
-        return response;
-      };
+jest.mock('../logger', () => {
+  const actual = jest.requireActual('../logger');
+  const instance = {
+    _collector: {
+      pushTrace: jest.fn(),
+      pushProxyEvent: jest.fn(),
     },
-  },
-}));
+  };
+  // Exercise the real tracing/public-error boundary without starting uploads.
+  actual.default.getInstance = jest.fn(() => instance);
+  return actual;
+});
 
 const mockReader = {
   id: 1,
@@ -73,6 +73,24 @@ const mockLocations = [
   },
 ];
 
+const mockOfflineStatus = {
+  sdk: {
+    networkStatus: 'online',
+    offlinePaymentsCount: 0,
+    offlinePaymentAmountsByCurrency: {},
+  },
+};
+
+function expectPublicStripeError(error: any) {
+  expect(error).toBeInstanceOf(Error);
+  for (const field of ['error_source', 'errorSource', 'stripeError']) {
+    expect(error).not.toHaveProperty(field);
+    expect(Object.keys(error)).not.toContain(field);
+    expect({ ...error }).not.toHaveProperty(field);
+    expect(JSON.parse(JSON.stringify(error))).not.toHaveProperty(field);
+  }
+}
+
 describe('functions.test.ts', () => {
   describe('Functions snapshot', () => {
     it('ensure there are no unexpected changes to the functions exports', () => {
@@ -126,6 +144,9 @@ describe('functions.test.ts', () => {
         cancelInstallingUpdate: jest.fn().mockImplementation(() => ({})),
         setReaderDisplay: jest.fn().mockImplementation(() => ({})),
         clearReaderDisplay: jest.fn().mockImplementation(() => ({})),
+        getOfflineStatus: jest.fn().mockResolvedValue(mockOfflineStatus),
+        getPaymentStatus: jest.fn().mockResolvedValue('ready'),
+        getConnectionStatus: jest.fn().mockResolvedValue('connected'),
         retrieveSetupIntent: jest
           .fn()
           .mockImplementation(() => ({ setupIntent: mockSetupIntent })),
@@ -153,12 +174,34 @@ describe('functions.test.ts', () => {
       const functions = require('../functions');
       await expect(
         functions.initialize({
-          initParams: { logLevel: 'verbose' },
+          initParams: {
+            logLevel: 'verbose',
+            localeConfig: { type: 'cardLanguagePreferenceIfAvailable' },
+          },
           useAppsOnDevicesConnectionTokenProvider: false,
         })
       ).resolves.toEqual({
         reader: mockReader,
       });
+    });
+
+    it('initialize rejects a missing localeConfig before calling the native bridge', async () => {
+      const functions = require('../functions');
+      const StripeTerminalSdk = require('../StripeTerminalSdk');
+      StripeTerminalSdk.initialize.mockClear();
+
+      const result = await functions.initialize({
+        initParams: { logLevel: 'verbose' },
+        useAppsOnDevicesConnectionTokenProvider: false,
+      } as any);
+
+      expect(result.reader).toBeUndefined();
+      expect(result.error.errorSource).toBe('rn');
+      expect(result.error.stripeError.code).toBe('INVALID_REQUIRED_PARAMETER');
+      expect(result.error.stripeError.message).toBe(
+        'You must provide a localeConfig.'
+      );
+      expect(StripeTerminalSdk.initialize).not.toHaveBeenCalled();
     });
 
     it('initialize passes localeConfig to the native bridge', async () => {
@@ -197,7 +240,19 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('initialize returns an error for invalid localeConfig type', async () => {
+    it.each([
+      ['getOfflineStatus', mockOfflineStatus],
+      ['getPaymentStatus', 'ready'],
+      ['getConnectionStatus', 'connected'],
+    ])('%s returns the native value unchanged', async (method, expected) => {
+      const functions = require('../functions');
+
+      await expect(functions[method]()).resolves.toEqual(expected);
+    });
+
+    it('initialize preserves the internal error for invalid localeConfig type', async () => {
+      const helpers = require('../Errors/StripeErrorHelpers');
+      const create = jest.spyOn(helpers, 'createInternalStripeError');
       const functions = require('../functions');
       const StripeTerminalSdk = require('../StripeTerminalSdk');
       StripeTerminalSdk.initialize.mockClear();
@@ -210,17 +265,16 @@ describe('functions.test.ts', () => {
         useAppsOnDevicesConnectionTokenProvider: false,
       } as any);
 
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(create.mock.results[0].value.errorSource).toBe('rn');
+      expect(result.error).toBe(create.mock.results[0].value);
+      create.mockRestore();
       expect(result.reader).toBeUndefined();
-      expect(result.error?.code).toBe('INVALID_REQUIRED_PARAMETER');
-      expect(result.error?.message).toBe(
+      expect(result.error.stripeError.code).toBe('INVALID_REQUIRED_PARAMETER');
+      expect(result.error.stripeError.message).toBe(
         "Invalid localeConfig.type. Expected 'hardcoded' or 'cardLanguagePreferenceIfAvailable'."
       );
       expect(StripeTerminalSdk.initialize).not.toHaveBeenCalled();
-    });
-
-    it('setConnectionToken returns a proper value', async () => {
-      const functions = require('../functions');
-      await expect(functions.setConnectionToken()).resolves.toEqual(undefined);
     });
 
     it('discoverReaders returns a proper value', async () => {
@@ -230,10 +284,27 @@ describe('functions.test.ts', () => {
       });
     });
 
-    it('cancelDiscovering returns a proper value', async () => {
+    it('cancelDiscovering returns success and records one correctly named metric', async () => {
       const functions = require('../functions');
+      const Logger = require('../logger').default;
+      const { pushProxyEvent } = Logger.getInstance()._collector;
+      pushProxyEvent.mockClear();
+
       await expect(functions.cancelDiscovering()).resolves.toEqual({
         error: undefined,
+      });
+
+      expect(pushProxyEvent).toHaveBeenCalledTimes(1);
+      expect(pushProxyEvent.mock.calls[0][0]).toStrictEqual({
+        origin_role: 'pos-rn',
+        origin_id: Logger.posId,
+        event: {
+          domain: 'terminal_request',
+          scope: 'terminal',
+          event: 'cancelDiscovering',
+          result: 'OK',
+          duration: expect.any(Number),
+        },
       });
     });
 
@@ -409,6 +480,128 @@ describe('functions.test.ts', () => {
     });
   });
 
+  describe('setConnectionToken', () => {
+    beforeEach(() => {
+      jest.resetModules();
+      jest.doMock('../StripeTerminalSdk', () => ({
+        setConnectionToken: jest.fn(),
+      }));
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('forwards the token and waits for native completion', async () => {
+      const functions = require('../functions');
+      const sdk = require('../StripeTerminalSdk');
+      const Logger = require('../logger').default;
+      const { pushTrace, pushProxyEvent } = Logger.getInstance()._collector;
+      let complete!: () => void;
+      sdk.setConnectionToken.mockReturnValue(
+        new Promise<void>((resolve) => {
+          complete = resolve;
+        })
+      );
+
+      const pending = functions.setConnectionToken('pst_test_secret');
+      const onResolved = jest.fn();
+      const completion = pending.then(onResolved);
+      expect(sdk.setConnectionToken).toHaveBeenCalledTimes(1);
+      expect(sdk.setConnectionToken).toHaveBeenCalledWith({
+        token: 'pst_test_secret',
+        error: undefined,
+      });
+      await Promise.resolve();
+      expect(onResolved).not.toHaveBeenCalled();
+      expect(pushTrace).not.toHaveBeenCalled();
+      expect(pushProxyEvent).not.toHaveBeenCalled();
+
+      complete();
+      await expect(pending).resolves.toBeUndefined();
+      await completion;
+
+      expect(onResolved).toHaveBeenCalledTimes(1);
+      expect(pushProxyEvent).not.toHaveBeenCalled();
+      expect(pushTrace).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [undefined, 'Provider failure details'],
+      ['', undefined],
+    ])('forwards token %p and error %p without tracing', async (token, error) => {
+      const functions = require('../functions');
+      const sdk = require('../StripeTerminalSdk');
+      const Logger = require('../logger').default;
+      const { pushTrace, pushProxyEvent } = Logger.getInstance()._collector;
+      sdk.setConnectionToken.mockResolvedValue(undefined);
+
+      await expect(
+        functions.setConnectionToken(token, error)
+      ).resolves.toBeUndefined();
+
+      expect(sdk.setConnectionToken).toHaveBeenCalledTimes(1);
+      expect(sdk.setConnectionToken).toHaveBeenCalledWith({
+        token,
+        error,
+      });
+      expect(pushProxyEvent).not.toHaveBeenCalled();
+      expect(pushTrace).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      {
+        name: 'synchronous bridge invocation failure',
+        error: new TypeError('Bridge method is unavailable'),
+        synchronous: true,
+      },
+      {
+        name: 'marked native rejection',
+        error: {
+          code: 'CONNECTION_TOKEN_PROVIDER_ERROR',
+          message: 'Native rejected the connection token',
+          error_source: 'native',
+          metadata: { connectionToken: 'pst_test_secret' },
+        },
+        synchronous: false,
+      },
+      {
+        name: 'unmarked JS rejection',
+        error: new Error('Bridge invocation failed: pst_test_secret'),
+        synchronous: false,
+      },
+    ])(
+      'logs a fixed warning and swallows $name without tracing',
+      async ({ error, synchronous }) => {
+        const functions = require('../functions');
+        const sdk = require('../StripeTerminalSdk');
+        const Logger = require('../logger').default;
+        const { pushTrace, pushProxyEvent } = Logger.getInstance()._collector;
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        sdk.setConnectionToken.mockImplementation(() => {
+          if (synchronous) throw error;
+          return Promise.reject(error);
+        });
+
+        await expect(
+          functions.setConnectionToken('pst_test_secret')
+        ).resolves.toBeUndefined();
+
+        expect(sdk.setConnectionToken).toHaveBeenCalledTimes(1);
+        expect(sdk.setConnectionToken).toHaveBeenCalledWith({
+          token: 'pst_test_secret',
+          error: undefined,
+        });
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn).toHaveBeenCalledWith(
+          'Unexpected error setting connection token.'
+        );
+        expect(pushProxyEvent).not.toHaveBeenCalled();
+        expect(pushTrace).not.toHaveBeenCalled();
+      }
+    );
+  });
+
   describe('Functions error results', () => {
     const mockBridgeError = {
       code: 'CANCELED',
@@ -418,7 +611,7 @@ describe('functions.test.ts', () => {
     };
 
     function expectStripeError(error: any) {
-      expect(error).toBeInstanceOf(Error);
+      expectPublicStripeError(error);
       expect(error.name).toBe('StripeError');
       expect(error.code).toBe('CANCELED');
       expect(error.message).toBe('The operation was canceled.');
@@ -426,7 +619,9 @@ describe('functions.test.ts', () => {
 
     beforeAll(() => {
       jest.resetModules();
-      const resolve = () => ({ error: mockBridgeError });
+      const resolve = () => ({
+        error: { ...mockBridgeError, error_source: 'native' },
+      });
       const reject = mockBridgeError;
       jest.mock('../StripeTerminalSdk', () => ({
         discoverReaders: jest.fn().mockImplementation(resolve),
@@ -462,13 +657,19 @@ describe('functions.test.ts', () => {
       }));
     });
 
-    it('initialize returns a proper value', async () => {
+    it('initialize preserves the native error container for Provider logging', async () => {
       const functions = require('../functions');
       const result = await functions.initialize({
-        initParams: { logLevel: 'verbose' },
+        initParams: {
+          logLevel: 'verbose',
+          localeConfig: { type: 'cardLanguagePreferenceIfAvailable' },
+        },
         useAppsOnDevicesConnectionTokenProvider: false,
       });
-      expectStripeError(result.error);
+      const { InternalStripeError } = require('../Errors/InternalStripeError');
+      expect(result.error).toBeInstanceOf(InternalStripeError);
+      expect(result.error.errorSource).toBe('native');
+      expectStripeError(result.error.stripeError);
     });
 
     it('discoverReaders returns a proper value', async () => {
@@ -477,10 +678,29 @@ describe('functions.test.ts', () => {
       expectStripeError(result.error);
     });
 
-    it('cancelDiscovering returns a proper value', async () => {
+    it('cancelDiscovering returns an error and records one correctly named metric', async () => {
       const functions = require('../functions');
+      const Logger = require('../logger').default;
+      const { pushProxyEvent } = Logger.getInstance()._collector;
+      pushProxyEvent.mockClear();
+
       const result = await functions.cancelDiscovering();
       expectStripeError(result.error);
+
+      expect(pushProxyEvent).toHaveBeenCalledTimes(1);
+      expect(pushProxyEvent.mock.calls[0][0]).toStrictEqual({
+        origin_role: 'pos-rn',
+        origin_id: Logger.posId,
+        event: {
+          domain: 'terminal_request',
+          scope: 'terminal',
+          event: 'cancelDiscovering',
+          result: 'ERROR',
+          duration: expect.any(Number),
+          outcome: 'CANCELED',
+          tags: { error_source: 'native' },
+        },
+      });
     });
 
     it('connectReader returns a proper value', async () => {
@@ -644,19 +864,21 @@ describe('functions.test.ts', () => {
       const functions = require('../functions');
       const result = await functions.discoverReaders({} as any);
       expect(result.error).toBeUndefined();
+      expect(Object.prototype.hasOwnProperty.call(result, 'error')).toBe(true);
     });
 
     it('success path with data returns error as undefined', async () => {
       const functions = require('../functions');
       const result = await functions.createPaymentIntent({} as any);
       expect(result.error).toBeUndefined();
+      expect(Object.prototype.hasOwnProperty.call(result, 'error')).toBe(true);
       expect(result.paymentIntent).toEqual({ id: 'pi_123' });
     });
 
     it('native method returning undefined yields UNEXPECTED_SDK_ERROR StripeError', async () => {
       const functions = require('../functions');
       const result = await functions.clearCachedCredentials();
-      expect(result.error).toBeInstanceOf(Error);
+      expectPublicStripeError(result.error);
       expect(result.error?.name).toBe('StripeError');
       expect(result.error?.code).toBe('UNEXPECTED_SDK_ERROR');
       expect(result.error?.message).toBe(
@@ -667,7 +889,7 @@ describe('functions.test.ts', () => {
     it('catch path returns a proper StripeError instance', async () => {
       const functions = require('../functions');
       const result = await functions.cancelInstallingUpdate();
-      expect(result.error).toBeInstanceOf(Error);
+      expectPublicStripeError(result.error);
       expect(result.error.name).toBe('StripeError');
     });
 
@@ -680,6 +902,103 @@ describe('functions.test.ts', () => {
         'Network request failed'
       );
     });
+  });
+
+  describe('getConnectedReader', () => {
+    beforeEach(() => {
+      jest.resetModules();
+      jest.doMock('../StripeTerminalSdk', () => ({
+        getConnectedReader: jest.fn(),
+      }));
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns the connected reader without an error', async () => {
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      sdk.getConnectedReader.mockResolvedValue({
+        reader: mockReader,
+      });
+
+      const result = await functions.getConnectedReader();
+
+      expect(result).toBe(mockReader);
+    });
+
+    it('returns null and records success when no reader is connected', async () => {
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      const Logger = require('../logger').default;
+      sdk.getConnectedReader.mockResolvedValue({
+        reader: null,
+      });
+
+      await expect(functions.getConnectedReader()).resolves.toBeNull();
+      expect(Logger.getInstance()._collector.pushProxyEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: expect.objectContaining({
+            event: 'getConnectedReader',
+            result: 'OK',
+          }),
+        })
+      );
+    });
+
+    it('rejects an error resolved by the bridge as a public StripeError', async () => {
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      sdk.getConnectedReader.mockResolvedValue({
+        error: {
+          name: 'StripeError',
+          code: 'UNEXPECTED_SDK_ERROR',
+          nativeErrorCode: 'UNEXPECTED_SDK_ERROR',
+          message: 'Reader lookup failed.',
+          metadata: {},
+          error_source: 'rn',
+        },
+      });
+
+      const result = functions.getConnectedReader();
+
+      await expect(result).rejects.toMatchObject({
+        code: 'UNEXPECTED_SDK_ERROR',
+        message: 'Reader lookup failed.',
+      });
+      await result.catch(expectPublicStripeError);
+    });
+
+    it('rejects unexpected bridge failures as a public StripeError', async () => {
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      sdk.getConnectedReader.mockRejectedValue(new TypeError('Reader lookup failed'));
+
+      const result = functions.getConnectedReader();
+
+      await expect(result).rejects.toMatchObject({
+        code: 'UNEXPECTED_SDK_ERROR',
+        underlyingError: {
+          code: 'TypeError',
+          message: 'Reader lookup failed',
+        },
+      });
+      await result.catch(expectPublicStripeError);
+    });
+
+    it.each([{}, { reader: undefined }])(
+      'rejects a missing reader field instead of treating it as a disconnected reader: %p',
+      async (nativeResult) => {
+        const sdk = require('../StripeTerminalSdk');
+        const functions = require('../functions');
+        sdk.getConnectedReader.mockResolvedValue(nativeResult);
+
+        await expect(functions.getConnectedReader()).rejects.toMatchObject({
+          code: 'UNEXPECTED_SDK_ERROR',
+        });
+      }
+    );
   });
 
   describe('callBridge error rehydration with apiError', () => {
@@ -711,6 +1030,7 @@ describe('functions.test.ts', () => {
             message: 'Payment was declined',
             metadata: {},
             apiError: mockApiError,
+            error_source: 'native',
           },
         })),
       }));
@@ -720,57 +1040,456 @@ describe('functions.test.ts', () => {
       const functions = require('../functions');
       const result = await functions.confirmPaymentIntent({} as any);
 
-      expect(result.error).toBeInstanceOf(Error);
+      expectPublicStripeError(result.error);
       expect(result.error.name).toBe('StripeError');
       expect(result.error.code).toBe('DECLINED_BY_STRIPE_API');
       expect(result.error.apiError).toEqual(mockApiError);
     });
   });
 
-  describe('callBridge error with paymentIntent coexistence', () => {
+  describe('callBridge errors with native-associated resources', () => {
+    const paymentIntent = {
+      id: 'pi_partial',
+      amount: 1000,
+      status: 'requires_payment_method',
+    };
+    const setupIntent = {
+      id: 'seti_partial',
+      status: 'requires_payment_method',
+    };
+    const refund = {
+      id: 're_partial',
+      amount: 1000,
+      status: 'failed',
+    };
+
+    const nativeError = (message: string) => ({
+      code: 'DECLINED_BY_STRIPE_API',
+      nativeErrorCode: 'STRIPE_API_ERROR',
+      message,
+      metadata: {},
+      error_source: 'native',
+    });
+
     beforeAll(() => {
       jest.resetModules();
       jest.mock('../StripeTerminalSdk', () => ({
-        collectPaymentMethod: jest.fn().mockImplementation(() => ({
-          error: {
-            code: 'CANCELED',
-            nativeErrorCode: 'canceled',
-            message: 'The operation was canceled.',
-            metadata: {},
-          },
-          paymentIntent: { id: 'pi_partial', amount: 1000, status: 'requires_payment_method' },
-        })),
-        confirmSetupIntent: jest.fn().mockImplementation(() => ({
-          error: {
-            code: 'DECLINED_BY_STRIPE_API',
-            nativeErrorCode: 'STRIPE_API_ERROR',
-            message: 'Setup failed',
-            metadata: {},
-          },
-          setupIntent: { id: 'seti_partial', status: 'requires_payment_method' },
-        })),
+        collectPaymentMethod: jest.fn(),
+        processPaymentIntent: jest.fn(),
+        confirmSetupIntent: jest.fn(),
+        processSetupIntent: jest.fn(),
+        processRefund: jest.fn(),
       }));
     });
 
-    it('returns both error and paymentIntent when native provides both', async () => {
-      const functions = require('../functions');
-      const result = await functions.collectPaymentMethod({} as any);
+    const cases = [
+      {
+        method: 'collectPaymentMethod',
+        args: [{}],
+        resourceKey: 'paymentIntent',
+        resource: paymentIntent,
+      },
+      {
+        method: 'processPaymentIntent',
+        args: [{}],
+        resourceKey: 'paymentIntent',
+        resource: paymentIntent,
+      },
+      {
+        method: 'confirmSetupIntent',
+        args: [{}],
+        resourceKey: 'setupIntent',
+        resource: setupIntent,
+      },
+      {
+        method: 'processSetupIntent',
+        args: [{}],
+        resourceKey: 'setupIntent',
+        resource: setupIntent,
+      },
+      {
+        method: 'processRefund',
+        args: [{}],
+        resourceKey: 'refund',
+        resource: refund,
+      },
+    ];
 
-      expect(result.error).toBeInstanceOf(Error);
-      expect(result.error.name).toBe('StripeError');
-      expect(result.error.code).toBe('CANCELED');
-      expect(result.paymentIntent).toBeUndefined();
+    it.each(cases)(
+      '$method rehydrates the native $resourceKey on StripeError',
+      async ({ method, args, resourceKey, resource }) => {
+        const functions = require('../functions');
+        const sdk = require('../StripeTerminalSdk');
+        sdk[method].mockResolvedValueOnce({
+          error: {
+            ...nativeError(`${method} failed`),
+            [resourceKey]: resource,
+          },
+        });
+
+        const result = await functions[method](...args);
+
+        expectPublicStripeError(result.error);
+        expect(result.error.code).toBe('DECLINED_BY_STRIPE_API');
+        expect(result.error[resourceKey]).toEqual(resource);
+        expect(result[resourceKey]).toBeUndefined();
+      }
+    );
+
+    it('returns only error when processSetupIntent fails', async () => {
+      const functions = require('../functions');
+      const sdk = require('../StripeTerminalSdk');
+      sdk.processSetupIntent.mockResolvedValueOnce({
+        error: {
+          ...nativeError('Process setup failed'),
+          setupIntent,
+        },
+      });
+
+      const result = await functions.processSetupIntent({} as any);
+
+      expect(Object.keys(result)).toEqual(['error']);
+      expect(result.error.setupIntent).toEqual(setupIntent);
+    });
+  });
+
+  describe('InternalStripeError public boundaries', () => {
+    let traceError: jest.SpyInstance;
+    beforeEach(() => {
+      jest.resetModules();
+      const Logger = require('../logger').default;
+      traceError = jest.spyOn(Logger, 'traceError');
+      jest.doMock('../StripeTerminalSdk', () => ({
+        disconnectReader: jest.fn(),
+        getOfflineStatus: jest.fn(),
+        getPaymentStatus: jest.fn(),
+        getConnectionStatus: jest.fn(),
+        getConnectedReader: jest.fn(),
+        setTapToPayUxConfiguration: jest.fn(),
+        getReaderSettings: jest.fn(),
+        setReaderSettings: jest.fn(),
+      }));
     });
 
-    it('returns both error and setupIntent when native provides both', async () => {
-      const functions = require('../functions');
-      const result = await functions.confirmSetupIntent('_secret');
-
-      expect(result.error).toBeInstanceOf(Error);
-      expect(result.error.name).toBe('StripeError');
-      expect(result.error.code).toBe('DECLINED_BY_STRIPE_API');
-      expect(result.setupIntent).toBeUndefined();
+    afterEach(() => {
+      jest.restoreAllMocks();
     });
+
+    function expectTracedInternalError(internalError: any, publicError: any) {
+      const { InternalStripeError } = require('../Errors/InternalStripeError');
+      expect(internalError).toBeInstanceOf(InternalStripeError);
+      expect(traceError).toHaveBeenCalledTimes(1);
+      expect(traceError.mock.calls[0][1].error).toBe(internalError);
+      expect(publicError).toBe(internalError.stripeError);
+      expectPublicStripeError(publicError);
+    }
+
+    it('passes the native error container to Logger and returns its public error', async () => {
+      const helpers = require('../Errors/StripeErrorHelpers');
+      const rehydrate = jest.spyOn(helpers, 'rehydrateBridgeError');
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      sdk.disconnectReader.mockResolvedValue({
+        error: {
+          code: 'CANCELED',
+          nativeErrorCode: 'canceled',
+          message: 'The operation was canceled.',
+          metadata: {},
+          error_source: 'native',
+        },
+      });
+
+      const result = await functions.disconnectReader();
+
+      expect(rehydrate).toHaveBeenCalledTimes(1);
+      const internalError = rehydrate.mock.results[0].value;
+      expect(internalError.errorSource).toBe('native');
+      expectTracedInternalError(internalError, result.error);
+      expect(Object.keys(result)).toEqual(['error']);
+      expect(sdk.disconnectReader).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves the resolved-error contract for an unmarked JS bridge rejection', async () => {
+      const helpers = require('../Errors/StripeErrorHelpers');
+      const rehydrate = jest.spyOn(helpers, 'rehydrateBridgeError');
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      sdk.disconnectReader.mockRejectedValue(
+        new TypeError('Network request failed')
+      );
+
+      const result = await functions.disconnectReader();
+
+      expect(rehydrate).toHaveBeenCalledTimes(1);
+      const internalError = rehydrate.mock.results[0].value;
+      expect(internalError.errorSource).toBe('rn');
+      expectTracedInternalError(internalError, result.error);
+      expect(result.error.underlyingError).toEqual({
+        code: 'TypeError',
+        message: 'Network request failed',
+      });
+      expect(sdk.disconnectReader).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      'getOfflineStatus',
+      'getPaymentStatus',
+      'getConnectionStatus',
+      'getConnectedReader',
+    ])(
+      '%s rehydrates native errors and rejects public StripeError',
+      async (method) => {
+        const helpers = require('../Errors/StripeErrorHelpers');
+        const rehydrate = jest.spyOn(helpers, 'rehydrateBridgeError');
+        const sdk = require('../StripeTerminalSdk');
+        const functions = require('../functions');
+        const bridgeError = {
+          code: 'CANCELED',
+          nativeErrorCode: 'canceled',
+          message: 'Bridge invocation failed',
+          metadata: {},
+          error_source: 'native',
+        };
+        sdk[method].mockRejectedValue(bridgeError);
+
+        let rejectedError: unknown;
+        try {
+          await functions[method]();
+        } catch (error) {
+          rejectedError = error;
+        }
+
+        expect(rehydrate).toHaveBeenCalledTimes(1);
+        expect(rehydrate).toHaveBeenCalledWith(bridgeError);
+        const internalError = rehydrate.mock.results[0].value;
+        expect(internalError.errorSource).toBe('native');
+        expect(rejectedError).toBe(internalError.stripeError);
+        expectPublicStripeError(rejectedError);
+        expect(sdk[method]).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it.each([
+      { method: 'getOfflineStatus', nativeResult: null, resultType: 'null' },
+      {
+        method: 'getOfflineStatus',
+        nativeResult: undefined,
+        resultType: 'undefined',
+      },
+      { method: 'getPaymentStatus', nativeResult: null, resultType: 'null' },
+      {
+        method: 'getPaymentStatus',
+        nativeResult: undefined,
+        resultType: 'undefined',
+      },
+      { method: 'getConnectionStatus', nativeResult: null, resultType: 'null' },
+      {
+        method: 'getConnectionStatus',
+        nativeResult: undefined,
+        resultType: 'undefined',
+      },
+      { method: 'getConnectedReader', nativeResult: null, resultType: 'null' },
+      {
+        method: 'getConnectedReader',
+        nativeResult: undefined,
+        resultType: 'undefined',
+      },
+    ])(
+      '$method rejects a resolved $resultType result with public UNEXPECTED_SDK_ERROR',
+      async ({ method, nativeResult }) => {
+        const helpers = require('../Errors/StripeErrorHelpers');
+        const create = jest.spyOn(helpers, 'createInternalStripeError');
+        const sdk = require('../StripeTerminalSdk');
+        const functions = require('../functions');
+        sdk[method].mockResolvedValue(nativeResult);
+
+        let rejectedError: unknown;
+        try {
+          await functions[method]();
+        } catch (error) {
+          rejectedError = error;
+        }
+
+        expect(create).toHaveBeenCalledWith(
+          {
+            code: 'UNEXPECTED_SDK_ERROR',
+            message: 'Native bridge returned null or undefined',
+          },
+          'rn'
+        );
+        const internalError = create.mock.results[0].value;
+        expect(rejectedError).toBe(internalError.stripeError);
+        expectPublicStripeError(rejectedError);
+        expect(rejectedError).toMatchObject({
+          code: 'UNEXPECTED_SDK_ERROR',
+          message: 'Native bridge returned null or undefined',
+        });
+        expect(sdk[method]).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it('unwraps the RN error for an unsupported iOS operation', async () => {
+      const helpers = require('../Errors/StripeErrorHelpers');
+      const create = jest.spyOn(helpers, 'createInternalStripeError');
+      const { Platform } = require('react-native');
+      const platform = jest.replaceProperty(Platform, 'OS', 'ios');
+      const sdk = require('../StripeTerminalSdk');
+      const functions = require('../functions');
+      const Logger = require('../logger').default;
+      const { pushTrace, pushProxyEvent } = Logger.getInstance()._collector;
+
+      const result = await functions.setTapToPayUxConfiguration({});
+
+      expect(create).toHaveBeenCalledTimes(1);
+      const internalError = create.mock.results[0].value;
+      expect(internalError.errorSource).toBe('rn');
+      expectTracedInternalError(internalError, result.error);
+      expect(result.error.code).toBe('UNSUPPORTED_OPERATION');
+      expect(pushTrace).toHaveBeenCalledTimes(1);
+      expect(pushProxyEvent).toHaveBeenCalledTimes(1);
+      expect(pushProxyEvent.mock.calls[0][0].event).toStrictEqual({
+        domain: 'terminal_request',
+        scope: 'terminal',
+        event: 'setTapToPayUxConfiguration',
+        result: 'ERROR',
+        duration: pushTrace.mock.calls[0][0].trace.total_time_ms,
+        outcome: 'UNSUPPORTED_OPERATION',
+        tags: { error_source: 'rn' },
+      });
+      expect(sdk.setTapToPayUxConfiguration).not.toHaveBeenCalled();
+      platform.restore();
+    });
+
+    it.each(['getReaderSettings', 'setReaderSettings'])(
+      '%s removes wire source while keeping nested errors as plain objects',
+      async (method) => {
+        const Logger = require('../logger').default;
+        const tracePromise = jest.spyOn(Logger, 'tracePromise');
+        const sdk = require('../StripeTerminalSdk');
+        const functions = require('../functions');
+        const metadata = { domain: 'com.stripe-terminal', isStripeError: true };
+        const fields = {
+          name: 'StripeError',
+          code: 'UNSUPPORTED_OPERATION',
+          nativeErrorCode: 'UNSUPPORTED_OPERATION',
+          message: 'This reader does not support this setting',
+          metadata,
+        };
+        const rawError = { ...fields, error_source: 'native' };
+        sdk[method].mockResolvedValue({
+          accessibility: { error: rawError },
+          buzzerVolume: { error: rawError },
+        });
+        const params = { buzzerVolume: { level: 'high' } };
+
+        const result = await functions[method](params);
+
+        expect(traceError).not.toHaveBeenCalled();
+        expect(tracePromise).toHaveBeenCalledTimes(1);
+        expect(await tracePromise.mock.calls[0][1]).toBe(result);
+        const { pushTrace, pushProxyEvent } = Logger.getInstance()._collector;
+        expect(pushTrace).toHaveBeenCalledTimes(1);
+        const trace = pushTrace.mock.calls[0][0].trace;
+        expect(trace.method).toBe(method);
+        const loggedError = { ...fields, metadata: '<REDACTED>' };
+        expect(JSON.parse(trace.response)).toEqual({
+          accessibility: { error: loggedError },
+          buzzerVolume: { error: loggedError },
+        });
+        expect(pushProxyEvent).toHaveBeenCalledTimes(1);
+        expect(pushProxyEvent.mock.calls[0][0].event).toMatchObject({
+          event: method,
+          result: 'OK',
+        });
+        for (const setting of [result.accessibility, result.buzzerVolume]) {
+          expect(setting.error).not.toBeInstanceOf(Error);
+          expect(Object.getPrototypeOf(setting.error)).toBe(Object.prototype);
+          expect(setting.error).toEqual(fields);
+          expect(setting.error.metadata).toBe(metadata);
+          expect(Object.keys(setting.error)).toContain('message');
+          expect({ ...setting.error }).toEqual(fields);
+          expect(JSON.parse(JSON.stringify(setting.error))).toEqual(fields);
+          expect(setting.error).not.toHaveProperty('error_source');
+          expect(setting.error).not.toHaveProperty('errorSource');
+          expect(setting.error).not.toHaveProperty('stripeError');
+        }
+        expect(result.error).toBeUndefined();
+        expect(Object.prototype.hasOwnProperty.call(result, 'error')).toBe(
+          true
+        );
+        expect(rawError.error_source).toBe('native');
+        expect(sdk[method]).toHaveBeenCalledTimes(1);
+        if (method === 'setReaderSettings') {
+          expect(sdk[method]).toHaveBeenCalledWith(params);
+        }
+      }
+    );
+
+    it.each(['getReaderSettings', 'setReaderSettings'])(
+      '%s preserves successful settings and their error-key presence',
+      async (method) => {
+        const sdk = require('../StripeTerminalSdk');
+        const functions = require('../functions');
+        const accessibility = { textToSpeechStatus: 'off' };
+        const buzzerVolume = {
+          currentVolume: 3,
+          maxVolume: 10,
+          error: undefined,
+        };
+        sdk[method].mockResolvedValue({ accessibility, buzzerVolume });
+
+        const result = await functions[method]({
+          buzzerVolume: { level: 'high' },
+        });
+
+        expect(result).toEqual({
+          accessibility,
+          buzzerVolume,
+          error: undefined,
+        });
+        expect(result.accessibility).toBe(accessibility);
+        expect(result.buzzerVolume).toBe(buzzerVolume);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.accessibility, 'error')
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.buzzerVolume, 'error')
+        ).toBe(true);
+        expect(Object.prototype.hasOwnProperty.call(result, 'error')).toBe(
+          true
+        );
+      }
+    );
+
+    it.each(['getReaderSettings', 'setReaderSettings'])(
+      '%s still rehydrates a top-level settings failure',
+      async (method) => {
+        const helpers = require('../Errors/StripeErrorHelpers');
+        const rehydrate = jest.spyOn(helpers, 'rehydrateBridgeError');
+        const sdk = require('../StripeTerminalSdk');
+        const functions = require('../functions');
+        sdk[method].mockResolvedValue({
+          error: {
+            code: 'NOT_CONNECTED_TO_READER',
+            message: 'No reader is connected',
+            nativeErrorCode: 'NOT_CONNECTED_TO_READER',
+            metadata: {},
+            error_source: 'native',
+          },
+        });
+
+        const result = await functions[method]({
+          buzzerVolume: { level: 'high' },
+        });
+
+        expect(rehydrate).toHaveBeenCalledTimes(1);
+        const internalError = rehydrate.mock.results[0].value;
+        expect(internalError.errorSource).toBe('native');
+        expectTracedInternalError(internalError, result.error);
+        expect(result.error.code).toBe('NOT_CONNECTED_TO_READER');
+        expect(Object.keys(result)).toEqual(['error']);
+      }
+    );
   });
 
   describe('PaymentIntent with lastPaymentError', () => {

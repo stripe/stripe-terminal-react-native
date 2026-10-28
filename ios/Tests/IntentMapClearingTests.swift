@@ -10,9 +10,8 @@ import StripeTerminal
 ///   clearAllIntentMaps() inside a Terminal.shared completion handler. We test
 ///   clearAllIntentMaps() directly, but cannot verify the wiring without a mock Terminal.
 ///   Both iOS and Android clear on-success (inside callback).
-/// - updatePaymentIntentFromError / updateSetupIntentFromError positive paths: require
-///   constructing ConfirmPaymentIntentError / ConfirmSetupIntentError which have no
-///   public initializer. Only negative paths (regular NSError) are tested.
+/// Native Confirm*Error cache recovery and process callback wiring are covered by
+/// IntentErrorCacheTests using SDK constructors and test-only method interception.
 final class IntentMapClearingTests: XCTestCase {
 
     private var sut: StripeTerminalReactNative!
@@ -94,7 +93,7 @@ final class IntentMapClearingTests: XCTestCase {
 
     // =====================================================================
     // updatePaymentIntentFromError — negative cases
-    // (Positive cases require real ConfirmPaymentIntentError which can't be constructed)
+    // (Real native Confirm*Error cases are in IntentErrorCacheTests.)
     // =====================================================================
 
     func testUpdatePaymentIntentFromError_regularNSError_doesNotModifyMap() {

@@ -7,6 +7,7 @@ jest.mock('react-native', () => ({
   },
 }));
 
+import { Platform } from 'react-native';
 import { BatchUploader, ConsoleWriter } from '../batchUploader';
 import type { Clock, Scheduler, Uploader } from '../batchUploader';
 import { InMemoryCollector } from '../inMemoryCollector';
@@ -86,6 +87,7 @@ const makeTrace = (method: string = 'doThing'): Trace => ({
     service: 'StripeTerminalReactNative',
     method,
     request: '{}',
+    tags: { device_type: 'ios' },
     version_info: { client_type: 'RN_SDK', client_version: '0.0.0-test' },
     traces: [],
     additional_context: {
@@ -228,28 +230,42 @@ describe('BatchUploader', () => {
   });
 
   describe('flush — concurrency', () => {
-    it('processes the two batches serially (event awaits trace)', async () => {
-      const rig = buildRig();
-      pushPair(rig.collector, makeTrace(), makeEvent());
-
-      const flushed = rig.batch.flush();
-      await flushPromises();
-      // Only the trace request has been issued — event waits.
-      expect(rig.uploader.sends).toHaveLength(1);
-      const traceReq = rig.uploader.sends[0].request as any;
-      expect(traceReq.method).toBe('reportTrace');
-      expect(traceReq.device_info.device_uuid).toBe('pos-test');
-
-      rig.uploader.resolveLast(200);
-      await flushPromises();
-      expect(rig.uploader.sends).toHaveLength(2);
-      const eventReq = rig.uploader.sends[1].request as any;
-      expect(eventReq.method).toBe('reportEvent');
-      expect(eventReq.device_info.device_uuid).toBe('pos-test');
-
-      rig.uploader.resolveLast(200);
-      await flushed;
+    afterEach(() => {
+      jest.restoreAllMocks();
     });
+
+    it.each(['ios', 'android'] as const)(
+      'processes the two batches serially with the host platform (%s)',
+      async (deviceType) => {
+        jest.replaceProperty(Platform, 'OS', deviceType);
+        const rig = buildRig();
+        pushPair(rig.collector, makeTrace(), makeEvent());
+
+        const flushed = rig.batch.flush();
+        await flushPromises();
+        // Only the trace request has been issued — event waits.
+        expect(rig.uploader.sends).toHaveLength(1);
+        const traceReq = rig.uploader.sends[0].request as any;
+        expect(traceReq.method).toBe('reportTrace');
+        expect(traceReq.device_info.device_uuid).toBe('pos-test');
+        expect(traceReq.device_info.hardware_model.pos_info.description).toBe(
+          deviceType
+        );
+
+        rig.uploader.resolveLast(200);
+        await flushPromises();
+        expect(rig.uploader.sends).toHaveLength(2);
+        const eventReq = rig.uploader.sends[1].request as any;
+        expect(eventReq.method).toBe('reportEvent');
+        expect(eventReq.device_info.device_uuid).toBe('pos-test');
+        expect(eventReq.device_info.hardware_model.pos_info.description).toBe(
+          deviceType
+        );
+
+        rig.uploader.resolveLast(200);
+        await flushed;
+      }
+    );
 
     it('respects the per-upload byte budget, leaving overflow for the next flush', async () => {
       const rig = buildRig();
@@ -343,6 +359,31 @@ describe('BatchUploader', () => {
       consoleLog.mockRestore();
       consoleWarn.mockRestore();
     });
+
+    it.each([true, false])(
+      'omits unexpected flush error details and schedules the next attempt (verbose: %s)',
+      async (verbose) => {
+        const rig = buildRig({ verbose });
+        const error = Object.assign(new Error('pi_test_secret_private'), {
+          metadata: { connectionToken: 'pst_test_secret' },
+        });
+        jest
+          .spyOn(rig.collector, 'peekTraceEntries')
+          .mockImplementationOnce(() => {
+            throw error;
+          });
+
+        rig.scheduler.runNext();
+        await flushPromises();
+
+        expect(consoleWarn.mock.calls).toEqual(
+          verbose
+            ? [['[StripeTerminal:Logger]', 'flush threw unexpectedly']]
+            : []
+        );
+        expect(rig.scheduler.queue).toHaveLength(1);
+      }
+    );
 
     it('emits per-batch start + ok lines in verbose mode', async () => {
       const rig = buildRig({ verbose: true });
