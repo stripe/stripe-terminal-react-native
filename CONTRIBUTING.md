@@ -47,15 +47,17 @@ To fix formatting errors, run the following:
 yarn lint --fix
 ```
 
-Remember to add tests for your change if possible. Run the unit tests by:
+Remember to add tests for your change if possible. Run the JavaScript unit tests by:
 
 ```sh
-yarn test
+yarn unit-test:js
 ```
 
-To edit the Objective-C files, open `example/ios/StripeTerminalReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-terminal-react-native`.
+`yarn test` also runs the Android and iOS native unit tests, which require their respective development environments.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `stripeterminalreactnative` under `Android`.
+To edit the Objective-C files, open `dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-terminal-react-native`.
+
+To edit the Kotlin files, open `dev-app/android` in Android studio and find the source files at `stripeterminalreactnative` under `Android`.
 
 ### Commit message convention
 
@@ -95,10 +97,11 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn bootstrap`: setup project by installing all dependencies and pods.
 - `yarn typescript`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
-- `yarn test`: run unit tests with Jest.
-- `yarn example start`: start the Metro server for the example app.
-- `yarn example android`: run the example app on Android.
-- `yarn example ios`: run the example app on iOS.
+- `yarn unit-test:js`: run JavaScript unit tests with Jest.
+- `yarn test`: run Android, iOS, and JavaScript unit tests.
+- `yarn example-app start`: start the Metro server for the example app.
+- `yarn example-app android`: run the example app on Android.
+- `yarn example-app ios`: run the example app on iOS.
 
 ### Sending a pull request
 
