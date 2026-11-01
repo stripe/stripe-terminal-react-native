@@ -49,7 +49,7 @@
   "author": "Stripe",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/stripe/stripe-terminal-react-native"
+    "url": "https://github.com/stripe/stripe-terminal-react-native/issues"
   },
   "homepage": "https://github.com/stripe/stripe-terminal-react-native#readme",
   "publishConfig": {
