@@ -1,0 +1,214 @@
+name: terminal-rn-publish
+
+run-name: >-
+  terminal-rn-publish
+  ${{ inputs.environment || 'push-test' }}
+  ${{ inputs.tar_release_id || '-' }}
+  ${{ inputs.dispatch_attempt_id || github.sha }}
+
+on:
+  # Temporary: builds both package shapes on branch pushes before the
+  # dispatch-only workflow lands. No publication happens on push.
+  push:
+    branches: ['**']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: npm-qa (dry run from main) or npm-prod (publish from the v<expected_version> tag)
+        type: choice
+        required: true
+        options:
+          - npm-qa
+          - npm-prod
+      expected_version:
+        description: Production version without the leading v; empty for npm-qa
+        type: string
+        required: false
+        default: ''
+      tar_release_id:
+        description: Optional release correlation ID
+        type: string
+        required: false
+        default: ''
+      dispatch_attempt_id:
+        description: Optional dispatch attempt UUID
+        type: string
+        required: false
+        default: ''
+
+permissions: {}
+
+jobs:
+  build:
+    name: ${{ github.event_name == 'push' && format('build ({0})', matrix.target) || 'build' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ github.event_name == 'push' && fromJSON('["npm-qa","npm-prod"]') || fromJSON(format('["{0}"]', inputs.environment)) }}
+    env:
+      TARGET: ${{ matrix.target }}
+      EVENT_NAME: ${{ github.event_name }}
+      YARN_IGNORE_PATH: '1'
+    steps:
+      - name: Validate request
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          TAR_RELEASE_ID: ${{ inputs.tar_release_id }}
+          DISPATCH_ATTEMPT_ID: ${{ inputs.dispatch_attempt_id }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+
+          case "$TARGET" in
+            npm-qa | npm-prod) ;;
+            *) fail "Unknown target: $TARGET" ;;
+          esac
+
+          if [ "$EVENT_NAME" = push ]; then
+            # Temporary packaging test: release ref rules apply to dispatch only.
+            exit 0
+          fi
+          [ "$EVENT_NAME" = workflow_dispatch ] || fail "Unsupported event: $EVENT_NAME"
+
+          if [ "$TARGET" = npm-qa ]; then
+            [ "$GITHUB_REF" = refs/heads/main ] || fail "npm-qa must run on refs/heads/main, not $GITHUB_REF"
+            [ -z "$EXPECTED_VERSION" ] || fail "npm-qa does not take expected_version"
+          else
+            # The exact tag match pins the version; the pack helper checks it
+            # against package.json and npm validates its format.
+            [ -n "$EXPECTED_VERSION" ] || fail "npm-prod requires expected_version (without the leading v)"
+            if [ "$GITHUB_REF_TYPE" != tag ] || [ "$GITHUB_REF" != "refs/tags/v$EXPECTED_VERSION" ]; then
+              # Don't echo the unvalidated input into a workflow command.
+              fail "npm-prod must run on the tag v<expected_version>, not $GITHUB_REF"
+            fi
+          fi
+
+          if [ -n "$TAR_RELEASE_ID" ] || [ -n "$DISPATCH_ATTEMPT_ID" ]; then
+            [[ "$TAR_RELEASE_ID" =~ ^[A-Za-z0-9._:-]{1,128}$ ]] || fail "tar_release_id is missing or malformed"
+            [[ "$DISPATCH_ATTEMPT_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]] ||
+              fail "dispatch_attempt_id is missing or not a UUID"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify checkout
+        run: |
+          set -euo pipefail
+          head="$(git rev-parse HEAD)"
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::error::Checked out $head, expected $GITHUB_SHA"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install Yarn
+        run: |
+          set -euo pipefail
+          npm install --global --ignore-scripts yarn@1.22.22
+          test "$(yarn --version)" = 1.22.22
+
+      - name: Record build identity
+        id: build_identity
+        run: |
+          set -euo pipefail
+          artifact_name="npm-package-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          if [ "$EVENT_NAME" = push ]; then
+            artifact_name="$artifact_name-$TARGET"
+          fi
+          {
+            echo "build_run_id=$GITHUB_RUN_ID"
+            echo "build_run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "artifact_name=$artifact_name"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Pack
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          BUILD_RUN_ID: ${{ steps.build_identity.outputs.build_run_id }}
+          BUILD_RUN_ATTEMPT: ${{ steps.build_identity.outputs.build_run_attempt }}
+        run: |
+          set -euo pipefail
+          args=(
+            --target "$TARGET"
+            --source-sha "$GITHUB_SHA"
+            --output-dir "$RUNNER_TEMP/npm-package"
+            --run-id "$BUILD_RUN_ID"
+            --run-attempt "$BUILD_RUN_ATTEMPT"
+          )
+          if [ "$TARGET" = npm-prod ]; then
+            if [ "$EVENT_NAME" = push ]; then
+              EXPECTED_VERSION="$(node -p 'require("./package.json").version')"
+            fi
+            args+=(--expected-version "$EXPECTED_VERSION")
+          fi
+          node .github/scripts/pack-npm.cjs "${args[@]}"
+
+      - name: Annotate manifest
+        id: manifest
+        env:
+          TAR_RELEASE_ID: ${{ inputs.tar_release_id }}
+          DISPATCH_ATTEMPT_ID: ${{ inputs.dispatch_attempt_id }}
+          BUILD_RUN_ID: ${{ steps.build_identity.outputs.build_run_id }}
+          BUILD_RUN_ATTEMPT: ${{ steps.build_identity.outputs.build_run_attempt }}
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/npm-package/manifest.json"
+          jq \
+            --arg environment "$TARGET" \
+            --arg tar_release_id "$TAR_RELEASE_ID" \
+            --arg dispatch_attempt_id "$DISPATCH_ATTEMPT_ID" \
+            --arg build_run_id "$BUILD_RUN_ID" \
+            --arg build_run_attempt "$BUILD_RUN_ATTEMPT" \
+            '. + {
+              environment: $environment,
+              tar_release_id: $tar_release_id,
+              dispatch_attempt_id: $dispatch_attempt_id,
+              build_run_id: $build_run_id,
+              build_run_attempt: $build_run_attempt
+            }' "$manifest" > "$RUNNER_TEMP/manifest.json"
+          mv "$RUNNER_TEMP/manifest.json" "$manifest"
+          for key in environment package_name version source_sha sha256; do
+            echo "$key=$(jq -er --arg key "$key" '.[$key]' "$manifest")" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Upload package
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.build_identity.outputs.artifact_name }}
+          path: |
+            ${{ runner.temp }}/npm-package/package.tgz
+            ${{ runner.temp }}/npm-package/manifest.json
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 30
+
+      - name: Summarize
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_NAME: ${{ steps.build_identity.outputs.artifact_name }}
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/npm-package/manifest.json"
+          echo "artifact_id=$ARTIFACT_ID artifact_name=$ARTIFACT_NAME"
+          jq . "$manifest"
+          {
+            echo "### $ARTIFACT_NAME"
+            echo
+            echo "- artifact_id: \`$ARTIFACT_ID\`"
+            echo
+            echo '```json'
+            jq . "$manifest"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
