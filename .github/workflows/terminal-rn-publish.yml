@@ -1,0 +1,358 @@
+name: terminal-rn-publish
+
+run-name: >-
+  terminal-rn-publish
+  ${{ inputs.environment }}
+  ${{ inputs.tar_release_id || '-' }}
+  ${{ inputs.dispatch_attempt_id || 'manual' }}
+
+# npm-qa builds main and runs an npm dry run; nothing is published.
+# npm-prod builds the v<expected_version> tag, then the publish job publishes
+# the exact tarball the build uploaded, selected by its artifact ID.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: npm-qa (dry run from main) or npm-prod (publish from the v<expected_version> tag)
+        type: choice
+        required: true
+        options:
+          - npm-qa
+          - npm-prod
+      expected_version:
+        description: Production version without the leading v; empty for npm-qa
+        type: string
+        required: false
+        default: ''
+      tar_release_id:
+        description: Optional release correlation ID
+        type: string
+        required: false
+        default: ''
+      dispatch_attempt_id:
+        description: Optional dispatch attempt UUID
+        type: string
+        required: false
+        default: ''
+
+permissions: {}
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      artifact_name: ${{ steps.build_identity.outputs.artifact_name }}
+      build_run_id: ${{ steps.build_identity.outputs.build_run_id }}
+      build_run_attempt: ${{ steps.build_identity.outputs.build_run_attempt }}
+      node_version: ${{ steps.build_identity.outputs.node_version }}
+      environment: ${{ steps.manifest.outputs.environment }}
+      package_name: ${{ steps.manifest.outputs.package_name }}
+      version: ${{ steps.manifest.outputs.version }}
+      source_sha: ${{ steps.manifest.outputs.source_sha }}
+      sha256: ${{ steps.manifest.outputs.sha256 }}
+    env:
+      TARGET: ${{ inputs.environment }}
+      YARN_IGNORE_PATH: '1'
+    steps:
+      - name: Validate request
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          TAR_RELEASE_ID: ${{ inputs.tar_release_id }}
+          DISPATCH_ATTEMPT_ID: ${{ inputs.dispatch_attempt_id }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+
+          [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || fail "Unsupported event: $GITHUB_EVENT_NAME"
+          case "$TARGET" in
+            npm-qa | npm-prod) ;;
+            *) fail "Unknown environment: $TARGET" ;;
+          esac
+
+          if [ "$TARGET" = npm-qa ]; then
+            [ "$GITHUB_REF" = refs/heads/main ] || fail "npm-qa must run on refs/heads/main, not $GITHUB_REF"
+            [ -z "$EXPECTED_VERSION" ] || fail "npm-qa does not take expected_version"
+          else
+            # The exact tag match pins the version; the pack helper checks it
+            # against package.json and npm validates its format.
+            [ -n "$EXPECTED_VERSION" ] || fail "npm-prod requires expected_version (without the leading v)"
+            if [ "$GITHUB_REF_TYPE" != tag ] || [ "$GITHUB_REF" != "refs/tags/v$EXPECTED_VERSION" ]; then
+              # Don't echo the unvalidated input into a workflow command.
+              fail "npm-prod must run on the tag v<expected_version>, not $GITHUB_REF"
+            fi
+          fi
+
+          if [ -n "$TAR_RELEASE_ID" ] || [ -n "$DISPATCH_ATTEMPT_ID" ]; then
+            [[ "$TAR_RELEASE_ID" =~ ^[A-Za-z0-9._:-]{1,128}$ ]] || fail "tar_release_id is missing or malformed"
+            [[ "$DISPATCH_ATTEMPT_ID" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]] ||
+              fail "dispatch_attempt_id is missing or not a UUID"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify checkout
+        run: |
+          set -euo pipefail
+          head="$(git rev-parse HEAD)"
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::error::Checked out $head, expected $GITHUB_SHA"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+
+      - name: Install Yarn
+        run: |
+          set -euo pipefail
+          npm install --global --ignore-scripts yarn@1.22.22
+          test "$(yarn --version)" = 1.22.22
+
+      - name: Record build identity
+        id: build_identity
+        run: |
+          set -euo pipefail
+          {
+            echo "build_run_id=$GITHUB_RUN_ID"
+            echo "build_run_attempt=$GITHUB_RUN_ATTEMPT"
+            echo "artifact_name=npm-package-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+            echo "node_version=$(node --version | sed 's/^v//')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Pack
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          BUILD_RUN_ID: ${{ steps.build_identity.outputs.build_run_id }}
+          BUILD_RUN_ATTEMPT: ${{ steps.build_identity.outputs.build_run_attempt }}
+        run: |
+          set -euo pipefail
+          args=(
+            --target "$TARGET"
+            --source-sha "$GITHUB_SHA"
+            --output-dir "$RUNNER_TEMP/npm-package"
+            --run-id "$BUILD_RUN_ID"
+            --run-attempt "$BUILD_RUN_ATTEMPT"
+          )
+          if [ "$TARGET" = npm-prod ]; then
+            args+=(--expected-version "$EXPECTED_VERSION")
+          fi
+          node .github/scripts/pack-npm.cjs "${args[@]}"
+
+      - name: Annotate manifest
+        id: manifest
+        env:
+          TAR_RELEASE_ID: ${{ inputs.tar_release_id }}
+          DISPATCH_ATTEMPT_ID: ${{ inputs.dispatch_attempt_id }}
+          BUILD_RUN_ID: ${{ steps.build_identity.outputs.build_run_id }}
+          BUILD_RUN_ATTEMPT: ${{ steps.build_identity.outputs.build_run_attempt }}
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/npm-package/manifest.json"
+          jq \
+            --arg environment "$TARGET" \
+            --arg tar_release_id "$TAR_RELEASE_ID" \
+            --arg dispatch_attempt_id "$DISPATCH_ATTEMPT_ID" \
+            --arg build_run_id "$BUILD_RUN_ID" \
+            --arg build_run_attempt "$BUILD_RUN_ATTEMPT" \
+            '. + {
+              environment: $environment,
+              tar_release_id: $tar_release_id,
+              dispatch_attempt_id: $dispatch_attempt_id,
+              build_run_id: $build_run_id,
+              build_run_attempt: $build_run_attempt
+            }' "$manifest" > "$RUNNER_TEMP/manifest.json"
+          mv "$RUNNER_TEMP/manifest.json" "$manifest"
+          for key in environment package_name version source_sha sha256; do
+            echo "$key=$(jq -er --arg key "$key" '.[$key]' "$manifest")" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: QA npm dry run
+        if: ${{ inputs.environment == 'npm-qa' }}
+        env:
+          SHA256: ${{ steps.manifest.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          if [ "$TARGET" != npm-qa ] || [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::The QA dry run only runs for npm-qa on refs/heads/main"
+            exit 1
+          fi
+          tgz="$RUNNER_TEMP/npm-package/package.tgz"
+          npm publish "$tgz" --dry-run --ignore-scripts --provenance=false \
+            --registry=https://registry.npmjs.org/ --tag=qa
+          if [ "$(sha256sum "$tgz" | cut -d' ' -f1)" != "$SHA256" ]; then
+            echo "::error::package.tgz changed during the dry run"
+            exit 1
+          fi
+
+      - name: Upload package
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.build_identity.outputs.artifact_name }}
+          path: |
+            ${{ runner.temp }}/npm-package/package.tgz
+            ${{ runner.temp }}/npm-package/manifest.json
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 30
+
+      - name: Summarize
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_NAME: ${{ steps.build_identity.outputs.artifact_name }}
+        run: |
+          set -euo pipefail
+          manifest="$RUNNER_TEMP/npm-package/manifest.json"
+          echo "artifact_id=$ARTIFACT_ID artifact_name=$ARTIFACT_NAME"
+          jq . "$manifest"
+          {
+            echo "### $ARTIFACT_NAME"
+            echo
+            echo "- artifact_id: \`$ARTIFACT_ID\`"
+            echo
+            echo '```json'
+            jq . "$manifest"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: publish
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.environment == 'npm-prod' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: npm-prod
+    permissions:
+      contents: read
+      id-token: write
+    # One publication at a time; never cancel one that is running.
+    concurrency:
+      group: terminal-rn-npm-publish-prod
+      cancel-in-progress: false
+    env:
+      EXPECTED_VERSION: ${{ inputs.expected_version }}
+      # Everything below comes from the build job's outputs, so a rerun of only
+      # this job keeps consuming the original build's artifact and digest.
+      ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+      BUILD_RUN_ID: ${{ needs.build.outputs.build_run_id }}
+      BUILD_RUN_ATTEMPT: ${{ needs.build.outputs.build_run_attempt }}
+      BUILD_ENVIRONMENT: ${{ needs.build.outputs.environment }}
+      PACKAGE_NAME: ${{ needs.build.outputs.package_name }}
+      VERSION: ${{ needs.build.outputs.version }}
+      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+      SHA256: ${{ needs.build.outputs.sha256 }}
+      NODE_VERSION: ${{ needs.build.outputs.node_version }}
+    steps:
+      - name: Validate build output
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+          reconcile="Do not redispatch blindly: reconcile the npm registry state for this version first."
+
+          [ -n "$EXPECTED_VERSION" ] || fail "npm-prod requires expected_version"
+          if [ "$GITHUB_REF_TYPE" != tag ] || [ "$GITHUB_REF" != "refs/tags/v$EXPECTED_VERSION" ]; then
+            fail "publish must run on the tag v<expected_version>, not $GITHUB_REF"
+          fi
+          # A single numeric ID only: an empty selector would download every artifact.
+          [[ "$ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]] ||
+            fail "The build's artifact ID is missing or not a single numeric ID. $reconcile"
+          [ "$BUILD_RUN_ID" = "$GITHUB_RUN_ID" ] || fail "The build output is not from this run. $reconcile"
+          [[ "$BUILD_RUN_ATTEMPT" =~ ^[1-9][0-9]*$ ]] || fail "The build's run attempt is missing. $reconcile"
+          # A rerun of only this job publishes an earlier attempt's build.
+          if [ "$BUILD_RUN_ATTEMPT" -gt "$GITHUB_RUN_ATTEMPT" ]; then
+            fail "The build attempt is newer than this run attempt. $reconcile"
+          fi
+          [ "$BUILD_ENVIRONMENT" = npm-prod ] || fail "The build output is not an npm-prod build. $reconcile"
+          [[ "$NODE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "The build's Node version is missing. $reconcile"
+          for name in PACKAGE_NAME VERSION SOURCE_SHA SHA256; do
+            [ -n "${!name}" ] || fail "The build output is missing $name. $reconcile"
+          done
+          echo "Publishing artifact $ARTIFACT_ID from build attempt $BUILD_RUN_ATTEMPT (publish attempt $GITHUB_RUN_ATTEMPT)"
+
+      # Same Node as the build, which reads it from .node-version.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ needs.build.outputs.node_version }}
+          package-manager-cache: false
+
+      - name: Install npm
+        run: |
+          set -euo pipefail
+          npm install --global --ignore-scripts npm@11.19.1
+          test "$(npm --version)" = 11.19.1
+
+      - name: Download build artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/npm-package
+
+      - name: Verify package
+        id: verify
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+          dir="$RUNNER_TEMP/npm-package"
+          manifest="$dir/manifest.json"
+          tgz="$dir/package.tgz"
+
+          contents="$(cd "$dir" && find . -mindepth 1 | LC_ALL=C sort | tr '\n' ' ')"
+          [ "$contents" = "./manifest.json ./package.tgz " ] ||
+            fail "The artifact must contain only package.tgz and manifest.json"
+
+          expect() {
+            local actual
+            actual="$(jq -er --arg key "$1" '.[$key] | strings' "$manifest")" || fail "manifest.json is missing $1"
+            [ "$actual" = "$2" ] || fail "manifest.json $1 does not match the build output"
+          }
+          expect environment npm-prod
+          expect build_run_id "$BUILD_RUN_ID"
+          expect build_run_attempt "$BUILD_RUN_ATTEMPT"
+          expect source_sha "$SOURCE_SHA"
+          expect package_name "$PACKAGE_NAME"
+          expect version "$VERSION"
+          expect sha256 "$SHA256"
+
+          [ "$SOURCE_SHA" = "$GITHUB_SHA" ] || fail "The package was not built from $GITHUB_SHA"
+          [ "$PACKAGE_NAME" = @stripe/stripe-terminal-react-native ] || fail "Unexpected package name $PACKAGE_NAME"
+          [ "$VERSION" = "$EXPECTED_VERSION" ] || fail "The package version does not match expected_version"
+
+          # The npm tarball digest, not the artifact zip digest.
+          [ "$(sha256sum "$tgz" | cut -d' ' -f1)" = "$SHA256" ] ||
+            fail "package.tgz does not match the SHA-256 recorded by the build"
+          packed="$(tar -xOzf "$tgz" package/package.json | jq -c '{name, version}')"
+          [ "$packed" = "$(jq -cn --arg name "$PACKAGE_NAME" --arg version "$VERSION" '{$name, $version}')" ] ||
+            fail "package.tgz contains $packed"
+
+          echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        env:
+          TGZ: ${{ steps.verify.outputs.tgz }}
+        run: |
+          set -euo pipefail
+          npm publish "$TGZ" --ignore-scripts \
+            --registry=https://registry.npmjs.org/ \
+            --access=public --tag=latest --provenance
+
+      - name: Summarize
+        run: |
+          set -euo pipefail
+          {
+            echo "### Published $PACKAGE_NAME@$VERSION"
+            echo
+            echo "- sha256: \`$SHA256\`"
+            echo "- artifact_id: \`$ARTIFACT_ID\`"
+            echo "- build attempt $BUILD_RUN_ATTEMPT, publish attempt $GITHUB_RUN_ATTEMPT"
+          } >> "$GITHUB_STEP_SUMMARY"

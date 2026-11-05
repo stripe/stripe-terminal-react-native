@@ -212,6 +212,10 @@ workflows:
           inputs:
             - command: lint:native
           title: lint:native (SwiftLint + Android Null Check)
+      - script@1:
+          inputs:
+            - content: node --test .github/scripts/pack-npm.test.cjs
+          title: Publish helper tests
     before_run:
       - prep_all
     after_run:
