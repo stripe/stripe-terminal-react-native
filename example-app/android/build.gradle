@@ -1,6 +1,14 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+  ext {
+    // Terminal Android SDK 6.0 (pulled in by @stripe/stripe-terminal-react-native
+    // 0.0.1-beta.34) depends on Kotlin 2.3.21 libraries. React Native 0.83 defaults
+    // to Kotlin Gradle Plugin 2.1.20, which cannot read that metadata. 2.2.0 can,
+    // and is the newest the Expo 56 Pika compiler plugin ships. See the SDK README
+    // ("Android" requirements) for details.
+    kotlinVersion = "2.2.0"
+  }
   repositories {
     google()
     mavenCentral()
@@ -8,7 +16,7 @@ buildscript {
   dependencies {
     classpath('com.android.tools.build:gradle')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }
 }
 

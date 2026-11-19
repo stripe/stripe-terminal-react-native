@@ -89,7 +89,6 @@ const CAPTURE_METHODS: {
 ];
 
 const CUSTOMER_CANCELLATION = [
-  { value: 'unspecified', label: 'unspecified' },
   { value: 'enableIfAvailable', label: 'enableIfAvailable' },
   { value: 'disableIfAvailable', label: 'disableIfAvailable' },
 ];
@@ -183,7 +182,7 @@ export default function CollectCardPaymentScreen() {
   const [recollectAfterCardBrandDecline, setRecollectAfterCardBrandDecline] =
     useState(false);
   const [customerCancellation, setCustomerCancellation] =
-    useState<CustomerCancellation>('unspecified');
+    useState<CustomerCancellation>('enableIfAvailable');
   const [requestDcc, setRequestDcc] = useState(false);
   const [surchargeNotice, setSurchargeNotice] = useState('');
   const [tipEligibleAmount, setTipEligibleAmount] = useState('');

@@ -18,7 +18,7 @@ export type WithStripeTerminalProps = ReturnType<typeof useStripeTerminal>;
  *
  *  export default withStripeTerminal(YourScreenComponent);
  * ```
- * @param __namedParameters WithStripeTerminalProps
+ * @param WrappedComponent Component that receives {@link WithStripeTerminalProps} as props.
  * @returns React.JSX.Element
  * @category ReactComponents
  */

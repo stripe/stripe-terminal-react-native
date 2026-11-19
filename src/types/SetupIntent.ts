@@ -1,7 +1,7 @@
 import type {
   NextAction,
   PaymentMethod,
-  PaymentMethodOptionsResponse,
+  PaymentMethodOptions,
   PaymentMethodType,
   ApiErrorInformation,
 } from './';
@@ -24,7 +24,7 @@ export namespace SetupIntent {
     onBehalfOf?: string;
     paymentMethodId?: string;
     paymentMethod?: PaymentMethod.Type;
-    paymentMethodOptions?: PaymentMethodOptionsResponse;
+    paymentMethodOptions?: PaymentMethodOptions;
     paymentMethodTypes?: PaymentMethodType[];
     singleUseMandate?: string;
     status?: Status;

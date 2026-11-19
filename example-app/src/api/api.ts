@@ -27,7 +27,7 @@ export class Api {
     label: string;
     registrationCode: string;
     location: string | null | undefined;
-  }): Promise<Stripe.Terminal.Reader | { error: Stripe.StripeAPIError }> {
+  }): Promise<Stripe.Terminal.Reader | { error: Stripe.errors.StripeAPIError }> {
     const formData = new URLSearchParams();
     formData.append('label', label);
     formData.append('registration_code', registrationCode);
@@ -50,7 +50,7 @@ export class Api {
     description?: string;
     paymentMethodTypes?: string;
     customer?: string;
-  }): Promise<Partial<Stripe.SetupIntent> | { error: Stripe.StripeAPIError }> {
+  }): Promise<Partial<Stripe.SetupIntent> | { error: Stripe.errors.StripeAPIError }> {
     const formData = new URLSearchParams();
     formData.append('description', description);
 
@@ -78,7 +78,7 @@ export class Api {
 
   async capturePaymentIntent(
     id: string
-  ): Promise<Partial<Stripe.PaymentIntent> | { error: Stripe.StripeAPIError }> {
+  ): Promise<Partial<Stripe.PaymentIntent> | { error: Stripe.errors.StripeAPIError }> {
     const formData = new URLSearchParams();
 
     formData.append('payment_intent_id', id);
@@ -102,7 +102,7 @@ export class Api {
     payment_method_types,
     capture_method,
   }: Stripe.PaymentIntentCreateParams): Promise<
-    Partial<Stripe.PaymentIntent> | { error: Stripe.StripeError }
+    Partial<Stripe.PaymentIntent> | { error: Stripe.errors.StripeError }
   > {
     const formData = new URLSearchParams();
     formData.append('amount', amount.toString());
@@ -136,7 +136,7 @@ export class Api {
   }
 
   async createConnectionToken(): Promise<
-    Stripe.Terminal.ConnectionToken | { error: Stripe.StripeAPIError }
+    Stripe.Terminal.ConnectionToken | { error: Stripe.errors.StripeAPIError }
   > {
     const formData = new URLSearchParams();
     return fetch(`${this.api_url}/connection_token`, {

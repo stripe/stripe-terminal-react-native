@@ -6,49 +6,7 @@ IFS=$'\n\t'
 echo_help() {
   cat << EOF
 USAGE:
-    ./scripts/publish.sh <branch-name>
-EOF
-}
-
-create_github_release() {
-  if which hub | grep -q "not found"; then
-    create_github_release_fallback
-    return
-  fi
-
-  # Get the last two releases. For example, `("v1.3.1" "v1.3.2")`
-  local versions=($(git tag --sort version:refname | grep '^v' | tail -n 2))
-
-  # If we didn't find exactly two previous version versions, give up
-  if [ ${#versions[@]} -ne 2 ]; then
-    create_github_release_fallback
-    return
-  fi
-
-  local previous_version="${versions[0]}"
-  local current_version="${versions[1]}"
-  local commit_titles=$(git log --pretty=format:"- %s" "$previous_version".."$current_version"^)
-  local release_notes="$(cat << EOF
-$current_version
-<!-- Please group the following commits into one of the sections below. -->
-<!-- Remove empty sections when done. -->
-$commit_titles
-## New features
-## Fixes
-## Changed
-EOF
-)"
-
-  echo "Creating GitHub release"
-  echo ""
-  echo -n "    "
-  hub release create -em "$release_notes" "$current_version"
-}
-
-create_github_release_fallback() {
-  cat << EOF
-Remember to create a release on GitHub with a changelog notes:
-    https://github.com/stripe/stripe-terminal-react-native/releases/new
+    ./scripts/publish.sh reactnativesdk/<version>
 EOF
 }
 
@@ -61,16 +19,18 @@ fi
 
 BRANCH_NAME=$1
 
-if [ "$BRANCH_NAME" = "main" ]; then
-  echo "Error! Cannot publish from the 'main' branch."
+# Make sure our working dir is the package directory, wherever the script is invoked from
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+VERSION=$(node -p "require('./package.json').version")
+
+if [ "$BRANCH_NAME" != "reactnativesdk/$VERSION" ]; then
+  echo "Error! Can only publish $VERSION from the 'reactnativesdk/$VERSION' branch, not '$BRANCH_NAME'."
   exit 1
 fi
 
-# Make sure our working dir is the public directory
-cd "$(git rev-parse --show-toplevel)/public"
-
 echo "Fetching git remotes"
-git fetch
+git fetch origin "$BRANCH_NAME"
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -79,14 +39,12 @@ if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
   exit 1
 fi
 
-GIT_STATUS=$(git status)
-
-if ! grep -q "Your branch is up to date with 'origin/$BRANCH_NAME'." <<< "$GIT_STATUS"; then
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH_NAME")" ]; then
   echo "Error! Must be up to date with origin/$BRANCH_NAME to publish"
   exit 1
 fi
 
-if ! grep -q 'working tree clean' <<< "$GIT_STATUS"; then
+if [ -n "$(git status --porcelain)" ]; then
   echo "Error! Cannot publish with dirty working tree"
   exit 1
 fi
@@ -100,13 +58,16 @@ yarn -s run unit-test:android
 echo "Linting"
 yarn -s run lint
 
-echo "Tagging and publishing release"
-yarn -s --ignore-scripts publish --access=public
-
-echo "Pushing git commit and tag"
-git push --follow-tags
+# The version is committed on the release branch before QA, so publish it as-is. npm publish doesn't
+# bump the version or create git tags, which would land in the Android repo.
+echo "Publishing $VERSION"
+npm publish --access=public
 
 echo "Publish successful!"
 echo ""
-
-create_github_release
+cat << EOF
+Remaining manual steps:
+  - Tag the published commit $(git rev-parse HEAD) as reactnativesdk/v$VERSION in the Android repo
+  - Mirror the public source to stripe/stripe-terminal-react-native, then tag v$VERSION and create
+    the GitHub release there: https://github.com/stripe/stripe-terminal-react-native/releases/new
+EOF

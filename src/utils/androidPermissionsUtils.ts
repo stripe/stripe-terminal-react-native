@@ -6,7 +6,9 @@ const defaultFineLocationParams = {
   buttonPositive: 'Accept',
 };
 
-type PermissionsProps = {
+/** Options for {@link requestNeededAndroidPermissions}. */
+export type RequestAndroidPermissionsParams = {
+  /** Rationale dialog shown before requesting the location permission. */
   accessFineLocation?: {
     title: string;
     message: string;
@@ -14,14 +16,27 @@ type PermissionsProps = {
   };
 };
 
-type Error = { error: Record<string, string> | null };
+/**
+ * Result of {@link requestNeededAndroidPermissions}. `error` maps the first
+ * denied permission to its grant result, or is `null` when every permission is
+ * granted. Permissions after the first denied one are not requested.
+ */
+export type RequestAndroidPermissionsResult = {
+  error: Record<string, string> | null;
+};
 
 const isAndroid12orHigher = () =>
   Platform.OS === 'android' && Platform.Version >= 31;
 
+/**
+ * Requests the location and Bluetooth permissions the SDK needs on Android.
+ * Resolves with the first denied permission, if any.
+ */
 export async function requestNeededAndroidPermissions({
   accessFineLocation = defaultFineLocationParams,
-}: PermissionsProps | undefined = {}): Promise<Error> {
+}:
+  | RequestAndroidPermissionsParams
+  | undefined = {}): Promise<RequestAndroidPermissionsResult> {
   // Terminal native SDK 5.8.0 declares ACCESS_FINE_LOCATION with
   // maxSdkVersion="30" and BLUETOOTH_SCAN with neverForLocation, and treats
   // ACCESS_COARSE_LOCATION as sufficient for its location reporting. Request

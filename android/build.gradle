@@ -75,8 +75,19 @@ kotlin {
 }
 
 repositories {
-    maven {
-        url '$rootDir/../../../localMavenRepo'
+    // Prerelease native SDK artifacts, fetched by
+    // reactnative/terminalsdk/scripts/fetch_native_android_sdk.sh. rootDir is this
+    // directory when the library is built on its own (yarn unit-test:android) and
+    // the app's android/ directory when an app includes it, so both depths are
+    // tried. Neither exists in the public repository, where every version the
+    // library asks for is already on Maven Central.
+    def localMavenRepo = ['../..', '../../..']
+        .collect { file("$rootDir/$it/localMavenRepo") }
+        .find { it.directory }
+    if (localMavenRepo != null) {
+        maven {
+            url localMavenRepo
+        }
     }
     mavenCentral()
     google()

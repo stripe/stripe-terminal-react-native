@@ -33,13 +33,11 @@ const ALLOW_REDISPLAY = [
 ];
 
 const CUSTOMER_CANCELLATION = [
-  { value: 'unspecified', label: 'unspecified' },
   { value: 'enableIfAvailable', label: 'enableIfAvailable' },
   { value: 'disableIfAvailable', label: 'disableIfAvailable' },
 ];
 
 const COLLECTION_REASON = [
-  { value: 'unspecified', label: 'unspecified' },
   { value: 'saveCard', label: 'saveCard' },
   { value: 'verify', label: 'verify' },
 ];
@@ -50,9 +48,9 @@ export default function SetupIntentScreen() {
   const { params } = useRoute<RouteProp<RouteParamList, 'SetupIntentScreen'>>();
   const { discoveryMethod } = params;
   const [customerCancellation, setCustomerCancellation] =
-    useState<CustomerCancellation>('unspecified');
+    useState<CustomerCancellation>('enableIfAvailable');
   const [collectReason, setCollectReason] =
-    useState<CollectionReason>('unspecified');
+    useState<CollectionReason>('saveCard');
   const [motoConfiguration, setMotoConfiguration] = useState<
     MotoConfiguration | undefined
   >(undefined);

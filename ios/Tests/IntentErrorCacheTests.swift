@@ -8,7 +8,7 @@ import StripeTerminal
 /// The fixtures follow the SDK's constructors and JSON decoding, not the RN implementation.
 ///
 /// Native reference: stripe-internal/android@cd839ef15b8a2f463e76e69749dfb0f4186c0808
-/// - ios/terminalsdk/StripeTerminalTests/SCPErrorTests.m:231-296 (API errors)
+/// - ios/terminalsdk/StripeTerminal/Tests/StripeTerminalObjCTests/SCPErrorTests.m:231-296 (API errors)
 /// - ios/terminalsdk/StripeTerminal/SCPConfirmResourceError.m:88-129 (network errors)
 /// - ios/terminalsdk/StripeTerminal/SCPTerminal.m:2785-2819 and SCPPromise.m:124-129 (process completion)
 ///

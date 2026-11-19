@@ -322,6 +322,8 @@ export default function DiscoverReadersScreen() {
     reader: reader,
     locationId: selectedLocation?.id || reader?.location?.id || "",
     autoReconnectOnUnexpectedDisconnect: autoReconnectOnUnexpectedDisconnect,
+    onPaymentMethodSelectionRequired: handlePaymentMethodSelectionRequired,
+    onQrCodeDisplayRequired: handleQrCodeDisplayRequired,
     ...(Platform.OS === 'ios' ? { testReaderUpdate: currentTestReaderUpdate } : {}),
   });
 

@@ -2241,10 +2241,10 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@stripe/stripe-terminal-react-native@^0.0.1-beta.33":
-  version "0.0.1-beta.33"
-  resolved "https://registry.npmjs.org/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.33.tgz#87bbcd15084178835e9233e171777700f614260c"
-  integrity sha512-doqcq9RBYa37snevlxU80OBi31RdSVUeZVfD4Asj6kvdU6fP7Gwbf5dWkwCXQ0xDLqW8tETYFRYR4x7uWCmGkQ==
+"@stripe/stripe-terminal-react-native@^0.0.1-beta.34":
+  version "0.0.1-beta.34"
+  resolved "https://registry.npmjs.org/@stripe/stripe-terminal-react-native/-/stripe-terminal-react-native-0.0.1-beta.34.tgz#8909c12616be1cb57559e817c54e9316ed07ee17"
+  integrity sha512-KPmv4snqbNPCyRp1wTl6GwuEwXhurPYb4GtipZf/MyNVrwL0dFxV1zS3Bf6LQqBKjCD2NhD+a4oOjsYKIpRnCQ==
   dependencies:
     base-64 "^1.0.0"
 
@@ -2344,7 +2344,7 @@
     "@types/tough-cookie" "*"
     parse5 "^7.0.0"
 
-"@types/node@*", "@types/node@>=8.1.0":
+"@types/node@*":
   version "24.2.0"
   resolved "https://registry.npmjs.org/@types/node/-/node-24.2.0.tgz#cde712f88c5190006d6b069232582ecd1f94a760"
   integrity sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==
@@ -6045,13 +6045,6 @@ pure-rand@^6.0.0:
   resolved "https://registry.npmjs.org/pure-rand/-/pure-rand-6.1.0.tgz#d173cf23258231976ccbdb05247c9787957604f2"
   integrity sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==
 
-qs@^6.10.3:
-  version "6.14.0"
-  resolved "https://registry.npmjs.org/qs/-/qs-6.14.0.tgz#c63fa40680d2c5c941412a0e899c89af60c0a930"
-  integrity sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==
-  dependencies:
-    side-channel "^1.1.0"
-
 qs@^6.15.2:
   version "6.15.3"
   resolved "https://registry.npmjs.org/qs/-/qs-6.15.3.tgz#76852132a58ed5c7c0ef67e4441b9bb5d6061b3b"
@@ -6571,14 +6564,6 @@ shell-quote@^1.6.1, shell-quote@^1.8.3:
   resolved "https://registry.npmjs.org/shell-quote/-/shell-quote-1.8.3.tgz#55e40ef33cf5c689902353a3d8cd1a6725f08b4b"
   integrity sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==
 
-side-channel-list@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.0.tgz#10cb5984263115d3b7a0e336591e290a830af8ad"
-  integrity sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==
-  dependencies:
-    es-errors "^1.3.0"
-    object-inspect "^1.13.3"
-
 side-channel-list@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.1.tgz#c2e0b5a14a540aebee3bbc6c3f8666cc9b509127"
@@ -6607,17 +6592,6 @@ side-channel-weakmap@^1.0.2:
     get-intrinsic "^1.2.5"
     object-inspect "^1.13.3"
     side-channel-map "^1.0.1"
-
-side-channel@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/side-channel/-/side-channel-1.1.0.tgz#c3fcff9c4da932784873335ec9765fa94ff66bc9"
-  integrity sha512-ZX99e6tRweoUXqR+VBrslhda51Nh5MTQwou5tnUDgbtyM0dBgmhEDtWGP/xbKn6hqfPRHujUNwz5fy/wbbhnpw==
-  dependencies:
-    es-errors "^1.3.0"
-    object-inspect "^1.13.3"
-    side-channel-list "^1.0.0"
-    side-channel-map "^1.0.1"
-    side-channel-weakmap "^1.0.2"
 
 side-channel@^1.1.1:
   version "1.1.1"
@@ -6869,13 +6843,10 @@ strip-json-comments@^3.1.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
-stripe@^8.181.0:
-  version "8.222.0"
-  resolved "https://registry.npmjs.org/stripe/-/stripe-8.222.0.tgz#5f159156e411b668a88b8f957df5ac3c63b119de"
-  integrity sha512-hrA79fjmN2Eb6K3kxkDzU4ODeVGGjXQsuVaAPSUro6I9MM3X+BvIsVqdphm3BXWfimAGFvUqWtPtHy25mICY1w==
-  dependencies:
-    "@types/node" ">=8.1.0"
-    qs "^6.10.3"
+stripe@^22.6.2:
+  version "22.6.2"
+  resolved "https://registry.npmjs.org/stripe/-/stripe-22.6.2.tgz#e2acadf999b88a277e2c555d9008ac029b4f91e9"
+  integrity sha512-PwRE2scocvXqDKPiskMa5vRJEAEkq46W69XyUYmAwrNSLr675lQnfqLwnsndAWizwgihOWw/irLmoFRo3ez7ew==
 
 strnum@^2.4.1:
   version "2.4.1"

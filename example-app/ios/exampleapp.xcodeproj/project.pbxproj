@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0092BA47DB0003A951A5F567 /* StripeTerminal in Frameworks */ = {isa = PBXBuildFile; productRef = A5F0C6F5045EDF5216099E00 /* StripeTerminal */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3047BC5B89564C5380A32136 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF410B8305E48A786F75D69 /* noop-file.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
@@ -40,6 +41,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63E2AD3F7DD3BFC424676336 /* libPods-exampleapp.a in Frameworks */,
+				0092BA47DB0003A951A5F567 /* StripeTerminal in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,6 +158,9 @@
 			dependencies = (
 			);
 			name = exampleapp;
+			packageProductDependencies = (
+				A5F0C6F5045EDF5216099E00 /* StripeTerminal */,
+			);
 			productName = exampleapp;
 			productReference = 13B07F961A680F5B00A75B9A /* exampleapp.app */;
 			productType = "com.apple.product-type.application";
@@ -182,6 +187,9 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				E40E5B63CBE8694A0EFAE3B4 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -253,7 +261,6 @@
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesJSI/ExpoModulesJSI.framework/ExpoModulesJSI",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/StripeTerminal/StripeTerminal.framework/StripeTerminal",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -261,7 +268,6 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesJSI.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/StripeTerminal.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -569,6 +575,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E40E5B63CBE8694A0EFAE3B4 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-terminal-ios-spm";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A5F0C6F5045EDF5216099E00 /* StripeTerminal */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E40E5B63CBE8694A0EFAE3B4 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */;
+			productName = StripeTerminal;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }

@@ -2,6 +2,40 @@
 
 This document details changes made to the SDK by version.
 
+## 6.0.0
+
+Includes iOS native SDK [6.0.0](https://github.com/stripe/stripe-terminal-ios/releases/tag/6.0.0) and Android native SDK [6.0.0](https://github.com/stripe/stripe-terminal-android/blob/master/CHANGELOG.md#600---2026-10-07).
+
+### New
+
+- iOS: Added optional `onPaymentMethodSelectionRequired` and `onQrCodeDisplayRequired` callbacks to `ConnectTapToPayParams`, allowing integrations to supply payment-method selection and QR-code display handlers when connecting a Tap to Pay on iPhone reader with `connectReader`.
+- **Preview:** Swish - Added `PaymentMethodType.Swish` and `SwishDetails`, and exposed optional `swishDetails` on `PaymentMethod.Type` and `PaymentMethodDetails`.
+  - To request access to this feature, please contact [Stripe Support](https://support.stripe.com/).
+- Added `overcaptureStatus` to charge `CardPresentDetails` to indicate whether overcapture is supported for a confirmed PaymentIntent. (from native 5.7.0)
+- Exported the `DISCONNECT`, `UPDATE_BATTERY_LEVEL`, `REPORT_LOW_BATTERY_WARNING`, `REPORT_READER_EVENT`, and `ACCEPT_TERMS_OF_SERVICE` (iOS only) event-name constants from the package entry point, for use with the lower-level `emitter`/`useListener` API. The corresponding `UserCallbacks` props (`onDidDisconnect`, `onDidUpdateBatteryLevel`, `onDidReportLowBatteryWarning`, `onDidReportReaderEvent`, `onDidAcceptTermsOfService`) were already public; only these underlying constants were missing from the top-level exports.
+- Exported `RequestAndroidPermissionsParams`, `RequestAndroidPermissionsResult`, and `StripeTerminalPluginProps` — types already referenced by `requestNeededAndroidPermissions` and the Expo config plugin but not previously part of the package's public exports.
+
+### Updates
+
+- **Breaking:** Removed the duplicate `Reader.ConnectionStatus` type. Use the top-level `ConnectionStatus` instead; `getConnectionStatus` and the `onDidChangeConnectionStatus` callback now share it (both declarations had identical values).
+- **Breaking:** Aligned the card-present payment-method-options types with the native SDK and made the response fields optional. `CreatePaymentIntentParams.paymentMethodOptions` now uses `PaymentMethodOptionsParams` (was `PaymentMethodOptions`); `PaymentIntent` and `SetupIntent` `paymentMethodOptions` now use `PaymentMethodOptions` (was `PaymentMethodOptionsResponse`), whose `cardPresent` is the named `CardPresentOptions` type. `cardPresent` and its `requestExtendedAuthorization`, `requestIncrementalAuthorizationSupport`, and `requestPartialAuthorization` properties are now optional — Android and iOS omit missing native values instead of synthesizing `cardPresent`, `false`, or an empty string.
+- **Breaking:** Removed the `'unspecified'` value from `CustomerCancellation` and `CollectionReason` to match the native SDKs, which define only `'enableIfAvailable'`/`'disableIfAvailable'` and `'saveCard'`/`'verify'` respectively. Passing `'unspecified'` previously fell through to the native default; omit the field instead to get that default (`'enableIfAvailable'` for customer cancellation, `'saveCard'` for collection reason).
+- Made `customerCancellation` optional on `CollectDataParams`, matching the native SDKs and the other collect/process params types. When omitted, the native default (`'enableIfAvailable'`) is used.
+
+### Fixes
+
+- Android: Fixed offline SetupIntents failing with `STRIPE_API_CONNECTION_ERROR` while offline. The SDK now implements the native `onSetupIntentForwarded` listener callback, and forwards its result through the new `onDidForwardSetupIntent` callback.
+- Android: `connectReader` now returns `INVALID_REQUIRED_PARAMETER` with supported values when `discoveryMethod` is missing, null, or invalid, instead of an unexpected SDK error or bridge type exception.
+- iOS: `cancelCollectPaymentMethod` now returns `CANCEL_FAILED` after successful cancellation or reader disconnection instead of reusing a stale collection handle. Addresses [#1139](https://github.com/stripe/stripe-terminal-react-native/issues/1139).
+- iOS: Repeated cancellation of payment, refund, and SetupIntent operations now returns `CANCEL_FAILED` after the operation is successfully canceled, and after SetupIntent collection or refund processing completes.
+- iOS: Fixed an issue where reader events stopped reaching the app after a React Native reload while a reader remained connected. Fixes [#1142](https://github.com/stripe/stripe-terminal-react-native/issues/1142).
+- Android: Fixed an issue where reader connections timed out when requesting a connection token after an in-process React Native reload, including development reloads and Expo over-the-air update reloads. Fixes [#1141](https://github.com/stripe/stripe-terminal-react-native/issues/1141).
+- Android: Reinitializing the SDK now routes connection, payment status, and offline events to the current React Native runtime.
+- Android: Fixed `Reader.isCharging` not being reported; it is now populated to indicate whether the connected reader is charging, matching iOS.
+- Fixed `Wallet.type` being typed as required; it is now optional, matching the native iOS SDK where a card wallet's `type` can be absent.
+- Android: Fixed a crash when confirming a PaymentIntent with a surcharge consent that omitted `notice`. `SurchargeConsent.notice` is now optional and uses the native default (no additional message) when omitted.
+- Android: Fixed `useListener` registering a listener for event constants that are `undefined` on the current platform (e.g. the iOS-only `ACCEPT_TERMS_OF_SERVICE`); it now skips subscribing when the event name is `undefined`.
+
 ## 0.0.1-beta.34
 
 ### New
@@ -48,7 +82,7 @@ This document details changes made to the SDK by version.
 - **Breaking:** Class components using the `StripeTerminalProvider` event emitter now receive `START_READER_RECONNECT` as `(reader, reason)` instead of `(reason)`, and `READER_RECONNECT_FAIL` as `(reader)` instead of `(error)`. Update listeners to read the new first argument.
 - Verbose JavaScript console logs from `StripeTerminalProvider` now include only the SDK operation or event name and omit payload details. Public setup examples no longer enable verbose logging by default.
 - Updated the bundled iOS and Android Terminal SDKs to version 6.0.0.
-- iOS: The native Stripe Terminal SDK is now resolved with Swift Package Manager instead of the CocoaPods trunk. Continue running `pod install` normally; the React Native CocoaPods integration configures and embeds the Swift package automatically.
+- iOS: The native Stripe Terminal SDK is now resolved with Swift Package Manager instead of the CocoaPods trunk. Continue running `pod install` as usual, directly or via `npx expo run:ios`/`yarn ios` (both also run `pod install` under the hood); the React Native CocoaPods integration configures and embeds the Swift package automatically. React Native prints a generic CocoaPods deprecation notice whenever `pod install` runs, regardless of how it's invoked — this isn't specific to Stripe Terminal.
 
 ### Fixes
 

@@ -28,7 +28,6 @@ import { Picker } from '@react-native-picker/picker';
 import type { NavigationProp } from '@react-navigation/native';
 
 const CUSTOMER_CANCELLATION = [
-  { value: 'unspecified', label: 'unspecified' },
   { value: 'enableIfAvailable', label: 'enableIfAvailable' },
   { value: 'disableIfAvailable', label: 'disableIfAvailable' },
 ];

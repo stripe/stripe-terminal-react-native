@@ -51,6 +51,12 @@ describe('useListener', () => {
     jest.restoreAllMocks();
   });
 
+  it('does not subscribe when the event is not reported on this platform', () => {
+    renderHook(() => useListener(undefined, jest.fn()));
+
+    expect(mockAddListener).not.toHaveBeenCalled();
+  });
+
   it('passes non-object event through unchanged', () => {
     const callback = jest.fn();
     renderHook(() => useListener('TEST_EVENT', callback));

@@ -9,6 +9,7 @@ export namespace Reader {
       id?: string;
       label?: string;
       batteryLevel?: number;
+      isCharging?: boolean;
       serialNumber?: string;
       locationId?: string;
       deviceSoftwareVersion?: string;
@@ -25,7 +26,6 @@ export namespace Reader {
   export namespace IOS {
     export type Type = {
       batteryStatus: BatteryStatus;
-      isCharging?: boolean;
     };
 
     /**
@@ -152,13 +152,6 @@ export namespace Reader {
     | 'tryAnotherReadMethod'
     | 'checkMobileDevice'
     | 'cardRemovedTooEarly';
-
-  export type ConnectionStatus =
-    | 'connected'
-    | 'connecting'
-    | 'notConnected'
-    | 'discovering'
-    | 'reconnecting';
 
   export type DisconnectReason =
     | 'disconnectRequested'

@@ -1,5 +1,6 @@
 package com.stripeterminalreactnative
 
+import com.facebook.react.bridge.JavaOnlyArray
 import com.facebook.react.bridge.JavaOnlyMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -11,6 +12,7 @@ import com.stripe.stripeterminal.external.models.SimulatorConfiguration
 import com.stripe.stripeterminal.external.models.TerminalErrorCode
 import com.stripe.stripeterminal.external.models.TerminalException
 import com.stripeterminalreactnative.TestConstants.STRIPE_ERROR
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -119,11 +121,35 @@ class ConnectionValidationTest {
     }
 
     @Test
-    fun `connectReader missing reader resolves RN validation before calling SDK`() {
-        assertConnectReaderValidationError(
-            JavaOnlyMap().apply { putString("discoveryMethod", "internet") },
-            "You must provide a reader"
-        )
+    fun `connectReader resolves invalid parameter error when discoveryMethod is missing or invalid`() {
+        listOf(
+            JavaOnlyMap(),
+            JavaOnlyMap.of("discoveryMethod", null),
+            JavaOnlyMap.of("discoveryMethod", ""),
+            JavaOnlyMap.of("discoveryMethod", "unsupported"),
+            JavaOnlyMap.of("discoveryMethod", "BluetoothScan"),
+            JavaOnlyMap.of("discoveryMethod", " internet "),
+            JavaOnlyMap.of("discoveryMethod", true),
+            JavaOnlyMap.of("discoveryMethod", 42.0),
+            JavaOnlyMap.of("discoveryMethod", JavaOnlyMap()),
+            JavaOnlyMap.of("discoveryMethod", JavaOnlyArray())
+        ).forEach { params ->
+            assertConnectReaderValidationError(
+                params,
+                "You must provide a discoveryMethod string with one of the supported values: " +
+                    "bluetoothScan, internet, tapToPay, appsOnDevices, usb"
+            )
+        }
+    }
+
+    @Test
+    fun `connectReader supported discovery methods reach missing reader validation before calling SDK`() {
+        listOf("bluetoothScan", "internet", "tapToPay", "appsOnDevices", "usb").forEach { discoveryMethod ->
+            assertConnectReaderValidationError(
+                JavaOnlyMap.of("discoveryMethod", discoveryMethod),
+                "You must provide a reader"
+            )
+        }
     }
 
     private fun assertEasyConnectValidationError(
@@ -159,6 +185,7 @@ class ConnectionValidationTest {
 
         val captured = slot<ReadableMap>()
         verify(timeout = 1_000, exactly = 1) { promise.resolve(capture(captured)) }
+        confirmVerified(promise)
         verify(exactly = 0) { terminal.connectReader(any(), any(), any()) }
 
         val errorWrapper = captured.captured as JavaOnlyMap

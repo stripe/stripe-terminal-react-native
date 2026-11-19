@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-terminal-react-native",
-  "version": "0.0.1-beta.34",
+  "version": "6.0.0",
   "description": "Stripe Terminal React Native SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -22,7 +22,7 @@
     "pods": "cd dev-app && react-native build-ios --only-pods",
     "clean": "rm -rf node_modules && rm -rf dev-app/node_modules && rm -rf dev-app/ios/Pods",
     "bootstrap": "yarn dev-app && yarn && yarn pods",
-    "deep-clean": "rm -rf node_modules dev-app/node_modules dev-app/ios/Pods dev-app/android/.gradle dev-app/android/.cxx dev-app/android/app/build dev-app/ios/build ~/Library/Developer/Xcode/DerivedData",
+    "deep-clean": "rm -rf node_modules dev-app/node_modules dev-app/ios/Pods dev-app/android/.gradle dev-app/android/app/.cxx dev-app/android/app/build dev-app/ios/build ~/Library/Developer/Xcode/DerivedData",
     "reset-watch": "watchman watch-del ./ && watchman watch-project ./ && rm -rf /tmp/metro-* /tmp/haste-map-*",
     "reset": "yarn reset-watch && yarn deep-clean && yarn bootstrap",
     "dev-app:build:android:release": "cd dev-app/android && ./gradlew assembleRelease ; cd -",
@@ -33,12 +33,13 @@
     "e2e:clean:customer": "node e2e/clean.js",
     "e2e:test:android:release": "maestro test -e APP_ID=com.dev.app.stripeterminalreactnative maestro/app.yml",
     "e2e:test:ios:release": "maestro test -e APP_ID=com.stripe.terminal.reactnative.dev.app maestro/app.yml",
-    "docs": "npx typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none && cp ./docs/redirects/StripeTerminalSdkType.html ./docs/api-reference/interfaces/StripeTerminalSdkType.html",
+    "docs": "typedoc && cp ./docs/redirects/StripeTerminalSdkType.html ./docs/api-reference/interfaces/StripeTerminalSdkType.html",
     "unit-test:android": "cd android && ./gradlew testDebugUnitTest",
     "unit-test:ios": "xcodebuild test -workspace dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 17' -scheme UnitTests",
     "unit-test:js": "jest",
     "check:rn-error-codes": "node scripts/check-rn-error-codes.js",
-    "check:rn-device-types": "node scripts/check-rn-device-types.js"
+    "check:rn-device-types": "node scripts/check-rn-device-types.js",
+    "check:docs": "node scripts/check-docs-coverage.js"
   },
   "keywords": [
     "react-native",

@@ -12,10 +12,11 @@ import type {
   Location,
   OfflineCardPresentDetails,
   OfflineDetails,
+  OvercaptureStatus,
   PaymentMethod,
   PaymentMethodCardPresentDetails,
+  PaymentMethodOptionsParams,
   PaymentMethodOptions,
-  PaymentMethodOptionsResponse,
   PaymentIntent,
   Reader,
   ReceiptDetails,
@@ -51,6 +52,7 @@ describe('PaymentMethodType', () => {
     expect(PaymentMethodType.PayNow).toBe('paynow');
     expect(PaymentMethodType.PayPay).toBe('paypay');
     expect(PaymentMethodType.Klarna).toBe('klarna');
+    expect(PaymentMethodType.Swish).toBe('swish');
   });
 
   it('enum values are accepted by CreatePaymentIntentParams.paymentMethodTypes', () => {
@@ -159,15 +161,15 @@ describe('public SDK result contracts', () => {
   });
 });
 
-// Compile-time regression tests for PaymentMethodOptions type shape.
+// Compile-time regression tests for PaymentMethodOptionsParams type shape.
 // If these assignments produce TypeScript errors, the type contract has regressed.
 
-describe('PaymentMethodOptions types', () => {
+describe('PaymentMethodOptionsParams types', () => {
   it('allows captureMethod without requestedPriority', () => {
     // Regression: requestedPriority was previously required, forcing callers to supply
     // a routing priority even when they only needed to set captureMethod (e.g. manual_preferred
     // for card_present while accepting interac_present with automatic capture).
-    const options: PaymentMethodOptions = {
+    const options: PaymentMethodOptionsParams = {
       captureMethod: 'manual_preferred',
     };
     expect(options.captureMethod).toBe('manual_preferred');
@@ -175,35 +177,35 @@ describe('PaymentMethodOptions types', () => {
   });
 
   it('allows requestedPriority alongside captureMethod', () => {
-    const options: PaymentMethodOptions = {
+    const options: PaymentMethodOptionsParams = {
       captureMethod: 'manual_preferred',
       requestedPriority: 'domestic',
     };
     expect(options.requestedPriority).toBe('domestic');
   });
 
-  it('allows an empty PaymentMethodOptions object', () => {
-    const options: PaymentMethodOptions = {};
+  it('allows an empty PaymentMethodOptionsParams object', () => {
+    const options: PaymentMethodOptionsParams = {};
     expect(options).toBeDefined();
   });
 
   it('allows installments to be enabled or explicitly disabled', () => {
-    const enabled: PaymentMethodOptions = { installments: { enabled: true } };
-    const disabled: PaymentMethodOptions = { installments: { enabled: false } };
+    const enabled: PaymentMethodOptionsParams = { installments: { enabled: true } };
+    const disabled: PaymentMethodOptionsParams = { installments: { enabled: false } };
 
     expect(enabled.installments?.enabled).toBe(true);
     expect(disabled.installments?.enabled).toBe(false);
   });
 
   it('rejects response-only installment fields as creation inputs', () => {
-    const options: PaymentMethodOptions = {
+    const options: PaymentMethodOptionsParams = {
       installments: {
         enabled: true,
         // @ts-expect-error availablePlans is response-only
         availablePlans: [],
       },
     };
-    const optionsWithPlan: PaymentMethodOptions = {
+    const optionsWithPlan: PaymentMethodOptionsParams = {
       installments: {
         enabled: true,
         // @ts-expect-error plan is response-only
@@ -215,8 +217,16 @@ describe('PaymentMethodOptions types', () => {
     expect(optionsWithPlan.installments?.enabled).toBe(true);
   });
 
+  it('allows response options without cardPresent or authorization fields', () => {
+    const absent: PaymentMethodOptions = {};
+    const empty: PaymentMethodOptions = { cardPresent: {} };
+
+    expect(absent.cardPresent).toBeUndefined();
+    expect(empty.cardPresent).toEqual({});
+  });
+
   it('separates nested response options from flat request options', () => {
-    const response: PaymentMethodOptionsResponse = {
+    const response: PaymentMethodOptions = {
       cardPresent: {
         requestExtendedAuthorization: true,
         requestIncrementalAuthorizationSupport: false,
@@ -229,10 +239,10 @@ describe('PaymentMethodOptions types', () => {
     const setupIntentOptions: SetupIntent.Type['paymentMethodOptions'] =
       response;
 
-    expect(paymentIntentOptions?.cardPresent.requestExtendedAuthorization).toBe(
+    expect(paymentIntentOptions?.cardPresent?.requestExtendedAuthorization).toBe(
       true
     );
-    expect(setupIntentOptions?.cardPresent.requestReauthorization).toBe('never');
+    expect(setupIntentOptions?.cardPresent?.requestReauthorization).toBe('never');
   });
 });
 
@@ -264,7 +274,7 @@ describe('PaymentIntent installment response types', () => {
     const type: InstallmentPlanType = InstallmentPlanTypeValues.FixedCount;
     const interval: InstallmentPlanInterval = InstallmentPlanIntervalValues.Month;
     expect(
-      paymentMethodOptions?.cardPresent.installments?.availablePlans
+      paymentMethodOptions?.cardPresent?.installments?.availablePlans
     ).toHaveLength(1);
     expect(type).toBe('fixed_count');
     expect(interval).toBe('month');
@@ -438,7 +448,8 @@ describe('Terminal SDK 6.0 types', () => {
     expect(paymentIntent.review).toBe('prv_test');
   });
 
-  it('exposes numeric expiry fields, string read methods, and MOTO authorization codes', () => {
+  it('exposes card-present response fields and MOTO authorization codes', () => {
+    const overcaptureStatus: OvercaptureStatus = 'notSupported';
     const cardPresent: CardPresentDetails = {
       last4: '4242',
       expMonth: 12,
@@ -452,11 +463,13 @@ describe('Terminal SDK 6.0 types', () => {
       description: 'Visa',
       wallet: { type: 'unknown' },
       paymentAccountReference: 'par_test',
+      overcaptureStatus,
     };
     const card: CardDetails = { authorizationCode: '123456' };
 
     expect(cardPresent.readMethod).toBe('contact_emv');
     expect(cardPresent.paymentAccountReference).toBe('par_test');
+    expect(cardPresent.overcaptureStatus).toBe('notSupported');
     expect(cardPresent.expMonth).toBe(12);
     expect(cardPresent.expYear).toBe(2030);
     expect(card.authorizationCode).toBe('123456');
@@ -534,13 +547,16 @@ describe('Terminal SDK 6.0 types', () => {
   });
 
   it('uses boolean charging state and supports unknown reader network status', () => {
-    const iosReader: Reader.IOS.Type = {
+    const reader: Reader.Type = {
+      deviceType: 'wisePosE',
+      locationStatus: 'notSet',
+      status: 'online',
       batteryStatus: 'nominal',
       isCharging: true,
     };
     const networkStatus: Reader.NetworkStatus = 'unknown';
 
-    expect(iosReader.isCharging).toBe(true);
+    expect(reader.isCharging).toBe(true);
     expect(networkStatus).toBe('unknown');
   });
 
