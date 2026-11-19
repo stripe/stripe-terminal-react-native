@@ -14,24 +14,24 @@ yarn
 
 If the installation fails with `xcrun: error: SDK "iphoneos"`, make sure [Xcode](https://apps.apple.com/us/app/xcode/id497799835?mt=12/) is installed, and the [Xcode command line tools are set correclty](https://stackoverflow.com/questions/68565356/xcrun-error-sdk-iphoneos-cannot-be-located).
 
-While developing, you can run the [example app](/example-app/) to test your changes. Any changes you make in your library's JavaScript code will be reflected in the example app without a rebuild. If you change any native code, then you'll need to rebuild the example app.
+While developing, use the [dev-app](dev-app/) to test local SDK changes. JavaScript changes are reflected without a rebuild; native changes require rebuilding the dev-app. The example app uses the published npm package.
 
 To start the packager:
 
 ```sh
-yarn example-app start
+yarn dev-app start
 ```
 
-To run the example app on Android:
+To run the dev-app on Android:
 
 ```sh
-yarn example-app android
+yarn dev-app android
 ```
 
-To run the example app on iOS:
+To run the dev-app on iOS:
 
 ```sh
-yarn example-app ios
+yarn dev-app ios
 ```
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
@@ -53,9 +53,9 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/StripeTerminalReactNativeExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-terminal-react-native`.
+To edit the Objective-C files, open `dev-app/ios/StripeTerminalReactNativeDevApp.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-terminal-react-native`.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `stripeterminalreactnative` under `Android`.
+To edit the Kotlin files, open `dev-app/android` in Android studio and find the source files at `stripeterminalreactnative` under `Android`.
 
 ### Commit message convention
 
@@ -80,13 +80,7 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 ### Publishing to npm
 
-We use a custom script for releasing the library to the NPM. It handles common tasks like bumping version based on semver, creating tags and releases etc.
-
-To publish new versions, run the following command from the root directory:
-
-```sh
-sh scripts/publish.sh <release_type>
-```
+Releases are published to npm by Stripe maintainers.
 
 ### Scripts
 

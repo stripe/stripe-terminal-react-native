@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.UiThreadUtil
 import com.stripe.stripeterminal.BuildConfig
 import com.stripe.stripeterminal.Terminal
@@ -138,7 +139,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     internal var setupIntents: MutableMap<String, SetupIntent?> =
         Collections.synchronizedMap(HashMap())
 
-    private val tokenProvider: TokenProvider = TokenProvider(context)
+    private val tokenProvider: TokenProvider = TokenProvider.shared.also { it.attach(context) }
 
     private val terminal: Terminal
         get() = Terminal.getInstance()
@@ -160,6 +161,11 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
         ReactNativeConstants.entries.associate { it.name to it.listenerName }.toMutableMap()
 
     override fun getName(): String = "StripeTerminalReactNative"
+
+    override fun invalidate() {
+        tokenProvider.detach(context)
+        super.invalidate()
+    }
 
     @OptIn(OfflineMode::class)
     @ReactMethod
@@ -203,6 +209,8 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
             }
             NativeTypeFactory.writableNativeMap()
         } else {
+            terminal.setTerminalListener(RNTerminalListener(context))
+            terminal.setOfflineListener(RNOfflineListener(context))
             nativeMapOf {
                 terminal.connectedReader?.let {
                     putMap("reader", mapFromReader(it))
@@ -311,6 +319,7 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     fun setConnectionToken(params: ReadableMap, promise: Promise) {
         tokenProvider.setConnectionToken(
+            context = context,
             token = params.getString("token"),
             error = params.getString("error"),
         )
@@ -586,12 +595,21 @@ class StripeTerminalReactNativeModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     @Suppress("unused")
-    fun connectReader(params: ReadableMap, promise: Promise) {
-        val discoveryMethod = params.getString("discoveryMethod")
-        mapToDiscoveryMethod(discoveryMethod)?.let {
-            innerConnectReader(params, it, promise)
+    fun connectReader(params: ReadableMap, promise: Promise) = withExceptionResolver(promise) {
+        val discoveryMethod = if (
+            params.hasKey("discoveryMethod") &&
+            !params.isNull("discoveryMethod") &&
+            params.getType("discoveryMethod") == ReadableType.String
+        ) {
+            params.getString("discoveryMethod")
+        } else {
+            null
         }
-            ?: promise.resolve(createError(RuntimeException("Unknown discovery method: $discoveryMethod"), ErrorSource.RN))
+        val method = requireNonNullParameter(mapToDiscoveryMethod(discoveryMethod)) {
+            "You must provide a discoveryMethod string with one of the supported values: " +
+                "bluetoothScan, internet, tapToPay, appsOnDevices, usb"
+        }
+        innerConnectReader(params, method, promise)
     }
 
     @ReactMethod

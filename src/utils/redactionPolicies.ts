@@ -97,7 +97,7 @@ const InstallmentsParametersPolicy = policy<types.InstallmentsParameters>({
   enabled: Rule.allow,
 });
 
-const PaymentMethodOptionsRequestPolicy = policy<types.PaymentMethodOptions>({
+const PaymentMethodOptionsRequestPolicy = policy<types.PaymentMethodOptionsParams>({
   requestExtendedAuthorization: Rule.allow,
   requestIncrementalAuthorizationSupport: Rule.allow,
   requestedPriority: Rule.allow,
@@ -121,9 +121,7 @@ const InstallmentDetailsPolicy = policy<types.InstallmentDetails>({
   plan: nested(InstallmentPlanDetailsPolicy),
 });
 
-const PaymentMethodOptionsResponseCardPresentPolicy = policy<
-  types.PaymentMethodOptionsResponse['cardPresent']
->({
+const PaymentMethodOptionsResponseCardPresentPolicy = policy<types.CardPresentOptions>({
   requestExtendedAuthorization: Rule.allow,
   requestIncrementalAuthorizationSupport: Rule.allow,
   requestPartialAuthorization: Rule.allow,
@@ -132,7 +130,7 @@ const PaymentMethodOptionsResponseCardPresentPolicy = policy<
 });
 
 const PaymentMethodOptionsResponsePolicy =
-  policy<types.PaymentMethodOptionsResponse>({
+  policy<types.PaymentMethodOptions>({
     cardPresent: nested(PaymentMethodOptionsResponseCardPresentPolicy),
   });
 
@@ -192,6 +190,11 @@ const PaypayDetailsPolicy = policy<types.PaypayDetails>({
 });
 
 const KlarnaDetailsPolicy = policy<types.KlarnaDetails>({
+  location: Rule.allow,
+  reader: Rule.allow,
+});
+
+const SwishDetailsPolicy = policy<types.SwishDetails>({
   location: Rule.allow,
   reader: Rule.allow,
 });
@@ -315,6 +318,7 @@ const CardPresentDetailsPolicy = policy<types.CardPresentDetails>({
   location: Rule.allow,
   reader: Rule.allow,
   multicaptureStatus: Rule.allow,
+  overcaptureStatus: Rule.allow,
   reauthorizationStatus: Rule.allow,
   captureBefore: Rule.allow,
   reauthorizeBefore: Rule.allow,
@@ -370,6 +374,7 @@ const PaymentMethodPolicy = policy<types.PaymentMethod.Type>({
   paynowDetails: nested(PaynowDetailsPolicy),
   paypayDetails: nested(PaypayDetailsPolicy),
   klarnaDetails: nested(KlarnaDetailsPolicy),
+  swishDetails: nested(SwishDetailsPolicy),
   cardDetails: nested(CardDetailsPolicy),
   livemode: Rule.allow,
   metadata: Rule.redact,
@@ -384,6 +389,7 @@ const PaymentMethodDetailsPolicy = policy<types.PaymentMethodDetails>({
   paynowDetails: nested(PaynowDetailsPolicy),
   paypayDetails: nested(PaypayDetailsPolicy),
   klarnaDetails: nested(KlarnaDetailsPolicy),
+  swishDetails: nested(SwishDetailsPolicy),
   cardDetails: nested(CardDetailsPolicy),
 });
 

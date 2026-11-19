@@ -32,7 +32,13 @@ export {
   READER_RECONNECT_FAIL,
   CHANGE_OFFLINE_STATUS,
   FORWARD_PAYMENT_INTENT,
+  FORWARD_SETUP_INTENT,
   REPORT_FORWARDING_ERROR,
+  DISCONNECT,
+  UPDATE_BATTERY_LEVEL,
+  REPORT_LOW_BATTERY_WARNING,
+  REPORT_READER_EVENT,
+  ACCEPT_TERMS_OF_SERVICE,
 } from './hooks/useStripeTerminal';
 
 // components
@@ -48,4 +54,11 @@ export {
 } from './components/withStripeTerminal';
 
 // utils
-export { requestNeededAndroidPermissions } from './utils/androidPermissionsUtils';
+export {
+  requestNeededAndroidPermissions,
+  type RequestAndroidPermissionsParams,
+  type RequestAndroidPermissionsResult,
+} from './utils/androidPermissionsUtils';
+
+// Expo config plugin
+export type { StripeTerminalPluginProps } from './plugin/types';

@@ -83,8 +83,8 @@ android {
         applicationId "com.dev.app.stripeterminalreactnative"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode = (project.findProperty('RN_TEST_APP_VERSION_CODE') ?: '1').toString().toInteger()
+        versionName = project.findProperty('RN_TEST_APP_VERSION_NAME') ?: "1.0"
         testBuildType System.getProperty('testBuildType', 'debug')  // This will later be used to control the test apk build type
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -112,8 +112,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.facebook.soloader:soloader:0.10.4+'
-
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 

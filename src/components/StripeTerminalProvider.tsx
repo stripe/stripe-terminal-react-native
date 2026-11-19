@@ -4,10 +4,12 @@ import {
   type LogLevel,
   type InitParams,
   type LocaleConfig,
+  type ConnectionStatus,
   type EventResult,
   type PaymentStatus,
   type OfflineStatus,
   type PaymentIntent,
+  type SetupIntent,
   type ReaderEvent,
 } from '../types';
 import type { StripeError } from '../types/StripeError';
@@ -38,6 +40,7 @@ const {
   READER_RECONNECT_FAIL,
   CHANGE_OFFLINE_STATUS,
   FORWARD_PAYMENT_INTENT,
+  FORWARD_SETUP_INTENT,
   REPORT_FORWARDING_ERROR,
   DISCONNECT,
   UPDATE_BATTERY_LEVEL,
@@ -273,7 +276,7 @@ export function StripeTerminalProvider({
   );
 
   const didChangeConnectionStatus = useCallback(
-    ({ result }: EventResult<Reader.ConnectionStatus>) => {
+    ({ result }: EventResult<ConnectionStatus>) => {
       log('didChangeConnectionStatus');
       emitter?.emit(CHANGE_CONNECTION_STATUS, result);
     },
@@ -322,6 +325,14 @@ export function StripeTerminalProvider({
     ({ result, error }: { result: PaymentIntent.Type; error?: StripeError }) => {
       log('didForwardPaymentIntent');
       emitter?.emit(FORWARD_PAYMENT_INTENT, result, error);
+    },
+    [log]
+  );
+
+  const didForwardSetupIntent = useCallback(
+    ({ result, error }: { result: SetupIntent.Type; error?: StripeError }) => {
+      log('didForwardSetupIntent');
+      emitter?.emit(FORWARD_SETUP_INTENT, result, error);
     },
     [log]
   );
@@ -392,6 +403,7 @@ export function StripeTerminalProvider({
 
   useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
   useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
+  useListener(FORWARD_SETUP_INTENT, didForwardSetupIntent);
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
 
   useListener(DISCONNECT, didDisconnect);

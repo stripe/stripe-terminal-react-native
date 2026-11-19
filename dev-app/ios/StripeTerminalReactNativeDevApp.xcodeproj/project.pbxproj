@@ -269,7 +269,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				7B44007471ED83DF5361FBA3 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */,
+				E299AF84623C0517405C648F /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
@@ -750,7 +750,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7B44007471ED83DF5361FBA3 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */ = {
+		E299AF84623C0517405C648F /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/stripe/stripe-terminal-ios-spm";
 			requirement = {
@@ -763,7 +763,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		D0FA31396E0A35C02B5B6699 /* StripeTerminal */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7B44007471ED83DF5361FBA3 /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */;
+			package = E299AF84623C0517405C648F /* XCRemoteSwiftPackageReference "stripe-terminal-ios-spm" */;
 			productName = StripeTerminal;
 		};
 /* End XCSwiftPackageProductDependency section */

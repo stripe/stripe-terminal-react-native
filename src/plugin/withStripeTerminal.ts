@@ -10,6 +10,7 @@ import {
   AndroidConfig,
 } from '@expo/config-plugins';
 import * as fs from 'fs';
+import type { StripeTerminalPluginProps } from './types';
 
 type InnerManifest = AndroidConfig.Manifest.AndroidManifest['manifest'];
 
@@ -31,16 +32,6 @@ type AndroidManifest = {
 };
 
 const pkg = require('@stripe/stripe-terminal-react-native/package.json');
-
-type StripeTerminalPluginProps = {
-  bluetoothBackgroundMode?: boolean;
-  locationWhenInUsePermission?: string;
-  bluetoothPeripheralPermission?: string;
-  bluetoothAlwaysUsagePermission?: string;
-  localNetworkUsagePermission?: string;
-  tapToPayCheck?: boolean;
-  appDelegate?: boolean;
-};
 
 const withStripeTerminal: ConfigPlugin<StripeTerminalPluginProps> = (
   config,

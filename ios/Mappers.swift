@@ -247,6 +247,15 @@ class Mappers {
         }
     }
 
+    class func mapFromOvercaptureStatus(_ status: OvercaptureStatus) -> String {
+        switch status {
+        case OvercaptureStatus.unknown: return "unknown"
+        case OvercaptureStatus.notSupported: return "notSupported"
+        case OvercaptureStatus.supported: return "supported"
+        @unknown default: return "unknown"
+        }
+    }
+
     class func mapFromCaptureMethod(_ captureMethod: CaptureMethod) -> String {
         switch captureMethod {
         case CaptureMethod.manual: return "manual"
@@ -358,7 +367,9 @@ class Mappers {
         var cardPresentMap: [String: Any] = [:]
         cardPresentMap["requestExtendedAuthorization"] = cardPresentParams.requestExtendedAuthorization
         cardPresentMap["requestIncrementalAuthorizationSupport"] = cardPresentParams.requestIncrementalAuthorizationSupport
-        cardPresentMap["requestPartialAuthorization"] = mapFromRequestPartialAuthorization(cardPresentParams.requestPartialAuthorization?.uintValue)
+        if let requestPartialAuthorization = cardPresentParams.requestPartialAuthorization {
+            cardPresentMap["requestPartialAuthorization"] = mapFromRequestPartialAuthorization(requestPartialAuthorization.uintValue)
+        }
         cardPresentMap["requestReauthorization"] = mapFromRequestReauthorization(cardPresentParams.requestReauthorization?.uintValue)
         if let installments = cardPresentParams.installments {
             cardPresentMap["installments"] = mapFromInstallmentDetails(installments)
@@ -501,6 +512,8 @@ class Mappers {
             return PaymentMethodType.paypay
         case "klarna":
             return PaymentMethodType.klarna
+        case "swish":
+            return PaymentMethodType.swish
         default:
             return PaymentMethodType.unknown
         }
@@ -868,6 +881,7 @@ class Mappers {
         result["reader"] = cardPresent.reader
         result["paymentAccountReference"] = cardPresent.paymentAccountReference
         result["multicaptureStatus"] = mapFromMulticaptureStatus(cardPresent.multicaptureStatus)
+        result["overcaptureStatus"] = mapFromOvercaptureStatus(cardPresent.overcaptureStatus)
         result["reauthorizationStatus"] = mapFromReauthorizationStatus(cardPresent.reauthorizationStatus)
         result["captureBefore"] = convertDateToUnixTimestamp(date: cardPresent.captureBefore)
         result["reauthorizeBefore"] = convertDateToUnixTimestamp(date: cardPresent.reauthorizeBefore)
@@ -948,6 +962,13 @@ class Mappers {
         var result: [String: String] = [:]
         result["location"] = klarna.location
         result["reader"] = klarna.reader
+        return NSDictionary(dictionary: result)
+    }
+
+    class func mapFromSwish(_ swish: SwishDetails) -> NSDictionary {
+        var result: [String: String] = [:]
+        result["location"] = swish.location
+        result["reader"] = swish.reader
         return NSDictionary(dictionary: result)
     }
 
@@ -1033,6 +1054,7 @@ class Mappers {
         case PaymentMethodType.paynow: return "paynow"
         case PaymentMethodType.paypay: return "paypay"
         case PaymentMethodType.klarna: return "klarna"
+        case PaymentMethodType.swish: return "swish"
         @unknown default: return "unknown"
         }
     }
@@ -1052,6 +1074,7 @@ class Mappers {
         result["paynowDetails"] = paymentMethodDetails.paynow.map { mapFromPaynow($0) }
         result["paypayDetails"] = paymentMethodDetails.paypay.map { mapFromPaypay($0) }
         result["klarnaDetails"] = paymentMethodDetails.klarna.map { mapFromKlarna($0) }
+        result["swishDetails"] = paymentMethodDetails.swish.map { mapFromSwish($0) }
         result["cardDetails"] = paymentMethodDetails.card.map { mapFromCardDetails($0) }
 
         return NSDictionary(dictionary: result)
@@ -1195,6 +1218,7 @@ class Mappers {
         result["paynowDetails"] = paymentMethod.paynow.map { mapFromPaynow($0) }
         result["paypayDetails"] = paymentMethod.paypay.map { mapFromPaypay($0) }
         result["klarnaDetails"] = paymentMethod.klarna.map { mapFromKlarna($0) }
+        result["swishDetails"] = paymentMethod.swish.map { mapFromSwish($0) }
         result["customer"] = paymentMethod.customer
 
         return NSDictionary(dictionary: result)
@@ -1544,6 +1568,7 @@ class Mappers {
                 consentBuilder.setNotice(notice)
             }
         }
+        // localSwiftPackage pins a StripeTerminal.xcframework from before the GA aliases.
         surchargeConfigBuilder.setSurchargeConsent(try consentBuilder.build())
 
       return try surchargeConfigBuilder.build()
@@ -1652,6 +1677,7 @@ class Mappers {
 
         if let surchargeDict = params["surcharge"] as? [String: Any],
            let surchargeConfiguration = try mapToSurchargeConfiguration(from: surchargeDict) {
+            // localSwiftPackage pins a StripeTerminal.xcframework from before the GA aliases.
             confirmConfigBuilder.setSurchargeConfiguration(surchargeConfiguration)
         }
 

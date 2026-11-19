@@ -47,6 +47,7 @@ const CURRENCIES = [
 ];
 
 const CAPTURE_METHODS = [
+  { value: 'automatic_async', label: 'automatic_async' },
   { value: 'automatic', label: 'automatic' },
   { value: 'manual', label: 'manual' },
 ];
@@ -73,7 +74,7 @@ export default function CollectCardPaymentScreen() {
     applicationFeeAmount?: string;
     requestExtendedAuthorization?: boolean;
     requestIncrementalAuthorizationSupport?: boolean;
-    captureMethod: 'automatic' | 'manual';
+    captureMethod: 'automatic' | 'automatic_async' | 'manual';
     requestedPriority: 'domestic' | 'international' | '';
     offlineBehavior: 'prefer_online' | 'require_online' | 'force_offline';
     offlineModeTransactionLimit: string;
@@ -384,8 +385,8 @@ export default function CollectCardPaymentScreen() {
           description: 'terminal.confirmPaymentIntent',
           metadata: {
             paymententIntentId: paymentIntent.id ? paymentIntent.id : 'null',
-            chargeId: paymentIntent?.charges[0]?.id
-              ? paymentIntent.charges[0].id
+            chargeId: paymentIntent?.latestChargeId
+              ? paymentIntent.latestChargeId
               : 'null',
           },
         },
@@ -393,8 +394,8 @@ export default function CollectCardPaymentScreen() {
     });
 
     // Set last successful charge Id in context for refunding later
-    if (paymentIntent?.charges[0]?.id) {
-      setLastSuccessfulChargeId(paymentIntent.charges[0].id);
+    if (paymentIntent?.latestChargeId) {
+      setLastSuccessfulChargeId(paymentIntent.latestChargeId);
     }
 
     if (paymentIntent?.status === 'succeeded') {

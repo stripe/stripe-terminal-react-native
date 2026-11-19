@@ -266,6 +266,8 @@ export type ConnectTapToPayParams = {
   merchantDisplayName?: string;
   tosAcceptancePermitted?: boolean;
   autoReconnectOnUnexpectedDisconnect?: boolean;
+  onPaymentMethodSelectionRequired?: PaymentMethodSelectionHandler;
+  onQrCodeDisplayRequired?: QrCodeDisplayHandler;
   /**
    * iOS only. Setting this on Android will result in an error.
    * Only `none`, `required`, and `random` types are supported for
@@ -392,6 +394,7 @@ export const PaymentMethodType = {
   PayNow: 'paynow',
   PayPay: 'paypay',
   Klarna: 'klarna',
+  Swish: 'swish',
 } as const;
 
 export type PaymentMethodType =
@@ -446,7 +449,7 @@ export type CreatePaymentIntentParams = CreatePaymentIntentIOSParams & {
   customer?: string;
   transferGroup?: string;
   metadata?: Record<string, string>;
-  paymentMethodOptions?: PaymentMethodOptions;
+  paymentMethodOptions?: PaymentMethodOptionsParams;
   captureMethod?: 'automatic' | 'automatic_async' | 'manual';
   offlineBehavior?: 'prefer_online' | 'require_online' | 'force_offline';
 };
@@ -461,7 +464,7 @@ export type CreatePaymentIntentIOSParams = {
   paymentMethodTypes?: PaymentMethodType[];
 };
 
-export type PaymentMethodOptions = {
+export type PaymentMethodOptionsParams = {
   requestExtendedAuthorization?: boolean;
   requestIncrementalAuthorizationSupport?: boolean;
   requestedPriority?: string;
@@ -477,14 +480,16 @@ export type InstallmentsParameters = {
   enabled?: boolean;
 };
 
-export type PaymentMethodOptionsResponse = {
-  cardPresent: {
-    requestExtendedAuthorization: boolean;
-    requestIncrementalAuthorizationSupport: boolean;
-    requestPartialAuthorization: string;
-    requestReauthorization?: 'if_available' | 'never';
-    installments?: InstallmentDetails;
-  };
+export type CardPresentOptions = {
+  requestExtendedAuthorization?: boolean;
+  requestIncrementalAuthorizationSupport?: boolean;
+  requestPartialAuthorization?: string;
+  requestReauthorization?: 'if_available' | 'never';
+  installments?: InstallmentDetails;
+};
+
+export type PaymentMethodOptions = {
+  cardPresent?: CardPresentOptions;
 };
 
 export type MotoConfiguration = {
@@ -531,7 +536,7 @@ export type Surcharge = {
 };
 
 export type SurchargeConsent = {
-  notice: string;
+  notice?: string;
   collection: SurchargeConsentCollection;
 };
 
@@ -575,7 +580,7 @@ export type ProcessSetupIntentParams = {
 
 export type AllowRedisplay = 'always' | 'limited' | 'unspecified';
 
-export type CollectionReason = 'saveCard' | 'verify' | 'unspecified';
+export type CollectionReason = 'saveCard' | 'verify';
 
 export type CreateSetupIntentParams = {
   customer?: string;
@@ -654,6 +659,7 @@ export type RefundParams =
   | RefundParamsWithChargeId;
 
 export type MulticaptureStatus = 'unknown' | 'unavailable' | 'available';
+export type OvercaptureStatus = 'unknown' | 'notSupported' | 'supported';
 export type ReauthorizationStatus = 'unknown' | 'unavailable' | 'available';
 
 export type CardPresentDetails = {
@@ -677,6 +683,7 @@ export type CardPresentDetails = {
   location?: string;
   reader?: string;
   multicaptureStatus?: MulticaptureStatus;
+  overcaptureStatus?: OvercaptureStatus;
   reauthorizationStatus?: ReauthorizationStatus;
   captureBefore?: string;
   reauthorizeBefore?: string;
@@ -764,6 +771,11 @@ export type KlarnaDetails = {
   reader?: string;
 };
 
+export type SwishDetails = {
+  location?: string;
+  reader?: string;
+};
+
 export type ReceiptDetails = {
   accountType?: string;
   applicationCryptogram?: string;
@@ -777,7 +789,7 @@ export type ReceiptDetails = {
 };
 
 export type Wallet = {
-  type: string;
+  type?: string;
 };
 
 export type PaymentMethodDetails = {
@@ -789,6 +801,7 @@ export type PaymentMethodDetails = {
   paynowDetails?: PaynowDetails;
   paypayDetails?: PaypayDetails;
   klarnaDetails?: KlarnaDetails;
+  swishDetails?: SwishDetails;
   cardDetails?: CardDetails;
 };
 
@@ -871,7 +884,7 @@ export type UserCallbacks = {
   onDidRequestReaderInput?(input: Reader.InputOptions[]): void;
   onDidRequestReaderDisplayMessage?(message: Reader.DisplayMessage): void;
 
-  onDidChangeConnectionStatus?(status: Reader.ConnectionStatus): void;
+  onDidChangeConnectionStatus?(status: ConnectionStatus): void;
   onDidChangePaymentStatus?(status: PaymentStatus): void;
 
   onDidStartReaderReconnect?(
@@ -884,6 +897,11 @@ export type UserCallbacks = {
   onDidChangeOfflineStatus?(status: OfflineStatus): void;
   onDidForwardPaymentIntent?(
     paymentIntent: PaymentIntent.Type,
+    error?: StripeError
+  ): void;
+  /** Android only: the native iOS SDK does not support offline SetupIntents. */
+  onDidForwardSetupIntent?(
+    setupIntent: SetupIntent.Type,
     error?: StripeError
   ): void;
   onDidForwardingFailure?(error: StripeError): void;
@@ -909,6 +927,7 @@ export namespace PaymentMethod {
     paynowDetails?: PaynowDetails;
     paypayDetails?: PaypayDetails;
     klarnaDetails?: KlarnaDetails;
+    swishDetails?: SwishDetails;
     cardDetails?: CardDetails;
     livemode: boolean;
     metadata?: Record<string, string>;
@@ -1066,7 +1085,7 @@ export type CollectedData = {
 
 export interface CollectDataParams {
   collectDataType: CollectDataType;
-  customerCancellation: CustomerCancellation;
+  customerCancellation?: CustomerCancellation;
 }
 
 export enum CollectDataType {
@@ -1086,8 +1105,7 @@ export type CollectDataResultType =
 
 export type CustomerCancellation =
   | 'enableIfAvailable'
-  | 'disableIfAvailable'
-  | 'unspecified';
+  | 'disableIfAvailable';
 
 export type TapToPayUxConfiguration = {
   tapZone?: TapZone;

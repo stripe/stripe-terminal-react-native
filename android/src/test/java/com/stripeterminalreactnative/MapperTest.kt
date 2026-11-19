@@ -14,7 +14,9 @@ import com.stripe.stripeterminal.external.models.BatteryStatus
 import com.stripe.stripeterminal.external.models.BuzzerVolumeLevel
 import com.stripe.stripeterminal.external.models.DeviceType
 import com.stripe.stripeterminal.external.models.CardPresentRequestPartialAuthorization
+import com.stripe.stripeterminal.external.models.CardPresentRequestReauthorization
 import com.stripe.stripeterminal.external.models.MulticaptureStatus
+import com.stripe.stripeterminal.external.models.OvercaptureStatus
 import com.stripe.stripeterminal.external.models.CardPresentOptions
 import com.stripe.stripeterminal.external.models.CollectDataType
 import com.stripe.stripeterminal.external.models.CollectSetupIntentConfiguration
@@ -142,9 +144,9 @@ class MapperTest {
     }
 
     @Test
-    fun `test mapToPaymentMethodDetailsType maps affirm paynow paypay klarna`() {
+    fun `test mapToPaymentMethodDetailsType maps affirm paynow paypay klarna swish`() {
         val paymentMethodTypes = mockk<ReadableArray>()
-        every { paymentMethodTypes.toArrayList() } returns arrayListOf("affirm", "paynow", "paypay", "klarna")
+        every { paymentMethodTypes.toArrayList() } returns arrayListOf("affirm", "paynow", "paypay", "klarna", "swish")
 
         val result = mapToPaymentMethodDetailsType(paymentMethodTypes)
 
@@ -154,7 +156,8 @@ class MapperTest {
                     PaymentMethodType.AFFIRM,
                     PaymentMethodType.PAYNOW,
                     PaymentMethodType.PAYPAY,
-                    PaymentMethodType.KLARNA
+                    PaymentMethodType.KLARNA,
+                    PaymentMethodType.SWISH
                 )
             )
         )
@@ -178,6 +181,14 @@ class MapperTest {
         assertEquals(mapFromMulticaptureStatus(MulticaptureStatus.AVAILABLE), "available")
         assertEquals(mapFromMulticaptureStatus(MulticaptureStatus.UNAVAILABLE), "unavailable")
         assertEquals(mapFromMulticaptureStatus(null), "unknown")
+    }
+
+    @Test
+    fun `test mapFromOvercaptureStatus transform`() {
+        assertEquals(mapFromOvercaptureStatus(OvercaptureStatus.UNKNOWN), "unknown")
+        assertEquals(mapFromOvercaptureStatus(OvercaptureStatus.NOT_SUPPORTED), "notSupported")
+        assertEquals(mapFromOvercaptureStatus(OvercaptureStatus.SUPPORTED), "supported")
+        assertEquals(mapFromOvercaptureStatus(null), "unknown")
     }
 
     @Test
@@ -221,16 +232,52 @@ class MapperTest {
     }
 
     @Test
-    fun `test mapFromPaymentMethodOptions omits absent installments`() {
-        val cardPresent = mockk<CardPresentOptions>(relaxed = true)
+    fun `test mapFromPaymentMethodOptions omits absent cardPresent`() {
+        val options = mockk<PaymentMethodOptions>()
+        every { options.cardPresent } returns null
+
+        val result = assertNotNull(mapFromPaymentMethodOptions(options))
+
+        assertEquals(JavaOnlyMap(), result)
+    }
+
+    @Test
+    fun `test mapFromPaymentMethodOptions omits absent authorization fields`() {
+        val cardPresent = mockk<CardPresentOptions>()
+        every { cardPresent.requestExtendedAuthorization } returns null
+        every { cardPresent.requestIncrementalAuthorizationSupport } returns null
+        every { cardPresent.requestPartialAuthorization } returns null
+        every { cardPresent.requestReauthorization } returns null
         every { cardPresent.installments } returns null
-        val options = mockk<PaymentMethodOptions>(relaxed = true)
+        val options = mockk<PaymentMethodOptions>()
         every { options.cardPresent } returns cardPresent
 
-        val result = mapFromPaymentMethodOptions(options)
-        val cardPresentMap = result?.getMap("cardPresent")
+        val result = assertNotNull(mapFromPaymentMethodOptions(options))
+        val cardPresentMap = assertNotNull(result.getMap("cardPresent"))
 
-        assertFalse(cardPresentMap?.hasKey("installments") == true)
+        assertEquals(JavaOnlyMap(), cardPresentMap)
+    }
+
+    @Test
+    fun `test mapFromPaymentMethodOptions preserves authorization values without installments`() {
+        val cardPresent = mockk<CardPresentOptions>()
+        every { cardPresent.requestExtendedAuthorization } returns false
+        every { cardPresent.requestIncrementalAuthorizationSupport } returns true
+        every { cardPresent.requestPartialAuthorization } returns CardPresentRequestPartialAuthorization.IF_AVAILABLE
+        every { cardPresent.requestReauthorization } returns CardPresentRequestReauthorization.NEVER
+        every { cardPresent.installments } returns null
+        val options = mockk<PaymentMethodOptions>()
+        every { options.cardPresent } returns cardPresent
+
+        val result = assertNotNull(mapFromPaymentMethodOptions(options))
+        val cardPresentMap = assertNotNull(result.getMap("cardPresent"))
+
+        assertEquals(JavaOnlyMap().apply {
+            putBoolean("requestExtendedAuthorization", false)
+            putBoolean("requestIncrementalAuthorizationSupport", true)
+            putString("requestPartialAuthorization", "if_available")
+            putString("requestReauthorization", "never")
+        }, cardPresentMap)
     }
 
     @Test

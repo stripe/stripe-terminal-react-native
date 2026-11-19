@@ -44,6 +44,12 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapFromMulticaptureStatus(.unknown), "unknown")
     }
 
+    func testMapFromOvercaptureStatus() {
+        XCTAssertEqual(Mappers.mapFromOvercaptureStatus(.unknown), "unknown")
+        XCTAssertEqual(Mappers.mapFromOvercaptureStatus(.notSupported), "notSupported")
+        XCTAssertEqual(Mappers.mapFromOvercaptureStatus(.supported), "supported")
+    }
+
     func testMapFromRequestReauthorization() {
         XCTAssertEqual(Mappers.mapFromRequestReauthorization(CardPresentRequestReauthorization.ifAvailable.rawValue), "if_available")
         XCTAssertEqual(Mappers.mapFromRequestReauthorization(CardPresentRequestReauthorization.never.rawValue), "never")
@@ -92,6 +98,7 @@ final class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToPaymentMethodType("paynow"), PaymentMethodType.paynow)
         XCTAssertEqual(Mappers.mapToPaymentMethodType("paypay"), PaymentMethodType.paypay)
         XCTAssertEqual(Mappers.mapToPaymentMethodType("klarna"), PaymentMethodType.klarna)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType("swish"), PaymentMethodType.swish)
         XCTAssertEqual(Mappers.mapToPaymentMethodType("adbPay"), PaymentMethodType.unknown)
     }
 
@@ -109,8 +116,11 @@ final class MappersTests: XCTestCase {
         )
     }
 
-    func testMapFromPaymentMethodOptionsOmitsAbsentInstallments() throws {
-        let cardPresentParameters = try CardPresentParametersBuilder().build()
+    func testMapFromPaymentMethodOptionsOmitsAbsentAuthorizationFieldsAndInstallments() throws {
+        let cardPresentParameters = try CardPresentParametersBuilder()
+            .setRequestExtendedAuthorization(false)
+            .setRequestIncrementalAuthorizationSupport(false)
+            .build()
         let options = try PaymentMethodOptionsParametersBuilder(
             cardPresentParameters: cardPresentParameters
         ).build()
@@ -118,7 +128,38 @@ final class MappersTests: XCTestCase {
         let result = try XCTUnwrap(Mappers.mapFromPaymentMethodOptions(options))
         let cardPresent = try XCTUnwrap(result["cardPresent"] as? NSDictionary)
 
+        XCTAssertEqual(cardPresent["requestExtendedAuthorization"] as? Bool, false)
+        XCTAssertEqual(cardPresent["requestIncrementalAuthorizationSupport"] as? Bool, false)
+        XCTAssertNil(cardPresent["requestPartialAuthorization"])
+        XCTAssertNil(cardPresent["requestReauthorization"])
         XCTAssertNil(cardPresent["installments"])
+    }
+
+    func testMapFromPaymentMethodOptionsPreservesAuthorizationValues() throws {
+        for (partialAuthorization, reauthorization) in [
+            (CardPresentRequestPartialAuthorization.ifAvailable, CardPresentRequestReauthorization.never),
+            (.never, .ifAvailable)
+        ] {
+            let cardPresentParameters = try CardPresentParametersBuilder()
+                .setRequestExtendedAuthorization(true)
+                .setRequestIncrementalAuthorizationSupport(true)
+                .setRequestPartialAuthorization(partialAuthorization)
+                .setRequestReauthorization(reauthorization)
+                .build()
+            let options = try PaymentMethodOptionsParametersBuilder(
+                cardPresentParameters: cardPresentParameters
+            ).build()
+
+            let result = try XCTUnwrap(Mappers.mapFromPaymentMethodOptions(options))
+            let cardPresent = try XCTUnwrap(result["cardPresent"] as? NSDictionary)
+
+            XCTAssertEqual(cardPresent["requestExtendedAuthorization"] as? Bool, true)
+            XCTAssertEqual(cardPresent["requestIncrementalAuthorizationSupport"] as? Bool, true)
+            XCTAssertEqual(cardPresent["requestPartialAuthorization"] as? String,
+                           partialAuthorization == .ifAvailable ? "if_available" : "never")
+            XCTAssertEqual(cardPresent["requestReauthorization"] as? String,
+                           reauthorization == .ifAvailable ? "if_available" : "never")
+        }
     }
 
     func testMapFromInstallmentDetailsMapsEmptyPlans() throws {
@@ -1178,6 +1219,7 @@ final class MappersTests: XCTestCase {
         details.setValue("visa", forKey: "brand")
         details.setValue("contact_emv", forKey: "readMethod")
         details.setValue("par_test", forKey: "paymentAccountReference")
+        details.setValue(NSNumber(value: OvercaptureStatus.supported.rawValue), forKey: "overcaptureStatus")
 
         guard let typedDetails = details as? CardPresentDetails else {
             XCTFail("SCPCardPresentDetails instance could not be cast to CardPresentDetails")
@@ -1187,6 +1229,7 @@ final class MappersTests: XCTestCase {
 
         XCTAssertEqual(mapped["readMethod"] as? String, "contact_emv")
         XCTAssertEqual(mapped["paymentAccountReference"] as? String, "par_test")
+        XCTAssertEqual(mapped["overcaptureStatus"] as? String, "supported")
     }
 
     func testMapFromReceiptDetails_usesCanonicalTerminalVerificationResultKey() {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1F1142A2716B4EF0025FC13 /* ReaderDelegateForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F1142B2716B4EF0025FC13 /* ReaderDelegateForwarder.swift */; };
 		24C7E17E2716B4EF0025FC13 /* Mappers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E17D2716B4EF0025FC13 /* Mappers.swift */; };
 		24C7E1802716B5100025FC13 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E17F2716B5100025FC13 /* Errors.swift */; };
 		24C7E1842716E67A0025FC13 /* TokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C7E1832716E67A0025FC13 /* TokenProvider.swift */; };
@@ -26,6 +27,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A1F1142B2716B4EF0025FC13 /* ReaderDelegateForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderDelegateForwarder.swift; sourceTree = "<group>"; };
 		134814201AA4EA6300B7C361 /* libStripeTerminalReactNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStripeTerminalReactNative.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		24C7E17D2716B4EF0025FC13 /* Mappers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mappers.swift; sourceTree = "<group>"; };
 		24C7E17F2716B5100025FC13 /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				24C7E1832716E67A0025FC13 /* TokenProvider.swift */,
+				A1F1142B2716B4EF0025FC13 /* ReaderDelegateForwarder.swift */,
 				24C7E17F2716B5100025FC13 /* Errors.swift */,
 				24C7E17D2716B4EF0025FC13 /* Mappers.swift */,
 				F4FF95D6245B92E800C19C63 /* StripeTerminalReactNative.swift */,
@@ -127,6 +130,7 @@
 				24C7E17E2716B4EF0025FC13 /* Mappers.swift in Sources */,
 				24C7E1802716B5100025FC13 /* Errors.swift in Sources */,
 				24C7E1842716E67A0025FC13 /* TokenProvider.swift in Sources */,
+				A1F1142A2716B4EF0025FC13 /* ReaderDelegateForwarder.swift in Sources */,
 				F4FF95D7245B92E800C19C63 /* StripeTerminalReactNative.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

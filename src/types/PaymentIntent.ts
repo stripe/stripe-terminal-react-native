@@ -4,7 +4,7 @@ import type {
   OfflineDetails,
   PaymentMethod,
   PaymentMethodType,
-  PaymentMethodOptionsResponse,
+  PaymentMethodOptions,
   NextAction,
   ApiErrorInformation,
 } from './';
@@ -38,7 +38,7 @@ export namespace PaymentIntent {
     onBehalfOf?: string;
     paymentMethod?: PaymentMethod.Type;
     paymentMethodId?: string;
-    paymentMethodOptions?: PaymentMethodOptionsResponse;
+    paymentMethodOptions?: PaymentMethodOptions;
     paymentMethodTypes?: PaymentMethodType[];
     receiptEmail?: string;
     review?: string;

@@ -222,7 +222,7 @@ describe('stringifyRedactedResponse', () => {
         errorSource: 'native',
         stripeError: {
           name: 'StripeError',
-          message: 'Declined for private@example.com',
+          message: 'Payment declined',
           code: 'DECLINED_BY_STRIPE_API',
           nativeErrorCode: 'api_error',
           metadata: { private: 'value' },
@@ -247,7 +247,7 @@ describe('stringifyRedactedResponse', () => {
         errorSource: 'native',
         stripeError: {
           name: 'StripeError',
-          message: 'Declined for private@example.com',
+          message: 'Payment declined',
           code: 'DECLINED_BY_STRIPE_API',
           nativeErrorCode: 'api_error',
           metadata: REDACTED,

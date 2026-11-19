@@ -169,6 +169,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         Terminal.shared.delegate = self
+        ReaderDelegateForwarder.shared.target = self
 
         resolve(["reader": connectedReader])
     }
@@ -184,6 +185,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 if let error = error as NSError? {
                     resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
                 } else {
+                    if self.collectPaymentMethodCancelable === cancelable {
+                        self.collectPaymentMethodCancelable = nil
+                    }
                     resolve([:])
                 }
             }
@@ -201,6 +205,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 if let error = error as NSError? {
                     resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
                 } else {
+                    if self.processRefundCancelable === cancelable {
+                        self.processRefundCancelable = nil
+                    }
                     resolve([:])
                 }
             }
@@ -217,6 +224,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
             } else {
+                if self.confirmPaymentIntentCancelable === cancelable {
+                    self.confirmPaymentIntentCancelable = nil
+                }
                 resolve([:])
             }
         }
@@ -232,6 +242,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
             } else {
+                if self.processPaymentIntentCancelable === cancelable {
+                    self.processPaymentIntentCancelable = nil
+                }
                 resolve([:])
             }
         }
@@ -247,6 +260,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
             } else {
+                if self.confirmSetupIntentCancelable === cancelable {
+                    self.confirmSetupIntentCancelable = nil
+                }
                 resolve([:])
             }
         }
@@ -262,6 +278,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             if let error = error as NSError? {
                 resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
             } else {
+                if self.processSetupIntentCancelable === cancelable {
+                    self.processSetupIntentCancelable = nil
+                }
                 resolve([:])
             }
         }
@@ -278,6 +297,9 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 if let error = error as NSError? {
                     resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
                 } else {
+                    if self.collectSetupIntentCancelable === cancelable {
+                        self.collectSetupIntentCancelable = nil
+                    }
                     resolve([:])
                 }
             }
@@ -513,18 +535,17 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig) { reader, error in
-            if let reader {
+        Task { @MainActor in
+            do {
+                let reader = try await Terminal.shared.connectReader(selectedReader, connectionConfig: connectionConfig)
                 resolve(["reader": Mappers.mapFromReader(reader)])
-            } else if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-            } else {
-                resolve([:])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, source: .native))
             }
         }
     }
 
-    private func getConnectionConfig(
+    func getConnectionConfig(
         locationId: String?,
         autoReconnectOnUnexpectedDisconnect: Bool,
         failIfInUse: Bool,
@@ -533,12 +554,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         tosAcceptancePermitted: Bool,
         testReaderUpdate: TestReaderUpdate?,
         discoveryMethod: DiscoveryMethod) throws -> ConnectionConfiguration? {
+        let delegate = ReaderDelegateForwarder.shared
         switch discoveryMethod {
         case .bluetoothScan, .bluetoothProximity:
             guard let locationId else {
                 throw BridgeError(nsError: NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location ID is required for Bluetooth connection"]))
             }
-            let builder = BluetoothConnectionConfigurationBuilder(delegate: self, locationId: locationId)
+            let builder = BluetoothConnectionConfigurationBuilder(delegate: delegate, locationId: locationId)
                .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                .setReaderPaymentInteractionDelegate(self)
             if let testReaderUpdate {
@@ -546,14 +568,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             }
             return try builder.build()
         case .internet:
-            return try InternetConnectionConfigurationBuilder(delegate: self)
+            return try InternetConnectionConfigurationBuilder(delegate: delegate)
                 .setFailIfInUse(failIfInUse)
                 .build()
         case .tapToPay:
             guard let locationId else {
                 throw BridgeError(nsError: NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location ID is required for Tap to Pay connection"]))
             }
-            let builder = TapToPayConnectionConfigurationBuilder(delegate: self, locationId: locationId)
+            let builder = TapToPayConnectionConfigurationBuilder(delegate: delegate, locationId: locationId)
                 .setMerchantDisplayName(merchantDisplayName)
                 .setOnBehalfOf(onBehalfOf)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
@@ -567,7 +589,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             guard let locationId else {
                 throw BridgeError(nsError: NSError(domain: "StripeTerminal", code: -1, userInfo: [NSLocalizedDescriptionKey: "Location ID is required for USB connection"]))
             }
-            let builder = UsbConnectionConfigurationBuilder(delegate: self, locationId: locationId)
+            let builder = UsbConnectionConfigurationBuilder(delegate: delegate, locationId: locationId)
                 .setAutoReconnectOnUnexpectedDisconnect(autoReconnectOnUnexpectedDisconnect)
                 .setReaderPaymentInteractionDelegate(self)
             if let testReaderUpdate {
@@ -610,24 +632,30 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
 
     @objc(disconnectReader:rejecter:)
     func disconnectReader(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        Terminal.shared.disconnectReader() { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-            } else {
+        Task { @MainActor in
+            let collectCancelable = self.collectPaymentMethodCancelable
+            do {
+                try await Terminal.shared.disconnectReader()
+                if self.collectPaymentMethodCancelable === collectCancelable {
+                    self.collectPaymentMethodCancelable = nil
+                }
                 self.clearAllIntentMaps()
                 resolve([:])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, source: .native))
             }
         }
     }
 
     @objc(rebootReader:rejecter:)
     func rebootReader(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        Terminal.shared.rebootReader() { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-            } else {
+        Task { @MainActor in
+            do {
+                try await Terminal.shared.rebootReader()
                 self.clearAllIntentMaps()
                 resolve([:])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, source: .native))
             }
         }
     }
@@ -794,13 +822,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         let uuid = UUID().uuidString
-        Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig) { pi, error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
-            } else if let paymentIntent = pi {
+        Task { @MainActor in
+            do {
+                let paymentIntent = try await Terminal.shared.createPaymentIntent(paymentParams, createConfig: offlineCreateConfig)
                 self.paymentIntents[uuid] = paymentIntent
                 let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": mappedPaymentIntent])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, uuid: uuid, source: .native))
             }
         }
     }
@@ -837,13 +866,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         let uuid = UUID().uuidString
-        Terminal.shared.createSetupIntent(setupIntentParams) { si, error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
-            } else if let setupIntent = si {
+        Task { @MainActor in
+            do {
+                let setupIntent = try await Terminal.shared.createSetupIntent(setupIntentParams)
                 self.setupIntents[uuid] = setupIntent
                 let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 resolve(["setupIntent": mappedSetupIntent])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, uuid: uuid, source: .native))
             }
         }
     }
@@ -869,6 +899,7 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 self.collectPaymentMethodCancelable = nil
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
             } else if let paymentIntent = pi {
+                // Successful collection keeps the transaction session cancelable until confirmation.
                 // Always store the latest instance of the PaymentIntent so we pass the latest instance back in
                 // to the confirm call.
                 self.paymentIntents[uuid] = paymentIntent
@@ -886,13 +917,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         let uuid = UUID().uuidString
-        Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret) { pi, error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
-            } else if let paymentIntent = pi {
+        Task { @MainActor in
+            do {
+                let paymentIntent = try await Terminal.shared.retrievePaymentIntent(clientSecret: clientSecret)
                 self.paymentIntents[uuid] = paymentIntent
                 let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
                 resolve(["paymentIntent": mappedPaymentIntent])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, uuid: uuid, source: .native))
             }
         }
     }
@@ -950,12 +982,13 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        Terminal.shared.listLocations(parameters: listParameters) { locations, hasMore, error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-            } else if let locations = locations {
+        Task { @MainActor in
+            do {
+                let (locations, hasMore) = try await Terminal.shared.listLocations(parameters: listParameters)
                 let list = Mappers.mapFromLocationsList(locations)
                 resolve(["locations": list, "hasMore": hasMore])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, source: .native))
             }
         }
     }
@@ -990,6 +1023,10 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
     }
 
     func terminal(_ terminal: Terminal, didChangeConnectionStatus status: ConnectionStatus) {
+        if status == .notConnected {
+            // Do not reuse a collection handle from the reader session that ended.
+            self.collectPaymentMethodCancelable = nil
+        }
         let result = Mappers.mapFromConnectionStatus(status)
         sendEvent(withName: ReactNativeConstants.CHANGE_CONNECTION_STATUS.rawValue, body: ["result": result])
     }
@@ -1031,13 +1068,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         guard let (paymentIntent, uuid) = getPaymentIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
-        Terminal.shared.cancelPaymentIntent(paymentIntent) { pi, collectError  in
-            if let error = collectError as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
-            } else if let paymentIntent = pi {
+        Task { @MainActor in
+            do {
+                let canceledPaymentIntent = try await Terminal.shared.cancelPaymentIntent(paymentIntent)
                 self.paymentIntents[uuid] = nil
-                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(paymentIntent, uuid: uuid)
+                let mappedPaymentIntent = Mappers.mapFromPaymentIntent(canceledPaymentIntent, uuid: uuid)
                 resolve(["paymentIntent": mappedPaymentIntent])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, uuid: uuid, source: .native))
             }
         }
     }
@@ -1091,11 +1129,12 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
 
-        Terminal.shared.setReaderDisplay(cart) { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-            } else {
+        Task { @MainActor in
+            do {
+                try await Terminal.shared.setReaderDisplay(cart)
                 resolve([:])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, source: .native))
             }
         }
     }
@@ -1105,24 +1144,26 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         guard let (setupIntent, uuid) = getSetupIntentAndUuid(from: params, resolve: resolve) else {
             return
         }
-        Terminal.shared.cancelSetupIntent(setupIntent) { si, collectError  in
-            if let error = collectError as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
-            } else if let setupIntent = si {
+        Task { @MainActor in
+            do {
+                let canceledSetupIntent = try await Terminal.shared.cancelSetupIntent(setupIntent)
                 self.setupIntents[uuid] = nil
-                let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
+                let mappedSetupIntent = Mappers.mapFromSetupIntent(canceledSetupIntent, uuid: uuid)
                 resolve(["setupIntent": mappedSetupIntent])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, uuid: uuid, source: .native))
             }
         }
     }
 
     @objc(clearReaderDisplay:rejecter:)
     func clearReaderDisplay(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        Terminal.shared.clearReaderDisplay() { error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-            } else {
+        Task { @MainActor in
+            do {
+                try await Terminal.shared.clearReaderDisplay()
                 resolve([:])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, source: .native))
             }
         }
     }
@@ -1134,13 +1175,14 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
             return
         }
         let uuid = UUID().uuidString
-        Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret) { si, error in
-            if let error = error as NSError? {
-                resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
-            } else if let setupIntent = si {
+        Task { @MainActor in
+            do {
+                let setupIntent = try await Terminal.shared.retrieveSetupIntent(clientSecret: clientSecret)
                 self.setupIntents[uuid] = setupIntent
                 let mappedSetupIntent = Mappers.mapFromSetupIntent(setupIntent, uuid: uuid)
                 resolve(["setupIntent": mappedSetupIntent])
+            } catch {
+                resolve(Errors.createErrorFromNSError(nsError: error as NSError, uuid: uuid, source: .native))
             }
         }
     }
@@ -1156,8 +1198,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         self.collectSetupIntentCancelable = Terminal.shared.collectSetupIntentPaymentMethod(setupIntent, setupConfig: setupIntentConfiguration) { si, collectError  in
+            self.collectSetupIntentCancelable = nil
             if let error = collectError as NSError? {
-                self.collectSetupIntentCancelable = nil
                 resolve(Errors.createErrorFromNSError(nsError: error, uuid: uuid, source: .native))
             } else if let setupIntent = si {
                 self.setupIntents[uuid] = setupIntent
@@ -1184,7 +1226,6 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
                 resolve(["setupIntent": mappedSetupIntent])
             }
         }
-        self.collectSetupIntentCancelable = nil
     }
 
     @objc(processSetupIntent:resolver:rejecter:)
@@ -1265,15 +1306,15 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
         }
 
         self.processRefundCancelable = Terminal.shared.processRefund(refundParams, collectConfig: refundConfiguration) { refund, error in
+            self.processRefundCancelable = nil
             if let error = error as NSError? {
-                self.processRefundCancelable = nil
-              resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
-          } else if let refund = refund {
-              let refund = Mappers.mapFromRefund(refund)
-              resolve(["refund": refund])
-          } else {
-              resolve([:])
-          }
+                resolve(Errors.createErrorFromNSError(nsError: error, source: .native))
+            } else if let refund = refund {
+                let refund = Mappers.mapFromRefund(refund)
+                resolve(["refund": refund])
+            } else {
+                resolve([:])
+            }
         }
     }
 
@@ -1754,7 +1795,8 @@ class StripeTerminalReactNative: RCTEventEmitter, DiscoveryDelegate, MobileReade
      * Called when a payment interaction requires app-provided UI.
      * Payment method selection defaults to card when no JS handler is registered.
      * QR code display fails when no JS handler is registered.
-     * Note: Changes to MPOS callbacks require reader reconnect to take effect during development.
+     * These handlers are registered by connectReader, so React reloads require
+     * reconnecting to register them with the new JavaScript runtime.
      */
     func reader(_ reader: Reader, didRequestInteraction interaction: PaymentInteraction) {
         if let selection = interaction as? PaymentMethodSelectionInteraction {

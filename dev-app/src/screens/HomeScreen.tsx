@@ -129,6 +129,26 @@ export default function HomeScreen() {
         Toast.hide(toast);
       }, 3000);
     },
+    onDidForwardSetupIntent(setupIntent, error) {
+      let toastMsg = 'Setup Intent ' + setupIntent.id + ' forwarded. ';
+      if (error) {
+        toastMsg +=
+          'ErrorCode = ' + error.code + '. ErrorMsg = ' + getErrorMessage(error);
+      }
+      console.log(toastMsg);
+      const toast = Toast.show(toastMsg, {
+        duration: Toast.durations.LONG,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+
+      setTimeout(function () {
+        Toast.hide(toast);
+      }, 3000);
+    },
     onDidDisconnect(reason) {
       setPendingUpdate(null);
       if (reason === 'disconnectRequested' || reason === 'rebootRequested') {

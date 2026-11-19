@@ -23,6 +23,7 @@ import com.stripe.stripeterminal.external.models.Location
 import com.stripe.stripeterminal.external.models.NextAction
 import com.stripe.stripeterminal.external.models.OfflineCardPresentDetails
 import com.stripe.stripeterminal.external.models.OfflineDetails
+import com.stripe.stripeterminal.external.models.OvercaptureStatus
 import com.stripe.stripeterminal.external.models.PaymentIntent
 import com.stripe.stripeterminal.external.models.PaymentIntentStatus
 import com.stripe.stripeterminal.external.models.PaymentMethod
@@ -53,6 +54,7 @@ import com.stripe.stripeterminal.external.models.SetupIntentStatus
 import com.stripe.stripeterminal.external.models.SetupIntentUsage
 import com.stripe.stripeterminal.external.models.SurchargeDetails
 import com.stripe.stripeterminal.external.models.SurchargeStatus
+import com.stripe.stripeterminal.external.models.SwishDetails
 import com.stripe.stripeterminal.external.models.Tip
 import com.stripe.stripeterminal.external.models.UseStripeSdk
 import com.stripe.stripeterminal.external.models.Wallet
@@ -236,6 +238,7 @@ fun mockPaymentMethod() = mockk<PaymentMethod>(relaxed = true) {
     every { paynowDetails } returns mockPaynowDetails()
     every { paypayDetails } returns mockPaypayDetails()
     every { klarnaDetails } returns mockKlarnaDetails()
+    every { swishDetails } returns mockSwishDetails()
     every { cardDetails } returns mockCardDetails()
     every { customer } returns "myCustomer"
     every { id } returns "myId"
@@ -252,6 +255,7 @@ fun expectedPaymentMethod() = JavaOnlyMap().apply {
     putMap("paynowDetails", expectedPaynowDetails())
     putMap("paypayDetails", expectedPaypayDetails())
     putMap("klarnaDetails", expectedKlarnaDetails())
+    putMap("swishDetails", expectedSwishDetails())
     putMap("cardDetails", expectedCardDetails())
     putString("customer", "myCustomer")
     putString("id", "myId")
@@ -520,6 +524,7 @@ fun mockPaymentMethodDetails() =
         every { paynowDetails } returns mockPaynowDetails()
         every { paypayDetails } returns mockPaypayDetails()
         every { klarnaDetails } returns mockKlarnaDetails()
+        every { swishDetails } returns mockSwishDetails()
         every { cardDetails } returns mockCardDetails()
         every { type } returns PaymentMethodType.CARD
     }
@@ -532,6 +537,7 @@ fun expectedPaymentMethodDetails() = JavaOnlyMap().apply {
     putMap("paynowDetails", expectedPaynowDetails())
     putMap("paypayDetails", expectedPaypayDetails())
     putMap("klarnaDetails", expectedKlarnaDetails())
+    putMap("swishDetails", expectedSwishDetails())
     putMap("cardDetails", expectedCardDetails())
     putString("type", "card")
 }
@@ -706,6 +712,16 @@ fun expectedKlarnaDetails() = JavaOnlyMap().apply {
     putString("reader", "reader")
 }
 
+fun mockSwishDetails() = mockk<SwishDetails>(relaxed = true) {
+    every { location } returns "location"
+    every { reader } returns "reader"
+}
+
+fun expectedSwishDetails() = JavaOnlyMap().apply {
+    putString("location", "location")
+    putString("reader", "reader")
+}
+
 fun mockAmountDetails() = mockk<AmountDetails>(relaxed = true) {
     every { tip } returns mockTip()
     every { donation } returns mockDonation()
@@ -866,6 +882,7 @@ fun mockCardPresentDetails() = mockk<Charge.CardPresent>(relaxed = true) {
     every { location } returns "myLocation"
     every { reader } returns "myReader"
     every { paymentAccountReference } returns "myPaymentAccountReference"
+    every { overcaptureStatus } returns OvercaptureStatus.SUPPORTED
     every { captureBefore } returns 1000000
     every { reauthorizeBefore } returns 1100000
 }
@@ -892,6 +909,7 @@ fun expectedCardPresentDetails() = JavaOnlyMap().apply {
     putString("reader", "myReader")
     putString("paymentAccountReference", "myPaymentAccountReference")
     putString("multicaptureStatus", "available")
+    putString("overcaptureStatus", "supported")
     putString("reauthorizationStatus", "available")
     putString("captureBefore", "1000000000") // captureBefore is expressed in ms, so this is 1000x larger than the mock captureBefore
     putString("reauthorizeBefore", "1100000000") // reauthorizeBefore is expressed in ms, so this is 1000x larger than the mock captureBefore

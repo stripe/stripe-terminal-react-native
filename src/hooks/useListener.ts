@@ -44,8 +44,16 @@ function hasNestedResultError(
   );
 }
 
-export function useListener(name: string, callback: (...args: any[]) => any) {
+// `name` is `undefined` for events the current platform does not report, such
+// as ACCEPT_TERMS_OF_SERVICE on Android; there is nothing to listen for then.
+export function useListener(
+  name: string | undefined,
+  callback: (...args: any[]) => any
+) {
   useEffect(() => {
+    if (name === undefined) {
+      return;
+    }
     const listener = eventEmitter.addListener(name, (event) => {
       updateReaderSession(name, event);
       if (!event || typeof event !== 'object') {

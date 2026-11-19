@@ -110,6 +110,7 @@ import com.stripe.stripeterminal.external.models.SimulatedCollectInputsResult.Si
 import com.stripe.stripeterminal.external.models.SimulatedCollectInputsSkipBehavior
 import com.stripe.stripeterminal.external.models.SurchargeConfiguration
 import com.stripe.stripeterminal.external.models.SurchargeConsent
+import com.stripe.stripeterminal.external.models.SwishDetails
 import com.stripe.stripeterminal.external.models.TapToPayUxConfiguration
 import com.stripe.stripeterminal.external.models.TapToPayUpdateRequirement
 import com.stripe.stripeterminal.external.models.TestReaderUpdate
@@ -123,6 +124,7 @@ import com.stripe.stripeterminal.external.models.WechatPayDisplayQrCode
 import com.stripe.stripeterminal.external.models.PaymentOption
 import com.stripe.stripeterminal.external.models.QrCodeDisplayData
 import com.stripe.stripeterminal.external.models.MulticaptureStatus
+import com.stripe.stripeterminal.external.models.OvercaptureStatus
 import com.stripe.stripeterminal.log.LogLevel
 import java.util.Base64
 import com.stripe.stripeterminal.external.models.SurchargeConsentCollection as NativeSurchargeConsentCollection
@@ -271,6 +273,7 @@ internal fun mapFromReader(reader: Reader): ReadableMap = nativeMapOf {
     putMap("location", mapFromLocation(reader.location))
     putString("status", mapFromNetworkStatus(reader.networkStatus))
     putDoubleIfNotNull(this, "batteryLevel", reader.batteryLevel?.toDouble())
+    reader.isCharging?.let { putBoolean("isCharging", it) }
 }
 
 internal fun mapFromNetworkStatus(status: Reader.NetworkStatus?): String {
@@ -479,29 +482,28 @@ internal fun mapFromPaymentIntent(paymentIntent: PaymentIntent, uuid: String): R
 internal fun mapFromPaymentMethodOptions(paymentMethodOptions: PaymentMethodOptions?): ReadableMap? =
     paymentMethodOptions?.let {
         nativeMapOf {
-            putMap(
-                "cardPresent",
-                nativeMapOf {
-                    putBoolean(
-                        "requestExtendedAuthorization",
-                        it.cardPresent?.requestExtendedAuthorization ?: false
-                    )
-                    putBoolean(
-                        "requestIncrementalAuthorizationSupport",
-                        it.cardPresent?.requestIncrementalAuthorizationSupport ?: false
-                    )
-                    putString(
-                        "requestPartialAuthorization",
-                        mapFromRequestPartialAuthorization(it.cardPresent?.requestPartialAuthorization)
-                    )
-                    mapFromRequestReauthorization(it.cardPresent?.requestReauthorization)?.let {
-                        putString("requestReauthorization", it)
+            it.cardPresent?.let { cardPresent ->
+                putMap(
+                    "cardPresent",
+                    nativeMapOf {
+                        cardPresent.requestExtendedAuthorization?.let {
+                            putBoolean("requestExtendedAuthorization", it)
+                        }
+                        cardPresent.requestIncrementalAuthorizationSupport?.let {
+                            putBoolean("requestIncrementalAuthorizationSupport", it)
+                        }
+                        cardPresent.requestPartialAuthorization?.let {
+                            putString("requestPartialAuthorization", mapFromRequestPartialAuthorization(it))
+                        }
+                        mapFromRequestReauthorization(cardPresent.requestReauthorization)?.let {
+                            putString("requestReauthorization", it)
+                        }
+                        cardPresent.installments?.let { installments ->
+                            putMap("installments", mapFromInstallmentDetails(installments))
+                        }
                     }
-                    it.cardPresent?.installments?.let { installments ->
-                        putMap("installments", mapFromInstallmentDetails(installments))
-                    }
-                }
-            )
+                )
+            }
         }
     }
 
@@ -556,6 +558,14 @@ internal fun mapFromMulticaptureStatus(status: MulticaptureStatus?): String {
     return when (status) {
         MulticaptureStatus.AVAILABLE -> "available"
         MulticaptureStatus.UNAVAILABLE -> "unavailable"
+        else -> "unknown"
+    }
+}
+
+internal fun mapFromOvercaptureStatus(status: OvercaptureStatus?): String {
+    return when (status) {
+        OvercaptureStatus.NOT_SUPPORTED -> "notSupported"
+        OvercaptureStatus.SUPPORTED -> "supported"
         else -> "unknown"
     }
 }
@@ -1083,6 +1093,10 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod?): ReadableMap? =
                 "klarnaDetails",
                 mapFromKlarnaDetails(it.klarnaDetails)
             )
+            putMap(
+                "swishDetails",
+                mapFromSwishDetails(it.swishDetails)
+            )
             putMap("cardDetails", mapFromCardDetails(it.cardDetails))
             putString("customer", it.customer)
             putString("id", it.id)
@@ -1137,6 +1151,10 @@ private fun mapFromPaymentMethodDetails(paymentMethodDetails: PaymentMethodDetai
                 "klarnaDetails",
                 mapFromKlarnaDetails(paymentMethodDetails.klarnaDetails)
             )
+            putMap(
+                "swishDetails",
+                mapFromSwishDetails(paymentMethodDetails.swishDetails)
+            )
             if (paymentMethodDetails.cardDetails != null) {
                 putMap("cardDetails", mapFromCardDetails(paymentMethodDetails.cardDetails))
             }
@@ -1155,6 +1173,7 @@ internal fun mapFromPaymentMethodDetailsType(type: PaymentMethodType?): String {
         PaymentMethodType.PAYNOW -> "paynow"
         PaymentMethodType.PAYPAY -> "paypay"
         PaymentMethodType.KLARNA -> "klarna"
+        PaymentMethodType.SWISH -> "swish"
         else -> "unknown"
     }
 }
@@ -1191,6 +1210,7 @@ internal fun mapToPaymentMethodDetailsType(type: String): PaymentMethodType? {
         "paynow" -> PaymentMethodType.PAYNOW
         "paypay" -> PaymentMethodType.PAYPAY
         "klarna" -> PaymentMethodType.KLARNA
+        "swish" -> PaymentMethodType.SWISH
         else -> null
     }
 }
@@ -1257,6 +1277,7 @@ private fun mapFromCardPresentDetails(cardPresentDetails: Charge.CardPresent?): 
             putString("reader", it.reader)
             putString("paymentAccountReference", it.paymentAccountReference)
             putString("multicaptureStatus", mapFromMulticaptureStatus(it.multicapture?.status))
+            putString("overcaptureStatus", mapFromOvercaptureStatus(it.overcaptureStatus))
             putString("reauthorizationStatus", mapFromReauthorizationStatus(it.reauthorization?.status))
             it.captureBefore?.let { captureBefore ->
                 putString("captureBefore", convertToUnixTimestamp(captureBefore))
@@ -1304,6 +1325,14 @@ private fun mapFromPaypayDetails(paypayDetails: PaypayDetails?): ReadableMap? =
 
 private fun mapFromKlarnaDetails(klarnaDetails: KlarnaDetails?): ReadableMap? =
     klarnaDetails?.let {
+        nativeMapOf {
+            putString("location", it.location)
+            putString("reader", it.reader)
+        }
+    }
+
+private fun mapFromSwishDetails(swishDetails: SwishDetails?): ReadableMap? =
+    swishDetails?.let {
         nativeMapOf {
             putString("location", it.location)
             putString("reader", it.reader)
@@ -1964,7 +1993,7 @@ internal fun mapToSurchargeConfiguration(surchargeMap: ReadableMap): SurchargeCo
         }
         val consentBuilder = SurchargeConsent.Builder(collection)
 
-        val notice = consentMap.getString("notice") ?: ""
+        val notice = if (consentMap.hasKey("notice")) consentMap.getString("notice") else null
         consentBuilder.setNotice(notice)
             .build()
     } ?: SurchargeConsent.Builder().build()

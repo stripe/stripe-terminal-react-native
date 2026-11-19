@@ -11,3 +11,5 @@ config.json
 app.json
 tsconfig.build.json
 *.snap
+typedoc.json
+/build

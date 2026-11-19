@@ -10,10 +10,12 @@ import type {
   CollectSetupIntentPaymentMethodParams,
   RefundParams,
   CollectPaymentMethodParams,
+  ConnectionStatus,
   PaymentStatus,
   UserCallbacks,
   EventResult,
   PaymentIntent,
+  SetupIntent,
   OfflineStatus,
   ICollectInputsParameters,
   ReaderEvent,
@@ -91,31 +93,74 @@ import type EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitte
 import { createInternalStripeError } from '../Errors/StripeErrorHelpers';
 import { ErrorCode } from '../Errors/ErrorCodes';
 
-export const {
-  FETCH_TOKEN_PROVIDER,
-  CHANGE_CONNECTION_STATUS,
-  CHANGE_PAYMENT_STATUS,
-  FINISH_DISCOVERING_READERS,
-  FINISH_INSTALLING_UPDATE,
-  REQUEST_READER_DISPLAY_MESSAGE,
-  REQUEST_READER_INPUT,
-  REPORT_AVAILABLE_UPDATE,
-  UPDATE_REQUIREMENTS_AVAILABLE,
-  REPORT_UPDATE_PROGRESS,
-  START_INSTALLING_UPDATE,
-  UPDATE_DISCOVERED_READERS,
-  START_READER_RECONNECT,
-  READER_RECONNECT_SUCCEED,
-  READER_RECONNECT_FAIL,
-  CHANGE_OFFLINE_STATUS,
-  FORWARD_PAYMENT_INTENT,
-  REPORT_FORWARDING_ERROR,
-  DISCONNECT,
-  UPDATE_BATTERY_LEVEL,
-  REPORT_LOW_BATTERY_WARNING,
-  REPORT_READER_EVENT,
-  ACCEPT_TERMS_OF_SERVICE,
-} = NativeModules.StripeTerminalReactNative.getConstants();
+// Event names come from the native module at runtime, so TypeScript cannot
+// infer their values. Each is the event type `emitter` emits alongside the
+// matching {@link UserCallbacks} callback.
+const eventNames = NativeModules.StripeTerminalReactNative.getConstants();
+
+/** Event type emitted when the SDK requests a new connection token. */
+export const FETCH_TOKEN_PROVIDER: string = eventNames.FETCH_TOKEN_PROVIDER;
+/** Event type for {@link UserCallbacks.onDidChangeConnectionStatus}. */
+export const CHANGE_CONNECTION_STATUS: string =
+  eventNames.CHANGE_CONNECTION_STATUS;
+/** Event type for {@link UserCallbacks.onDidChangePaymentStatus}. */
+export const CHANGE_PAYMENT_STATUS: string = eventNames.CHANGE_PAYMENT_STATUS;
+/** Event type for {@link UserCallbacks.onFinishDiscoveringReaders}. */
+export const FINISH_DISCOVERING_READERS: string =
+  eventNames.FINISH_DISCOVERING_READERS;
+/** Event type for {@link UserCallbacks.onDidFinishInstallingUpdate}. */
+export const FINISH_INSTALLING_UPDATE: string =
+  eventNames.FINISH_INSTALLING_UPDATE;
+/** Event type for {@link UserCallbacks.onDidRequestReaderDisplayMessage}. */
+export const REQUEST_READER_DISPLAY_MESSAGE: string =
+  eventNames.REQUEST_READER_DISPLAY_MESSAGE;
+/** Event type for {@link UserCallbacks.onDidRequestReaderInput}. */
+export const REQUEST_READER_INPUT: string = eventNames.REQUEST_READER_INPUT;
+/** Event type for {@link UserCallbacks.onDidReportAvailableUpdate}. */
+export const REPORT_AVAILABLE_UPDATE: string =
+  eventNames.REPORT_AVAILABLE_UPDATE;
+/** Event type for {@link UserCallbacks.onDidUpdateRequirementsAvailable}. */
+export const UPDATE_REQUIREMENTS_AVAILABLE: string =
+  eventNames.UPDATE_REQUIREMENTS_AVAILABLE;
+/** Event type for {@link UserCallbacks.onDidReportReaderSoftwareUpdateProgress}. */
+export const REPORT_UPDATE_PROGRESS: string = eventNames.REPORT_UPDATE_PROGRESS;
+/** Event type for {@link UserCallbacks.onDidStartInstallingUpdate}. */
+export const START_INSTALLING_UPDATE: string =
+  eventNames.START_INSTALLING_UPDATE;
+/** Event type for {@link UserCallbacks.onUpdateDiscoveredReaders}. */
+export const UPDATE_DISCOVERED_READERS: string =
+  eventNames.UPDATE_DISCOVERED_READERS;
+/** Event type for {@link UserCallbacks.onDidStartReaderReconnect}. */
+export const START_READER_RECONNECT: string = eventNames.START_READER_RECONNECT;
+/** Event type for {@link UserCallbacks.onDidSucceedReaderReconnect}. */
+export const READER_RECONNECT_SUCCEED: string =
+  eventNames.READER_RECONNECT_SUCCEED;
+/** Event type for {@link UserCallbacks.onDidFailReaderReconnect}. */
+export const READER_RECONNECT_FAIL: string = eventNames.READER_RECONNECT_FAIL;
+/** Event type for {@link UserCallbacks.onDidChangeOfflineStatus}. */
+export const CHANGE_OFFLINE_STATUS: string = eventNames.CHANGE_OFFLINE_STATUS;
+/** Event type for {@link UserCallbacks.onDidForwardPaymentIntent}. */
+export const FORWARD_PAYMENT_INTENT: string = eventNames.FORWARD_PAYMENT_INTENT;
+/** Event type for {@link UserCallbacks.onDidForwardSetupIntent}. */
+export const FORWARD_SETUP_INTENT: string = eventNames.FORWARD_SETUP_INTENT;
+/** Event type for {@link UserCallbacks.onDidForwardingFailure}. */
+export const REPORT_FORWARDING_ERROR: string =
+  eventNames.REPORT_FORWARDING_ERROR;
+/** Event type for {@link UserCallbacks.onDidDisconnect}. */
+export const DISCONNECT: string = eventNames.DISCONNECT;
+/** Event type for {@link UserCallbacks.onDidUpdateBatteryLevel}. */
+export const UPDATE_BATTERY_LEVEL: string = eventNames.UPDATE_BATTERY_LEVEL;
+/** Event type for {@link UserCallbacks.onDidReportLowBatteryWarning}. */
+export const REPORT_LOW_BATTERY_WARNING: string =
+  eventNames.REPORT_LOW_BATTERY_WARNING;
+/** Event type for {@link UserCallbacks.onDidReportReaderEvent}. */
+export const REPORT_READER_EVENT: string = eventNames.REPORT_READER_EVENT;
+/**
+ * Event type for {@link UserCallbacks.onDidAcceptTermsOfService}.
+ * iOS only: Android does not report this event, so the value is `undefined` there.
+ */
+export const ACCEPT_TERMS_OF_SERVICE: string | undefined =
+  eventNames.ACCEPT_TERMS_OF_SERVICE;
 
 const NOT_INITIALIZED_ERROR_MESSAGE =
   'First initialize the Stripe Terminal SDK before performing any action';
@@ -177,6 +222,7 @@ export function useStripeTerminal(props?: Props) {
     onDidFailReaderReconnect,
     onDidChangeOfflineStatus,
     onDidForwardPaymentIntent,
+    onDidForwardSetupIntent,
     onDidForwardingFailure,
     onDidDisconnect,
     onDidUpdateBatteryLevel,
@@ -287,7 +333,7 @@ export function useStripeTerminal(props?: Props) {
   );
 
   const didChangeConnectionStatus = useCallback(
-    ({ result }: EventResult<Reader.ConnectionStatus>) => {
+    ({ result }: EventResult<ConnectionStatus>) => {
       onDidChangeConnectionStatus?.(result);
     },
     [onDidChangeConnectionStatus]
@@ -336,6 +382,13 @@ export function useStripeTerminal(props?: Props) {
       onDidForwardPaymentIntent?.(result, error);
     },
     [onDidForwardPaymentIntent]
+  );
+
+  const didForwardSetupIntent = useCallback(
+    ({ result, error }: { result: SetupIntent.Type; error?: StripeError }) => {
+      onDidForwardSetupIntent?.(result, error);
+    },
+    [onDidForwardSetupIntent]
   );
 
   const didReportForwardingError = useCallback(
@@ -396,6 +449,7 @@ export function useStripeTerminal(props?: Props) {
 
   useListener(CHANGE_OFFLINE_STATUS, didChangeOfflineStatus);
   useListener(FORWARD_PAYMENT_INTENT, didForwardPaymentIntent);
+  useListener(FORWARD_SETUP_INTENT, didForwardSetupIntent);
   useListener(REPORT_FORWARDING_ERROR, didReportForwardingError);
 
   useListener(DISCONNECT, didDisconnect);
@@ -1160,63 +1214,124 @@ export function useStripeTerminal(props?: Props) {
   }, []);
 
   return {
+    /** Initializes the SDK. Call once, before any other method, inside {@link StripeTerminalProvider}. */
     initialize: _initialize,
+    /** Starts discovering readers with the given discovery method. Discovered readers are reported through {@link UserCallbacks.onUpdateDiscoveredReaders}. */
     discoverReaders: _discoverReaders,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.discoverReaders | discoverReaders} call. */
     cancelDiscovering: _cancelDiscovering,
+    /** Discovers and connects to a reader in a single call. */
     easyConnect: _easyConnect,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.easyConnect | easyConnect} call. */
     cancelEasyConnect: _cancelEasyConnect,
+    /** Connects to a reader returned by {@link WithStripeTerminalProps.discoverReaders | discoverReaders}. */
     connectReader: _connectReader,
+    /** Disconnects from the connected reader. */
     disconnectReader: _disconnectReader,
+    /** Reboots the connected reader. */
     rebootReader: _rebootReader,
+    /** Creates a PaymentIntent. */
     createPaymentIntent: _createPaymentIntent,
+    /** Collects a payment method for a PaymentIntent using the connected reader. */
     collectPaymentMethod: _collectPaymentMethod,
+    /** Retrieves a PaymentIntent by its client secret. */
     retrievePaymentIntent: _retrievePaymentIntent,
+    /** Lists the Locations belonging to the account. */
     getLocations: _getLocations,
+    /** Confirms a PaymentIntent after {@link WithStripeTerminalProps.collectPaymentMethod | collectPaymentMethod} succeeds. */
     confirmPaymentIntent: _confirmPaymentIntent,
+    /** Collects a payment method and confirms the PaymentIntent in a single call. */
     processPaymentIntent: _processPaymentIntent,
+    /** Creates a SetupIntent. */
     createSetupIntent: _createSetupIntent,
+    /** Cancels a PaymentIntent. */
     cancelPaymentIntent: _cancelPaymentIntent,
+    /** Installs the software update reported by {@link UserCallbacks.onDidReportAvailableUpdate}. */
     installAvailableUpdate: _installAvailableUpdate,
+    /** Cancels an in-progress reader software update. */
     cancelInstallingUpdate: _cancelInstallingUpdate,
+    /** Displays a cart on the reader's screen. */
     setReaderDisplay: _setReaderDisplay,
+    /** Clears the reader's screen. */
     clearReaderDisplay: _clearReaderDisplay,
+    /** Retrieves a SetupIntent by its client secret. */
     retrieveSetupIntent: _retrieveSetupIntent,
+    /** Collects a payment method for a SetupIntent using the connected reader. */
     collectSetupIntentPaymentMethod: _collectSetupIntentPaymentMethod,
+    /** Cancels a SetupIntent. */
     cancelSetupIntent: _cancelSetupIntent,
+    /** Confirms a SetupIntent after {@link WithStripeTerminalProps.collectSetupIntentPaymentMethod | collectSetupIntentPaymentMethod} succeeds. */
     confirmSetupIntent: _confirmSetupIntent,
+    /** Collects a payment method and confirms the SetupIntent in a single call. */
     processSetupIntent: _processSetupIntent,
+    /** Collects a payment method and refunds a charge or PaymentIntent. */
     processRefund: _processRefund,
+    /** Clears the cached connection token and reader sessions, for example when switching accounts. */
     clearCachedCredentials: _clearCachedCredentials,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.collectPaymentMethod | collectPaymentMethod} call. */
     cancelCollectPaymentMethod: _cancelCollectPaymentMethod,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.collectSetupIntentPaymentMethod | collectSetupIntentPaymentMethod} call. */
     cancelCollectSetupIntent: _cancelCollectSetupIntent,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.confirmPaymentIntent | confirmPaymentIntent} call. */
     cancelConfirmPaymentIntent: _cancelConfirmPaymentIntent,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.processPaymentIntent | processPaymentIntent} call. */
     cancelProcessPaymentIntent: _cancelProcessPaymentIntent,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.confirmSetupIntent | confirmSetupIntent} call. */
     cancelConfirmSetupIntent: _cancelConfirmSetupIntent,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.processSetupIntent | processSetupIntent} call. */
     cancelProcessSetupIntent: cancelProcessSetupIntent,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.processRefund | processRefund} call. */
     cancelProcessRefund: _cancelProcessRefund,
+    /** Sets the test card number a simulated reader presents. */
     setSimulatedCard: _setSimulatedCard,
+    /** Simulates the device going offline or back online. */
     setSimulatedOfflineMode: _setSimulatedOfflineMode,
+    /** Sets the result a simulated reader returns from {@link WithStripeTerminalProps.collectInputs | collectInputs}. */
     setSimulatedCollectInputsResult: _setSimulatedCollectInputsResult,
+    /** Returns the offline status of the SDK and the connected reader. */
     getOfflineStatus: _getOfflineStatus,
+    /** Returns the current payment status. */
     getPaymentStatus: _getPaymentStatus,
+    /** Returns the current reader connection status. */
     getConnectionStatus: _getConnectionStatus,
+    /** Returns the connected reader, if any. */
     getConnectedReader: _getConnectedReader,
+    /** Returns the connected reader's settings. */
     getReaderSettings: _getReaderSettings,
+    /** Updates the connected reader's settings. */
     setReaderSettings: _setReaderSettings,
+    /** Displays forms on the reader and collects the customer's input. */
     collectInputs: _collectInputs,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.collectInputs | collectInputs} call. */
     cancelCollectInputs: _cancelCollectInputs,
+    /** Collects non-payment data, such as a magstripe card, using the connected reader. */
     collectData: _collectData,
+    /** Cancels an in-progress {@link WithStripeTerminalProps.collectData | collectData} call. */
     cancelCollectData: _cancelCollectData,
+    /**
+     * Prints the specified content to the connected reader's printer, if available.
+     * @param content The content to print. Must be an image (JPEG/PNG) encoded as a base64 string or 'data:' URI scheme.
+     */
     print: _print,
+    /** Cancels an in-progress automatic reader reconnection. */
     cancelReaderReconnection: _cancelReaderReconnection,
+    /** Checks whether the device supports readers of the given type and discovery method. */
     supportsReadersOfType: _supportsReadersOfType,
+    /** Customizes the Tap to Pay screen. */
     setTapToPayUxConfiguration: _setTapToPayUxConfiguration,
+    /** Returns the version of the native Stripe Terminal SDK. */
     getNativeSdkVersion: _getNativeSdkVersion,
+    /** Event emitter for SDK events. Event types are exported as constants, such as {@link CHANGE_CONNECTION_STATUS}. */
     emitter: emitter,
+    /** Readers found by the latest {@link WithStripeTerminalProps.discoverReaders | discoverReaders} call. */
     discoveredReaders,
+    /** The connected reader, or `null` or `undefined` when no reader is connected. */
     connectedReader,
+    /** Whether {@link WithStripeTerminalProps.initialize | initialize} has completed successfully. */
     isInitialized,
+    /** Returns whether the SDK is initialized. Unlike {@link WithStripeTerminalProps.isInitialized | isInitialized}, reads the latest value outside the render cycle. */
     getIsInitialized,
+    /** Whether an SDK call is in progress. */
     loading,
   };
 }

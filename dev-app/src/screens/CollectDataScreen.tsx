@@ -18,7 +18,6 @@ import type { NavigationProp } from '@react-navigation/native';
 import type { RouteParamList } from '../App';
 
 const CUSTOMER_CANCELLATION = [
-  { value: 'unspecified', label: 'unspecified' },
   { value: 'enableIfAvailable', label: 'enableIfAvailable' },
   { value: 'disableIfAvailable', label: 'disableIfAvailable' },
 ];
@@ -27,7 +26,7 @@ export default function CollectDataScreen() {
   const { addLogs, clearLogs, setCancel } = useContext(LogContext);
   const navigation = useNavigation<NavigationProp<RouteParamList>>();
   const [customerCancellation, setCustomerCancellation] =
-    useState<CustomerCancellation>('unspecified');
+    useState<CustomerCancellation>('enableIfAvailable');
 
   const { collectData, cancelCollectData } = useStripeTerminal();
 
