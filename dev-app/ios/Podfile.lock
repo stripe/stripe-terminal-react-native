@@ -1981,7 +1981,7 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
-  - stripe-terminal-react-native (0.0.1-beta.36):
+  - stripe-terminal-react-native (6.0.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2004,7 +2004,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-terminal-react-native/Tests (0.0.1-beta.36):
+  - stripe-terminal-react-native/Tests (6.0.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2416,7 +2416,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: c30d0805eccd9b0f143c252ae769131096337322
   RNScreens: 6d0d3b7819284dbf9f222899eb819f069fce4b8b
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
-  stripe-terminal-react-native: fd25af882c7964a7e72a85a5e6dde329536eb5ba
+  stripe-terminal-react-native: c0f5b6c1a5802f46dbf4373e98354d4bde931f3c
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
 
 PODFILE CHECKSUM: 0291a5547f6766d946b9bb515e807f8916d831a3
