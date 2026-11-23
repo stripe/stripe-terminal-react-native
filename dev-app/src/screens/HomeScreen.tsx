@@ -15,6 +15,7 @@ import {
   DevSettings,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../colors';
 import { AppContext } from '../AppContext';
 import { getErrorMessage, showErrorToast } from '../util/errorHandling';
@@ -475,7 +476,7 @@ export default function HomeScreen() {
     </>
   );
   return (
-    <React.Fragment>
+    <SafeAreaView edges={['bottom']} style={styles.safeArea}>
       <KeyboardAwareScrollView
         testID="home-screen"
         style={styles.container}
@@ -880,7 +881,7 @@ export default function HomeScreen() {
           {mapFromDraftLocaleConfig()}
         </Text>
       </AlertDialog>
-    </React.Fragment>
+    </SafeAreaView>
   );
 }
 
@@ -912,6 +913,10 @@ function mapFromLocaleConfig(localeConfig: LocaleConfig) {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.light_gray,
+    flex: 1,
+  },
   container: {
     backgroundColor: colors.light_gray,
   },

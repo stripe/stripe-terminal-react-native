@@ -38,6 +38,13 @@ jest.mock(
   }),
   { virtual: true }
 );
+jest.mock(
+  'react-native-safe-area-context',
+  () => ({
+    SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+  }),
+  { virtual: true }
+);
 jest.mock('../../AppContext', () => ({
   AppContext: jest.requireMock<typeof import('react')>('react').createContext({
     autoReconnectOnUnexpectedDisconnect: true,

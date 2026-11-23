@@ -12,6 +12,7 @@ import {
   Platform,
   Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useStripeTerminal,
   UpdateComponent,
@@ -346,120 +347,126 @@ export default function DiscoverReadersScreen() {
     !(discoveryMethod === 'tapToPay' && Platform.OS === 'android');
 
   return (
-    <ScrollView
-      testID="discovery-readers-screen"
-      contentContainerStyle={styles.container}
-    >
-      {discoveryMethod != 'internet' && (
-        <List title="SELECT LOCATION">
-          <ListItem
-            onPress={() => {
-              if (!simulated) {
-                navigation.navigate('LocationListScreen', {
-                  onSelect: (location: Location) =>
-                    setSelectedLocation(location),
-                  showDummyLocation: true,
-                });
-              }
-            }}
-            disabled={simulated}
-            title={
-              simulated
-                ? 'Mock simulated reader location'
-                : selectedLocation?.displayName || 'No location selected'
-            }
-          />
-
-          {simulated ? (
-            <Text style={styles.infoText}>
-              Simulated readers are always registered to the mock simulated
-              location.
-            </Text>
-          ) : (
-            <Text style={styles.infoText}>
-              Bluetooth readers must be registered to a location during the
-              connection process. If you do not select a location, the reader
-              will attempt to register to the same location it was registered to
-              during the previous connection.
-            </Text>
-          )}
-        </List>
-      )}
-
-      {supportsTestReaderUpdate && (
-        <List title="TEST READER UPDATE">
-          <ListItem
-            testID="test-reader-update-button"
-            onPress={() => {
-              navigation.navigate('TestReaderUpdateScreen', {
-                currentType: selectedUpdateType,
-                currentComponents: selectedComponents,
-                discoveryMethod: discoveryMethod,
-                onSelect: (type: TestReaderUpdateTypeName, components: UpdateComponent[]) => {
-                  setSelectedUpdateType(type);
-                  setSelectedComponents(components);
-                },
-              });
-            }}
-            title={getUpdateDisplayName(
-              selectedUpdateType,
-              selectedComponents
-            )}
-          />
-        </List>
-      )}
-
-      {!simulated &&
-        (discoveryMethod === 'bluetoothScan' ||
-          discoveryMethod === 'usb' ||
-          discoveryMethod === 'tapToPay' ||
-          discoveryMethod === 'bluetoothProximity') && (
-          <List
-            bolded={false}
-            topSpacing={false}
-            title="AUTOMATIC RECONNECTION"
-          >
+    <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+      <ScrollView
+        testID="discovery-readers-screen"
+        contentContainerStyle={styles.container}
+      >
+        {discoveryMethod != 'internet' && (
+          <List title="SELECT LOCATION">
             <ListItem
-              title="Enable Auto-Reconnect"
-              rightElement={
-                <Switch
-                  testID="enable-automatic-reconnection"
-                  value={autoReconnectOnUnexpectedDisconnect}
-                  onValueChange={(value) => {
-                    setAutoReconnectOnUnexpectedDisconnect(value);
-                  }}
-                />
+              onPress={() => {
+                if (!simulated) {
+                  navigation.navigate('LocationListScreen', {
+                    onSelect: (location: Location) =>
+                      setSelectedLocation(location),
+                    showDummyLocation: true,
+                  });
+                }
+              }}
+              disabled={simulated}
+              title={
+                simulated
+                  ? 'Mock simulated reader location'
+                  : selectedLocation?.displayName || 'No location selected'
               }
             />
 
-            <Text style={styles.infoText}>
-              Automatic reconnection support for Bluetooth in iOS and Bluetooth
-              and USB in Android, where if the reader loses connection the SDK
-              will automatically attempts to reconnect to the reader.
-            </Text>
+            {simulated ? (
+              <Text style={styles.infoText}>
+                Simulated readers are always registered to the mock simulated
+                location.
+              </Text>
+            ) : (
+              <Text style={styles.infoText}>
+                Bluetooth readers must be registered to a location during the
+                connection process. If you do not select a location, the reader
+                will attempt to register to the same location it was registered to
+                during the previous connection.
+              </Text>
+            )}
           </List>
         )}
 
-      <List
-        title="NEARBY READERS"
-        loading={discoveringLoading}
-        description={connectingReader ? 'Connecting...' : undefined}
-      >
-        {discoveredReaders.map((reader, index) => (
-          <ListItem
-            key={reader.serialNumber}
-            onPress={() => handleConnectReader(reader)}
-            title={getReaderDisplayName(reader)}
-            testID={`reader-${index}`}
-            disabled={!isBTReader(reader) && reader.status === 'offline'}
-          />
-        ))}
-      </List>
-    </ScrollView>
+        {supportsTestReaderUpdate && (
+          <List title="TEST READER UPDATE">
+            <ListItem
+              testID="test-reader-update-button"
+              onPress={() => {
+                navigation.navigate('TestReaderUpdateScreen', {
+                  currentType: selectedUpdateType,
+                  currentComponents: selectedComponents,
+                  discoveryMethod: discoveryMethod,
+                  onSelect: (type: TestReaderUpdateTypeName, components: UpdateComponent[]) => {
+                    setSelectedUpdateType(type);
+                    setSelectedComponents(components);
+                  },
+                });
+              }}
+              title={getUpdateDisplayName(
+                selectedUpdateType,
+                selectedComponents
+              )}
+            />
+          </List>
+        )}
+
+        {!simulated &&
+          (discoveryMethod === 'bluetoothScan' ||
+            discoveryMethod === 'usb' ||
+            discoveryMethod === 'tapToPay' ||
+            discoveryMethod === 'bluetoothProximity') && (
+            <List
+              bolded={false}
+              topSpacing={false}
+              title="AUTOMATIC RECONNECTION"
+            >
+              <ListItem
+                title="Enable Auto-Reconnect"
+                rightElement={
+                  <Switch
+                    testID="enable-automatic-reconnection"
+                    value={autoReconnectOnUnexpectedDisconnect}
+                    onValueChange={(value) => {
+                      setAutoReconnectOnUnexpectedDisconnect(value);
+                    }}
+                  />
+                }
+              />
+
+              <Text style={styles.infoText}>
+                Automatic reconnection support for Bluetooth in iOS and Bluetooth
+                and USB in Android, where if the reader loses connection the SDK
+                will automatically attempts to reconnect to the reader.
+              </Text>
+            </List>
+          )}
+
+        <List
+          title="NEARBY READERS"
+          loading={discoveringLoading}
+          description={connectingReader ? 'Connecting...' : undefined}
+        >
+          {discoveredReaders.map((reader, index) => (
+            <ListItem
+              key={reader.serialNumber}
+              onPress={() => handleConnectReader(reader)}
+              title={getReaderDisplayName(reader)}
+              testID={`reader-${index}`}
+              disabled={!isBTReader(reader) && reader.status === 'offline'}
+            />
+          ))}
+        </List>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.light_gray,
+    flex: 1,
+  },
   container: {
     backgroundColor: colors.light_gray,
     alignSelf: 'stretch',

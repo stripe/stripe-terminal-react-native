@@ -72,6 +72,14 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+// QA installs beside the normal app and registers as its own Firebase App Distribution app, which keys apps by
+// package name. `namespace` deliberately does not follow: it is where R and BuildConfig live.
+def rnTestAppEnv = (project.findProperty('RN_TEST_APP_APP_ENV') ?: 'prod').toString()
+def rnTestAppIds = [prod: 'com.dev.app.stripeterminalreactnative', qa: 'com.dev.app.stripeterminalreactnative.qa']
+if (!rnTestAppIds.containsKey(rnTestAppEnv)) {
+    throw new GradleException("Unknown RN_TEST_APP_APP_ENV '$rnTestAppEnv', expected one of: ${rnTestAppIds.keySet().join(', ')}")
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -80,7 +88,7 @@ android {
 
     namespace "com.dev.app.stripeterminalreactnative"
     defaultConfig {
-        applicationId "com.dev.app.stripeterminalreactnative"
+        applicationId rnTestAppIds[rnTestAppEnv]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode = (project.findProperty('RN_TEST_APP_VERSION_CODE') ?: '1').toString().toInteger()
@@ -106,7 +114,7 @@ android {
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }

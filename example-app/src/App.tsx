@@ -202,11 +202,7 @@ export default function App() {
   return (
     <LogContext.Provider value={value}>
       <>
-        <StatusBar
-          backgroundColor={colors.blurple_dark}
-          barStyle="light-content"
-          translucent
-        />
+        <StatusBar barStyle="light-content" />
 
         <NavigationContainer>
           <Stack.Navigator screenOptions={screenOptions}>
